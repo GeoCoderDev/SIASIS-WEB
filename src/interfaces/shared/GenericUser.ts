@@ -30,7 +30,7 @@ export type ProfesorSecundariaGenerico = Pick<
 
 export type ResponsableGenerico = Pick<
   T_Responsables,
-  "DNI_Responsable" | "Nombres" | "Apellidos" 
+  "DNI_Responsable" | "Nombres" | "Apellidos"
 >;
 
 export interface GenericUser {
@@ -39,4 +39,5 @@ export interface GenericUser {
   Nombres: string;
   Apellidos: string;
   Genero?: Genero;
+  DNI_Directivo?: string;
 }
