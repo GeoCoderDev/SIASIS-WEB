@@ -270,4 +270,4 @@ const GestionFechasEscolares = () => {
   );
 };
 
-export default GestionFechasEscolares;w
+export default GestionFechasEscolares;
