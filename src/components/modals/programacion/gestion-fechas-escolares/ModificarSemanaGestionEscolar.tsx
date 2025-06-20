@@ -47,10 +47,10 @@ const ModificarSemanaGestionEscolar = ({
 
   return (
     <ModalContainer
-      className="w-[95vw] sm:w-[500px] max-w-[80vw] sm:max-w-[500px] mx-auto"
+      className="w-[95vw] sm:w-[500px] md:w-[550px] lg:w-[600px] max-w-[80vw] sm:max-w-[600px] mx-auto"
       eliminateModal={eliminateModal}
     >
-      <div className="pt-2 px-4">
+      <div className="pt-2 px-4 md:px-6">
         {/* Título */}
         <h2 className="text-xl sm:text-2xl font-bold text-center text-gray-800 mb-6">
           Periodo de Semana de Gestión
