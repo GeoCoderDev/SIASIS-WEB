@@ -654,19 +654,19 @@ const RegistrosAsistenciaDePersonal = () => {
     rolEstaSeleccionado && usuarioEstaSeleccionado && mesEstaSeleccionado;
 
   return (
-    <div className="min-h-full min-w-full -bg-gray-50 p-4 lg:p-6">
+    <div className="min-h-full min-w-full -bg-gray-50 p-4 lg-only:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-4">
-          <div className="flex items-center space-x-3 mb-1">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-              <Calendar className="w-5 h-5 text-white" />
+          <div className="flex items-center space-x-3 sm-only:space-x-4 mb-1">
+            <div className="w-8 h-8 sm-only:w-9 sm-only:h-9 lg-only:w-10 lg-only:h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Calendar className="w-4 h-4 sm-only:w-5 sm-only:h-5 lg-only:w-6 lg-only:h-6 text-white" />
             </div>
-            <div>
-              <h1 className="text-xl lg:text-2xl font-bold text-gray-900">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl lg-only:text-2xl font-bold text-gray-900">
                 Consulta de Asistencias de Personal
               </h1>
-              <p className="text-gray-600 text-xs lg:text-sm">
+              <p className="text-gray-600 text-xs lg-only:text-sm">
                 Consulta los registros mensuales de entrada y salida del
                 personal institucional
               </p>
@@ -697,9 +697,9 @@ const RegistrosAsistenciaDePersonal = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4">
           <div className="space-y-4">
             {/* ✅ CAMPOS DEL FORMULARIO - DISTRIBUCIÓN RESPONSIVE OPTIMIZADA */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 lg:gap-4">
+            <div className="grid grid-cols-1 sm-only:grid-cols-2 lg-only:grid-cols-12 gap-3 lg-only:gap-4">
               {/* Selector de Rol - 3 columnas en lg */}
-              <div className="sm:col-span-2 lg:col-span-3">
+              <div className="sm-only:col-span-2 lg-only:col-span-3">
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
                   Tipo de Personal
                 </label>
@@ -727,7 +727,7 @@ const RegistrosAsistenciaDePersonal = () => {
               </div>
 
               {/* Selector de Usuario - 4 columnas en lg */}
-              <div className="sm:col-span-2 lg:col-span-4">
+              <div className="sm-only:col-span-2 lg-only:col-span-4">
                 <SiasisUserSelector
                   usuarioSeleccionado={usuarioSeleccionado}
                   ID_SELECTOR_USUARIO_GENERICO_HTML="SIASIS-SDU_Seccion-Consulta-Registros-Mensuales-Personal"
@@ -739,7 +739,7 @@ const RegistrosAsistenciaDePersonal = () => {
               </div>
 
               {/* Selector de Mes - 3 columnas en lg */}
-              <div className="sm:col-span-1 lg:col-span-3">
+              <div className="sm-only:col-span-1 lg-only:col-span-3">
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
                   Mes a Consultar
                 </label>
@@ -777,7 +777,7 @@ const RegistrosAsistenciaDePersonal = () => {
               </div>
 
               {/* Botón de búsqueda - 2 columnas en lg */}
-              <div className="sm:col-span-1 lg:col-span-2">
+              <div className="sm-only:col-span-1 lg-only:col-span-2">
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
                   &nbsp;
                 </label>
@@ -854,76 +854,82 @@ const RegistrosAsistenciaDePersonal = () => {
           </div>
         </div>
 
-        {/* Información del usuario */}
+        {/* ✅ INFORMACIÓN DEL USUARIO - OPTIMIZADA PARA MEJOR USO DEL ESPACIO */}
         {data && !loading && !loadingEventos && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-4">
-            <div className="flex items-center space-x-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-4">
+            <div className="flex items-center space-x-5">
               <div className="flex-shrink-0">
                 {usuarioSeleccionado?.Google_Drive_Foto_ID ? (
                   <FotoPerfilClientSide
                     Google_Drive_Foto_ID={
                       usuarioSeleccionado.Google_Drive_Foto_ID
                     }
-                    className="w-20 h-20 border-3 border-white rounded-full"
+                    className="w-[4rem] h-[4rem] border-3 border-white rounded-full"
                   />
                 ) : (
-                  <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white font-bold text-2xl border-3 border-white">
+                  <div className="w-[4rem] h-[4rem] bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white font-bold text-lg border-3 border-white">
                     {usuarioSeleccionado?.Nombres?.charAt(0)}
                     {usuarioSeleccionado?.Apellidos?.charAt(0)}
                   </div>
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-3 mb-3">
-                  <h3 className="text-xl lg:text-2xl font-bold text-gray-900 truncate">
+                <div className="flex items-center gap-2.5 mb-3">
+                  <h3 className="text-lg lg-only:text-xl font-bold text-gray-900 truncate">
                     {usuarioSeleccionado?.Nombres}{" "}
                     {usuarioSeleccionado?.Apellidos}
                   </h3>
-                  <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold bg-blue-100 text-blue-800 flex-shrink-0 border border-blue-300">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-blue-100 text-blue-800 flex-shrink-0 border border-blue-300">
                     {roles.find((r) => r.value === selectedRol)?.label}
                   </span>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-600 mb-3">
-                  <div className="flex items-center space-x-2">
+
+                {/* ✅ DATOS EN HORIZONTAL CON FLEX-WRAP RESPONSIVE */}
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-gray-600 mb-3">
+                  <div className="flex items-center space-x-1.5">
                     <span className="font-semibold text-gray-700 flex-shrink-0">
                       DNI:
                     </span>
-                    <span className="truncate font-medium text-gray-900">
+                    <span className="font-medium text-gray-900">
                       {data.ID_o_DNI_Personal}
                     </span>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-1.5">
                     <span className="font-semibold text-gray-700 flex-shrink-0">
                       Mes:
                     </span>
-                    <span className="truncate font-medium text-gray-900">
+                    <span className="font-medium text-gray-900">
                       {mesesTextos[data.mes as Meses]}
                     </span>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-1.5">
                     <span className="font-semibold text-gray-700 flex-shrink-0">
                       Registros:
                     </span>
-                    <span className="truncate font-medium text-gray-900">
+                    <span className="font-medium text-gray-900">
                       {registros.length}
                     </span>
                   </div>
+
+                  {/* ✅ MENSAJE DE DÍAS LABORABLES */}
+                  <div className="flex items-center">
+                    <p className="text-xs text-gray-600 italic">
+                      {CONSIDERAR_DIAS_NO_ESCOLARES && ENTORNO === Entorno.LOCAL
+                        ? "📅 Incluye todos los días hasta la fecha actual"
+                        : "📅 Solo días laborables hasta la fecha actual"}
+                    </p>
+                  </div>
                 </div>
-                <p className="text-sm text-gray-600">
-                  {CONSIDERAR_DIAS_NO_ESCOLARES && ENTORNO === Entorno.LOCAL
-                    ? "Incluye todos los días hasta la fecha actual"
-                    : "Solo días laborables hasta la fecha actual"}
-                </p>
               </div>
 
-              {/* 🆕 BOTÓN DE EXPORTAR MEJORADO - 15% más grande */}
-              <div className="flex-shrink-0">
+              {/* ✅ BOTÓN DE EXPORTAR - CENTRADO VERTICALMENTE */}
+              <div className="flex-shrink-0 flex items-center">
                 <button
                   title="Exportar a Excel"
-                  className="bg-white border border-gray-300 hover:border-green-400 hover:bg-green-50 text-gray-700 hover:text-green-700 px-5 py-3 rounded-lg font-medium text-base transition-all duration-200 flex items-center space-x-2.5 min-w-[140px] shadow-sm hover:shadow-md"
+                  className="bg-white border border-gray-300 hover:border-green-400 hover:bg-green-50 text-gray-700 hover:text-green-700 px-5 py-3 rounded-lg font-medium text-sm transition-all duration-200 flex items-center space-x-2.5 min-w-[135px] shadow-sm hover:shadow-md"
                 >
                   <img
-                    className="w-6 h-6"
+                    className="w-[1.75rem]"
                     src="/images/svg/Aplicaciones Relacionadas/ExcelLogo.svg"
                     alt="Logo de Excel"
                   />
@@ -934,9 +940,9 @@ const RegistrosAsistenciaDePersonal = () => {
           </div>
         )}
 
-        {/* 🆕 TABLA DE REGISTROS CON SCROLL HORIZONTAL OPTIMIZADO */}
+        {/* ✅ TABLA DE REGISTROS COMPACTA (COMO LA VERSIÓN ANTERIOR) */}
         {registros.length > 0 && !loading && !loadingEventos && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-4">
+          <div className="bg-white rounded-lg shadow-md overflow-hidden">
             <div className="p-4 border-b border-gray-100">
               <div className="flex items-center space-x-2">
                 <FileText className="w-5 h-5 text-gray-600 flex-shrink-0" />
@@ -946,143 +952,126 @@ const RegistrosAsistenciaDePersonal = () => {
               </div>
             </div>
 
-            {/* 🆕 CONTENEDOR CON SCROLL HORIZONTAL SOLO PARA LA TABLA */}
-            <div className="w-full overflow-hidden">
-              <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-                <div className="min-w-[1200px]">
-                  <table className="w-full">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-20">
-                          Fecha
-                        </th>
-                        <th className="px-2 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-24">
-                          Entrada Prog.
-                        </th>
-                        <th className="px-2 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-24">
-                          Entrada Real
-                        </th>
-                        <th className="px-2 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-20">
-                          Dif.
-                        </th>
-                        <th className="px-2 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-28">
-                          Estado Entrada
-                        </th>
-                        <th className="px-2 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-24">
-                          Salida Prog.
-                        </th>
-                        <th className="px-2 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-24">
-                          Salida Real
-                        </th>
-                        <th className="px-2 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-20">
-                          Dif.
-                        </th>
-                        <th className="px-2 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-28">
-                          Estado Salida
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {registros.map((registro) => (
-                        <tr
-                          key={registro.fecha}
-                          className={`transition-colors duration-150 hover:bg-gray-50 ${
-                            registro.esDiaNoEscolar && !registro.esEvento
-                              ? "bg-blue-25"
-                              : ""
+            {/* ✅ TABLA MÁS COMPACTA COMO LA VERSIÓN ANTERIOR */}
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gris-oscuro text-white">
+                  <tr>
+                    <th className="px-2 lg-only:px-4 py-3 text-center text-xs lg-only:text-sm font-medium">
+                      Fecha
+                    </th>
+                    <th className="px-2 lg-only:px-4 py-3 text-center text-xs lg-only:text-sm font-medium">
+                      Entrada Programada
+                    </th>
+                    <th className="px-2 lg-only:px-4 py-3 text-center text-xs lg-only:text-sm font-medium">
+                      Entrada Real
+                    </th>
+                    <th className="px-2 lg-only:px-4 py-3 text-center text-xs lg-only:text-sm font-medium">
+                      Diferencia Entrada
+                    </th>
+                    <th className="px-2 lg-only:px-4 py-3 text-center text-xs lg-only:text-sm font-medium">
+                      Estado Entrada
+                    </th>
+                    <th className="px-2 lg-only:px-4 py-3 text-center text-xs lg-only:text-sm font-medium">
+                      Salida Programada
+                    </th>
+                    <th className="px-2 lg-only:px-4 py-3 text-center text-xs lg-only:text-sm font-medium">
+                      Salida Real
+                    </th>
+                    <th className="px-2 lg-only:px-4 py-3 text-center text-xs lg-only:text-sm font-medium">
+                      Diferencia Salida
+                    </th>
+                    <th className="px-2 lg-only:px-4 py-3 text-center text-xs lg-only:text-sm font-medium">
+                      Estado Salida
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gris-claro">
+                  {registros.map((registro, index) => (
+                    <tr
+                      key={registro.fecha}
+                      className={`${
+                        index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                      } ${
+                        registro.esDiaNoEscolar && !registro.esEvento
+                          ? "bg-blue-50"
+                          : ""
+                      }`}
+                    >
+                      <td className="px-2 lg-only:px-4 py-3 text-xs lg-only:text-sm text-gris-oscuro text-center">
+                        <div className="flex flex-col items-center">
+                          <span>
+                            {new Date(
+                              registro.fecha + "T00:00:00"
+                            ).toLocaleDateString("es-ES", {
+                              weekday: "short",
+                              day: "2-digit",
+                              month: "2-digit",
+                            })}
+                          </span>
+                          {registro.esEvento && (
+                            <div className="text-xs text-violeta-principal font-medium mt-1">
+                              🎉 {registro.nombreEvento}
+                            </div>
+                          )}
+                          {registro.esDiaNoEscolar && !registro.esEvento && (
+                            <div className="text-xs text-blue-600 font-medium mt-1">
+                              📅 Fin de semana
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-2 lg-only:px-4 py-3 text-xs lg-only:text-sm text-gris-oscuro text-center">
+                        {registro.entradaProgramada}
+                      </td>
+                      <td className="px-2 lg-only:px-4 py-3 text-xs lg-only:text-sm text-gris-oscuro text-center">
+                        {registro.entradaReal}
+                      </td>
+                      <td className="px-2 lg-only:px-4 py-3 text-xs lg-only:text-sm text-gris-oscuro text-center">
+                        {registro.diferenciaEntrada}
+                      </td>
+                      <td className="px-2 lg-only:px-4 py-3 text-center">
+                        <span
+                          className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                            EstadosAsistenciaPersonalStyles[
+                              registro.estadoEntrada
+                            ]
                           }`}
                         >
-                          <td className="px-2 py-2 whitespace-nowrap">
-                            <div className="flex flex-col">
-                              <span className="text-xs font-medium text-gray-900">
-                                {new Date(
-                                  registro.fecha + "T00:00:00"
-                                ).toLocaleDateString("es-ES", {
-                                  weekday: "short",
-                                  day: "2-digit",
-                                  month: "2-digit",
-                                })}
-                              </span>
-                              {registro.esEvento && (
-                                <span className="text-xs text-purple-600 font-medium mt-0.5 truncate">
-                                  🎉 {registro.nombreEvento}
-                                </span>
-                              )}
-                              {registro.esDiaNoEscolar &&
-                                !registro.esEvento && (
-                                  <span className="text-xs text-blue-600 font-medium mt-0.5">
-                                    📅 Fin de semana
-                                  </span>
-                                )}
-                            </div>
-                          </td>
-                          <td className="px-2 py-2 text-center text-xs text-gray-700">
-                            <span className="block truncate">
-                              {registro.entradaProgramada}
-                            </span>
-                          </td>
-                          <td className="px-2 py-2 text-center text-xs text-gray-700">
-                            <span className="block truncate">
-                              {registro.entradaReal}
-                            </span>
-                          </td>
-                          <td className="px-2 py-2 text-center text-xs text-gray-700">
-                            <span className="block truncate">
-                              {registro.diferenciaEntrada}
-                            </span>
-                          </td>
-                          <td className="px-2 py-2 text-center">
-                            <span
-                              className={`inline-flex px-1.5 py-0.5 rounded-full text-xs font-semibold 
-                                          truncate max-w-full ${
-                                            EstadosAsistenciaPersonalStyles[
-                                              registro.estadoEntrada
-                                            ]
-                                          }`}
-                            >
-                              {mapearEstadoParaUI(registro.estadoEntrada)}
-                            </span>
-                          </td>
-                          <td className="px-2 py-2 text-center text-xs text-gray-700">
-                            <span className="block truncate">
-                              {registro.salidaProgramada}
-                            </span>
-                          </td>
-                          <td className="px-2 py-2 text-center text-xs text-gray-700">
-                            <span className="block truncate">
-                              {registro.salidaReal}
-                            </span>
-                          </td>
-                          <td className="px-2 py-2 text-center text-xs text-gray-700">
-                            <span className="block truncate">
-                              {registro.diferenciaSalida}
-                            </span>
-                          </td>
-                          <td className="px-2 py-2 text-center">
-                            <span
-                              className={`inline-flex px-1.5 py-0.5 rounded-full text-xs font-semibold 
-                                          truncate max-w-full ${
-                                            EstadosAsistenciaPersonalStyles[
-                                              registro.estadoSalida
-                                            ]
-                                          }`}
-                            >
-                              {mapearEstadoParaUI(registro.estadoSalida)}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+                          {mapearEstadoParaUI(registro.estadoEntrada)}
+                        </span>
+                      </td>
+                      <td className="px-2 lg-only:px-4 py-3 text-xs lg-only:text-sm text-gris-oscuro text-center">
+                        {registro.salidaProgramada}
+                      </td>
+                      <td className="px-2 lg-only:px-4 py-3 text-xs lg-only:text-sm text-gris-oscuro text-center">
+                        {registro.salidaReal}
+                      </td>
+                      <td className="px-2 lg-only:px-4 py-3 text-xs lg-only:text-sm text-gris-oscuro text-center">
+                        {registro.diferenciaSalida}
+                      </td>
+                      <td className="px-2 lg-only:px-4 py-3 text-center">
+                        <span
+                          className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                            EstadosAsistenciaPersonalStyles[
+                              registro.estadoSalida
+                            ]
+                          }`}
+                        >
+                          {mapearEstadoParaUI(registro.estadoSalida)}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
 
         {/* Leyenda explicativa de estados */}
         {registros.length > 0 && !loading && !loadingEventos && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+          <div className="mt-6 bg-white rounded-lg shadow-md p-4 lg-only:p-6">
             <div className="flex items-center space-x-2 mb-4">
               <Info className="w-5 h-5 text-blue-500 flex-shrink-0" />
               <h4 className="text-base font-bold text-gray-900 truncate">
@@ -1090,7 +1079,7 @@ const RegistrosAsistenciaDePersonal = () => {
               </h4>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md-only:grid-cols-2 lg-only:grid-cols-3 gap-4">
               {/* Estados de Entrada */}
               <div className="space-y-2 min-w-0">
                 <h5 className="text-xs font-semibold text-gray-700 bg-gray-100 px-2 py-1 rounded-md truncate">
@@ -1215,7 +1204,7 @@ const RegistrosAsistenciaDePersonal = () => {
                   <h5 className="text-blue-800 font-semibold mb-2 truncate text-sm">
                     Información del Sistema
                   </h5>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-blue-700">
+                  <div className="grid grid-cols-1 md-only:grid-cols-2 gap-2 text-xs text-blue-700">
                     <div className="flex items-start space-x-1 min-w-0">
                       <span className="text-blue-600 font-bold flex-shrink-0">
                         📊
@@ -1253,7 +1242,7 @@ const RegistrosAsistenciaDePersonal = () => {
                     </div>
                     {CONSIDERAR_DIAS_NO_ESCOLARES &&
                       ENTORNO === Entorno.LOCAL && (
-                        <div className="md:col-span-2 flex items-start space-x-1 min-w-0">
+                        <div className="md-only:col-span-2 flex items-start space-x-1 min-w-0">
                           <span className="text-amber-600 font-bold flex-shrink-0">
                             ⚠️
                           </span>
