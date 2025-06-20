@@ -140,13 +140,17 @@ const GestionFechasEscolares = () => {
               {fechasVacaciones.map((fecha, index) => (
                 <div
                   key={index}
-                  className="flex flex-wrap items-center gap-4 mb-5"
+                  className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-4 mb-5"
                 >
-                  <p className="font-semibold text-[1.05rem] text-negro">
-                    <span className="italic">Inicio:</span> {fecha.inicio}
-                    <span className="italic ml-6">Fin:</span> {fecha.fin}
-                  </p>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row font-semibold text-[1.05rem] text-negro">
+                    <span className="mb-1 sm:mb-0">
+                      <span className="italic">Inicio:</span> {fecha.inicio}
+                    </span>
+                    <span className="sm:ml-6">
+                      <span className="italic">Fin:</span> {fecha.fin}
+                    </span>
+                  </div>
+                  <div className="flex gap-2 self-start">
                     <BotonConIcono
                       texto="Modificar"
                       IconTSX={<LapizIcon className="w-[1rem] ml-2" />}
@@ -190,12 +194,17 @@ const GestionFechasEscolares = () => {
               {fechasGestion.map((fecha, index) => (
                 <div
                   key={index}
-                  className="flex flex-wrap items-center gap-4 mb-5"
+                  className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-4 mb-5"
                 >
-                  <p className="font-semibold text-[1.05rem] text-negro">
-                    <span className="italic">Inicio:</span> {fecha.inicio}
-                    <span className="italic ml-6">Fin:</span> {fecha.fin}
-                  </p>
+                  <div className="flex flex-col sm:flex-row font-semibold text-[1.05rem] text-negro">
+                    <span className="mb-1 sm:mb-0">
+                      <span className="italic">Inicio:</span> {fecha.inicio}
+                    </span>
+                    <span className="sm:ml-6">
+                      <span className="italic">Fin:</span> {fecha.fin}
+                    </span>
+                  </div>
+                  <div className="self-start">
                   <BotonConIcono
                       texto="Modificar"
                       IconTSX={<LapizIcon className="w-[1rem] ml-2" />}
@@ -204,6 +213,7 @@ const GestionFechasEscolares = () => {
                         setShowModificarSemanaGestionEscolar(true);
                       }}
                     />
+                  </div>
                 </div>
               ))}
             </section>
@@ -230,12 +240,17 @@ const GestionFechasEscolares = () => {
               {fechasGestion.map((fecha, index) => (
                 <div
                   key={index}
-                  className="flex flex-wrap items-center gap-4 mb-5"
+                  className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-4 mb-5"
                 >
-                  <p className="font-semibold text-[1.05rem] text-negro">
-                    <span className="italic">Inicio:</span> {fecha.inicio}
-                    <span className="italic ml-6">Fin:</span> {fecha.fin}
-                  </p>
+                  <div className="flex flex-col sm:flex-row font-semibold text-[1.05rem] text-negro">
+                    <span className="mb-1 sm:mb-0">
+                      <span className="italic">Inicio:</span> {fecha.inicio}
+                    </span>
+                    <span className="sm:ml-6">
+                      <span className="italic">Fin:</span> {fecha.fin}
+                    </span>
+                    </div>
+                  <div className="self-start">
                   <BotonConIcono
                       texto="Modificar"
                       IconTSX={<LapizIcon className="w-[1rem] ml-2" />}
@@ -244,6 +259,7 @@ const GestionFechasEscolares = () => {
                         setShowModificarInicioFinAñoEscolar(true);
                       }}
                     />
+                  </div>
                 </div>
               ))}
             </section>
