@@ -9,7 +9,7 @@ import {
   ErrorResponseAPIBase,
   MessageProperty,
 } from "@/interfaces/shared/apis/types";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AsistenciaDePersonalIDB } from "@/lib/utils/local/db/models/AsistenciaDePersonal/AsistenciaDePersonalIDB";
 import { convertirAFormato12Horas } from "@/lib/helpers/formatters/fechas-hora/formatearAFormato12Horas";
 import { ENTORNO } from "@/constants/ENTORNO";
@@ -26,7 +26,6 @@ import {
   Search,
   Loader2,
   Calendar,
-  Users,
   AlertCircle,
   CheckCircle,
   Info,
@@ -34,6 +33,8 @@ import {
   FileText,
 } from "lucide-react";
 import SiasisUserSelector from "@/components/inputs/SiasisUserSelector";
+import { GenericUser } from "@/interfaces/shared/GenericUser";
+import FotoPerfilClientSide from "@/components/utils/photos/FotoPerfilClientSide";
 
 // 🔧 CONSTANTE DE CONFIGURACIÓN PARA DESARROLLO
 const CONSIDERAR_DIAS_NO_ESCOLARES = false; // false = solo días laborales, true = incluir sábados y domingos
@@ -56,7 +57,7 @@ interface RegistroDia {
 const RegistrosAsistenciaDePersonal = () => {
   const [selectedRol, setSelectedRol] = useState<RolesSistema>();
   const [selectedMes, setSelectedMes] = useState("");
-  const [id_o_DNI, setId_o_DNI] = useState<string | number>();
+  const [usuarioSeleccionado, setUsuarioSeleccionado] = useState<GenericUser>();
   const [loading, setLoading] = useState(false);
   const [loadingEventos, setLoadingEventos] = useState(false);
   const [data, setData] = useState<AsistenciaMensualPersonalLocal | null>(null);
@@ -64,9 +65,6 @@ const RegistrosAsistenciaDePersonal = () => {
   const [registros, setRegistros] = useState<RegistroDia[]>([]);
   const [error, setError] = useState<ErrorResponseAPIBase | null>(null);
   const [successMessage, setSuccessMessage] = useState("");
-
-  // ✅ Estado para controlar si se han realizado búsquedas
-  const [hasSearched, setHasSearched] = useState(false);
 
   // ✅ MEJORADO: Usar useSelector para obtener fecha de Redux reactivamente
   const fechaHoraRedux = useSelector(
@@ -109,6 +107,14 @@ const RegistrosAsistenciaDePersonal = () => {
   const mesActual = fechaRedux?.mesActual || new Date().getMonth() + 1; // fallback solo si Redux falla
   const diaActual = fechaRedux?.diaActual || new Date().getDate();
   const añoActual = fechaRedux?.añoActual || new Date().getFullYear();
+
+  // 🆕 NUEVO: useEffect para limpiar resultados cuando cambie el usuario seleccionado
+  useEffect(() => {
+    // Solo limpiar si había resultados previos y cambió el usuario
+    if (data || registros.length > 0) {
+      limpiarResultados();
+    }
+  }, [usuarioSeleccionado?.ID_O_DNI_Usuario]);
 
   // Función para obtener meses disponibles (hasta mayo o mes actual)
   const getMesesDisponibles = () => {
@@ -160,22 +166,27 @@ const RegistrosAsistenciaDePersonal = () => {
       )
   );
 
+  // ✅ ROLES ACTUALIZADOS: Sin emojis y con Directivo agregado
   const roles = [
+    {
+      value: RolesSistema.Directivo,
+      label: "Directivo",
+    },
     {
       value: RolesSistema.ProfesorPrimaria,
       label: "Profesor de Primaria",
-      icon: "👨‍🏫",
     },
     {
       value: RolesSistema.ProfesorSecundaria,
       label: "Profesor de Secundaria",
-      icon: "👩‍🏫",
     },
-    { value: RolesSistema.Auxiliar, label: "Auxiliar", icon: "👤" },
+    {
+      value: RolesSistema.Auxiliar,
+      label: "Auxiliar",
+    },
     {
       value: RolesSistema.PersonalAdministrativo,
       label: "Personal Administrativo",
-      icon: "💼",
     },
   ];
 
@@ -535,7 +546,11 @@ const RegistrosAsistenciaDePersonal = () => {
 
   // ✅ FUNCIÓN DE BÚSQUEDA - Solo se ejecuta al hacer clic en botón
   const buscarAsistencias = async () => {
-    if (!selectedRol || !selectedMes || !id_o_DNI) {
+    if (
+      !selectedRol ||
+      !selectedMes ||
+      !usuarioSeleccionado?.ID_O_DNI_Usuario
+    ) {
       setError({
         success: false,
         message: "Por favor completa todos los campos correctamente",
@@ -546,7 +561,6 @@ const RegistrosAsistenciaDePersonal = () => {
     setError(null);
     setSuccessMessage("");
     setLoading(true);
-    setHasSearched(true);
 
     try {
       await obtenerEventos(parseInt(selectedMes));
@@ -554,7 +568,7 @@ const RegistrosAsistenciaDePersonal = () => {
       const resultado =
         await asistenciaPersonalIDB.obtenerAsistenciaMensualConAPI({
           rol: selectedRol as RolesSistema,
-          id_o_dni: id_o_DNI,
+          id_o_dni: usuarioSeleccionado.ID_O_DNI_Usuario,
           mes: parseInt(selectedMes),
         });
 
@@ -573,7 +587,11 @@ const RegistrosAsistenciaDePersonal = () => {
         setSuccessMessage(resultado.mensaje);
 
         // ✅ Procesar datos solo después de búsqueda exitosa
-        await procesarDatos(selectedRol, id_o_DNI, parseInt(selectedMes));
+        await procesarDatos(
+          selectedRol,
+          usuarioSeleccionado.ID_O_DNI_Usuario,
+          parseInt(selectedMes)
+        );
       } else {
         setError({ success: false, message: resultado.mensaje });
         setData(null);
@@ -592,43 +610,28 @@ const RegistrosAsistenciaDePersonal = () => {
     }
   };
 
+  // ✅ FUNCIÓN AUXILIAR para limpiar resultados
+  const limpiarResultados = () => {
+    setData(null);
+    setRegistros([]);
+    setError(null);
+    setSuccessMessage("");
+  };
+
   // ✅ FUNCIONES DE LIMPIEZA cuando cambian los campos (SIN CONSULTAR)
   const handleRolChange = (rol: RolesSistema | undefined) => {
     setSelectedRol(rol);
     // Limpiar campos dependientes
-    setId_o_DNI(undefined);
+    setUsuarioSeleccionado(undefined);
     setSelectedMes("");
-    // Limpiar resultados previos
-    if (hasSearched) {
-      setData(null);
-      setRegistros([]);
-      setError(null);
-      setSuccessMessage("");
-    }
-  };
-
-  const handleUsuarioChange = (usuario: string | number | undefined) => {
-    setId_o_DNI(usuario);
-    // Limpiar mes seleccionado
-    setSelectedMes("");
-    // Limpiar resultados previos
-    if (hasSearched) {
-      setData(null);
-      setRegistros([]);
-      setError(null);
-      setSuccessMessage("");
-    }
+    // Limpiar resultados inmediatamente
+    limpiarResultados();
   };
 
   const handleMesChange = (mes: string) => {
     setSelectedMes(mes);
-    // Limpiar resultados previos
-    if (hasSearched) {
-      setData(null);
-      setRegistros([]);
-      setError(null);
-      setSuccessMessage("");
-    }
+    // Limpiar resultados inmediatamente
+    limpiarResultados();
   };
 
   // ✅ Manejar Enter en los campos
@@ -645,25 +648,25 @@ const RegistrosAsistenciaDePersonal = () => {
 
   // ✅ Estados de validación
   const rolEstaSeleccionado = !!selectedRol;
-  const usuarioEstaSeleccionado = !!id_o_DNI;
+  const usuarioEstaSeleccionado = !!usuarioSeleccionado?.ID_O_DNI_Usuario;
   const mesEstaSeleccionado = !!selectedMes;
   const todosLosCamposCompletos =
     rolEstaSeleccionado && usuarioEstaSeleccionado && mesEstaSeleccionado;
 
   return (
-    <div className="min-h-screen -bg-gray-50 p-4 lg:p-6">
+    <div className="min-h-full min-w-full -bg-gray-50 p-4 lg:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center space-x-3 mb-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
-              <Calendar className="w-6 h-6 text-white" />
+        <div className="mb-4">
+          <div className="flex items-center space-x-3 mb-1">
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+              <Calendar className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
+              <h1 className="text-xl lg:text-2xl font-bold text-gray-900">
                 Consulta de Asistencias de Personal
               </h1>
-              <p className="text-gray-600 text-sm lg:text-base">
+              <p className="text-gray-600 text-xs lg:text-sm">
                 Consulta los registros mensuales de entrada y salida del
                 personal institucional
               </p>
@@ -672,14 +675,14 @@ const RegistrosAsistenciaDePersonal = () => {
 
           {/* Banner de desarrollo si está activado */}
           {CONSIDERAR_DIAS_NO_ESCOLARES && ENTORNO === Entorno.LOCAL && (
-            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4 mt-4">
-              <div className="flex items-start space-x-3">
-                <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5" />
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-3 mt-3">
+              <div className="flex items-start space-x-2">
+                <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
                 <div>
-                  <p className="font-semibold text-amber-800">
+                  <p className="font-semibold text-amber-800 text-sm">
                     Modo Desarrollo Activado
                   </p>
-                  <p className="text-sm text-amber-700 mt-1">
+                  <p className="text-xs text-amber-700 mt-1">
                     Se están mostrando registros de todos los días (incluidos
                     sábados y domingos). Para producción, cambiar
                     CONSIDERAR_DIAS_NO_ESCOLARES a false.
@@ -691,13 +694,13 @@ const RegistrosAsistenciaDePersonal = () => {
         </div>
 
         {/* Formulario de búsqueda */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="space-y-6">
-            {/* Campos del formulario */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              {/* Selector de Rol */}
-              <div className="lg:col-span-3">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4">
+          <div className="space-y-4">
+            {/* ✅ CAMPOS DEL FORMULARIO - DISTRIBUCIÓN RESPONSIVE OPTIMIZADA */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 lg:gap-4">
+              {/* Selector de Rol - 3 columnas en lg */}
+              <div className="sm:col-span-2 lg:col-span-3">
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
                   Tipo de Personal
                 </label>
                 <select
@@ -707,40 +710,41 @@ const RegistrosAsistenciaDePersonal = () => {
                   }
                   onKeyPress={handleKeyPress}
                   disabled={loading || loadingEventos}
-                  className={`w-full px-4 py-3 border-2 rounded-xl transition-all duration-200 text-sm
-                             bg-white min-h-[3.5rem] shadow-sm ${
+                  className={`w-full px-3 py-2.5 border-2 rounded-lg transition-all duration-200 text-sm
+                             bg-white min-h-[3rem] shadow-sm ${
                                loading || loadingEventos
                                  ? "border-gray-200 bg-gray-50 cursor-not-allowed opacity-60"
-                                 : "border-gray-200 hover:border-blue-300 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500"
+                                 : "border-gray-200 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500"
                              }`}
                 >
                   <option value="">Seleccionar tipo de personal</option>
                   {roles.map((rol) => (
                     <option key={rol.value} value={rol.value}>
-                      {rol.icon} {rol.label}
+                      {rol.label}
                     </option>
                   ))}
                 </select>
               </div>
 
-              {/* Selector de Usuario */}
-              <div className="lg:col-span-5">
+              {/* Selector de Usuario - 4 columnas en lg */}
+              <div className="sm:col-span-2 lg:col-span-4">
                 <SiasisUserSelector
+                  usuarioSeleccionado={usuarioSeleccionado}
                   ID_SELECTOR_USUARIO_GENERICO_HTML="SIASIS-SDU_Seccion-Consulta-Registros-Mensuales-Personal"
                   siasisAPI="API01"
                   rolUsuariosABuscar={selectedRol}
-                  setId_o_DNI={handleUsuarioChange}
+                  setUsuarioSeleccionado={setUsuarioSeleccionado}
                   disabled={!rolEstaSeleccionado || loading || loadingEventos}
                 />
               </div>
 
-              {/* Selector de Mes */}
-              <div className="lg:col-span-2">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+              {/* Selector de Mes - 3 columnas en lg */}
+              <div className="sm:col-span-1 lg:col-span-3">
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
                   Mes a Consultar
                 </label>
                 <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 z-10" />
                   <select
                     value={selectedMes}
                     onChange={(e) => handleMesChange(e.target.value)}
@@ -748,13 +752,13 @@ const RegistrosAsistenciaDePersonal = () => {
                     disabled={
                       !usuarioEstaSeleccionado || loading || loadingEventos
                     }
-                    className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl transition-all duration-200 text-sm
-                               bg-white min-h-[3.5rem] shadow-sm appearance-none ${
+                    className={`w-full pl-9 pr-3 py-2.5 border-2 rounded-lg transition-all duration-200 text-sm
+                               bg-white min-h-[3rem] shadow-sm appearance-none ${
                                  !usuarioEstaSeleccionado ||
                                  loading ||
                                  loadingEventos
                                    ? "border-gray-200 bg-gray-50 cursor-not-allowed opacity-60"
-                                   : "border-gray-200 hover:border-blue-300 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500"
+                                   : "border-gray-200 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500"
                                }`}
                   >
                     <option value="">
@@ -772,9 +776,9 @@ const RegistrosAsistenciaDePersonal = () => {
                 </div>
               </div>
 
-              {/* Botón de búsqueda */}
-              <div className="lg:col-span-2">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+              {/* Botón de búsqueda - 2 columnas en lg */}
+              <div className="sm:col-span-1 lg:col-span-2">
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
                   &nbsp;
                 </label>
                 <button
@@ -783,8 +787,8 @@ const RegistrosAsistenciaDePersonal = () => {
                   disabled={
                     !todosLosCamposCompletos || loading || loadingEventos
                   }
-                  className={`w-full px-6 py-3 rounded-xl font-semibold transition-all duration-200 
-                             flex items-center justify-center text-sm min-h-[3.5rem] shadow-sm ${
+                  className={`w-full px-4 py-2.5 rounded-lg font-semibold transition-all duration-200 
+                             flex items-center justify-center text-sm min-h-[3rem] shadow-sm ${
                                !todosLosCamposCompletos ||
                                loading ||
                                loadingEventos
@@ -794,13 +798,13 @@ const RegistrosAsistenciaDePersonal = () => {
                 >
                   {loading || loadingEventos ? (
                     <>
-                      <Loader2 className="animate-spin w-5 h-5 mr-2" />
-                      Consultando...
+                      <Loader2 className="animate-spin w-4 h-4 mr-2 flex-shrink-0" />
+                      <span className="truncate">Consultando...</span>
                     </>
                   ) : (
                     <>
-                      <Search className="w-5 h-5 mr-2" />
-                      Buscar
+                      <Search className="w-4 h-4 mr-2 flex-shrink-0" />
+                      <span className="truncate">Buscar</span>
                     </>
                   )}
                 </button>
@@ -809,14 +813,14 @@ const RegistrosAsistenciaDePersonal = () => {
 
             {/* Indicadores de estado */}
             {(loading || loadingEventos) && (
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-3">
                 <div className="flex items-center">
-                  <Loader2 className="animate-spin h-5 w-5 text-blue-500 mr-3" />
-                  <div>
-                    <p className="text-blue-700 font-semibold">
+                  <Loader2 className="animate-spin h-4 w-4 text-blue-500 mr-2 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-blue-700 font-semibold truncate text-sm">
                       Consultando registros de asistencia...
                     </p>
-                    <p className="text-blue-600 text-sm">
+                    <p className="text-blue-600 text-xs truncate">
                       Esto puede tomar unos segundos
                     </p>
                   </div>
@@ -826,20 +830,24 @@ const RegistrosAsistenciaDePersonal = () => {
 
             {/* Mensaje de error */}
             {error && (
-              <div className="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-xl p-4">
+              <div className="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-lg p-3">
                 <div className="flex items-center">
-                  <AlertCircle className="w-5 h-5 text-red-500 mr-3" />
-                  <p className="text-red-700 font-medium">{error.message}</p>
+                  <AlertCircle className="w-4 h-4 text-red-500 mr-2 flex-shrink-0" />
+                  <p className="text-red-700 font-medium truncate min-w-0 flex-1 text-sm">
+                    {error.message}
+                  </p>
                 </div>
               </div>
             )}
 
             {/* Mensaje de éxito */}
-            {successMessage && (
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4">
+            {successMessage && ENTORNO !== Entorno.PRODUCCION && (
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-3">
                 <div className="flex items-center">
-                  <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
-                  <p className="text-green-700 font-medium">{successMessage}</p>
+                  <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
+                  <p className="text-green-700 font-medium truncate min-w-0 flex-1 text-sm">
+                    {successMessage}
+                  </p>
                 </div>
               </div>
             )}
@@ -848,185 +856,247 @@ const RegistrosAsistenciaDePersonal = () => {
 
         {/* Información del usuario */}
         {data && !loading && !loadingEventos && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
-            <div className="flex items-start space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
-                <Users className="w-7 h-7 text-white" />
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-4">
+            <div className="flex items-center space-x-6">
+              <div className="flex-shrink-0">
+                {usuarioSeleccionado?.Google_Drive_Foto_ID ? (
+                  <FotoPerfilClientSide
+                    Google_Drive_Foto_ID={
+                      usuarioSeleccionado.Google_Drive_Foto_ID
+                    }
+                    className="w-20 h-20 border-3 border-white rounded-full"
+                  />
+                ) : (
+                  <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white font-bold text-2xl border-3 border-white">
+                    {usuarioSeleccionado?.Nombres?.charAt(0)}
+                    {usuarioSeleccionado?.Apellidos?.charAt(0)}
+                  </div>
+                )}
               </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-bold text-gray-900 mb-1">
-                  Registros de{" "}
-                  {roles.find((r) => r.value === selectedRol)?.label}
-                </h3>
-                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-                  <span className="flex items-center">
-                    <span className="font-semibold">DNI:</span>
-                    <span className="ml-1">{data.ID_o_DNI_Personal}</span>
-                  </span>
-                  <span className="flex items-center">
-                    <span className="font-semibold">Mes:</span>
-                    <span className="ml-1">
-                      {mesesTextos[data.mes as Meses]}
-                    </span>
-                  </span>
-                  <span className="flex items-center">
-                    <span className="font-semibold">Total registros:</span>
-                    <span className="ml-1">{registros.length}</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-3 mb-3">
+                  <h3 className="text-xl lg:text-2xl font-bold text-gray-900 truncate">
+                    {usuarioSeleccionado?.Nombres}{" "}
+                    {usuarioSeleccionado?.Apellidos}
+                  </h3>
+                  <span className="inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold bg-blue-100 text-blue-800 flex-shrink-0 border border-blue-300">
+                    {roles.find((r) => r.value === selectedRol)?.label}
                   </span>
                 </div>
-                <p className="text-xs text-gray-500 mt-2">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-600 mb-3">
+                  <div className="flex items-center space-x-2">
+                    <span className="font-semibold text-gray-700 flex-shrink-0">
+                      DNI:
+                    </span>
+                    <span className="truncate font-medium text-gray-900">
+                      {data.ID_o_DNI_Personal}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="font-semibold text-gray-700 flex-shrink-0">
+                      Mes:
+                    </span>
+                    <span className="truncate font-medium text-gray-900">
+                      {mesesTextos[data.mes as Meses]}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="font-semibold text-gray-700 flex-shrink-0">
+                      Registros:
+                    </span>
+                    <span className="truncate font-medium text-gray-900">
+                      {registros.length}
+                    </span>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-600">
                   {CONSIDERAR_DIAS_NO_ESCOLARES && ENTORNO === Entorno.LOCAL
                     ? "Incluye todos los días hasta la fecha actual"
                     : "Solo días laborables hasta la fecha actual"}
                 </p>
               </div>
+
+              {/* 🆕 BOTÓN DE EXPORTAR MEJORADO - 15% más grande */}
+              <div className="flex-shrink-0">
+                <button
+                  title="Exportar a Excel"
+                  className="bg-white border border-gray-300 hover:border-green-400 hover:bg-green-50 text-gray-700 hover:text-green-700 px-5 py-3 rounded-lg font-medium text-base transition-all duration-200 flex items-center space-x-2.5 min-w-[140px] shadow-sm hover:shadow-md"
+                >
+                  <img
+                    className="w-6 h-6"
+                    src="/images/svg/Aplicaciones Relacionadas/ExcelLogo.svg"
+                    alt="Logo de Excel"
+                  />
+                  <span>Exportar</span>
+                </button>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Tabla de registros */}
+        {/* 🆕 TABLA DE REGISTROS CON SCROLL HORIZONTAL OPTIMIZADO */}
         {registros.length > 0 && !loading && !loadingEventos && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mb-6">
-            <div className="p-6 border-b border-gray-100">
-              <div className="flex items-center space-x-3">
-                <FileText className="w-6 h-6 text-gray-600" />
-                <h3 className="text-lg font-bold text-gray-900">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-4">
+            <div className="p-4 border-b border-gray-100">
+              <div className="flex items-center space-x-2">
+                <FileText className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                <h3 className="text-base font-bold text-gray-900 truncate">
                   Detalle de Asistencias
                 </h3>
               </div>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Fecha
-                    </th>
-                    <th className="px-4 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Entrada Programada
-                    </th>
-                    <th className="px-4 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Entrada Real
-                    </th>
-                    <th className="px-4 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Diferencia
-                    </th>
-                    <th className="px-4 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Estado Entrada
-                    </th>
-                    <th className="px-4 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Salida Programada
-                    </th>
-                    <th className="px-4 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Salida Real
-                    </th>
-                    <th className="px-4 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Diferencia
-                    </th>
-                    <th className="px-4 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Estado Salida
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {registros.map((registro) => (
-                    <tr
-                      key={registro.fecha}
-                      className={`transition-colors duration-150 hover:bg-gray-50 ${
-                        registro.esDiaNoEscolar && !registro.esEvento
-                          ? "bg-blue-25"
-                          : ""
-                      }`}
-                    >
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium text-gray-900">
-                            {new Date(
-                              registro.fecha + "T00:00:00"
-                            ).toLocaleDateString("es-ES", {
-                              weekday: "short",
-                              day: "2-digit",
-                              month: "2-digit",
-                            })}
-                          </span>
-                          {registro.esEvento && (
-                            <span className="text-xs text-purple-600 font-medium mt-1">
-                              🎉 {registro.nombreEvento}
-                            </span>
-                          )}
-                          {registro.esDiaNoEscolar && !registro.esEvento && (
-                            <span className="text-xs text-blue-600 font-medium mt-1">
-                              📅 Fin de semana
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-4 text-center text-sm text-gray-700">
-                        {registro.entradaProgramada}
-                      </td>
-                      <td className="px-4 py-4 text-center text-sm text-gray-700">
-                        {registro.entradaReal}
-                      </td>
-                      <td className="px-4 py-4 text-center text-sm text-gray-700">
-                        {registro.diferenciaEntrada}
-                      </td>
-                      <td className="px-4 py-4 text-center">
-                        <span
-                          className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${
-                            EstadosAsistenciaPersonalStyles[
-                              registro.estadoEntrada
-                            ]
+            {/* 🆕 CONTENEDOR CON SCROLL HORIZONTAL SOLO PARA LA TABLA */}
+            <div className="w-full overflow-hidden">
+              <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                <div className="min-w-[1200px]">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-20">
+                          Fecha
+                        </th>
+                        <th className="px-2 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-24">
+                          Entrada Prog.
+                        </th>
+                        <th className="px-2 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-24">
+                          Entrada Real
+                        </th>
+                        <th className="px-2 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-20">
+                          Dif.
+                        </th>
+                        <th className="px-2 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-28">
+                          Estado Entrada
+                        </th>
+                        <th className="px-2 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-24">
+                          Salida Prog.
+                        </th>
+                        <th className="px-2 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-24">
+                          Salida Real
+                        </th>
+                        <th className="px-2 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-20">
+                          Dif.
+                        </th>
+                        <th className="px-2 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-28">
+                          Estado Salida
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {registros.map((registro) => (
+                        <tr
+                          key={registro.fecha}
+                          className={`transition-colors duration-150 hover:bg-gray-50 ${
+                            registro.esDiaNoEscolar && !registro.esEvento
+                              ? "bg-blue-25"
+                              : ""
                           }`}
                         >
-                          {mapearEstadoParaUI(registro.estadoEntrada)}
-                        </span>
-                      </td>
-                      <td className="px-4 py-4 text-center text-sm text-gray-700">
-                        {registro.salidaProgramada}
-                      </td>
-                      <td className="px-4 py-4 text-center text-sm text-gray-700">
-                        {registro.salidaReal}
-                      </td>
-                      <td className="px-4 py-4 text-center text-sm text-gray-700">
-                        {registro.diferenciaSalida}
-                      </td>
-                      <td className="px-4 py-4 text-center">
-                        <span
-                          className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold ${
-                            EstadosAsistenciaPersonalStyles[
-                              registro.estadoSalida
-                            ]
-                          }`}
-                        >
-                          {mapearEstadoParaUI(registro.estadoSalida)}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                          <td className="px-2 py-2 whitespace-nowrap">
+                            <div className="flex flex-col">
+                              <span className="text-xs font-medium text-gray-900">
+                                {new Date(
+                                  registro.fecha + "T00:00:00"
+                                ).toLocaleDateString("es-ES", {
+                                  weekday: "short",
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                })}
+                              </span>
+                              {registro.esEvento && (
+                                <span className="text-xs text-purple-600 font-medium mt-0.5 truncate">
+                                  🎉 {registro.nombreEvento}
+                                </span>
+                              )}
+                              {registro.esDiaNoEscolar &&
+                                !registro.esEvento && (
+                                  <span className="text-xs text-blue-600 font-medium mt-0.5">
+                                    📅 Fin de semana
+                                  </span>
+                                )}
+                            </div>
+                          </td>
+                          <td className="px-2 py-2 text-center text-xs text-gray-700">
+                            <span className="block truncate">
+                              {registro.entradaProgramada}
+                            </span>
+                          </td>
+                          <td className="px-2 py-2 text-center text-xs text-gray-700">
+                            <span className="block truncate">
+                              {registro.entradaReal}
+                            </span>
+                          </td>
+                          <td className="px-2 py-2 text-center text-xs text-gray-700">
+                            <span className="block truncate">
+                              {registro.diferenciaEntrada}
+                            </span>
+                          </td>
+                          <td className="px-2 py-2 text-center">
+                            <span
+                              className={`inline-flex px-1.5 py-0.5 rounded-full text-xs font-semibold 
+                                          truncate max-w-full ${
+                                            EstadosAsistenciaPersonalStyles[
+                                              registro.estadoEntrada
+                                            ]
+                                          }`}
+                            >
+                              {mapearEstadoParaUI(registro.estadoEntrada)}
+                            </span>
+                          </td>
+                          <td className="px-2 py-2 text-center text-xs text-gray-700">
+                            <span className="block truncate">
+                              {registro.salidaProgramada}
+                            </span>
+                          </td>
+                          <td className="px-2 py-2 text-center text-xs text-gray-700">
+                            <span className="block truncate">
+                              {registro.salidaReal}
+                            </span>
+                          </td>
+                          <td className="px-2 py-2 text-center text-xs text-gray-700">
+                            <span className="block truncate">
+                              {registro.diferenciaSalida}
+                            </span>
+                          </td>
+                          <td className="px-2 py-2 text-center">
+                            <span
+                              className={`inline-flex px-1.5 py-0.5 rounded-full text-xs font-semibold 
+                                          truncate max-w-full ${
+                                            EstadosAsistenciaPersonalStyles[
+                                              registro.estadoSalida
+                                            ]
+                                          }`}
+                            >
+                              {mapearEstadoParaUI(registro.estadoSalida)}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
         )}
 
         {/* Leyenda explicativa de estados */}
         {registros.length > 0 && !loading && !loadingEventos && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center space-x-3 mb-6">
-              <Info className="w-6 h-6 text-blue-500" />
-              <h4 className="text-lg font-bold text-gray-900">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <div className="flex items-center space-x-2 mb-4">
+              <Info className="w-5 h-5 text-blue-500 flex-shrink-0" />
+              <h4 className="text-base font-bold text-gray-900 truncate">
                 Leyenda de Estados de Asistencia
               </h4>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {/* Estados de Entrada */}
-              <div className="space-y-4">
-                <h5 className="text-sm font-semibold text-gray-700 bg-gray-100 px-3 py-2 rounded-lg">
+              <div className="space-y-2 min-w-0">
+                <h5 className="text-xs font-semibold text-gray-700 bg-gray-100 px-2 py-1 rounded-md truncate">
                   Estados de Entrada
                 </h5>
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {[
                     {
                       estado: EstadosAsistenciaPersonal.En_Tiempo,
@@ -1041,24 +1111,29 @@ const RegistrosAsistenciaDePersonal = () => {
                       descripcion: "Llegó después del horario establecido",
                     },
                   ].map(({ estado, descripcion }) => (
-                    <div key={estado} className="flex items-start space-x-3">
+                    <div
+                      key={estado}
+                      className="flex items-start space-x-2 min-w-0"
+                    >
                       <span
-                        className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${EstadosAsistenciaPersonalStyles[estado]}`}
+                        className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold flex-shrink-0 ${EstadosAsistenciaPersonalStyles[estado]}`}
                       >
                         {mapearEstadoParaUI(estado)}
                       </span>
-                      <p className="text-sm text-gray-600">{descripcion}</p>
+                      <p className="text-xs text-gray-600 truncate min-w-0 flex-1">
+                        {descripcion}
+                      </p>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Estados de Salida */}
-              <div className="space-y-4">
-                <h5 className=" text-sm font-semibold text-gray-700 bg-gray-100 px-3 py-2 rounded-lg">
+              <div className="space-y-2 min-w-0">
+                <h5 className="text-xs font-semibold text-gray-700 bg-gray-100 px-2 py-1 rounded-md truncate">
                   Estados de Salida
                 </h5>
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {[
                     {
                       estado: EstadosAsistenciaPersonal.Cumplido,
@@ -1069,24 +1144,29 @@ const RegistrosAsistenciaDePersonal = () => {
                       descripcion: "Se retiró antes del horario establecido",
                     },
                   ].map(({ estado, descripcion }) => (
-                    <div key={estado} className="flex items-start space-x-3">
+                    <div
+                      key={estado}
+                      className="flex items-start space-x-2 min-w-0"
+                    >
                       <span
-                        className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${EstadosAsistenciaPersonalStyles[estado]}`}
+                        className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold flex-shrink-0 ${EstadosAsistenciaPersonalStyles[estado]}`}
                       >
                         {mapearEstadoParaUI(estado)}
                       </span>
-                      <p className="text-sm text-gray-600">{descripcion}</p>
+                      <p className="text-xs text-gray-600 truncate min-w-0 flex-1">
+                        {descripcion}
+                      </p>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Estados Especiales */}
-              <div className="space-y-4">
-                <h5 className="text-sm font-semibold text-gray-700 bg-gray-100 px-3 py-2 rounded-lg">
+              <div className="space-y-2 min-w-0">
+                <h5 className="text-xs font-semibold text-gray-700 bg-gray-100 px-2 py-1 rounded-md truncate">
                   Estados Especiales
                 </h5>
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {[
                     {
                       estado: EstadosAsistenciaPersonal.Falta,
@@ -1109,13 +1189,18 @@ const RegistrosAsistenciaDePersonal = () => {
                       descripcion: "Día feriado o evento especial",
                     },
                   ].map(({ estado, descripcion }) => (
-                    <div key={estado} className="flex items-start space-x-3">
+                    <div
+                      key={estado}
+                      className="flex items-start space-x-2 min-w-0"
+                    >
                       <span
-                        className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${EstadosAsistenciaPersonalStyles[estado]}`}
+                        className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold flex-shrink-0 ${EstadosAsistenciaPersonalStyles[estado]}`}
                       >
                         {mapearEstadoParaUI(estado)}
                       </span>
-                      <p className="text-sm text-gray-600">{descripcion}</p>
+                      <p className="text-xs text-gray-600 truncate min-w-0 flex-1">
+                        {descripcion}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -1123,46 +1208,56 @@ const RegistrosAsistenciaDePersonal = () => {
             </div>
 
             {/* Información importante */}
-            <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl">
-              <div className="flex items-start space-x-3">
-                <Clock className="w-5 h-5 text-blue-600 mt-0.5" />
-                <div>
-                  <h5 className="text-blue-800 font-semibold mb-2">
+            <div className="mt-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+              <div className="flex items-start space-x-2">
+                <Clock className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <h5 className="text-blue-800 font-semibold mb-2 truncate text-sm">
                     Información del Sistema
                   </h5>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-blue-700">
-                    <div className="flex items-start space-x-2">
-                      <span className="text-blue-600 font-bold">📊</span>
-                      <span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-blue-700">
+                    <div className="flex items-start space-x-1 min-w-0">
+                      <span className="text-blue-600 font-bold flex-shrink-0">
+                        📊
+                      </span>
+                      <span className="truncate">
                         Los estados se calculan automáticamente según la
                         diferencia entre horarios programados y reales
                       </span>
                     </div>
-                    <div className="flex items-start space-x-2">
-                      <span className="text-green-600 font-bold">⏰</span>
-                      <span>
+                    <div className="flex items-start space-x-1 min-w-0">
+                      <span className="text-green-600 font-bold flex-shrink-0">
+                        ⏰
+                      </span>
+                      <span className="truncate">
                         Los registros se sincronizan en tiempo real con el
                         servidor
                       </span>
                     </div>
-                    <div className="flex items-start space-x-2">
-                      <span className="text-purple-600 font-bold">📅</span>
-                      <span>
+                    <div className="flex items-start space-x-1 min-w-0">
+                      <span className="text-purple-600 font-bold flex-shrink-0">
+                        📅
+                      </span>
+                      <span className="truncate">
                         Se muestran solo días laborables hasta la fecha actual
                       </span>
                     </div>
-                    <div className="flex items-start space-x-2">
-                      <span className="text-orange-600 font-bold">🎯</span>
-                      <span>
+                    <div className="flex items-start space-x-1 min-w-0">
+                      <span className="text-orange-600 font-bold flex-shrink-0">
+                        🎯
+                      </span>
+                      <span className="truncate">
                         Los datos incluyen entrada, salida y diferencias
                         horarias
                       </span>
                     </div>
                     {CONSIDERAR_DIAS_NO_ESCOLARES &&
                       ENTORNO === Entorno.LOCAL && (
-                        <div className="md:col-span-2 flex items-start space-x-2">
-                          <span className="text-amber-600 font-bold">⚠️</span>
-                          <span>
+                        <div className="md:col-span-2 flex items-start space-x-1 min-w-0">
+                          <span className="text-amber-600 font-bold flex-shrink-0">
+                            ⚠️
+                          </span>
+                          <span className="truncate">
                             <strong>Modo Desarrollo:</strong> Los registros con
                             fondo azul corresponden a fines de semana
                           </span>
