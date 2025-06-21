@@ -1,7 +1,9 @@
 import {
   AuxiliaresParaTomaDeAsistencia,
   DirectivoAsistenciaResponse,
+  DirectivoParaTomaDeAsistencia, // 🆕 NUEVA IMPORTACIÓN
   HorarioTomaAsistencia,
+  PersonalAdministrativoParaTomaDeAsistencia,
   ProfesoresPrimariaParaTomaDeAsistencia,
   ProfesorTutorSecundariaParaTomaDeAsistencia,
 } from "@/interfaces/shared/Asistencia/DatosAsistenciaHoyIE20935";
@@ -12,7 +14,6 @@ import { PersonalParaTomarAsistencia } from "@/components/asistencia-personal/It
 import { ModoRegistro } from "@/interfaces/shared/ModoRegistroPersonal";
 import { ActoresSistema } from "@/interfaces/shared/ActoresSistema";
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
-import { PersonalAdministrativoParaTomaDeAsistencia } from "../../../../../../../interfaces/shared/Asistencia/DatosAsistenciaHoyIE20935";
 
 export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
   private directivoData: DirectivoAsistenciaResponse;
@@ -22,6 +23,71 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
     this.directivoData = asistenciaData;
   }
 
+  // 🆕 NUEVOS MÉTODOS PARA DIRECTIVOS
+  public getDirectivos(): DirectivoParaTomaDeAsistencia[] {
+    return this.directivoData.ListaDeDirectivos || [];
+  }
+
+  public buscarDirectivoPorDNI(
+    dni: string
+  ): DirectivoParaTomaDeAsistencia | null {
+    return (
+      this.getDirectivos().find((directivo) => directivo.DNI === dni) || null
+    );
+  }
+
+  public buscarDirectivoPorId(
+    id: number
+  ): DirectivoParaTomaDeAsistencia | null {
+    return (
+      this.getDirectivos().find((directivo) => directivo.Id_Directivo === id) ||
+      null
+    );
+  }
+
+  public getTotalDirectivos(): number {
+    return this.getDirectivos().length;
+  }
+
+  public debeEstarPresenteDirectivoAhora(dniOId: string | number): boolean {
+    let directivo: DirectivoParaTomaDeAsistencia | null = null;
+
+    if (typeof dniOId === "string") {
+      directivo = this.buscarDirectivoPorDNI(dniOId);
+    } else {
+      directivo = this.buscarDirectivoPorId(dniOId);
+    }
+
+    if (!directivo) return false;
+
+    const ahora = this.getFechaHoraRedux();
+    if (!ahora) return false;
+
+    console.log("AHORA:", ahora);
+
+    const horaEntrada = new Date(ahora);
+    const horaSalida = new Date(ahora);
+    console.log("AHORA entrada:", horaEntrada);
+    console.log("AHORA salida:", horaSalida);
+
+    const [entradaHours, entradaMinutes] = String(
+      directivo.Hora_Entrada_Dia_Actual
+    )
+      .split(":")
+      .map(Number);
+    const [salidaHours, salidaMinutes] = String(
+      directivo.Hora_Salida_Dia_Actual
+    )
+      .split(":")
+      .map(Number);
+
+    horaEntrada.setHours(entradaHours, entradaMinutes, 0, 0);
+    horaSalida.setHours(salidaHours, salidaMinutes, 0, 0);
+
+    return ahora >= horaEntrada && ahora <= horaSalida;
+  }
+
+  // MÉTODOS EXISTENTES PARA PERSONAL ADMINISTRATIVO
   public getPersonalAdministrativo(): PersonalAdministrativoParaTomaDeAsistencia[] {
     return this.directivoData.ListaDePersonalesAdministrativos || [];
   }
@@ -173,6 +239,18 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
     rol: ActoresSistema | RolesSistema
   ): PersonalParaTomarAsistencia[] {
     switch (rol) {
+      // 🆕 NUEVO CASO PARA DIRECTIVOS
+      case ActoresSistema.Directivo:
+        return this.getDirectivos().map((directivo) => ({
+          ID_o_DNI: String(directivo.Id_Directivo), // Para directivos usamos DNI como identificador principal
+          GoogleDriveFotoId: directivo.Google_Drive_Foto_ID,
+          Nombres: directivo.Nombres,
+          Apellidos: directivo.Apellidos,
+          Genero: directivo.Genero as Genero,
+          // Campos adicionales específicos para directivos
+          Id_Directivo: directivo.Id_Directivo, // Guardamos también el ID interno
+        }));
+
       case ActoresSistema.ProfesorPrimaria:
         return this.getProfesoresPrimaria().map((profesor) => ({
           ID_o_DNI: profesor.DNI_Profesor_Primaria,
@@ -244,6 +322,34 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
       }
 
       switch (rol) {
+        // 🆕 NUEVO CASO PARA DIRECTIVOS
+        case ActoresSistema.Directivo:
+          const directivo = this.buscarDirectivoPorDNI(dni);
+
+          if (directivo) {
+            if (
+              modoRegistro === ModoRegistro.Entrada &&
+              directivo.Hora_Entrada_Dia_Actual
+            ) {
+              return String(directivo.Hora_Entrada_Dia_Actual);
+            } else if (
+              modoRegistro === ModoRegistro.Salida &&
+              directivo.Hora_Salida_Dia_Actual
+            ) {
+              return String(directivo.Hora_Salida_Dia_Actual);
+            } else {
+              // Fallback al horario general
+              const horarioGeneral = this.getHorarioTomaAsistenciaGeneral();
+
+              if (modoRegistro === ModoRegistro.Entrada) {
+                return String(horarioGeneral.Inicio);
+              } else {
+                return String(horarioGeneral.Fin);
+              }
+            }
+          }
+          break;
+
         case ActoresSistema.ProfesorPrimaria:
           const horarioProfesoresPrimaria =
             this.getHorarioTomaAsistenciaPrimaria();
@@ -349,7 +455,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
     return fechaPredeterminada.toISOString();
   }
 
-  // Método de debugging simplificado
+  // Método de debugging simplificado - 🆕 ACTUALIZADO PARA INCLUIR DIRECTIVOS
   public debugHorariosISO(
     rol: ActoresSistema | RolesSistema,
     dni?: string
@@ -358,6 +464,29 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
     console.log("==========================================");
     console.log("Rol:", rol);
     console.log("DNI:", dni || "N/A");
+
+    // 🆕 Si es directivo, mostrar información adicional
+    if (rol === ActoresSistema.Directivo && dni) {
+      const directivo = this.buscarDirectivoPorDNI(dni);
+      if (directivo) {
+        console.log("📋 DIRECTIVO ENCONTRADO:");
+        console.log("  - ID:", directivo.Id_Directivo);
+        console.log(
+          "  - Nombre completo:",
+          `${directivo.Nombres} ${directivo.Apellidos}`
+        );
+        console.log(
+          "  - Hora entrada original:",
+          directivo.Hora_Entrada_Dia_Actual
+        );
+        console.log(
+          "  - Hora salida original:",
+          directivo.Hora_Salida_Dia_Actual
+        );
+      } else {
+        console.log("❌ DIRECTIVO NO ENCONTRADO CON DNI:", dni);
+      }
+    }
 
     try {
       const entradaISO = this.obtenerHorarioPersonalISO(
@@ -379,6 +508,27 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
     } catch (error) {
       console.error("❌ ERROR en debug:", error);
     }
+
+    console.log("==========================================");
+  }
+
+  // 🆕 MÉTODO AUXILIAR PARA DEBUGGING ESPECÍFICO DE DIRECTIVOS
+  public debugDirectivos(): void {
+    console.log("🏢 DEBUG DIRECTIVOS");
+    console.log("==========================================");
+
+    const directivos = this.getDirectivos();
+    console.log("📊 Total directivos:", directivos.length);
+
+    directivos.forEach((directivo, index) => {
+      console.log(`📋 Directivo ${index + 1}:`);
+      console.log("  - ID:", directivo.Id_Directivo);
+      console.log("  - DNI:", directivo.DNI);
+      console.log("  - Nombre:", `${directivo.Nombres} ${directivo.Apellidos}`);
+      console.log("  - Entrada:", directivo.Hora_Entrada_Dia_Actual);
+      console.log("  - Salida:", directivo.Hora_Salida_Dia_Actual);
+      console.log("  ---");
+    });
 
     console.log("==========================================");
   }

@@ -672,7 +672,7 @@ const RegistrosAsistenciaDePersonal = () => {
     }
   };
 
-  // 📊 FUNCIÓN DE EXPORTACIÓN A EXCEL
+  // 📊 FUNCIÓN DE EXPORTACIÓN A EXCEL CON DIÁLOGO DE GUARDAR
   const formatearFechaParaExcel = (fecha: string): string => {
     const fechaObj = new Date(fecha + "T00:00:00");
     return fechaObj.toLocaleDateString("es-ES", {
@@ -784,7 +784,12 @@ const RegistrosAsistenciaDePersonal = () => {
           label: "NOMBRE COMPLETO:",
           valor: `${usuarioSeleccionado.Nombres} ${usuarioSeleccionado.Apellidos}`,
         },
-        { label: "DNI:", valor: usuarioSeleccionado.ID_O_DNI_Usuario },
+        {
+          label: "DNI:",
+          valor:
+            usuarioSeleccionado.DNI_Directivo ??
+            usuarioSeleccionado.ID_O_DNI_Usuario,
+        },
         { label: "ROL:", valor: rolLegible },
         { label: "MES:", valor: mesesTextos[parseInt(selectedMes) as Meses] },
         { label: "TOTAL REGISTROS:", valor: registros.length.toString() },
@@ -1259,7 +1264,7 @@ const RegistrosAsistenciaDePersonal = () => {
         },
       };
 
-      // === GENERAR Y DESCARGAR ARCHIVO ===
+      // === GENERAR Y GUARDAR ARCHIVO CON DIÁLOGO ===
 
       const nombreFinal = `Asistencia_${usuarioSeleccionado.Nombres.replace(
         /\s+/g,
@@ -1268,23 +1273,52 @@ const RegistrosAsistenciaDePersonal = () => {
         mesesTextos[parseInt(selectedMes) as Meses]
       }_${new Date().getFullYear()}`;
 
-      // Generar buffer y descargar
+      // Generar buffer
       const buffer = await workbook.xlsx.writeBuffer();
-      const blob = new Blob([buffer], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      });
 
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${nombreFinal}.xlsx`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      // 🆕 NUEVO: Usar File System Access API si está disponible, fallback al método tradicional
+      if ("showSaveFilePicker" in window) {
+        try {
+          // Usar la nueva API de File System Access
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const fileHandle = await (window as any).showSaveFilePicker({
+            suggestedName: `${nombreFinal}.xlsx`,
+            types: [
+              {
+                description: "Archivos Excel",
+                accept: {
+                  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+                    [".xlsx"],
+                },
+              },
+            ],
+          });
 
-      // Mostrar mensaje de éxito
-      setSuccessMessage("✅ Archivo Excel exportado exitosamente");
+          const writable = await fileHandle.createWritable();
+          await writable.write(buffer);
+          await writable.close();
+
+          // Mostrar mensaje de éxito
+          setSuccessMessage("✅ Archivo Excel guardado exitosamente");
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error: any) {
+          if (error.name === "AbortError") {
+            // El usuario canceló el diálogo
+            setSuccessMessage("❌ Operación cancelada por el usuario");
+          } else {
+            // Error en la API, usar método tradicional como fallback
+            console.warn(
+              "Error con File System Access API, usando método tradicional:",
+              error
+            );
+            downloadTraditional(buffer, nombreFinal);
+          }
+        }
+      } else {
+        // Navegador no soporta File System Access API, usar método tradicional
+        downloadTraditional(buffer, nombreFinal);
+      }
+
       setTimeout(() => setSuccessMessage(""), 4000);
     } catch (error) {
       console.error("❌ Error al exportar a Excel:", error);
@@ -1295,6 +1329,24 @@ const RegistrosAsistenciaDePersonal = () => {
     } finally {
       setExportandoExcel(false);
     }
+  };
+
+  // Función helper para descarga tradicional
+  const downloadTraditional = (buffer: ArrayBuffer, nombreFinal: string) => {
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${nombreFinal}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    setSuccessMessage("✅ Archivo Excel descargado exitosamente");
   };
 
   // ✅ FUNCIÓN AUXILIAR para limpiar resultados
