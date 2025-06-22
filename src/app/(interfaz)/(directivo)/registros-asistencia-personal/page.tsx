@@ -785,7 +785,12 @@ const RegistrosAsistenciaDePersonal = () => {
           label: "NOMBRE COMPLETO:",
           valor: `${usuarioSeleccionado.Nombres} ${usuarioSeleccionado.Apellidos}`,
         },
-        { label: "DNI:", valor: usuarioSeleccionado.ID_O_DNI_Usuario },
+        {
+          label: "DNI:",
+          valor:
+            usuarioSeleccionado.DNI_Directivo ??
+            usuarioSeleccionado.ID_O_DNI_Usuario,
+        },
         { label: "ROL:", valor: rolLegible },
         { label: "MES:", valor: mesesTextos[parseInt(selectedMes) as Meses] },
         { label: "TOTAL REGISTROS:", valor: registros.length.toString() },
@@ -1578,7 +1583,7 @@ const RegistrosAsistenciaDePersonal = () => {
             )}
 
             {/* Mensaje informativo sobre exportación */}
-            {exportandoExcel && (
+            {exportandoExcel && ENTORNO !== Entorno.PRODUCCION && (
               <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg sxs-only:p-2 xs-only:p-2 sm-only:p-3 md-only:p-3 lg-only:p-3 xl-only:p-3">
                 <div className="flex items-center">
                   <Download className="animate-bounce sxs-only:h-3 sxs-only:w-3 xs-only:h-3 xs-only:w-3 sm-only:h-4 sm-only:w-4 md-only:h-4 md-only:w-4 lg-only:h-4 lg-only:w-4 xl-only:h-4 xl-only:w-4 text-green-500 mr-2 flex-shrink-0" />
@@ -1662,7 +1667,8 @@ const RegistrosAsistenciaDePersonal = () => {
                       DNI:
                     </span>
                     <span className="font-medium text-gray-900">
-                      {data.ID_o_DNI_Personal}
+                      {usuarioSeleccionado?.DNI_Directivo ??
+                        usuarioSeleccionado?.ID_O_DNI_Usuario}
                     </span>
                   </div>
                   <div className="flex items-center space-x-1.5">

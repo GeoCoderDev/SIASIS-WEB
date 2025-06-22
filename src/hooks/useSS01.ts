@@ -14,12 +14,12 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import io, { Socket } from "socket.io-client";
 
-export const useSS01 = (
-) => {
+export const useSS01 = () => {
   const [token, setToken] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isReallyConnected, setIsReallyConnected] = useState(false);
+  const [isReady, setIsReady] = useState(false);
 
-  // Usar ref para evitar recrear conexiones innecesarias
   const socketRef = useRef<typeof Socket | null>(null);
   const connectionAttemptRef = useRef<boolean>(false);
 
@@ -58,7 +58,7 @@ export const useSS01 = (
     }
 
     connectionAttemptRef.current = true;
-    console.log("🚀 [useSS01] Creando nueva conexión Socket.IO");
+    console.log("🚀 [useSS01] Creando conexión Socket.IO");
 
     try {
       const socketConnection = io(process.env.NEXT_PUBLIC_SS01_URL_BASE!, {
@@ -76,49 +76,74 @@ export const useSS01 = (
       // Configurar event listeners
       socketConnection.on("connect", () => {
         console.log("✅ [useSS01] Conectado al servidor SS01");
-        dispatch(setConnectionStatus({ value: true }));
-        TomaAsistenciaPersonalSIU01Events.socketConnection=socketConnection
+
+        setTimeout(() => {
+          if (socketConnection.connected) {
+            setIsReallyConnected(true);
+            dispatch(setConnectionStatus({ value: true }));
+            // Asignar automáticamente a la clase de eventos
+            TomaAsistenciaPersonalSIU01Events.socketConnection =
+              socketConnection;
+            setIsReady(true);
+          }
+        }, 200);
       });
 
       socketConnection.on("disconnect", (reason: any) => {
-        console.log("❌ [useSS01] Desconectado del servidor SS01:", reason);
+        console.log("❌ [useSS01] Desconectado:", reason);
+        setIsReallyConnected(false);
+        setIsReady(false);
         dispatch(setConnectionStatus({ value: false }));
+        TomaAsistenciaPersonalSIU01Events.socketConnection = null;
       });
 
       socketConnection.on("connect_error", (error: any) => {
         console.error("💥 [useSS01] Error de conexión:", error);
+        setIsReallyConnected(false);
+        setIsReady(false);
         dispatch(setConnectionError({ value: error.message }));
-        connectionAttemptRef.current = false; // Permitir reintentos
+        connectionAttemptRef.current = false;
+        TomaAsistenciaPersonalSIU01Events.socketConnection = null;
       });
 
       socketConnection.on("reconnect", (attemptNumber: any) => {
-        console.log(
-          "🔄 [useSS01] Reconectado al servidor SS01. Intento:",
-          attemptNumber
-        );
-        dispatch(setConnectionStatus({ value: true }));
-        dispatch(setConnectionError({ value: null }));
+        console.log("🔄 [useSS01] Reconectado. Intento:", attemptNumber);
+
+        setTimeout(() => {
+          if (socketConnection.connected) {
+            setIsReallyConnected(true);
+            setIsReady(true);
+            dispatch(setConnectionStatus({ value: true }));
+            dispatch(setConnectionError({ value: null }));
+            TomaAsistenciaPersonalSIU01Events.socketConnection =
+              socketConnection;
+          }
+        }, 200);
       });
 
-      // Guardar referencia y en Redux
       socketRef.current = socketConnection;
       dispatch(setGlobalSocket({ value: socketConnection }));
     } catch (error) {
       console.error("❌ [useSS01] Error al crear conexión:", error);
       connectionAttemptRef.current = false;
+      setIsReallyConnected(false);
+      setIsReady(false);
     }
   }, [token, globalSocket, dispatch]);
 
   // Limpiar conexión
   const cleanupConnection = useCallback(() => {
     if (socketRef.current) {
-      console.log("🧹 [useSS01] Limpiando conexión Socket.IO");
+      console.log("🧹 [useSS01] Limpiando conexión");
       socketRef.current.removeAllListeners();
       socketRef.current.disconnect();
       socketRef.current = null;
     }
+    setIsReallyConnected(false);
+    setIsReady(false);
     dispatch(clearGlobalSocket());
     connectionAttemptRef.current = false;
+    TomaAsistenciaPersonalSIU01Events.socketConnection = null;
   }, [dispatch]);
 
   // Crear conexión cuando tengamos token
@@ -135,6 +160,31 @@ export const useSS01 = (
     };
   }, [cleanupConnection]);
 
+  // Debug simplificado
+  const getDebugInfo = useCallback(() => {
+    const status = TomaAsistenciaPersonalSIU01Events.getConnectionStatus();
+
+    return {
+      // Estados del hook
+      hookIsConnected: isConnected,
+      hookIsReallyConnected: isReallyConnected,
+      hookIsReady: isReady,
+
+      // Estados del socket global
+      globalSocketExists: !!globalSocket,
+      globalSocketConnected: globalSocket?.connected,
+      globalSocketId: globalSocket?.id,
+
+      // Estados de la clase de eventos
+      classSocketExists: !!TomaAsistenciaPersonalSIU01Events.socketConnection,
+      classSocketConnected:
+        TomaAsistenciaPersonalSIU01Events.socketConnection?.connected,
+
+      // Status de la clase
+      classStatus: status,
+    };
+  }, [globalSocket, isConnected, isReallyConnected, isReady]);
+
   // Funciones helper
   const disconnect = useCallback(() => {
     cleanupConnection();
@@ -142,17 +192,24 @@ export const useSS01 = (
 
   const reconnect = useCallback(() => {
     cleanupConnection();
-    // Pequeño delay para asegurar limpieza completa
     setTimeout(() => {
       createSocketConnection();
     }, 100);
   }, [cleanupConnection, createSocketConnection]);
 
   return {
+    // Estados principales
     globalSocket,
     isConnected,
-    token: !!token,
+    isReallyConnected,
+    isReady,
+
+    // Utilidades
+    getDebugInfo,
     disconnect,
     reconnect,
+
+    // Para retrocompatibilidad
+    token: !!token,
   };
 };

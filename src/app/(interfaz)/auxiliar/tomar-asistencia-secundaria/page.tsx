@@ -1,85 +1,78 @@
 "use client";
 
 import { useSS01 } from "@/hooks/useSS01";
-import "dotenv/config";
 import React, { useEffect, useRef, useCallback } from "react";
 import { TomaAsistenciaPersonalSIU01Events } from "@/SS01/sockets/events/AsistenciaDePersonal/frontend/TomaAsistenciaPersonalSIU01Events";
 
 const TomarAsistenciaSecundaria = () => {
-  const { globalSocket, isConnected } = useSS01();
+  const { globalSocket, isConnected, isReady, getDebugInfo } = useSS01();
 
   // Ref para mantener referencia al handler
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const saludoHandlerRef = useRef<InstanceType<
     typeof TomaAsistenciaPersonalSIU01Events.RESPUESTA_SALUDO_HANDLER
   > | null>(null);
 
-  // Configurar handlers cuando el socket esté disponible
+  // Configurar handlers cuando el socket esté REALMENTE listo
   useEffect(() => {
-    if (!globalSocket || !isConnected) {
+    if (!isReady) {
       return;
     }
 
-    // Asignar la conexión a la clase de eventos
-    TomaAsistenciaPersonalSIU01Events.socketConnection = globalSocket;
 
-    // Configurar handler para respuesta de saludo
+    //HANDLERS
+
+    // Configurar handler para respuesta de saludo (estilo original)
     saludoHandlerRef.current =
       new TomaAsistenciaPersonalSIU01Events.RESPUESTA_SALUDO_HANDLER(
         (saludo) => {
-          console.log("👋 [Componente] Saludo recibido:", saludo);
+          console.log("🎉 ¡Saludo recibido desde el servidor!", saludo);
           // Aquí puedes actualizar el estado del componente, mostrar notificación, etc.
         }
       );
 
-    // Registrar el handler
-    const handlerRegistered = saludoHandlerRef.current.hand();
+    // Registrar el handler (estilo original)
+    // const handlerRegistered = 
+    saludoHandlerRef.current.hand();
 
-    if (handlerRegistered) {
-      console.log("✅ [Componente] Handler de saludo registrado correctamente");
-    }
+    // if (handlerRegistered) {
+    //   console.log("✅ Handler de saludo registrado correctamente");
+    // }
 
-    // Cleanup al desmontar o cambiar de socket
+    // Cleanup al desmontar o cambiar de socket (estilo original)
     return () => {
-      console.log("🧹 [Componente] Limpiando handlers de eventos");
-
       if (saludoHandlerRef.current) {
         saludoHandlerRef.current.unhand();
         saludoHandlerRef.current = null;
       }
-
-      // Limpiar la referencia del socket en la clase de eventos
-      TomaAsistenciaPersonalSIU01Events.socketConnection = null;
     };
-  }, [globalSocket, isConnected]);
+  }, [isReady]); // Solo depende de isReady
 
-  // Función para enviar saludo
+  // Función para enviar saludo (estilo original)
   const saludarme = useCallback(() => {
-    if (!isConnected) {
-      console.warn("⚠️ [Componente] No hay conexión disponible");
-      alert("No hay conexión con el servidor");
+    if (!isReady) {
+      console.warn("⚠️ Conexión no está lista");
+      alert("Conexión no está lista");
       return;
     }
 
-    console.log("👋 [Componente] Enviando saludo...");
-
+    // Crear y ejecutar emisor (estilo original)
     const emitter =
       new TomaAsistenciaPersonalSIU01Events.SALUDAME_SOCKET_EMITTER();
     const sent = emitter.execute();
 
-    if (sent) {
-      console.log("✅ [Componente] Saludo enviado correctamente");
-    } else {
-      console.error("❌ [Componente] Error al enviar saludo");
+    if (!sent) {
+      console.error("❌ Error al enviar saludo");
       alert("Error al enviar saludo");
     }
-  }, [isConnected]);
+  }, [isReady]);
 
   // Debug del estado de conexión
   const debugConnection = useCallback(() => {
-    const status = TomaAsistenciaPersonalSIU01Events.getConnectionStatus();
-    console.log("🔍 [Debug] Estado de conexión:", status);
-    alert(`Estado: ${JSON.stringify(status, null, 2)}`);
-  }, []);
+    const debugInfo = getDebugInfo();
+    console.log("🔍 Debug:", debugInfo);
+    alert(`Estado: ${JSON.stringify(debugInfo, null, 2)}`);
+  }, [getDebugInfo]);
 
   return (
     <div className="p-4 max-w-lg mx-auto">
@@ -94,9 +87,21 @@ const TomarAsistenciaSecundaria = () => {
             }`}
           />
           <span className="text-sm">
-            {isConnected ? "Conectado al SS01" : "Desconectado del SS01"}
+            {isConnected ? "Socket conectado" : "Socket desconectado"}
           </span>
         </div>
+
+        <div className="flex items-center gap-2 mt-1">
+          <div
+            className={`w-3 h-3 rounded-full ${
+              isReady ? "bg-blue-500" : "bg-gray-400"
+            }`}
+          />
+          <span className="text-sm">
+            {isReady ? "Sistema listo" : "Preparando sistema..."}
+          </span>
+        </div>
+
         {globalSocket?.id && (
           <div className="text-xs text-gray-600 mt-1">
             Socket ID: {globalSocket.id}
@@ -108,10 +113,10 @@ const TomarAsistenciaSecundaria = () => {
       <div className="space-y-2">
         <button
           onClick={saludarme}
-          disabled={!isConnected}
+          disabled={!isReady}
           className="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
-          {isConnected ? "SALUDARME DESDE EL SS01" : "Esperando conexión..."}
+          {isReady ? "SALUDARME DESDE EL SS01" : "Esperando conexión..."}
         </button>
 
         <button
@@ -129,6 +134,7 @@ const TomarAsistenciaSecundaria = () => {
           Socket asignado:{" "}
           {TomaAsistenciaPersonalSIU01Events.socketConnection ? "✅" : "❌"}
         </div>
+        <div>Estado: {isReady ? "✅ Listo" : "⏳ Preparando..."}</div>
       </div>
     </div>
   );

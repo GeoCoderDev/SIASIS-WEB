@@ -1,5 +1,8 @@
 import { Socket } from "socket.io";
 
+// 🔧 Constante para activar/desactivar logs
+const ENABLE_SOCKET_LOGS = false; // Cambiar a false para desactivar logs
+
 export class SocketEmitter<T> {
   constructor(
     private socketConnection: Socket | SocketIOClient.Socket,
@@ -11,16 +14,20 @@ export class SocketEmitter<T> {
     try {
       // Verificar que la conexión existe y está conectada
       if (!this.socketConnection) {
-        console.error(
-          `❌ [SocketEmitter] No hay conexión disponible para evento: ${this.nombreEvento}`
-        );
+        if (ENABLE_SOCKET_LOGS) {
+          console.error(
+            `❌ [SocketEmitter] No hay conexión disponible para evento: ${this.nombreEvento}`
+          );
+        }
         return false;
       }
 
       if (!this.socketConnection.connected) {
-        console.error(
-          `❌ [SocketEmitter] Socket no conectado para evento: ${this.nombreEvento}`
-        );
+        if (ENABLE_SOCKET_LOGS) {
+          console.error(
+            `❌ [SocketEmitter] Socket no conectado para evento: ${this.nombreEvento}`
+          );
+        }
         return false;
       }
 
@@ -28,23 +35,29 @@ export class SocketEmitter<T> {
       if (this.data !== undefined) {
         // No serializar a JSON aquí, dejarlo como objeto
         this.socketConnection.emit(this.nombreEvento, this.data);
-        console.log(
-          `📤 [SocketEmitter] Evento enviado: ${this.nombreEvento}`,
-          this.data
-        );
+        if (ENABLE_SOCKET_LOGS) {
+          console.log(
+            `📤 [SocketEmitter] Evento enviado: ${this.nombreEvento}`,
+            this.data
+          );
+        }
       } else {
         this.socketConnection.emit(this.nombreEvento);
-        console.log(
-          `📤 [SocketEmitter] Evento enviado: ${this.nombreEvento} (sin payload)`
-        );
+        if (ENABLE_SOCKET_LOGS) {
+          console.log(
+            `📤 [SocketEmitter] Evento enviado: ${this.nombreEvento} (sin payload)`
+          );
+        }
       }
 
       return true;
     } catch (error) {
-      console.error(
-        `❌ [SocketEmitter] Error al enviar evento ${this.nombreEvento}:`,
-        error
-      );
+      if (ENABLE_SOCKET_LOGS) {
+        console.error(
+          `❌ [SocketEmitter] Error al enviar evento ${this.nombreEvento}:`,
+          error
+        );
+      }
       return false;
     }
   }
@@ -64,47 +77,59 @@ export class SocketHandler<T> {
     try {
       // Verificar que la conexión existe
       if (!this.socketConnection) {
-        console.error(
-          `❌ [SocketHandler] No hay conexión disponible para evento: ${this.nombreEvento}`
-        );
+        if (ENABLE_SOCKET_LOGS) {
+          console.error(
+            `❌ [SocketHandler] No hay conexión disponible para evento: ${this.nombreEvento}`
+          );
+        }
         return false;
       }
 
       // Evitar listeners duplicados
       if (this.listenerAttached) {
-        console.warn(
-          `⚠️ [SocketHandler] Listener ya está registrado para: ${this.nombreEvento}`
-        );
+        if (ENABLE_SOCKET_LOGS) {
+          console.warn(
+            `⚠️ [SocketHandler] Listener ya está registrado para: ${this.nombreEvento}`
+          );
+        }
         return true;
       }
       // Wrapper para logging y error handling
       this._wrappedCallback = (data: T) => {
         try {
-          console.log(
-            `📥 [SocketHandler] Evento recibido: ${this.nombreEvento}`,
-            data
-          );
+          if (ENABLE_SOCKET_LOGS) {
+            console.log(
+              `📥 [SocketHandler] Evento recibido: ${this.nombreEvento}`,
+              data
+            );
+          }
           this.callback(data);
         } catch (error) {
-          console.error(
-            `❌ [SocketHandler] Error en callback para ${this.nombreEvento}:`,
-            error
-          );
+          if (ENABLE_SOCKET_LOGS) {
+            console.error(
+              `❌ [SocketHandler] Error en callback para ${this.nombreEvento}:`,
+              error
+            );
+          }
         }
       };
 
       this.socketConnection.on(this.nombreEvento, this._wrappedCallback);
       this.listenerAttached = true;
-      console.log(
-        `✅ [SocketHandler] Listener registrado para: ${this.nombreEvento}`
-      );
+      if (ENABLE_SOCKET_LOGS) {
+        console.log(
+          `✅ [SocketHandler] Listener registrado para: ${this.nombreEvento}`
+        );
+      }
 
       return true;
     } catch (error) {
-      console.error(
-        `❌ [SocketHandler] Error al registrar listener para ${this.nombreEvento}:`,
-        error
-      );
+      if (ENABLE_SOCKET_LOGS) {
+        console.error(
+          `❌ [SocketHandler] Error al registrar listener para ${this.nombreEvento}:`,
+          error
+        );
+      }
       return false;
     }
   }
@@ -120,16 +145,20 @@ export class SocketHandler<T> {
         this._wrappedCallback = undefined;
       }
       this.listenerAttached = false;
-      console.log(
-        `🗑️ [SocketHandler] Listener removido para: ${this.nombreEvento}`
-      );
+      if (ENABLE_SOCKET_LOGS) {
+        console.log(
+          `🗑️ [SocketHandler] Listener removido para: ${this.nombreEvento}`
+        );
+      }
 
       return true;
     } catch (error) {
-      console.error(
-        `❌ [SocketHandler] Error al remover listener para ${this.nombreEvento}:`,
-        error
-      );
+      if (ENABLE_SOCKET_LOGS) {
+        console.error(
+          `❌ [SocketHandler] Error al remover listener para ${this.nombreEvento}:`,
+          error
+        );
+      }
       return false;
     }
   }
