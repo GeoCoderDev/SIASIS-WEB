@@ -29,10 +29,12 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
   }
 
   public buscarDirectivoPorDNI(
-    dni: string
+    dni: string | number
   ): DirectivoParaTomaDeAsistencia | null {
     return (
-      this.getDirectivos().find((directivo) => directivo.DNI === dni) || null
+      this.getDirectivos().find(
+        (directivo) => directivo.Id_Directivo === dni
+      ) || null
     );
   }
 
@@ -40,8 +42,9 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
     id: number
   ): DirectivoParaTomaDeAsistencia | null {
     return (
-      this.getDirectivos().find((directivo) => directivo.Id_Directivo === id) ||
-      null
+      this.getDirectivos().find(
+        (directivo) => directivo.Id_Directivo === Number(id)
+      ) || null
     );
   }
 
@@ -303,7 +306,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
    */
   public obtenerHorarioPersonalISO(
     rol: ActoresSistema | RolesSistema,
-    dni: string,
+    id_o_dni: string | number,
     modoRegistro: ModoRegistro
   ): string {
     try {
@@ -324,7 +327,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
       switch (rol) {
         // 🆕 NUEVO CASO PARA DIRECTIVOS
         case ActoresSistema.Directivo:
-          const directivo = this.buscarDirectivoPorDNI(dni);
+          const directivo = this.buscarDirectivoPorId(id_o_dni as number);
 
           if (directivo) {
             if (
@@ -362,7 +365,9 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
 
         case ActoresSistema.ProfesorSecundaria:
         case ActoresSistema.Tutor:
-          const profesorSecundaria = this.buscarProfesorSecundariaPorDNI(dni);
+          const profesorSecundaria = this.buscarProfesorSecundariaPorDNI(
+            id_o_dni as string
+          );
 
           if (profesorSecundaria) {
             if (
@@ -405,7 +410,9 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
           }
 
         case ActoresSistema.PersonalAdministrativo:
-          const personal = this.buscarPersonalAdministrativoPorDNI(dni);
+          const personal = this.buscarPersonalAdministrativoPorDNI(
+            id_o_dni as string
+          );
 
           if (personal) {
             if (

@@ -254,6 +254,7 @@ export const ListaPersonal = ({
           modoRegistro
         );
 
+
       // ✅ USAR ORQUESTADOR en lugar de fetch directo
       await asistenciaDePersonalIDB.marcarAsistencia(
         {

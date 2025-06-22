@@ -282,6 +282,8 @@ export async function POST(req: NextRequest) {
       Seccion,
     } = body;
 
+    console.log("HORA ESPERADA ISO", FechaHoraEsperadaISO);
+
     // ✅ NUEVA LÓGICA: Detectar si es registro propio
     // Si no se envía Actor, ID_o_DNI, ni TipoAsistencia = registro propio
     const esRegistroPropio = !Actor && !ID_o_DNI && !tipoAsistenciaParam;
