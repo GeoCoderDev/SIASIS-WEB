@@ -3,11 +3,12 @@ import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import { ActoresSistema } from "@/interfaces/shared/ActoresSistema";
 import { ModoRegistro } from "@/interfaces/shared/ModoRegistroPersonal";
 import { EstadosAsistenciaPersonal } from "@/interfaces/shared/EstadosAsistenciaPersonal";
-import {
-  MINUTOS_TOLERANCIA_ENTRADA_PERSONAL,
-  MINUTOS_TOLERANCIA_SALIDA_PERSONAL,
-} from "@/constants/MINUTOS_TOLERANCIA_ASISTENCIA_PERSONAL";
+
 import { TipoPersonal } from "../AsistenciaDePersonalTypes";
+import {
+  SEGUNDOS_TOLERANCIA_ENTRADA_PERSONAL,
+  SEGUNDOS_TOLERANCIA_SALIDA_PERSONAL,
+} from "@/constants/MINUTOS_TOLERANCIA_ASISTENCIA_PERSONAL";
 
 // Interfaces para los registros de entrada/salida
 export interface RegistroEntradaSalida {
@@ -354,22 +355,17 @@ export class AsistenciaDePersonalMapper {
     desfaseSegundos: number,
     modoRegistro: ModoRegistro
   ): EstadosAsistenciaPersonal {
-    const TOLERANCIA_TARDANZA = MINUTOS_TOLERANCIA_ENTRADA_PERSONAL * 60;
-    const TOLERANCIA_TEMPRANO = MINUTOS_TOLERANCIA_SALIDA_PERSONAL * 60;
-
     if (modoRegistro === ModoRegistro.Entrada) {
-      if (desfaseSegundos <= 0) {
-        return EstadosAsistenciaPersonal.En_Tiempo;
-      } else if (desfaseSegundos <= TOLERANCIA_TARDANZA) {
-        return EstadosAsistenciaPersonal.En_Tiempo; // Tolerancia de 5 minutos
+      // ✅ CAMBIO: Solo Temprano o Tarde
+      if (desfaseSegundos <= SEGUNDOS_TOLERANCIA_ENTRADA_PERSONAL) {
+        return EstadosAsistenciaPersonal.Temprano; // ✅ CAMBIADO
       } else {
-        return EstadosAsistenciaPersonal.Tarde;
+        return EstadosAsistenciaPersonal.Tarde; // ✅ SIN TOLERANCIA
       }
     } else {
-      if (desfaseSegundos >= 0) {
+      // Para salidas mantener la lógica existente o cambiar según necesites
+      if (desfaseSegundos >= -SEGUNDOS_TOLERANCIA_SALIDA_PERSONAL) {
         return EstadosAsistenciaPersonal.Cumplido;
-      } else if (desfaseSegundos >= -TOLERANCIA_TEMPRANO) {
-        return EstadosAsistenciaPersonal.Cumplido; // Tolerancia de 15 minutos
       } else {
         return EstadosAsistenciaPersonal.Salida_Anticipada;
       }

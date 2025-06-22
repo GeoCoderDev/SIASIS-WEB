@@ -22,6 +22,8 @@ import { RootState } from "@/global/store";
 // Obtener texto según el rol
 export const obtenerTextoRol = (rol: RolesSistema): string => {
   switch (rol) {
+    case RolesSistema.Directivo:
+      return "Directivos";
     case RolesSistema.ProfesorPrimaria:
       return "Profesores de Primaria";
     case RolesSistema.Auxiliar:

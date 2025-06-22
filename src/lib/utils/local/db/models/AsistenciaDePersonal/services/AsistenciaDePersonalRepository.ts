@@ -138,89 +138,34 @@ export class AsistenciaDePersonalRepository {
    * ✅ ACTUALIZADO: Usa ID_o_DNI_Personal
    * ✅ MEJORADO: Mejor logging para debugging
    */
-  public async obtenerRegistroMensual(
-    tipoPersonal: TipoPersonal,
-    modoRegistro: ModoRegistro,
-    ID_o_DNI_Personal: string | number,
-    mes: number,
-    id_registro_mensual?: number
-  ): Promise<AsistenciaMensualPersonalLocal | null> {
-    try {
-      await IndexedDBConnection.init();
-      const storeName = this.mapper.getStoreName(tipoPersonal, modoRegistro);
-      const store = await IndexedDBConnection.getStore(storeName, "readonly");
+public async obtenerRegistroMensual(
+  tipoPersonal: TipoPersonal,
+  modoRegistro: ModoRegistro,
+  ID_o_DNI_Personal: string | number,
+  mes: number,
+  id_registro_mensual?: number
+): Promise<AsistenciaMensualPersonalLocal | null> {
+  try {
+    await IndexedDBConnection.init();
+    const storeName = this.mapper.getStoreName(tipoPersonal, modoRegistro);
+    const store = await IndexedDBConnection.getStore(storeName, "readonly");
 
-      // Si se proporciona ID del registro, buscar directamente
-      if (id_registro_mensual) {
-        const request = store.get(id_registro_mensual);
+    // ✅ DIAGNÓSTICO para directivos
+    if (tipoPersonal === TipoPersonal.DIRECTIVO) {
+      console.log(`🔍 CONSULTA DIRECTIVO DETALLADA:`);
+      console.log(`  - Store: ${storeName}`);
+      console.log(`  - ID_o_DNI_Personal: ${ID_o_DNI_Personal} (tipo: ${typeof ID_o_DNI_Personal})`);
+      console.log(`  - Mes: ${mes}`);
+      console.log(`  - ID registro mensual: ${id_registro_mensual}`);
+    }
 
-        return new Promise((resolve, reject) => {
-          try {
-            request.onsuccess = async () => {
-              if (request.result) {
-                const registroMensual: AsistenciaMensualPersonalLocal =
-                  this.mapearRegistroMensualDesdeStore(
-                    request.result,
-                    tipoPersonal,
-                    modoRegistro
-                  );
-                console.log(
-                  `📖 Registro encontrado por ID: ${id_registro_mensual}, última actualización: ${new Date(
-                    registroMensual.ultima_fecha_actualizacion
-                  ).toLocaleString("es-PE")}`
-                );
-
-                resolve(registroMensual);
-              } else {
-                console.log(
-                  `📖 No se encontró registro con ID: ${id_registro_mensual}`
-                );
-                resolve(null);
-              }
-            };
-
-            request.onerror = (event) => {
-              reject(
-                new Error(
-                  `Error al obtener registro mensual por ID: ${
-                    (event.target as IDBRequest).error
-                  }`
-                )
-              );
-            };
-          } catch (error) {
-            reject(error);
-          }
-        });
-      }
-
-      // ✅ VALIDAR valores antes de usar en índice
-      this.validarValoresParaIndice(ID_o_DNI_Personal, mes, tipoPersonal);
-
-      const indexName = this.mapper.getIndexNameForPersonalMes(tipoPersonal);
+    // Si se proporciona ID del registro, buscar directamente
+    if (id_registro_mensual) {
+      const request = store.get(id_registro_mensual);
 
       return new Promise((resolve, reject) => {
         try {
-          const index = store.index(indexName);
-
-          // ✅ CONVERTIR identificador al tipo correcto
-          const identificadorConvertido = this.convertirIdentificadorParaDB(
-            tipoPersonal,
-            ID_o_DNI_Personal
-          );
-          const keyValue = [identificadorConvertido, mes];
-
-          console.log(`🔍 Buscando en índice: ${indexName}`, {
-            tipoPersonal,
-            identificadorOriginal: ID_o_DNI_Personal,
-            identificadorConvertido,
-            mes,
-            keyValue,
-          });
-
-          const request = index.get(keyValue);
-
-          request.onsuccess = () => {
+          request.onsuccess = async () => {
             if (request.result) {
               const registroMensual: AsistenciaMensualPersonalLocal =
                 this.mapearRegistroMensualDesdeStore(
@@ -228,40 +173,90 @@ export class AsistenciaDePersonalRepository {
                   tipoPersonal,
                   modoRegistro
                 );
+              
+              if (tipoPersonal === TipoPersonal.DIRECTIVO) {
+                console.log(`✅ DIRECTIVO encontrado por ID: ${id_registro_mensual}`);
+                console.log(`   - Registro:`, registroMensual);
+              }
 
-              console.log(
-                `📖 Registro encontrado para ${tipoPersonal} - ${ID_o_DNI_Personal} - mes ${mes}, última actualización: ${new Date(
-                  registroMensual.ultima_fecha_actualizacion
-                ).toLocaleString("es-PE")}`
-              );
               resolve(registroMensual);
             } else {
-              console.log(
-                `📊 No se encontró registro para: ${tipoPersonal} - ${ID_o_DNI_Personal} - mes ${mes}`
-              );
+              if (tipoPersonal === TipoPersonal.DIRECTIVO) {
+                console.log(`❌ DIRECTIVO NO encontrado por ID: ${id_registro_mensual}`);
+              }
               resolve(null);
             }
           };
 
           request.onerror = (event) => {
-            const error = (event.target as IDBRequest).error;
-            console.error(`❌ Error en índice ${indexName}:`, error);
-            reject(
-              new Error(
-                `Error al obtener registro mensual por índice: ${error}`
-              )
-            );
+            reject(new Error(`Error al obtener registro mensual por ID: ${(event.target as IDBRequest).error}`));
           };
         } catch (error) {
-          console.error(`❌ Error al preparar consulta:`, error);
           reject(error);
         }
       });
-    } catch (error) {
-      console.error("Error en obtenerRegistroMensual:", error);
-      return null;
     }
+
+    // ✅ VALIDAR valores antes de usar en índice
+    this.validarValoresParaIndice(ID_o_DNI_Personal, mes, tipoPersonal);
+
+    const indexName = this.mapper.getIndexNameForPersonalMes(tipoPersonal);
+
+    return new Promise((resolve, reject) => {
+      try {
+        const index = store.index(indexName);
+
+        // ✅ CONVERTIR identificador al tipo correcto
+        const identificadorConvertido = this.convertirIdentificadorParaDB(tipoPersonal, ID_o_DNI_Personal);
+        const keyValue = [identificadorConvertido, mes];
+
+        // ✅ DIAGNÓSTICO para directivos
+        if (tipoPersonal === TipoPersonal.DIRECTIVO) {
+          console.log(`🔍 BÚSQUEDA POR ÍNDICE DIRECTIVO:`);
+          console.log(`  - Índice: ${indexName}`);
+          console.log(`  - Identificador original: ${ID_o_DNI_Personal}`);
+          console.log(`  - Identificador convertido: ${identificadorConvertido} (tipo: ${typeof identificadorConvertido})`);
+          console.log(`  - KeyValue: [${keyValue[0]}, ${keyValue[1]}]`);
+        }
+
+        const request = index.get(keyValue);
+
+        request.onsuccess = () => {
+          if (request.result) {
+            const registroMensual: AsistenciaMensualPersonalLocal =
+              this.mapearRegistroMensualDesdeStore(request.result, tipoPersonal, modoRegistro);
+
+            if (tipoPersonal === TipoPersonal.DIRECTIVO) {
+              console.log(`✅ DIRECTIVO encontrado por índice`);
+              console.log(`   - Resultado:`, request.result);
+              console.log(`   - Registro mapeado:`, registroMensual);
+            }
+
+            resolve(registroMensual);
+          } else {
+            if (tipoPersonal === TipoPersonal.DIRECTIVO) {
+              console.log(`❌ DIRECTIVO NO encontrado por índice`);
+              console.log(`   - Se esperaba encontrar con keyValue: [${keyValue[0]}, ${keyValue[1]}]`);
+            }
+            resolve(null);
+          }
+        };
+
+        request.onerror = (event) => {
+          const error = (event.target as IDBRequest).error;
+          console.error(`❌ Error en índice ${indexName}:`, error);
+          reject(new Error(`Error al obtener registro mensual por índice: ${error}`));
+        };
+      } catch (error) {
+        console.error(`❌ Error al preparar consulta:`, error);
+        reject(error);
+      }
+    });
+  } catch (error) {
+    console.error("Error en obtenerRegistroMensual:", error);
+    return null;
   }
+}
 
   /**
    * ✅ NUEVO: Convierte el identificador al tipo correcto según el personal
@@ -270,19 +265,12 @@ export class AsistenciaDePersonalRepository {
     tipoPersonal: TipoPersonal,
     id_o_dni: string | number
   ): string | number {
-    if (
-      tipoPersonal === TipoPersonal.DIRECTIVO &&
-      typeof id_o_dni === "string"
-    ) {
-      // Para directivos: convertir a número (Id_Directivo es INT en la BD)
-      const id = parseInt(id_o_dni, 10);
-      if (isNaN(id)) {
-        throw new Error(`ID de directivo inválido: ${id_o_dni}`);
-      }
-      return id;
+    if (tipoPersonal === TipoPersonal.DIRECTIVO) {
+      // ✅ FORZAR que siempre sea number para directivos
+      return typeof id_o_dni === "string" ? parseInt(id_o_dni, 10) : id_o_dni;
     } else {
-      // Para otros roles: mantener como string (DNI)
-      return id_o_dni;
+      // ✅ FORZAR que siempre sea string para otros roles
+      return String(id_o_dni);
     }
   }
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { EstadosAsistenciaPersonalStyles } from "@/Assets/styles/EstadosAsistenciaPersonalStyles";
 import { EstadosAsistenciaPersonal } from "@/interfaces/shared/EstadosAsistenciaPersonal";
@@ -784,12 +785,7 @@ const RegistrosAsistenciaDePersonal = () => {
           label: "NOMBRE COMPLETO:",
           valor: `${usuarioSeleccionado.Nombres} ${usuarioSeleccionado.Apellidos}`,
         },
-        {
-          label: "DNI:",
-          valor:
-            usuarioSeleccionado.DNI_Directivo ??
-            usuarioSeleccionado.ID_O_DNI_Usuario,
-        },
+        { label: "DNI:", valor: usuarioSeleccionado.ID_O_DNI_Usuario },
         { label: "ROL:", valor: rolLegible },
         { label: "MES:", valor: mesesTextos[parseInt(selectedMes) as Meses] },
         { label: "TOTAL REGISTROS:", valor: registros.length.toString() },
@@ -1276,11 +1272,27 @@ const RegistrosAsistenciaDePersonal = () => {
       // Generar buffer
       const buffer = await workbook.xlsx.writeBuffer();
 
-      // 🆕 NUEVO: Usar File System Access API si está disponible, fallback al método tradicional
-      if ("showSaveFilePicker" in window) {
+      // 🔍 DEBUG: Logs detallados para diagnosticar
+      console.log("🔍 === INICIANDO PROCESO DE GUARDADO ===");
+      console.log(
+        "- API showSaveFilePicker disponible:",
+        "showSaveFilePicker" in window
+      );
+      console.log("- Protocolo actual:", window.location.protocol);
+      console.log("- Hostname actual:", window.location.hostname);
+      console.log("- Es contexto seguro:", window.isSecureContext);
+      console.log("- Tamaño del buffer:", buffer.byteLength, "bytes");
+
+      // ✅ VERIFICACIÓN EXPLÍCITA: Solo usar File System Access API si está realmente disponible
+      const tieneFileSystemAPI = "showSaveFilePicker" in window;
+
+      if (tieneFileSystemAPI) {
+        console.log("🚀 === INTENTANDO FILE SYSTEM ACCESS API ===");
+
         try {
+          console.log("📂 Mostrando diálogo de guardar...");
+
           // Usar la nueva API de File System Access
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const fileHandle = await (window as any).showSaveFilePicker({
             suggestedName: `${nombreFinal}.xlsx`,
             types: [
@@ -1294,31 +1306,36 @@ const RegistrosAsistenciaDePersonal = () => {
             ],
           });
 
+          console.log("✅ Usuario seleccionó ubicación:", fileHandle.name);
+          console.log("💾 Escribiendo archivo...");
+
           const writable = await fileHandle.createWritable();
           await writable.write(buffer);
           await writable.close();
 
-          // Mostrar mensaje de éxito
+          console.log("🎉 === ARCHIVO GUARDADO EXITOSAMENTE ===");
           setSuccessMessage("✅ Archivo Excel guardado exitosamente");
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
+          console.log("❌ === ERROR EN FILE SYSTEM ACCESS API ===");
+          console.log("- Tipo de error:", error.name);
+          console.log("- Mensaje:", error.message);
+          console.log("- Error completo:", error);
+
           if (error.name === "AbortError") {
-            // El usuario canceló el diálogo
+            console.log("👤 Usuario canceló el diálogo de guardar");
             setSuccessMessage("❌ Operación cancelada por el usuario");
           } else {
-            // Error en la API, usar método tradicional como fallback
-            console.warn(
-              "Error con File System Access API, usando método tradicional:",
-              error
-            );
+            console.log("🔄 Fallback a descarga tradicional...");
             downloadTraditional(buffer, nombreFinal);
           }
         }
       } else {
-        // Navegador no soporta File System Access API, usar método tradicional
+        console.log("⚠️ === FILE SYSTEM ACCESS API NO DISPONIBLE ===");
+        console.log("🔄 Usando descarga tradicional...");
         downloadTraditional(buffer, nombreFinal);
       }
 
+      // Limpiar mensaje después de 4 segundos
       setTimeout(() => setSuccessMessage(""), 4000);
     } catch (error) {
       console.error("❌ Error al exportar a Excel:", error);

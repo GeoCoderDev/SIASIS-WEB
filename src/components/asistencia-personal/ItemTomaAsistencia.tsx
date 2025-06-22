@@ -62,23 +62,25 @@ const ItemTomaAsistencia = ({
       return false;
     }
 
-    // 🔧 CORREGIR ZONA HORARIA: Aplicar offset de Perú (-5 horas = -5 * 60 * 60 * 1000 ms)
-    // const OFFSET_PERU_MS = 5 * 60 * 60 * 1000;
-    const timestampAsistenciaCorregido = detalles.Timestamp;
+    // ✅ CORREGIDO: Ambos timestamps deben estar en la misma zona horaria (Perú)
+    // El timestampActual ya viene de Redux (hora de Perú)
+    // El timestamp de asistencia también está en hora de Perú
+    const timestampAsistencia = detalles.Timestamp;
 
     // Calcular tiempo transcurrido en minutos
-    const tiempoTranscurridoMs = timestampActual - timestampAsistenciaCorregido;
+    const tiempoTranscurridoMs = timestampActual - timestampAsistencia;
     const tiempoTranscurridoMinutos = tiempoTranscurridoMs / (1000 * 60);
 
     console.log("🕐 Debug cálculo eliminación:", {
       timestampActual,
-      timestampAsistenciaOriginal: detalles.Timestamp,
-      timestampAsistenciaCorregido,
+      timestampAsistencia,
       tiempoTranscurridoMs,
       tiempoTranscurridoMinutos,
       puedeEliminar:
         tiempoTranscurridoMinutos <=
         CANTIDAD_MINUTOS_MAXIMO_PARA_DESCARTAR_ASISTENCIA_DE_PERSONAL,
+      fechaActual: new Date(timestampActual).toLocaleString("es-PE"),
+      fechaAsistencia: new Date(timestampAsistencia).toLocaleString("es-PE"),
     });
 
     return (
@@ -103,11 +105,9 @@ const ItemTomaAsistencia = ({
       return 0;
     }
 
-    // 🔧 CORREGIR ZONA HORARIA: Aplicar offset de Perú (-5 horas = -5 * 60 * 60 * 1000 ms)
-    // const OFFSET_PERU_MS = 5 * 60 * 60 * 1000;
-    const timestampAsistenciaCorregido = detalles.Timestamp;
-
-    const tiempoTranscurridoMs = timestampActual - timestampAsistenciaCorregido;
+    // ✅ CORREGIDO: Sin conversión de zona horaria
+    const timestampAsistencia = detalles.Timestamp;
+    const tiempoTranscurridoMs = timestampActual - timestampAsistencia;
     const tiempoTranscurridoMinutos = tiempoTranscurridoMs / (1000 * 60);
     const restantes =
       CANTIDAD_MINUTOS_MAXIMO_PARA_DESCARTAR_ASISTENCIA_DE_PERSONAL -

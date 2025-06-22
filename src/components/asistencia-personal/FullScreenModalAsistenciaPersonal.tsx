@@ -22,6 +22,8 @@ import {
 } from "@/interfaces/shared/ModoRegistroPersonal";
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import DirectivoIcon from "../icons/DirectivoIcon";
+import { AsistenciaHoy } from "@/lib/utils/local/db/models/AsistenciasTomadasHoy/AsistenciasTomadasHoyIDB";
+import IndexedDBConnection from "@/lib/utils/local/db/IndexedDBConnection";
 
 const FullScreenModalAsistenciaPersonal = ({
   closeFullScreenModal,
@@ -106,6 +108,48 @@ const FullScreenModalAsistenciaPersonal = ({
       setRolSeleccionado(null);
     }
   };
+
+  const getDiagnostic = async () => {
+    try {
+      await IndexedDBConnection.init();
+      const store = await IndexedDBConnection.getStore(
+        "asistencias_tomadas_hoy",
+        "readonly"
+      );
+
+      return new Promise<void>((resolve) => {
+        const request = store.openCursor();
+
+        request.onsuccess = (event) => {
+          const cursor = (event.target as IDBRequest)
+            .result as IDBCursorWithValue;
+
+          if (cursor) {
+            const asistencia = cursor.value as AsistenciaHoy;
+            console.log(`🔍 REGISTRO EN CACHE:`);
+            console.log(`  - Clave: ${asistencia.clave}`);
+            console.log(
+              `  - DNI: ${asistencia.dni} (tipo: ${typeof asistencia.dni})`
+            );
+            console.log(`  - Actor: ${asistencia.actor}`);
+            console.log(`  - Modo: ${asistencia.modoRegistro}`);
+            console.log(`  - Fecha: ${asistencia.fecha}`);
+            console.log(`---`);
+
+            cursor.continue();
+          } else {
+            resolve();
+          }
+        };
+      });
+    } catch (error) {
+      console.error("Error en diagnóstico:", error);
+    }
+  };
+
+  useEffect(() => {
+    getDiagnostic();
+  }, []);
 
   // Determinar qué contenido mostrar según el estado actual
   const renderContenido = () => {

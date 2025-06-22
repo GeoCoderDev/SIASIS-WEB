@@ -7,6 +7,10 @@ import { EstadosAsistencia } from "@/interfaces/shared/EstadosAsistenciaEstudian
 import { CANTIDAD_MINUTOS_MAXIMO_PARA_DESCARTE_ASISTENCIAS } from "@/constants/CANTIDAD_MINUTOS_MAXIMO_PARA_DESCARTE_ASISTENCIAS";
 import { TablasLocal } from "@/interfaces/shared/TablasSistema";
 import { AsistenciaDePersonalDateHelper } from "../AsistenciaDePersonal/services/AsistenciaDePersonalDateHelper";
+import {
+  SEGUNDOS_TOLERANCIA_ENTRADA_PERSONAL,
+  SEGUNDOS_TOLERANCIA_SALIDA_PERSONAL,
+} from "@/constants/MINUTOS_TOLERANCIA_ASISTENCIA_PERSONAL";
 
 // ✅ INTERFAZ: Estructura base para asistencias
 interface AsistenciaHoyBase {
@@ -296,21 +300,16 @@ export class AsistenciasTomadasHoyIDB {
     desfaseSegundos: number,
     modoRegistro: ModoRegistro
   ): EstadosAsistenciaPersonal {
-    const TOLERANCIA_TARDANZA = 5 * 60; // 5 minutos en segundos
-    const TOLERANCIA_TEMPRANO = 15 * 60; // 15 minutos en segundos
-
     if (modoRegistro === ModoRegistro.Entrada) {
-      if (desfaseSegundos <= 0) {
-        return EstadosAsistenciaPersonal.En_Tiempo;
-      } else if (desfaseSegundos <= TOLERANCIA_TARDANZA) {
-        return EstadosAsistenciaPersonal.En_Tiempo;
+      // ✅ CAMBIO: Solo Temprano o Tarde
+      if (desfaseSegundos <= SEGUNDOS_TOLERANCIA_ENTRADA_PERSONAL) {
+        return EstadosAsistenciaPersonal.Temprano; // ✅ CAMBIADO
       } else {
-        return EstadosAsistenciaPersonal.Tarde;
+        return EstadosAsistenciaPersonal.Tarde; // ✅ SIN TOLERANCIA
       }
     } else {
-      if (desfaseSegundos >= 0) {
-        return EstadosAsistenciaPersonal.Cumplido;
-      } else if (desfaseSegundos >= -TOLERANCIA_TEMPRANO) {
+      // Para salidas mantener la lógica existente o cambiar según necesites
+      if (desfaseSegundos >= -SEGUNDOS_TOLERANCIA_SALIDA_PERSONAL) {
         return EstadosAsistenciaPersonal.Cumplido;
       } else {
         return EstadosAsistenciaPersonal.Salida_Anticipada;
