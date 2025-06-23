@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Meses } from "@/interfaces/shared/Meses";
 import {
   OperationResult,
@@ -162,6 +163,150 @@ export class AsistenciaDePersonalCacheManager {
   }
 
   /**
+   * ✅ NUEVO: Integra datos directos de Redis con registros históricos
+   */
+  public async integrarDatosDirectosDeRedis(
+    registroEntrada: AsistenciaMensualPersonalLocal | null,
+    registroSalida: AsistenciaMensualPersonalLocal | null,
+    datosRedis: {
+      entrada?: any;
+      salida?: any;
+      encontradoEntrada: boolean;
+      encontradoSalida: boolean;
+    },
+    rol: RolesSistema,
+    id_o_dni: string | number,
+    diaActual: number
+  ): Promise<{
+    entrada?: AsistenciaMensualPersonalLocal;
+    salida?: AsistenciaMensualPersonalLocal;
+    integrado: boolean;
+    mensaje: string;
+  }> {
+    try {
+      // 🆕 LIMPIAR día anterior automáticamente
+      await this.limpiarDiasAnterioresAutomaticamente();
+
+      let entradaFinal = registroEntrada;
+      let salidaFinal = registroSalida;
+      let integrado = false;
+
+      const fechaHoy = this.dateHelper.obtenerFechaStringActual();
+      if (!fechaHoy) {
+        return {
+          entrada: entradaFinal || undefined,
+          salida: salidaFinal || undefined,
+          integrado: false,
+          mensaje: "No se pudo obtener fecha actual",
+        };
+      }
+
+      // Integrar entrada desde Redis
+      if (datosRedis.encontradoEntrada && datosRedis.entrada?.Resultados) {
+        const resultado = Array.isArray(datosRedis.entrada.Resultados)
+          ? datosRedis.entrada.Resultados[0]
+          : datosRedis.entrada.Resultados;
+
+        if (resultado?.AsistenciaMarcada && resultado.Detalles) {
+          const timestamp =
+            resultado.Detalles.Timestamp ||
+            this.dateHelper.obtenerTimestampPeruano();
+          const desfaseSegundos = resultado.Detalles.DesfaseSegundos || 0;
+          const estado = this.mapper.determinarEstadoAsistencia(
+            desfaseSegundos,
+            ModoRegistro.Entrada
+          );
+
+          entradaFinal = this.integrarDatosDeCacheEnRegistroMensual(
+            entradaFinal,
+            {
+              clave: `redis_${fechaHoy}_entrada_${id_o_dni}`,
+              dni: String(id_o_dni),
+              actor: this.mapper.obtenerActorDesdeRol(rol),
+              modoRegistro: ModoRegistro.Entrada,
+              tipoAsistencia: TipoAsistencia.ParaPersonal,
+              timestamp,
+              desfaseSegundos,
+              estado,
+              fecha: fechaHoy,
+              timestampConsulta: this.dateHelper.obtenerTimestampPeruano(),
+            },
+            diaActual,
+            ModoRegistro.Entrada,
+            id_o_dni,
+            fechaHoy
+          );
+
+          integrado = true;
+          console.log(`✅ Entrada integrada desde Redis directo: ${estado}`);
+        }
+      }
+
+      // Integrar salida desde Redis
+      if (datosRedis.encontradoSalida && datosRedis.salida?.Resultados) {
+        const resultado = Array.isArray(datosRedis.salida.Resultados)
+          ? datosRedis.salida.Resultados[0]
+          : datosRedis.salida.Resultados;
+
+        if (resultado?.AsistenciaMarcada && resultado.Detalles) {
+          const timestamp =
+            resultado.Detalles.Timestamp ||
+            this.dateHelper.obtenerTimestampPeruano();
+          const desfaseSegundos = resultado.Detalles.DesfaseSegundos || 0;
+          const estado = this.mapper.determinarEstadoAsistencia(
+            desfaseSegundos,
+            ModoRegistro.Salida
+          );
+
+          salidaFinal = this.integrarDatosDeCacheEnRegistroMensual(
+            salidaFinal,
+            {
+              clave: `redis_${fechaHoy}_salida_${id_o_dni}`,
+              dni: String(id_o_dni),
+              actor: this.mapper.obtenerActorDesdeRol(rol),
+              modoRegistro: ModoRegistro.Salida,
+              tipoAsistencia: TipoAsistencia.ParaPersonal,
+              timestamp,
+              desfaseSegundos,
+              estado,
+              fecha: fechaHoy,
+              timestampConsulta: this.dateHelper.obtenerTimestampPeruano(),
+            },
+            diaActual,
+            ModoRegistro.Salida,
+            id_o_dni,
+            fechaHoy
+          );
+
+          integrado = true;
+          console.log(`✅ Salida integrada desde Redis directo: ${estado}`);
+        }
+      }
+
+      const mensaje = integrado
+        ? "Datos integrados desde Redis directo"
+        : "No se encontraron datos nuevos en Redis";
+
+      return {
+        entrada: entradaFinal || undefined,
+        salida: salidaFinal || undefined,
+        integrado,
+        mensaje,
+      };
+    } catch (error) {
+      console.error("❌ Error al integrar datos directos de Redis:", error);
+      return {
+        entrada: registroEntrada || undefined,
+        salida: registroSalida || undefined,
+        integrado: false,
+        mensaje: `Error en integración: ${
+          error instanceof Error ? error.message : "Error desconocido"
+        }`,
+      };
+    }
+  }
+
+  /**
    * Integra datos del cache en el registro mensual
    * ✅ SIN CAMBIOS: No requiere limpieza adicional
    */
@@ -307,7 +452,7 @@ export class AsistenciaDePersonalCacheManager {
    * 🆕 MÉTODO DIRECTO de consulta al cache sin limpieza automática
    * 🎯 PROPÓSITO: Evitar llamadas recursivas de limpieza
    */
-  private async consultarCacheAsistenciaHoyDirecto(
+  public async consultarCacheAsistenciaHoyDirecto(
     actor: ActoresSistema,
     modoRegistro: ModoRegistro,
     id_o_dni: string | number,

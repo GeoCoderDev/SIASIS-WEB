@@ -123,6 +123,154 @@ export class AsistenciaDePersonalAPIClient {
   }
 
   /**
+   * ✅ NUEVO: Consulta Redis específicamente para una persona
+   * 🎯 PROPÓSITO: Obtener asistencia específica de una persona desde Redis
+   */
+  public async consultarRedisEspecifico(
+    rol: RolesSistema,
+    id_o_dni: string | number,
+    modoRegistro: ModoRegistro
+  ): Promise<{
+    encontrado: boolean;
+    datos?: any;
+    mensaje: string;
+  }> {
+    try {
+      // Construir URL para consulta específica
+      const params = new URLSearchParams({
+        ModoRegistro: modoRegistro,
+        TipoAsistencia: TipoAsistencia.ParaPersonal,
+      });
+
+      const actor = this.mapper.obtenerActorDesdeRol(rol);
+      params.append("Actor", actor);
+      params.append("ID_o_DNI", String(id_o_dni));
+
+      // Si ES consulta propia, no agregar Actor para que la API detecte consulta propia
+
+      const url = `/api/asistencia-hoy/consultar-asistencias-tomadas?${params.toString()}`;
+
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          return {
+            encontrado: false,
+            mensaje: "No se encontró asistencia en Redis",
+          };
+        }
+        throw new Error(`Error HTTP: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Verificar si hay resultados
+      const tieneResultados =
+        data.Resultados &&
+        (Array.isArray(data.Resultados)
+          ? data.Resultados.length > 0
+          : data.Resultados !== null);
+
+      if (tieneResultados) {
+        console.log(
+          `✅ Asistencia encontrada en Redis para ${id_o_dni} - ${modoRegistro}`
+        );
+        return {
+          encontrado: true,
+          datos: data,
+          mensaje: "Asistencia encontrada en Redis",
+        };
+      } else {
+        console.log(
+          `📭 No se encontró asistencia en Redis para ${id_o_dni} - ${modoRegistro}`
+        );
+        return {
+          encontrado: false,
+          mensaje: "No se encontró asistencia en Redis para esta persona",
+        };
+      }
+    } catch (error) {
+      console.error("❌ Error al consultar Redis específico:", error);
+      return {
+        encontrado: false,
+        mensaje: `Error al consultar Redis: ${
+          error instanceof Error ? error.message : "Error desconocido"
+        }`,
+      };
+    }
+  }
+
+  /**
+   * ✅ NUEVO: Consulta Redis para ambos modos (entrada y salida) de una persona
+   */
+  public async consultarRedisCompletoPorPersona(
+    rol: RolesSistema,
+    id_o_dni: string | number,
+    incluirSalidas: boolean = true
+  ): Promise<{
+    entrada?: any;
+    salida?: any;
+    encontradoEntrada: boolean;
+    encontradoSalida: boolean;
+    mensaje: string;
+  }> {
+    try {
+      const timestampConsulta = this.dateHelper.obtenerTimestampPeruano();
+      console.log(
+        `🔍 Consulta Redis completa para ${id_o_dni} - incluirSalidas: ${incluirSalidas} (${this.dateHelper.formatearTimestampLegible(
+          timestampConsulta
+        )})`
+      );
+
+      // Consultar entrada
+      const resultadoEntrada = await this.consultarRedisEspecifico(
+        rol,
+        id_o_dni,
+        ModoRegistro.Entrada
+      );
+
+      let resultadoSalida = {
+        encontrado: false,
+        mensaje: "Salidas no solicitadas",
+      };
+
+      // Consultar salida solo si se requiere
+      if (incluirSalidas) {
+        resultadoSalida = await this.consultarRedisEspecifico(
+          rol,
+          id_o_dni,
+          ModoRegistro.Salida
+        );
+      }
+
+      const mensaje = `Redis: entrada=${resultadoEntrada.encontrado}, salida=${
+        incluirSalidas ? resultadoSalida.encontrado : "no consultada"
+      }`;
+
+      return {
+        entrada: resultadoEntrada.encontrado
+          ? resultadoEntrada.datos
+          : undefined,
+        salida: resultadoSalida.encontrado
+          ? (resultadoSalida as any).datos
+          : undefined,
+        encontradoEntrada: resultadoEntrada.encontrado,
+        encontradoSalida: incluirSalidas ? resultadoSalida.encontrado : false,
+        mensaje,
+      };
+    } catch (error) {
+      console.error("❌ Error en consulta Redis completa:", error);
+      return {
+        encontradoEntrada: false,
+        encontradoSalida: false,
+        mensaje: `Error en consulta Redis: ${
+          error instanceof Error ? error.message : "Error desconocido"
+        }`,
+      };
+    }
+  }
+
+  /**
    * ✅ NUEVO: Marca asistencia en Redis mediante API
    */
   public async marcarAsistenciaEnRedis(

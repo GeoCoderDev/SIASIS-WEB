@@ -285,12 +285,12 @@ export const ESTADOS_ASISTENCIA_VALIDOS = [
 ] as const;
 
 // ✅ NUEVAS CONSTANTES para flujo inteligente
-export const HORARIOS_CONSULTA = {
-  INICIO_DIA_ESCOLAR: 6,
-  FIN_ENTRADAS: 12,
-  FIN_DIA_ESCOLAR: 22,
-  TOLERANCIA_TEMPRANO: 30, // minutos
-} as const;
+// export const HORARIOS_CONSULTA = {
+//   INICIO_DIA_ESCOLAR: 6,
+//   FIN_ENTRADAS: 12,
+//   FIN_DIA_ESCOLAR: 22,
+//   TOLERANCIA_TEMPRANO: 30, // minutos
+// } as const;
 
 export const ESTRATEGIAS_CONSULTA = {
   NO_CONSULTAR: "NO_CONSULTAR",

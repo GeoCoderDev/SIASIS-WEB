@@ -137,6 +137,87 @@ export class AsistenciaDePersonalRepository {
   }
 
   /**
+   * ✅ NUEVO: Verifica si un registro mensual tiene datos en los últimos N días escolares
+   */
+  public async verificarDatosEnUltimosDiasEscolares(
+    tipoPersonal: TipoPersonal,
+    modoRegistro: ModoRegistro,
+    id_o_dni: string | number,
+    mes: number,
+    ultimosDiasEscolares: number[]
+  ): Promise<{
+    tieneDatosSuficientes: boolean;
+    diasConDatos: number[];
+    diasSinDatos: number[];
+    porcentajeCobertura: number;
+  }> {
+    try {
+      const registro = await this.obtenerRegistroMensual(
+        tipoPersonal,
+        modoRegistro,
+        id_o_dni,
+        mes
+      );
+
+      if (!registro) {
+        return {
+          tieneDatosSuficientes: false,
+          diasConDatos: [],
+          diasSinDatos: ultimosDiasEscolares,
+          porcentajeCobertura: 0,
+        };
+      }
+
+      const diasConDatos: number[] = [];
+      const diasSinDatos: number[] = [];
+
+      // Verificar cada día escolar
+      ultimosDiasEscolares.forEach((dia) => {
+        const claveDay = dia.toString();
+        if (registro.registros[claveDay]) {
+          diasConDatos.push(dia);
+        } else {
+          diasSinDatos.push(dia);
+        }
+      });
+
+      const porcentajeCobertura =
+        ultimosDiasEscolares.length > 0
+          ? (diasConDatos.length / ultimosDiasEscolares.length) * 100
+          : 0;
+
+      // Considerar suficientes si tiene al menos 60% de cobertura
+      const tieneDatosSuficientes = porcentajeCobertura >= 60;
+
+      console.log(`📊 Verificación días escolares - ${id_o_dni}:`, {
+        ultimosDiasEscolares,
+        diasConDatos,
+        diasSinDatos,
+        porcentajeCobertura: `${porcentajeCobertura.toFixed(1)}%`,
+        tieneDatosSuficientes,
+      });
+
+      return {
+        tieneDatosSuficientes,
+        diasConDatos,
+        diasSinDatos,
+        porcentajeCobertura,
+      };
+    } catch (error) {
+      console.error(
+        "Error al verificar datos en últimos días escolares:",
+        error
+      );
+      return {
+        tieneDatosSuficientes: false,
+        diasConDatos: [],
+        diasSinDatos: ultimosDiasEscolares,
+        porcentajeCobertura: 0,
+      };
+    }
+  }
+
+  /**
    * Obtiene el registro mensual de asistencia para un personal específico
    * ✅ ACTUALIZADO: Usa ID_o_DNI_Personal
    * ✅ MEJORADO: Mejor logging para debugging
