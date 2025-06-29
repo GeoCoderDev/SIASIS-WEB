@@ -14,6 +14,7 @@ import {
   ParametrosEliminacionAsistencia,
   ParametrosConsultaAsistencia,
   RegistroEntradaSalida,
+  EstadosAsistenciaPersonal,
 } from "./AsistenciaDePersonalTypes";
 import { Meses } from "@/interfaces/shared/Meses";
 
@@ -640,14 +641,29 @@ export class AsistenciaDePersonalIDB {
             modoRegistro
           );
 
-          console.log(`✅ Mi ${modoRegistro} encontrada en Redis: ${estado}`);
+          // ✅ NUEVO: Almacenar datos de Redis para evitar futuras consultas
+          await this.almacenarDatosRedisEnLocal(
+            miDNI,
+            rol,
+            modoRegistro,
+            diaActual,
+            mesActual,
+            timestamp,
+            desfaseSegundos,
+            estado,
+            fechaHoy!
+          );
+
+          console.log(
+            `✅ Mi ${modoRegistro} encontrada en Redis y almacenada localmente: ${estado}`
+          );
 
           return {
             marcada: true,
             timestamp,
             estado,
             fuente: "REDIS",
-            mensaje: `${modoRegistro} encontrada en Redis`,
+            mensaje: `${modoRegistro} encontrada en Redis y almacenada localmente`,
           };
         }
       }
@@ -666,6 +682,71 @@ export class AsistenciaDePersonalIDB {
           error instanceof Error ? error.message : "Error desconocido"
         }`,
       };
+    }
+  }
+
+  /**
+   * ✅ NUEVO: Almacena datos encontrados en Redis en registros locales
+   */
+  private async almacenarDatosRedisEnLocal(
+    miDNI: string,
+    rol: RolesSistema,
+    modoRegistro: ModoRegistro,
+    diaActual: number,
+    mesActual: number,
+    timestamp: number,
+    desfaseSegundos: number,
+    estado: EstadosAsistenciaPersonal,
+    fechaHoy: string
+  ): Promise<void> {
+    try {
+      const tipoPersonal = this.mapper.obtenerTipoPersonalDesdeRolOActor(rol);
+
+      // PASO 1: Intentar actualizar registro mensual existente
+      const registroMensual = await this.repository.obtenerRegistroMensual(
+        tipoPersonal,
+        modoRegistro,
+        miDNI,
+        mesActual
+      );
+
+      const registroDia = {
+        timestamp,
+        desfaseSegundos,
+        estado,
+      };
+
+      if (registroMensual) {
+        // Actualizar registro mensual existente
+        await this.repository.actualizarRegistroExistente(
+          tipoPersonal,
+          modoRegistro,
+          miDNI,
+          mesActual,
+          diaActual,
+          registroDia,
+          registroMensual.Id_Registro_Mensual
+        );
+        console.log(`🔄 Registro mensual actualizado con datos de Redis`);
+      }
+
+      // PASO 2: Guardar en cache local para consultas inmediatas
+      const actor = this.mapper.obtenerActorDesdeRol(rol);
+      const asistenciaCache = this.cacheManager.crearAsistenciaParaCache(
+        miDNI,
+        actor,
+        modoRegistro,
+        timestamp,
+        desfaseSegundos,
+        estado as any,
+        fechaHoy
+      );
+
+      await this.cacheManager.guardarAsistenciaEnCache(asistenciaCache);
+      console.log(`💾 Datos de Redis guardados en cache local`);
+    } catch (error) {
+      console.error("❌ Error al almacenar datos de Redis localmente:", error);
+      // No lanzar error para no afectar el flujo principal
     }
   }
 
