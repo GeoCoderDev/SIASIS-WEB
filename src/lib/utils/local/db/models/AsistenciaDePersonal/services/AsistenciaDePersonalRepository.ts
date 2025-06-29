@@ -137,7 +137,7 @@ export class AsistenciaDePersonalRepository {
   }
 
   /**
-   * ✅ NUEVO: Verifica si un registro mensual tiene datos en los últimos N días escolares
+   * ✅ CORREGIDO: Verificación menos restrictiva - AL MENOS 1 día con datos es suficiente
    */
   public async verificarDatosEnUltimosDiasEscolares(
     tipoPersonal: TipoPersonal,
@@ -171,7 +171,6 @@ export class AsistenciaDePersonalRepository {
       const diasConDatos: number[] = [];
       const diasSinDatos: number[] = [];
 
-      // Verificar cada día escolar
       ultimosDiasEscolares.forEach((dia) => {
         const claveDay = dia.toString();
         if (registro.registros[claveDay]) {
@@ -186,8 +185,32 @@ export class AsistenciaDePersonalRepository {
           ? (diasConDatos.length / ultimosDiasEscolares.length) * 100
           : 0;
 
-      // Considerar suficientes si tiene al menos 60% de cobertura
-      const tieneDatosSuficientes = porcentajeCobertura >= 60;
+      // ✅ CORREGIDO: Criterio menos restrictivo
+      // Si hay al menos 40% de cobertura O al menos 2 días con datos, es suficiente
+      let tieneDatosSuficientes =
+        porcentajeCobertura >= 40 || diasConDatos.length >= 2;
+
+      // ✅ NUEVA VALIDACIÓN: Verificar que los días sin datos NO sean los últimos seguidos
+      if (
+        diasSinDatos.length > 0 &&
+        ultimosDiasEscolares.length >= diasSinDatos.length
+      ) {
+        const ultimosNDias = ultimosDiasEscolares.slice(-diasSinDatos.length);
+        const sonLosUltimosConsecutivos =
+          ultimosNDias.every((dia) => diasSinDatos.includes(dia)) &&
+          diasSinDatos.every((dia) => ultimosNDias.includes(dia));
+
+        if (sonLosUltimosConsecutivos) {
+          tieneDatosSuficientes = false;
+          console.log(
+            `⚠️ Los días sin datos son los últimos ${
+              diasSinDatos.length
+            } días seguidos: ${diasSinDatos.join(
+              ", "
+            )} - indica falta de actualización`
+          );
+        }
+      }
 
       console.log(`📊 Verificación días escolares - ${id_o_dni}:`, {
         ultimosDiasEscolares,
@@ -195,6 +218,7 @@ export class AsistenciaDePersonalRepository {
         diasSinDatos,
         porcentajeCobertura: `${porcentajeCobertura.toFixed(1)}%`,
         tieneDatosSuficientes,
+        criterio: `≥40% cobertura O ≥2 días con datos`,
       });
 
       return {

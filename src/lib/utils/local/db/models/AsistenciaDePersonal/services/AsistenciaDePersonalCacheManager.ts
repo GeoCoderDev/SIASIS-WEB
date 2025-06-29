@@ -18,6 +18,7 @@ import {
 import { AsistenciaDePersonalDateHelper } from "./AsistenciaDePersonalDateHelper";
 import { AsistenciaDePersonalMapper } from "./AsistenciaDePersonalMapper";
 import IndexedDBConnection from "../../../IndexedDBConnection";
+import { AsistenciaDePersonalAPIClient } from "./AsistenciaDePersonalAPIClient";
 
 /**
  * 🎯 RESPONSABILIDAD: Manejo del cache de asistencias
@@ -32,13 +33,16 @@ export class AsistenciaDePersonalCacheManager {
   private mapper: AsistenciaDePersonalMapper;
   private dateHelper: AsistenciaDePersonalDateHelper;
   private ultimaLimpiezaDiaAnterior: string | null = null; // 🆕 Evita limpiezas duplicadas
+  private apiClient: AsistenciaDePersonalAPIClient;
 
   constructor(
     mapper: AsistenciaDePersonalMapper,
-    dateHelper: AsistenciaDePersonalDateHelper
+    dateHelper: AsistenciaDePersonalDateHelper,
+    apiClient: AsistenciaDePersonalAPIClient
   ) {
     this.mapper = mapper;
     this.dateHelper = dateHelper;
+    this.apiClient = apiClient;
     this.cacheAsistenciasHoy = new AsistenciasTomadasHoyIDB(this.dateHelper);
 
     // Inicializar rutinas de mantenimiento del cache
@@ -87,8 +91,7 @@ export class AsistenciaDePersonalCacheManager {
   }
 
   /**
-   * Consulta cache de asistencias para el día actual
-   * 🆕 INCLUYE limpieza automática del día anterior
+   * ✅ CORREGIDO: Consulta cache con fecha correcta
    */
   public async consultarCacheAsistenciaHoy(
     actor: ActoresSistema,
@@ -109,7 +112,7 @@ export class AsistenciaDePersonalCacheManager {
       };
 
       console.log(
-        `🔍 Consultando cache: ${actor} - ${modoRegistro} - ${id_o_dni} - ${fecha}`
+        `🔍 Consultando cache con fecha VERIFICADA: ${fecha} - ${actor} - ${modoRegistro} - ${id_o_dni}`
       );
 
       const resultado = await this.cacheAsistenciasHoy.consultarAsistencia(
@@ -118,12 +121,14 @@ export class AsistenciaDePersonalCacheManager {
 
       if (resultado) {
         console.log(
-          `✅ Encontrado en cache: ${id_o_dni} - ${modoRegistro} - ${
+          `✅ Encontrado en cache: ${id_o_dni} - ${modoRegistro} - ${fecha} - ${
             (resultado as AsistenciaPersonalHoy).estado
           }`
         );
       } else {
-        console.log(`❌ No encontrado en cache: ${id_o_dni} - ${modoRegistro}`);
+        console.log(
+          `❌ No encontrado en cache: ${id_o_dni} - ${modoRegistro} - ${fecha}`
+        );
       }
 
       return resultado as AsistenciaPersonalHoy | null;
@@ -446,6 +451,146 @@ export class AsistenciaDePersonalCacheManager {
       encontrado,
       mensaje,
     };
+  }
+
+  /**
+   * 🎯 CONSULTA INTELIGENTE: Verifica cache local primero, luego Redis si es necesario
+   * ✅ INTEGRACIÓN COMPLETA con AsistenciasTomadasHoyIDB según flowchart
+   */
+  public async consultarAsistenciaConFallbackRedis(
+    rol: RolesSistema,
+    id_o_dni: string | number,
+    modoRegistro: ModoRegistro,
+    estrategia: "REDIS_ENTRADAS" | "REDIS_COMPLETO"
+  ): Promise<{
+    encontrado: boolean;
+    datos?: AsistenciaPersonalHoy;
+    fuente: "CACHE_LOCAL" | "REDIS" | "NO_ENCONTRADO";
+    mensaje: string;
+  }> {
+    try {
+      // 🆕 LIMPIAR día anterior automáticamente
+      await this.limpiarDiasAnterioresAutomaticamente();
+
+      const actor = this.mapper.obtenerActorDesdeRol(rol);
+      const fechaHoy = this.dateHelper.obtenerFechaStringActual();
+
+      if (!fechaHoy) {
+        return {
+          encontrado: false,
+          fuente: "NO_ENCONTRADO",
+          mensaje: "No se pudo obtener fecha actual",
+        };
+      }
+
+      console.log(
+        `🔍 Consulta inteligente: ${id_o_dni} - ${modoRegistro} - estrategia: ${estrategia}`
+      );
+
+      // PASO 1: Consultar cache local (AsistenciasTomadasHoy)
+      const datosCache = await this.consultarCacheAsistenciaHoyDirecto(
+        actor,
+        modoRegistro,
+        id_o_dni,
+        fechaHoy
+      );
+
+      if (datosCache) {
+        console.log(
+          `✅ Encontrado en cache local: ${datosCache.estado} (${datosCache.dni})`
+        );
+        return {
+          encontrado: true,
+          datos: datosCache,
+          fuente: "CACHE_LOCAL",
+          mensaje: "Datos obtenidos de cache local",
+        };
+      }
+
+      // PASO 2: Validar si debe consultar Redis según estrategia
+      const debeConsultarTipoRegistro =
+        estrategia === "REDIS_COMPLETO" ||
+        (estrategia === "REDIS_ENTRADAS" &&
+          modoRegistro === ModoRegistro.Entrada);
+
+      if (!debeConsultarTipoRegistro) {
+        console.log(
+          `⏭️ No corresponde consultar ${modoRegistro} con estrategia ${estrategia}`
+        );
+        return {
+          encontrado: false,
+          fuente: "NO_ENCONTRADO",
+          mensaje: `${modoRegistro} no incluido en estrategia ${estrategia}`,
+        };
+      }
+
+      // PASO 3: Consultar Redis como fallback
+      console.log(`☁️ Consultando Redis como fallback para ${modoRegistro}...`);
+
+      const resultadoRedis = await this.apiClient.consultarRedisEspecifico(
+        rol,
+        id_o_dni,
+        modoRegistro
+      );
+
+      if (resultadoRedis.encontrado && resultadoRedis.datos?.Resultados) {
+        const resultado = Array.isArray(resultadoRedis.datos.Resultados)
+          ? resultadoRedis.datos.Resultados[0]
+          : resultadoRedis.datos.Resultados;
+
+        if (resultado?.AsistenciaMarcada && resultado.Detalles) {
+          // Crear asistencia desde datos de Redis
+          const timestamp =
+            resultado.Detalles.Timestamp ||
+            this.dateHelper.obtenerTimestampPeruano();
+          const desfaseSegundos = resultado.Detalles.DesfaseSegundos || 0;
+          const estado = this.mapper.determinarEstadoAsistencia(
+            desfaseSegundos,
+            modoRegistro
+          );
+
+          const asistenciaDesdeRedis = this.crearAsistenciaParaCache(
+            String(id_o_dni),
+            actor,
+            modoRegistro,
+            timestamp,
+            desfaseSegundos,
+            estado,
+            fechaHoy
+          );
+
+          // Guardar en cache local para próximas consultas
+          await this.guardarAsistenciaEnCache(asistenciaDesdeRedis);
+
+          console.log(
+            `✅ Encontrado en Redis y guardado en cache: ${estado} (${id_o_dni})`
+          );
+
+          return {
+            encontrado: true,
+            datos: asistenciaDesdeRedis,
+            fuente: "REDIS",
+            mensaje: "Datos obtenidos de Redis y guardados en cache local",
+          };
+        }
+      }
+
+      console.log(`📭 No encontrado ni en cache local ni en Redis`);
+      return {
+        encontrado: false,
+        fuente: "NO_ENCONTRADO",
+        mensaje: "No se encontró asistencia ni en cache local ni en Redis",
+      };
+    } catch (error) {
+      console.error("❌ Error en consulta inteligente:", error);
+      return {
+        encontrado: false,
+        fuente: "NO_ENCONTRADO",
+        mensaje: `Error en consulta: ${
+          error instanceof Error ? error.message : "Error desconocido"
+        }`,
+      };
+    }
   }
 
   /**

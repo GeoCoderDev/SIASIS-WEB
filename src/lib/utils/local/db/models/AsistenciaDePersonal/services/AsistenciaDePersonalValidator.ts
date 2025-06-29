@@ -33,7 +33,7 @@ export class AsistenciaDePersonalValidator {
     diasEscolaresSalida: number;
   } {
     // Obtener día actual desde Redux
-    const fechaActualRedux = this.dateHelper.obtenerFechaActualDesdeRedux();
+    const fechaActualRedux = this.dateHelper.obtenerFechaHoraActualDesdeRedux();
     if (!fechaActualRedux) {
       console.error(
         "❌ No se pudo obtener fecha desde Redux para verificar sincronización"

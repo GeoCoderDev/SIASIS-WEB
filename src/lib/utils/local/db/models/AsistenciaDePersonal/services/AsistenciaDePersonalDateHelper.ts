@@ -165,13 +165,14 @@ export class AsistenciaDePersonalDateHelper {
   }
 
   /**
-   * ✅ NUEVO: Verifica si ya se consultó en el rango horario actual basado en ultima_fecha_actualizacion
+   * ✅ CORREGIDO: Control de 45 minutos por rango
    */
   public yaSeConsultoEnRangoActual(ultimaFechaActualizacion: number): {
     yaConsultado: boolean;
     rangoActual: string;
     rangoUltimaConsulta: string;
     razon: string;
+    minutosTranscurridos: number;
   } {
     try {
       const fechaActual = this.obtenerFechaHoraActualDesdeRedux();
@@ -181,17 +182,24 @@ export class AsistenciaDePersonalDateHelper {
           rangoActual: "DESCONOCIDO",
           rangoUltimaConsulta: "DESCONOCIDO",
           razon: "No se pudo obtener fecha actual",
+          minutosTranscurridos: 0,
         };
       }
 
       const horaActual = fechaActual.getHours();
       const fechaHoyString = this.obtenerFechaStringActual();
-
+      const fechaUltimaActualizacionString =
+        this.convertirTimestampAFechaString(ultimaFechaActualizacion);
       const fechaUltimaActualizacion = new Date(ultimaFechaActualizacion);
-      const fechaUltimaActualizacionString = this.convertirFechaAString(
-        fechaUltimaActualizacion
-      );
       const horaUltimaActualizacion = fechaUltimaActualizacion.getHours();
+
+      // Calcular minutos transcurridos
+      const diferenciaMs = fechaActual.getTime() - ultimaFechaActualizacion;
+      const minutosTranscurridos = Math.floor(diferenciaMs / (1000 * 60));
+
+      console.log(
+        `🔍 Control de rangos: última=${fechaUltimaActualizacionString} ${horaUltimaActualizacion}:xx, actual=${fechaHoyString} ${horaActual}:xx, transcurridos=${minutosTranscurridos}min`
+      );
 
       // Si la última actualización no es de hoy, definitivamente se puede consultar
       if (fechaHoyString !== fechaUltimaActualizacionString) {
@@ -200,25 +208,40 @@ export class AsistenciaDePersonalDateHelper {
           yaConsultado: false,
           rangoActual,
           rangoUltimaConsulta: "DIA_DIFERENTE",
-          razon: `Última actualización no es de hoy (${fechaUltimaActualizacionString})`,
+          razon: `Última actualización no es de hoy (${fechaUltimaActualizacionString} vs hoy ${fechaHoyString})`,
+          minutosTranscurridos,
         };
       }
 
-      // Ambas fechas son de hoy, comparar rangos
+      // Ambas fechas son de hoy, comparar rangos y tiempo
       const rangoActual = this.obtenerNombreRango(horaActual);
       const rangoUltimaConsulta = this.obtenerNombreRango(
         horaUltimaActualizacion
       );
 
-      const yaConsultado = rangoActual === rangoUltimaConsulta;
+      // ✅ NUEVA LÓGICA: Verificar 45 minutos + cambio de rango
+      if (rangoActual === rangoUltimaConsulta && minutosTranscurridos < 45) {
+        return {
+          yaConsultado: true,
+          rangoActual,
+          rangoUltimaConsulta,
+          razon: `Ya consultado en rango ${rangoActual} hace ${minutosTranscurridos}min (< 45min límite)`,
+          minutosTranscurridos,
+        };
+      }
+
+      // Si cambió de rango O pasaron 45+ minutos, puede consultar
+      const razonCambio =
+        rangoActual !== rangoUltimaConsulta
+          ? `Cambio de rango: ${rangoUltimaConsulta} → ${rangoActual}`
+          : `Mismo rango ${rangoActual} pero pasaron ${minutosTranscurridos}min (≥ 45min)`;
 
       return {
-        yaConsultado,
+        yaConsultado: false,
         rangoActual,
         rangoUltimaConsulta,
-        razon: yaConsultado
-          ? `Ya consultado en rango ${rangoActual} (última: ${horaUltimaActualizacion}:xx, actual: ${horaActual}:xx)`
-          : `Diferente rango - última: ${rangoUltimaConsulta}, actual: ${rangoActual}`,
+        razon: razonCambio,
+        minutosTranscurridos,
       };
     } catch (error) {
       console.error("Error verificando rango de consulta:", error);
@@ -227,6 +250,7 @@ export class AsistenciaDePersonalDateHelper {
         rangoActual: "ERROR",
         rangoUltimaConsulta: "ERROR",
         razon: "Error en verificación",
+        minutosTranscurridos: 0,
       };
     }
   }
@@ -327,7 +351,7 @@ export class AsistenciaDePersonalDateHelper {
   }
 
   /**
-   * ✅ NUEVO: Evalúa consulta para mes actual según horarios
+   * ✅ CORREGIDO: Evaluar consulta para mes actual - SIEMPRE consultar Redis en horario escolar
    */
   private evaluarConsultaMesActualSegunHorario(ultimaActualizacion: number): {
     debeConsultar: boolean;
@@ -337,7 +361,18 @@ export class AsistenciaDePersonalDateHelper {
   } {
     const horaActual = this.obtenerHoraActual();
     const esFinDeSemana = this.esFinDeSemana();
-    const fechaUltimaActualizacion = new Date(ultimaActualizacion);
+
+    const fechaUltimaActualizacionString =
+      this.convertirTimestampAFechaString(ultimaActualizacion);
+    const fechaHoyString = this.obtenerFechaStringActual();
+
+    console.log(`⏰ Evaluando consulta mes actual:`, {
+      horaActual,
+      esFinDeSemana,
+      fechaHoy: fechaHoyString,
+      fechaUltimaActualizacion: fechaUltimaActualizacionString,
+      timestampOriginal: ultimaActualizacion,
+    });
 
     if (horaActual === null) {
       return {
@@ -390,32 +425,11 @@ export class AsistenciaDePersonalDateHelper {
       };
     }
 
-    // Entre 6:00 y 22:00 - verificar si hay datos de Redis ya integrados
-    const hoyString = this.obtenerFechaStringActual();
-    const fechaUltimaActualizacionString = this.convertirFechaAString(
-      fechaUltimaActualizacion
-    );
-
-    if (hoyString === fechaUltimaActualizacionString) {
-      // Actualizado hoy - verificar hora
-      const horaUltimaActualizacion = fechaUltimaActualizacion.getHours();
-      const diferenciaHoras = horaActual - horaUltimaActualizacion;
-
-      if (diferenciaHoras < 1) {
-        return {
-          debeConsultar: false,
-          razon: `Datos recientes - actualizado hace ${Math.round(
-            diferenciaHoras * 60
-          )} minutos`,
-          esConsultaNecesaria: false,
-          esDatoFinalizado: false,
-        };
-      }
-    }
-
+    // ✅ CORREGIDO: Entre 6:00 y 22:00 - SIEMPRE consultar Redis para datos del día actual
+    // Los datos de API son históricos, Redis tiene datos del día actual
     return {
       debeConsultar: true,
-      razon: "Horario escolar - consultar Redis/API para datos actuales",
+      razon: `Horario escolar (${horaActual}:xx) - Consultar Redis para datos del día actual (API tiene históricos hasta ${fechaUltimaActualizacionString})`,
       esConsultaNecesaria: true,
       esDatoFinalizado: false,
     };
@@ -480,8 +494,8 @@ export class AsistenciaDePersonalDateHelper {
       const diaSemana = fecha.getDay();
       const hora = fecha.getHours();
 
-      const esViernes = diaSemana === DIAS_SEMANA.VIERNES;
-      const esHoraCompleta = hora >= HORARIOS_CONSULTA.VIERNES_COMPLETO;
+      const esViernes = diaSemana === DIAS_SEMANA.VIERNES; // ✅ USAR CONSTANTE
+      const esHoraCompleta = hora >= HORARIOS_CONSULTA.VIERNES_COMPLETO; // ✅ USAR CONSTANTE
 
       console.log(
         `📅 Verificando viernes completo: ${fecha.toLocaleString(
@@ -495,7 +509,6 @@ export class AsistenciaDePersonalDateHelper {
       return false;
     }
   }
-
   /**
    * ✅ NUEVO: Obtiene los últimos N días escolares del mes actual
    */
@@ -584,7 +597,7 @@ export class AsistenciaDePersonalDateHelper {
       };
     }
 
-    // Antes del inicio del día escolar
+    // ✅ USAR CONSTANTES en lugar de números hardcodeados
     if (horaActual < HORARIOS_CONSULTA.INICIO_DIA_ESCOLAR) {
       return {
         estrategia: "NO_CONSULTAR",
@@ -595,7 +608,6 @@ export class AsistenciaDePersonalDateHelper {
       };
     }
 
-    // Después del fin de consolidación
     if (horaActual >= HORARIOS_CONSULTA.FIN_CONSOLIDACION) {
       return {
         estrategia: "API_CONSOLIDADO",
@@ -606,7 +618,6 @@ export class AsistenciaDePersonalDateHelper {
       };
     }
 
-    // Entre inicio y separación - Solo entradas
     if (horaActual < HORARIOS_CONSULTA.SEPARACION_ENTRADAS_SALIDAS) {
       return {
         estrategia: "REDIS_ENTRADAS",
@@ -620,7 +631,6 @@ export class AsistenciaDePersonalDateHelper {
       };
     }
 
-    // Entre separación y fin - Entradas y salidas
     return {
       estrategia: "REDIS_COMPLETO",
       razon: `${String(HORARIOS_CONSULTA.SEPARACION_ENTRADAS_SALIDAS).padStart(
@@ -1022,15 +1032,48 @@ export class AsistenciaDePersonalDateHelper {
   }
 
   /**
-   * Convierte la fecha actual a string formato YYYY-MM-DD
+   * ✅ CORREGIDO: Obtener fecha string actual sin doble conversión de zona horaria
    */
   public obtenerFechaStringActual(): string | null {
     const fechaActual = this.obtenerFechaHoraActualDesdeRedux();
     if (!fechaActual) return null;
 
-    // ✅ CORREGIDO: No modificar la fecha original, crear una copia
-    const fechaPeruana = new Date(fechaActual.getTime() - 5 * 60 * 60 * 1000);
-    return fechaPeruana.toISOString().split("T")[0];
+    // ✅ CORREGIDO: Usar métodos locales para evitar conversión UTC
+    const año = fechaActual.getFullYear();
+    const mes = (fechaActual.getMonth() + 1).toString().padStart(2, "0");
+    const dia = fechaActual.getDate().toString().padStart(2, "0");
+
+    const fechaString = `${año}-${mes}-${dia}`;
+
+    console.log(
+      `📅 Fecha string generada: ${fechaString} (desde Redux: ${fechaActual.toLocaleString(
+        "es-PE"
+      )})`
+    );
+
+    return fechaString;
+  }
+
+  /**
+   * ✅ CORREGIDO: Convertir timestamp a fecha string sin problemas de zona horaria
+   */
+  public convertirTimestampAFechaString(timestamp: number): string {
+    const fecha = new Date(timestamp);
+
+    // ✅ CORREGIDO: Usar métodos locales para evitar conversión UTC
+    const año = fecha.getFullYear();
+    const mes = (fecha.getMonth() + 1).toString().padStart(2, "0");
+    const dia = fecha.getDate().toString().padStart(2, "0");
+
+    const fechaString = `${año}-${mes}-${dia}`;
+
+    console.log(
+      `🔄 Timestamp ${timestamp} convertido a fecha: ${fechaString} (fecha objeto: ${fecha.toLocaleString(
+        "es-PE"
+      )})`
+    );
+
+    return fechaString;
   }
 
   /**
@@ -1041,7 +1084,7 @@ export class AsistenciaDePersonalDateHelper {
   }
 
   /**
-   * Genera string de fecha para mes y día específicos
+   * ✅ CORREGIDO: Generar fecha string para mes y día específicos
    */
   public generarFechaString(mes: number, dia: number, año?: number): string {
     const añoFinal =
@@ -1049,9 +1092,15 @@ export class AsistenciaDePersonalDateHelper {
       this.obtenerFechaHoraActualDesdeRedux()?.getFullYear() ||
       new Date().getFullYear();
 
-    return `${añoFinal}-${mes.toString().padStart(2, "0")}-${dia
+    const fechaString = `${añoFinal}-${mes.toString().padStart(2, "0")}-${dia
       .toString()
       .padStart(2, "0")}`;
+
+    console.log(
+      `🎯 Fecha string generada manualmente: ${fechaString} (mes: ${mes}, día: ${dia}, año: ${añoFinal})`
+    );
+
+    return fechaString;
   }
 
   /**

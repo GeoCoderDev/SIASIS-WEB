@@ -6,7 +6,6 @@ import {
   TipoPersonal,
   ModoRegistro,
   RolesSistema,
-  OperationResult,
   ConsultaAsistenciaResult,
   SincronizacionStats,
   EliminacionResult,
@@ -84,15 +83,18 @@ export class AsistenciaDePersonalIDB {
       this.mapper,
       this.dateHelper
     );
-    this.cacheManager = new AsistenciaDePersonalCacheManager(
-      this.mapper,
-      this.dateHelper
-    );
+
     this.apiClient = new AsistenciaDePersonalAPIClient(
       siasisAPI,
       this.mapper,
       this.dateHelper,
       this.repository
+    );
+    
+    this.cacheManager = new AsistenciaDePersonalCacheManager(
+      this.mapper,
+      this.dateHelper,
+      this.apiClient
     );
 
     // Inicializar servicio de sincronización que coordina todos los demás
@@ -304,7 +306,8 @@ export class AsistenciaDePersonalIDB {
       const { id_o_dni, rol, modoRegistro, dia, mes } = params;
 
       // Usar fecha Redux si no se proporcionan día/mes
-      const fechaActualRedux = this.dateHelper.obtenerFechaActualDesdeRedux();
+      const fechaActualRedux =
+        this.dateHelper.obtenerFechaHoraActualDesdeRedux();
       if (!fechaActualRedux && (!dia || !mes)) {
         throw new Error(
           "No se pudo obtener la fecha desde Redux y no se proporcionaron día/mes"
@@ -660,7 +663,8 @@ export class AsistenciaDePersonalIDB {
     modoRegistro: ModoRegistro
   ): Promise<boolean> {
     try {
-      const fechaActualRedux = this.dateHelper.obtenerFechaActualDesdeRedux();
+      const fechaActualRedux =
+        this.dateHelper.obtenerFechaHoraActualDesdeRedux();
       if (!fechaActualRedux) {
         console.error("No se pudo obtener la fecha desde Redux");
         return false;
@@ -692,7 +696,8 @@ export class AsistenciaDePersonalIDB {
     dni: string
   ): Promise<MarcadoHoyResult> {
     try {
-      const fechaActualRedux = this.dateHelper.obtenerFechaActualDesdeRedux();
+      const fechaActualRedux =
+        this.dateHelper.obtenerFechaHoraActualDesdeRedux();
       if (!fechaActualRedux) {
         console.error("No se pudo obtener la fecha desde Redux");
         return { marcado: false };
@@ -844,175 +849,6 @@ export class AsistenciaDePersonalIDB {
     }
   }
 
-  // ========================================================================================
-  // MÉTODOS DE DIAGNÓSTICO Y MANTENIMIENTO
-  // ========================================================================================
 
-  /**
-   * Verifica la integridad de los datos
-   */
-  public async verificarIntegridadDatos(
-    rol: RolesSistema,
-    dni: string,
-    mes: number
-  ): Promise<OperationResult> {
-    try {
-      const resultado = await this.syncService.verificarIntegridadDatos(
-        rol,
-        dni,
-        mes
-      );
-
-      return {
-        exitoso: resultado.integro,
-        mensaje: resultado.integro
-          ? "Los datos están íntegros"
-          : `Problemas detectados: ${resultado.problemas.join(", ")}`,
-        datos: resultado,
-      };
-    } catch (error) {
-      this.errorHandler.logError(error, "verificarIntegridadDatos");
-
-      return {
-        exitoso: false,
-        mensaje: "Error al verificar integridad de datos",
-      };
-    }
-  }
-
-  /**
-   * Repara datos corruptos o desincronizados
-   */
-  public async repararDatos(
-    rol: RolesSistema,
-    dni: string,
-    mes: number
-  ): Promise<OperationResult> {
-    try {
-      this.errorHandler.setLoading(true);
-
-      const resultado = await this.syncService.repararDatos(rol, dni, mes);
-
-      if (resultado.exitoso) {
-        this.errorHandler.handleSuccess(resultado.mensaje);
-      }
-
-      return resultado;
-    } catch (error) {
-      this.errorHandler.handleErrorWithRecovery(error, "reparar datos");
-
-      return {
-        exitoso: false,
-        mensaje: "Error al reparar los datos",
-      };
-    } finally {
-      this.errorHandler.setLoading(false);
-    }
-  }
-
-  /**
-   * Obtiene estadísticas del cache
-   */
-  public async obtenerEstadisticasCache(): Promise<OperationResult> {
-    try {
-      const stats = await this.cacheManager.obtenerEstadisticasCache();
-
-      return {
-        exitoso: true,
-        mensaje: "Estadísticas del cache obtenidas exitosamente",
-        datos: stats,
-      };
-    } catch (error) {
-      this.errorHandler.logError(error, "obtenerEstadisticasCache");
-
-      return {
-        exitoso: false,
-        mensaje: "Error al obtener estadísticas del cache",
-      };
-    }
-  }
-
-  /**
-   * Limpia el cache de asistencias vencidas
-   */
-  public async limpiarCacheVencido(): Promise<OperationResult> {
-    try {
-      const resultado = await this.cacheManager.limpiarCacheVencido();
-
-      if (resultado.exitoso) {
-        this.errorHandler.handleSuccess(resultado.mensaje);
-      }
-
-      return resultado;
-    } catch (error) {
-      this.errorHandler.handleErrorWithRecovery(error, "limpiar cache vencido");
-
-      return {
-        exitoso: false,
-        mensaje: "Error al limpiar el cache",
-      };
-    }
-  }
-
-  // ========================================================================================
-  // MÉTODOS DE UTILIDAD Y ACCESO A SERVICIOS
-  // ========================================================================================
-
-  /**
-   * Acceso a los servicios especializados (para casos avanzados)
-   */
-  public get services() {
-    return {
-      mapper: this.mapper,
-      dateHelper: this.dateHelper,
-      validator: this.validator,
-      repository: this.repository,
-      cacheManager: this.cacheManager,
-      apiClient: this.apiClient,
-      syncService: this.syncService,
-      errorHandler: this.errorHandler,
-    };
-  }
-
-  /**
-   * Obtiene información del estado general del sistema
-   */
-  public async obtenerEstadoSistema(): Promise<{
-    api: boolean;
-    cache: any;
-    fecha: string | null;
-    servicios: string[];
-  }> {
-    try {
-      const [estadoAPI, estadosCache] = await Promise.all([
-        this.apiClient.obtenerEstadoServidor(),
-        this.cacheManager.obtenerEstadisticasCache(),
-      ]);
-
-      return {
-        api: estadoAPI.disponible,
-        cache: estadosCache,
-        fecha: this.dateHelper.obtenerFechaStringActual(),
-        servicios: [
-          "AsistenciaPersonalMapper",
-          "AsistenciaPersonalDateHelper",
-          "AsistenciaPersonalValidator",
-          "AsistenciaPersonalRepository",
-          "AsistenciaPersonalCacheManager",
-          "AsistenciaPersonalAPIClient",
-          "AsistenciaPersonalSyncService",
-          "AsistenciaPersonalErrorHandler",
-        ],
-      };
-    } catch (error) {
-      this.errorHandler.logError(error, "obtenerEstadoSistema");
-
-      return {
-        api: false,
-        cache: { error: "No disponible" },
-        fecha: null,
-        servicios: [],
-      };
-    }
-  }
+  
 }
