@@ -364,6 +364,187 @@ export class AsistenciaDePersonalAPIClient {
   }
 
   /**
+   * ✅ NUEVO: Consulta mis asistencias mensuales (para usuarios no directivos)
+   */
+  public async consultarMisAsistenciasMensuales(
+    mes: number
+  ): Promise<AsistenciaCompletaMensualDePersonal | null> {
+    try {
+      const { fetchSiasisAPI } = fetchSiasisApiGenerator(this.siasisAPI);
+
+      const fetchCancelable = await fetchSiasisAPI({
+        endpoint: `/api/personal/mis-asistencias?Mes=${mes}`,
+        method: "GET",
+      });
+
+      if (!fetchCancelable) {
+        throw new Error("No se pudo crear la petición de mis asistencias");
+      }
+
+      const response = await fetchCancelable.fetch();
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          console.log(
+            `📡 Mis asistencias API devuelve 404 para mes ${mes} (sin datos)`
+          );
+          return null;
+        }
+        throw new Error(
+          `Error al obtener mis asistencias: ${response.statusText}`
+        );
+      }
+
+      const objectResponse = (await response.json()) as ApiResponseBase;
+
+      if (!objectResponse.success) {
+        if (
+          (objectResponse as ErrorResponseAPIBase).errorType ===
+          DataErrorTypes.NO_DATA_AVAILABLE
+        ) {
+          console.log(
+            `📡 Mis asistencias API devuelve NO_DATA_AVAILABLE para mes ${mes}`
+          );
+          return null;
+        }
+        throw new Error(`Error en respuesta: ${objectResponse.message}`);
+      }
+
+      const { data } =
+        objectResponse as GetAsistenciaMensualDePersonalSuccessResponse;
+
+      console.log(
+        `📡 Mis asistencias API devuelve datos exitosamente para mes ${mes}`
+      );
+      return data;
+    } catch (error) {
+      console.error("Error al consultar mis asistencias desde API:", error);
+      return null;
+    }
+  }
+
+  /**
+   * ✅ NUEVO: Consulta Redis para asistencia propia (sin Actor ni ID_o_DNI)
+   */
+  public async consultarMiRedisEspecifico(modoRegistro: ModoRegistro): Promise<{
+    encontrado: boolean;
+    datos?: any;
+    mensaje: string;
+  }> {
+    try {
+      const params = new URLSearchParams({
+        TipoAsistencia: TipoAsistencia.ParaPersonal,
+        ModoRegistro: modoRegistro,
+      });
+
+      const url = `/api/asistencia-hoy/consultar-asistencias-tomadas?${params.toString()}`;
+
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          return {
+            encontrado: false,
+            mensaje: "No se encontró mi asistencia en Redis",
+          };
+        }
+        throw new Error(`Error HTTP: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      const tieneResultados =
+        data.Resultados &&
+        (Array.isArray(data.Resultados)
+          ? data.Resultados.length > 0
+          : data.Resultados !== null);
+
+      if (tieneResultados) {
+        console.log(`✅ Mi asistencia encontrada en Redis - ${modoRegistro}`);
+        return {
+          encontrado: true,
+          datos: data,
+          mensaje: "Mi asistencia encontrada en Redis",
+        };
+      } else {
+        console.log(
+          `📭 No se encontró mi asistencia en Redis - ${modoRegistro}`
+        );
+        return {
+          encontrado: false,
+          mensaje: "No se encontró mi asistencia en Redis",
+        };
+      }
+    } catch (error) {
+      console.error("❌ Error al consultar mi Redis específico:", error);
+      return {
+        encontrado: false,
+        mensaje: `Error al consultar mi Redis: ${
+          error instanceof Error ? error.message : "Error desconocido"
+        }`,
+      };
+    }
+  }
+
+  /**
+   * ✅ NUEVO: Marca mi asistencia propia en Redis
+   */
+  public async marcarMiAsistenciaPropia(
+    modoRegistro: ModoRegistro,
+    horaEsperadaISO: string
+  ): Promise<OperationResult> {
+    try {
+      const timestampOperacion = this.dateHelper.obtenerTimestampPeruano();
+
+      const requestBody = {
+        ModoRegistro: modoRegistro,
+        FechaHoraEsperadaISO: horaEsperadaISO,
+      };
+
+      console.log(
+        `☁️ Marcando mi asistencia en Redis con timestamp ${timestampOperacion}:`,
+        requestBody
+      );
+
+      const response = await fetch("/api/asistencia-hoy/marcar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error HTTP: ${response.status}`);
+      }
+
+      const responseData = await response.json();
+
+      if (responseData.success) {
+        return {
+          exitoso: true,
+          mensaje: "Mi asistencia marcada exitosamente en Redis",
+          datos: {
+            ...responseData.data,
+            timestampOperacion,
+          },
+        };
+      } else {
+        return {
+          exitoso: false,
+          mensaje: responseData.message || "Error al marcar mi asistencia",
+        };
+      }
+    } catch (error) {
+      console.error("Error al marcar mi asistencia en Redis:", error);
+      return {
+        exitoso: false,
+        mensaje: `Error al marcar mi asistencia: ${
+          error instanceof Error ? error.message : "Error desconocido"
+        }`,
+      };
+    }
+  }
+
+  /**
    * Elimina asistencia de Redis mediante API
    * ✅ CORREGIDO: Actualiza registros locales y timestamps tras eliminación
    */
@@ -815,6 +996,4 @@ export class AsistenciaDePersonalAPIClient {
 
     return { entrada, salida };
   }
-
-
 }

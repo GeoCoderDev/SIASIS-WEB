@@ -90,7 +90,7 @@ export class AsistenciaDePersonalIDB {
       this.dateHelper,
       this.repository
     );
-    
+
     this.cacheManager = new AsistenciaDePersonalCacheManager(
       this.mapper,
       this.dateHelper,
@@ -294,6 +294,78 @@ export class AsistenciaDePersonalIDB {
   }
 
   /**
+   * 🆕 NUEVO: Consulta mis asistencias mensuales (para usuarios no directivos)
+   */
+  public async consultarMiAsistenciaMensual(
+    rol: RolesSistema,
+    mes: number
+  ): Promise<ConsultaAsistenciaResult> {
+    try {
+      this.errorHandler.clearErrors();
+      this.errorHandler.setLoading(true);
+
+      const resultado = await this.syncService.obtenerMiAsistenciaMensualConAPI(
+        rol,
+        mes
+      );
+
+      console.log(
+        `📊 Mi consulta completada para mes ${mes}: ${resultado.mensaje}`
+      );
+
+      return resultado;
+    } catch (error) {
+      console.error("❌ Error al obtener mis asistencias mensuales:", error);
+      this.errorHandler.handleErrorWithRecovery(
+        error,
+        "obtener mis asistencias mensuales"
+      );
+
+      return {
+        encontrado: false,
+        mensaje: "Error al obtener mis datos de asistencia",
+      };
+    } finally {
+      this.errorHandler.setLoading(false);
+    }
+  }
+
+  /**
+   * 🆕 NUEVO: Marca mi asistencia propia
+   */
+  public async marcarMiAsistenciaPropia(
+    modoRegistro: ModoRegistro,
+    horaEsperadaISO: string
+  ): Promise<void> {
+    try {
+      this.errorHandler.setLoading(true);
+      this.errorHandler.clearErrors();
+
+      console.log(`🚀 Marcando mi asistencia: ${modoRegistro}`);
+
+      const resultadoMarcado = await this.apiClient.marcarMiAsistenciaPropia(
+        modoRegistro,
+        horaEsperadaISO
+      );
+
+      if (resultadoMarcado.exitoso) {
+        console.log(`✅ Mi asistencia marcada: ${resultadoMarcado.mensaje}`);
+        this.errorHandler.handleSuccess(
+          "Mi asistencia registrada exitosamente"
+        );
+      } else {
+        throw new Error(resultadoMarcado.mensaje);
+      }
+    } catch (error) {
+      console.error(`❌ Error al marcar mi asistencia:`, error);
+      this.errorHandler.handleErrorWithRecovery(error, "marcar mi asistencia");
+      throw error;
+    } finally {
+      this.errorHandler.setLoading(false);
+    }
+  }
+
+  /**
    * 🗑️ MÉTODO PRINCIPAL: Elimina asistencia de manera completa
    */
   public async eliminarAsistencia(
@@ -436,6 +508,203 @@ export class AsistenciaDePersonalIDB {
       };
     } finally {
       this.errorHandler.setLoading(false);
+    }
+  }
+
+  /**
+   * 🆕 NUEVO: Consulta mi asistencia específica para el día de hoy
+   * ✅ USA SOLO DateHelper (que usa Redux) - NO fechas locales
+   */
+  public async consultarMiAsistenciaDeHoy(
+    modoRegistro: ModoRegistro,
+    rol: RolesSistema
+  ): Promise<{
+    marcada: boolean;
+    timestamp?: number;
+    estado?: string;
+    fuente: "REGISTRO_MENSUAL" | "CACHE_LOCAL" | "REDIS" | "NO_ENCONTRADO";
+    mensaje: string;
+  }> {
+    try {
+      this.errorHandler.clearErrors();
+
+      // ✅ SOLO usar DateHelper (que usa Redux)
+      const infoFecha = this.dateHelper.obtenerInfoFechaActual();
+      if (!infoFecha) {
+        return {
+          marcada: false,
+          fuente: "NO_ENCONTRADO",
+          mensaje: "No se pudo obtener información de fecha desde Redux",
+        };
+      }
+
+      const { diaActual, mesActual } = infoFecha;
+
+      // Obtener DNI del usuario logueado
+      const { DatosAsistenciaHoyIDB } = await import(
+        "../DatosAsistenciaHoy/DatosAsistenciaHoyIDB"
+      );
+      const datosIDB = new DatosAsistenciaHoyIDB();
+      const handler = await datosIDB.getHandler();
+
+      if (!handler) {
+        return {
+          marcada: false,
+          fuente: "NO_ENCONTRADO",
+          mensaje: "No se pudo obtener handler para el DNI del usuario",
+        };
+      }
+
+      const miDNI = (handler as any).getMiDNI();
+      if (!miDNI) {
+        return {
+          marcada: false,
+          fuente: "NO_ENCONTRADO",
+          mensaje: "No se pudo obtener DNI del usuario logueado",
+        };
+      }
+
+      console.log(
+        `🔍 Consultando mi ${modoRegistro} de hoy: ${miDNI} - día ${diaActual}/${mesActual}`
+      );
+
+      // PASO 1: Consultar en registro mensual
+      const tipoPersonal = this.mapper.obtenerTipoPersonalDesdeRolOActor(rol);
+      const registroMensual = await this.repository.obtenerRegistroMensual(
+        tipoPersonal,
+        modoRegistro,
+        miDNI,
+        mesActual
+      );
+
+      if (registroMensual && registroMensual.registros[diaActual.toString()]) {
+        const registroDia = registroMensual.registros[diaActual.toString()];
+        console.log(
+          `✅ Mi ${modoRegistro} encontrada en registro mensual: ${registroDia.estado}`
+        );
+
+        return {
+          marcada: true,
+          timestamp: registroDia.timestamp,
+          estado: registroDia.estado,
+          fuente: "REGISTRO_MENSUAL",
+          mensaje: `${modoRegistro} encontrada en registro mensual`,
+        };
+      }
+
+      // PASO 2: Consultar en cache local
+      const fechaHoy = this.dateHelper.obtenerFechaStringActual();
+      if (fechaHoy) {
+        const actor = this.mapper.obtenerActorDesdeRol(rol);
+        const asistenciaCache =
+          await this.cacheManager.consultarCacheAsistenciaHoyDirecto(
+            actor,
+            modoRegistro,
+            miDNI,
+            fechaHoy
+          );
+
+        if (asistenciaCache) {
+          console.log(
+            `✅ Mi ${modoRegistro} encontrada en cache local: ${asistenciaCache.estado}`
+          );
+
+          return {
+            marcada: true,
+            timestamp: asistenciaCache.timestamp,
+            estado: asistenciaCache.estado,
+            fuente: "CACHE_LOCAL",
+            mensaje: `${modoRegistro} encontrada en cache local`,
+          };
+        }
+      }
+
+      // PASO 3: Consultar en Redis
+      console.log(`☁️ Consultando mi ${modoRegistro} en Redis...`);
+      const resultadoRedis = await this.apiClient.consultarMiRedisEspecifico(
+        modoRegistro
+      );
+
+      if (resultadoRedis.encontrado && resultadoRedis.datos?.Resultados) {
+        const resultado = Array.isArray(resultadoRedis.datos.Resultados)
+          ? resultadoRedis.datos.Resultados[0]
+          : resultadoRedis.datos.Resultados;
+
+        if (resultado?.AsistenciaMarcada && resultado.Detalles) {
+          const timestamp =
+            resultado.Detalles.Timestamp ||
+            this.dateHelper.obtenerTimestampPeruano();
+          const desfaseSegundos = resultado.Detalles.DesfaseSegundos || 0;
+          const estado = this.mapper.determinarEstadoAsistencia(
+            desfaseSegundos,
+            modoRegistro
+          );
+
+          console.log(`✅ Mi ${modoRegistro} encontrada en Redis: ${estado}`);
+
+          return {
+            marcada: true,
+            timestamp,
+            estado,
+            fuente: "REDIS",
+            mensaje: `${modoRegistro} encontrada en Redis`,
+          };
+        }
+      }
+
+      return {
+        marcada: false,
+        fuente: "NO_ENCONTRADO",
+        mensaje: `${modoRegistro} no registrada hoy`,
+      };
+    } catch (error) {
+      console.error(`❌ Error al consultar mi ${modoRegistro} de hoy:`, error);
+      return {
+        marcada: false,
+        fuente: "NO_ENCONTRADO",
+        mensaje: `Error: ${
+          error instanceof Error ? error.message : "Error desconocido"
+        }`,
+      };
+    }
+  }
+
+  /**
+   * 🆕 NUEVO: Consulta Redis específico para un modo de registro
+   * 🎯 OPTIMIZADO: Solo consulta entrada O salida, no ambos
+   */
+  public async consultarMiRedisEspecifico(modoRegistro: ModoRegistro): Promise<{
+    encontrado: boolean;
+    datos?: any;
+    mensaje: string;
+  }> {
+    try {
+      this.errorHandler.clearErrors();
+
+      console.log(`🔍 Consultando mi Redis específico: ${modoRegistro}`);
+
+      const resultado = await this.apiClient.consultarMiRedisEspecifico(
+        modoRegistro
+      );
+
+      console.log(
+        `📊 Mi consulta Redis ${modoRegistro}: ${
+          resultado.encontrado ? "ENCONTRADA" : "NO ENCONTRADA"
+        }`
+      );
+
+      return resultado;
+    } catch (error) {
+      console.error("❌ Error al consultar mi Redis específico:", error);
+      this.errorHandler.handleErrorWithRecovery(
+        error,
+        "consultar mi Redis específico"
+      );
+
+      return {
+        encontrado: false,
+        mensaje: "Error al consultar mi Redis específico",
+      };
     }
   }
 
@@ -848,7 +1117,4 @@ export class AsistenciaDePersonalIDB {
       this.errorHandler.setLoading(false);
     }
   }
-
-
-  
 }

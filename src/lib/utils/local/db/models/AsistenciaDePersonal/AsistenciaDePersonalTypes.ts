@@ -284,6 +284,15 @@ export const ESTADOS_ASISTENCIA_VALIDOS = [
   EstadosAsistenciaPersonal.Sin_Registro,
 ] as const;
 
+// ✅ NUEVA INTERFAZ: Para consulta específica de asistencia de hoy
+export interface ConsultaMiAsistenciaHoyResult {
+  marcada: boolean;
+  timestamp?: number;
+  estado?: EstadosAsistenciaPersonal;
+  fuente: "REGISTRO_MENSUAL" | "CACHE_LOCAL" | "REDIS" | "NO_ENCONTRADO";
+  mensaje: string;
+}
+
 // ✅ NUEVAS CONSTANTES para flujo inteligente
 // export const HORARIOS_CONSULTA = {
 //   INICIO_DIA_ESCOLAR: 6,
