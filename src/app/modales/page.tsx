@@ -4,9 +4,9 @@ import { useState } from "react";
 import MarcarAsistenciaPropiaDePersonalModal from "@/components/modals/AsistenciaPropiaPersonal/MarcarAsistenciaPropiaDePersonalModal";
 import ActivarGPSAsistenciaPropia from "@/components/modals/AsistenciaPropiaPersonal/ActivarGPSAsistenciaPropia";
 import ConexionInternetMarcarAsistenciaPropia from "@/components/modals/AsistenciaPropiaPersonal/ConexionInternetMarcarAsistenciaPropia";
-import ConfirmarMarcarAsistenciaPropia from "@/components/modals/AsistenciaPropiaPersonal/ConfirmarMarcarAsistenciaPropia";
-import ErrorAsistenciaPropia from "@/components/modals/AsistenciaPropiaPersonal/ErrorAsistenciaPropia";
-import UbicacionFueraDeColegioAsistenciaPropia from "@/components/modals/AsistenciaPropiaPersonal/UbicacionFueraDeColegioAsistenciaPropia";
+import ConfirmarMarcarAsistenciaPropia from "@/components/modals/AsistenciaPropiaPersonal/ConfirmacionAsistenciaMarcadaModal";
+import ErrorAsistenciaPropia from "@/components/modals/AsistenciaPropiaPersonal/ErrorGenericoAlRegistrarAsistenciaPropiaModal";
+import UbicacionFueraDeColegioAsistenciaPropia from "@/components/modals/AsistenciaPropiaPersonal/UbicacionFueraDelColegioAlRegistrarAsistenciaPropiaModal";
 
 const Modales = () => {
   const [showMarcar, setShowMarcar] = useState(false);

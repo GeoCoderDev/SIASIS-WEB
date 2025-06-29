@@ -23,6 +23,13 @@ import {
   HORAS_DESPUES_SALIDA_LIMITE,
   INTERVALO_CONSULTA_ASISTENCIA_OPTIMIZADO_MS,
 } from "@/constants/INTERVALOS_CONSULTAS_ASISTENCIAS_PROPIAS_PARA_PERSONAL_NO_DIRECTIVO";
+import ConfirmacionAsistenciaMarcadaModal from "@/components/modals/AsistenciaPropiaPersonal/ConfirmacionAsistenciaMarcadaModal";
+import ActivarGPSoBrindarPermisosGPSModal from "@/components/modals/AsistenciaPropiaPersonal/ActivarGPSAsistenciaPropia";
+import FalloConexionAInternetAlMarcarAsistenciaPropiaModal from "@/components/modals/AsistenciaPropiaPersonal/ConexionInternetMarcarAsistenciaPropia";
+import ErrorGenericoAlRegistrarAsistenciaPropiaModal from "@/components/modals/AsistenciaPropiaPersonal/ErrorGenericoAlRegistrarAsistenciaPropiaModal";
+import UbicacionFueraDelColegioAlRegistrarAsistenciaPropiaModal from "@/components/modals/AsistenciaPropiaPersonal/UbicacionFueraDelColegioAlRegistrarAsistenciaPropiaModal";
+import NoSePuedeUsarLaptopParaAsistenciaModal from "@/components/modals/AsistenciaPropiaPersonal/NoSePuedeUsarLaptopParaAsistenciaModal";
+import DispositivoSinGPSModal from "@/components/modals/AsistenciaPropiaPersonal/DispositivoSinGPSModal";
 
 // ✅ INTERFACES SIMPLIFICADAS
 interface EstadoAsistencia {
@@ -94,7 +101,46 @@ const MarcarAsistenciaDePersonalButton = memo(
       color: "verde",
       tooltip: "",
     });
-    const [mostrarModal, setMostrarModal] = useState(false);
+
+    // ===================================================================================
+    //                         Variables de estado para modales
+    // ===================================================================================
+    const [mostrarModalTomarMiAsistencia, setMostrarModalTomarMiAsistencia] =
+      useState(false);
+    const [
+      mostrarModalConfirmacioAsistenciaMarcada,
+      setMostrarModalConfirmacioAsistenciaMarcada,
+    ] = useState(false);
+    const [
+      mostrarModalFaltaActivarGPSoBrindarPermisosGPS,
+      setMostrarModalFaltaActivarGPSoBrindarPermisosGPS,
+    ] = useState(false);
+
+    const [
+      mostrarModalUbicacionFueraDelColegioAlRegistrarAsistenciaPropia,
+      setMostrarModalFueraDelColegioAlRegistrarAsistenciaPropia,
+    ] = useState(false);
+
+    const [
+      mostrarModalErrorGenericoAlRegistrarAsistenciaPropia,
+      setMostrarErrorGenericoAlRegistrarAsistenciaPropia,
+    ] = useState(false);
+
+    const [
+      mostrarModalFalloConexionAInternetAlMarcarAsistenciaPropia,
+      setMostrarModalFalloConexionAInternetAlMarcarAsistenciaPropia,
+    ] = useState(false);
+
+    const [
+      mostrarModalNoSePuedeUsarLaptop,
+      setMostrarModalNoSePuedeUsarLaptop,
+    ] = useState(false);
+
+    const [mostrarModalDispositivoSinGPS, setMostrarModalDispositivoSinGPS] =
+      useState(false);
+
+    // ===================================================================================
+
     const [asistenciaIDB, setAsistenciaIDB] =
       useState<AsistenciaDePersonalIDB | null>(null);
 
@@ -508,7 +554,8 @@ const MarcarAsistenciaDePersonalButton = memo(
           HORAS_ANTES_SALIDA_CAMBIO_MODO,
           HORAS_DESPUES_SALIDA_LIMITE,
           INTERVALO_CONSULTA_MS:
-            INTERVALO_CONSULTA_ASISTENCIA_OPTIMIZADO_MS / (1000 * 60) + " minutos",
+            INTERVALO_CONSULTA_ASISTENCIA_OPTIMIZADO_MS / (1000 * 60) +
+            " minutos",
         });
       }
     }, [horario, obtenerHorario]);
@@ -715,7 +762,7 @@ const MarcarAsistenciaDePersonalButton = memo(
       if (!estadoBoton.visible) return;
 
       if (!tooltipOculto) ocultarTooltip();
-      setMostrarModal(true);
+      setMostrarModalTomarMiAsistencia(true);
     }, [estadoBoton.visible, tooltipOculto, ocultarTooltip]);
 
     // ✅ CLEANUP
@@ -726,6 +773,66 @@ const MarcarAsistenciaDePersonalButton = memo(
       };
     }, []);
 
+    // ✅ FUNCIÓN PARA MARCAR ASISTENCIA DE HOY
+    const marcarMiAsistenciaDeHoy = useCallback(async () => {
+      try {
+        if (!estadoBoton.tipo || !horario) {
+          console.error("❌ No hay tipo de registro o horario disponible");
+          return;
+        }
+
+        // Obtener la hora esperada ISO basada en el modo de registro
+        const fechaActual = obtenerFechaActual();
+        if (!fechaActual) {
+          console.error("❌ No se pudo obtener la fecha actual");
+          return;
+        }
+
+        let horaEsperadaISO: string;
+
+        if (estadoBoton.tipo === ModoRegistro.Entrada) {
+          // Para entrada, usar hora de inicio del horario
+          const horaInicio = new Date(horario.Inicio);
+          const fechaInicioHoy = new Date(fechaActual);
+          fechaInicioHoy.setHours(
+            horaInicio.getHours(),
+            horaInicio.getMinutes(),
+            0,
+            0
+          );
+          horaEsperadaISO = fechaInicioHoy.toISOString();
+        } else {
+          // Para salida, usar hora de fin del horario
+          const horaFin = new Date(horario.Fin);
+          const fechaFinHoy = new Date(fechaActual);
+          fechaFinHoy.setHours(horaFin.getHours(), horaFin.getMinutes(), 0, 0);
+          horaEsperadaISO = fechaFinHoy.toISOString();
+        }
+
+        console.log(
+          `🕐 Hora esperada ISO para ${estadoBoton.tipo}:`,
+          horaEsperadaISO
+        );
+
+        // Intentar marcar asistencia usando el orquestador
+        if (!asistenciaIDB) {
+          console.error("❌ AsistenciaIDB no disponible");
+          return;
+        }
+
+        await asistenciaIDB.marcarMiAsistenciaPropia(
+          estadoBoton.tipo,
+          horaEsperadaISO
+        );
+
+        // Si llegamos aquí, todo fue exitoso
+        console.log("✅ Asistencia marcada exitosamente");
+      } catch (error) {
+        console.error("❌ Error al marcar mi asistencia:", error);
+        throw error; // Re-lanzar para que el modal lo maneje
+      }
+    }, [estadoBoton.tipo, horario, obtenerFechaActual, asistenciaIDB]);
+
     // ✅ RENDER: Solo si es visible
     if (!estadoBoton.visible) {
       return null;
@@ -735,20 +842,83 @@ const MarcarAsistenciaDePersonalButton = memo(
 
     return (
       <>
-        {mostrarModal && (
+        {mostrarModalTomarMiAsistencia && (
           <MarcarAsistenciaPropiaDePersonalModal
+            eliminateModal={() => setMostrarModalTomarMiAsistencia(false)}
+            modoRegistro={determinarModoActual(horario).tipo!}
+            marcarMiAsistenciaDeHoy={marcarMiAsistenciaDeHoy} // Nueva prop
+            setMostrarModalConfirmacioAsistenciaMarcada={
+              setMostrarModalConfirmacioAsistenciaMarcada
+            }
+            setMostrarModalFaltaActivarGPSoBrindarPermisosGPS={
+              setMostrarModalFaltaActivarGPSoBrindarPermisosGPS
+            }
+            setMostrarModalUbicacionFueraDelColegioAlRegistrarAsistenciaPropia={
+              setMostrarModalFueraDelColegioAlRegistrarAsistenciaPropia
+            }
+            setMostrarModalErrorGenericoAlRegistrarAsistenciaPropia={
+              setMostrarErrorGenericoAlRegistrarAsistenciaPropia
+            }
+            setMostrarModalFalloConexionAInternet={
+              setMostrarModalFalloConexionAInternetAlMarcarAsistenciaPropia
+            }
+            setMostrarModalNoSePuedeUsarLaptop={
+              setMostrarModalNoSePuedeUsarLaptop
+            } // Nueva prop
+            setMostrarModalDispositivoSinGPS={setMostrarModalDispositivoSinGPS} // Nueva prop
+          />
+        )}
+
+        {mostrarModalConfirmacioAsistenciaMarcada && (
+          <ConfirmacionAsistenciaMarcadaModal
             eliminateModal={() => {
-              setMostrarModal(false);
-              // ✅ CONSULTAR después de marcar para actualizar estado
-              setTimeout(() => {
-                const modoActual = determinarModoActual(horario);
-                if (modoActual.activo && modoActual.tipo) {
-                  consultarAsistenciaModo(
-                    modoActual.tipo,
-                    "después de marcar asistencia"
-                  );
-                }
-              }, 1000);
+              setMostrarModalConfirmacioAsistenciaMarcada(false);
+            }}
+          />
+        )}
+
+        {mostrarModalFaltaActivarGPSoBrindarPermisosGPS && (
+          <ActivarGPSoBrindarPermisosGPSModal
+            eliminateModal={() => {
+              setMostrarModalFaltaActivarGPSoBrindarPermisosGPS(false);
+            }}
+          />
+        )}
+
+        {mostrarModalUbicacionFueraDelColegioAlRegistrarAsistenciaPropia && (
+          <UbicacionFueraDelColegioAlRegistrarAsistenciaPropiaModal
+            eliminateModal={() => {
+              setMostrarModalFueraDelColegioAlRegistrarAsistenciaPropia(false);
+            }}
+          />
+        )}
+
+        {mostrarModalErrorGenericoAlRegistrarAsistenciaPropia && (
+          <ErrorGenericoAlRegistrarAsistenciaPropiaModal
+            eliminateModal={() => {
+              setMostrarErrorGenericoAlRegistrarAsistenciaPropia(false);
+            }}
+          />
+        )}
+
+        {mostrarModalNoSePuedeUsarLaptop && (
+          <NoSePuedeUsarLaptopParaAsistenciaModal
+            eliminateModal={() => setMostrarModalNoSePuedeUsarLaptop(false)}
+          />
+        )}
+
+        {mostrarModalDispositivoSinGPS && (
+          <DispositivoSinGPSModal
+            eliminateModal={() => setMostrarModalDispositivoSinGPS(false)}
+          />
+        )}
+
+        {mostrarModalFalloConexionAInternetAlMarcarAsistenciaPropia && (
+          <FalloConexionAInternetAlMarcarAsistenciaPropiaModal
+            eliminateModal={() => {
+              setMostrarModalFalloConexionAInternetAlMarcarAsistenciaPropia(
+                false
+              );
             }}
           />
         )}
