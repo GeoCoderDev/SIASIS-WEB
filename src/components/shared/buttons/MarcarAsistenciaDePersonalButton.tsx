@@ -15,7 +15,10 @@ import { HorarioTomaAsistencia } from "@/interfaces/shared/Asistencia/DatosAsist
 import { HandlerAuxiliarAsistenciaResponse } from "../../../lib/utils/local/db/models/DatosAsistenciaHoy/handlers/HandlerAuxiliarAsistenciaResponse";
 import { HandlerProfesorTutorSecundariaAsistenciaResponse } from "@/lib/utils/local/db/models/DatosAsistenciaHoy/handlers/HandlerProfesorTutorSecundariaAsistenciaResponse";
 import { HandlerPersonalAdministrativoAsistenciaResponse } from "@/lib/utils/local/db/models/DatosAsistenciaHoy/handlers/HandlerPersonalAdministrativoAsistenciaResponse";
-import { ModoRegistro } from "@/interfaces/shared/ModoRegistroPersonal";
+import {
+  ModoRegistro,
+  modoRegistroTextos,
+} from "@/interfaces/shared/ModoRegistroPersonal";
 
 import {
   HORAS_ANTES_INICIO_ACTIVACION,
@@ -478,7 +481,7 @@ const MarcarAsistenciaDePersonalButton = memo(
       // ✅ MOSTRAR BOTÓN CON EL MODO ACTUAL
       const esEntrada = modoActual.tipo === ModoRegistro.Entrada;
       const color = esEntrada ? "verde" : "rojizo";
-      const emoji = esEntrada ? "🚪➡️" : "🚪⬅️";
+      // const emoji = esEntrada ? "🚪➡️" : "🚪⬅️";
 
       console.log(`👁️ Mostrando botón para ${modoActual.tipo}`);
 
@@ -486,7 +489,7 @@ const MarcarAsistenciaDePersonalButton = memo(
         visible: true,
         tipo: modoActual.tipo,
         color,
-        tooltip: `¡Registra tu ${modoActual.tipo}! ${emoji}`,
+        tooltip: `¡Registra tu ${modoRegistroTextos[modoActual.tipo]}!`,
       });
     }, [
       horario,
@@ -821,6 +824,7 @@ const MarcarAsistenciaDePersonalButton = memo(
         }
 
         await asistenciaIDB.marcarMiAsistenciaPropia(
+          rol,
           estadoBoton.tipo,
           horaEsperadaISO
         );

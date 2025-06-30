@@ -451,6 +451,58 @@ export class AsistenciaPersonalSyncService {
   }
 
   /**
+   * ✅ NUEVO: Auto-corrección de datos locales inconsistentes
+   */
+  private async autoCorregirDatosLocalesInconsistentes(
+    rol: RolesSistema,
+    id_o_dni: string | number,
+    mes: number,
+    razonInconsistencia: string
+  ): Promise<ConsultaAsistenciaResult> {
+    try {
+      console.log(
+        `🔧 Iniciando auto-corrección para ${id_o_dni} - mes ${mes}: ${razonInconsistencia}`
+      );
+
+      const tipoPersonal = this.mapper.obtenerTipoPersonalDesdeRolOActor(rol);
+
+      // Eliminar datos locales corruptos
+      await Promise.allSettled([
+        this.repository.eliminarRegistroMensual(
+          tipoPersonal,
+          ModoRegistro.Entrada,
+          id_o_dni,
+          mes
+        ),
+        this.repository.eliminarRegistroMensual(
+          tipoPersonal,
+          ModoRegistro.Salida,
+          id_o_dni,
+          mes
+        ),
+      ]);
+
+      console.log("🧹 Datos locales inconsistentes eliminados");
+
+      // Obtener datos frescos de la API
+      return await this.consultarAPIYGuardar(
+        rol,
+        id_o_dni,
+        mes,
+        `Auto-corrección: ${razonInconsistencia}`
+      );
+    } catch (error) {
+      console.error("❌ Error en auto-corrección:", error);
+      return {
+        encontrado: false,
+        mensaje: `Error en auto-corrección: ${
+          error instanceof Error ? error.message : "Error desconocido"
+        }`,
+      };
+    }
+  }
+
+  /**
    * Fuerza la actualización desde la API eliminando datos locales
    * ✅ SIN CAMBIOS: Ya delegaba correctamente
    */
@@ -573,6 +625,52 @@ export class AsistenciaPersonalSyncService {
         mes
       ),
     ]);
+
+    // ✅ NUEVO: Validar consistencia ANTES de proceder
+    if (registroEntrada || registroSalida) {
+      const validacionConsistencia =
+        await this.validator.validarConsistenciaEntradaSalida(
+          registroEntrada,
+          registroSalida,
+          mes,
+          id_o_dni
+        );
+
+      if (validacionConsistencia.requiereCorreccion) {
+        console.warn(
+          `⚠️ Datos inconsistentes detectados para ${id_o_dni} - mes ${mes}: ${validacionConsistencia.razon}`
+        );
+        console.log(
+          "🗑️ Eliminando registros inconsistentes y consultando API..."
+        );
+
+        // Eliminar registros inconsistentes
+        await Promise.allSettled([
+          this.repository.eliminarRegistroMensual(
+            tipoPersonal,
+            ModoRegistro.Entrada,
+            id_o_dni,
+            mes
+          ),
+          this.repository.eliminarRegistroMensual(
+            tipoPersonal,
+            ModoRegistro.Salida,
+            id_o_dni,
+            mes
+          ),
+        ]);
+
+        // Forzar consulta a API
+        return await this.consultarAPIYGuardar(
+          rol,
+          id_o_dni,
+          mes,
+          `Corrección por inconsistencia: ${validacionConsistencia.razon}`
+        );
+      }
+
+      console.log(`✅ Datos consistentes: ${validacionConsistencia.razon}`);
+    }
 
     // PASO 2: Si NO existe en IndexedDB → Consultar API
     if (!registroEntrada && !registroSalida) {
@@ -706,6 +804,45 @@ export class AsistenciaPersonalSyncService {
         mes
       ),
     ]);
+
+    if (registroEntrada || registroSalida) {
+      const validacionConsistencia =
+        await this.validator.validarConsistenciaEntradaSalida(
+          registroEntrada,
+          registroSalida,
+          mes,
+          id_o_dni
+        );
+
+      if (validacionConsistencia.requiereCorreccion) {
+        console.warn(
+          `⚠️ Datos inconsistentes detectados para ${id_o_dni} - mes ${mes}
+          }: ${validacionConsistencia.razon}`
+        );
+
+        await Promise.allSettled([
+          this.repository.eliminarRegistroMensual(
+            tipoPersonal,
+            ModoRegistro.Entrada,
+            id_o_dni,
+            mes
+          ),
+          this.repository.eliminarRegistroMensual(
+            tipoPersonal,
+            ModoRegistro.Salida,
+            id_o_dni,
+            mes
+          ),
+        ]);
+
+        return await this.consultarAPIYGuardar(
+          rol,
+          id_o_dni,
+          mes,
+          `Corrección por inconsistencia: ${validacionConsistencia.razon}`
+        );
+      }
+    }
 
     // Si NO hay registros → Consultar API obligatoriamente
     if (!registroEntrada && !registroSalida) {
@@ -1218,6 +1355,53 @@ export class AsistenciaPersonalSyncService {
       ),
     ]);
 
+    // ✅ NUEVO: Validar consistencia si existen registros
+    if (registroEntrada || registroSalida) {
+      const validacionConsistencia =
+        await this.validator.validarConsistenciaEntradaSalida(
+          registroEntrada,
+          registroSalida,
+          mes,
+          id_o_dni
+        );
+
+      if (validacionConsistencia.requiereCorreccion) {
+        console.warn(
+          `⚠️ Datos inconsistentes detectados: ${validacionConsistencia.razon}`
+        );
+        console.log(
+          "🗑️ Eliminando registros inconsistentes y consultando API..."
+        );
+
+        // Eliminar registros inconsistentes
+        await Promise.allSettled([
+          this.repository.eliminarRegistroMensual(
+            tipoPersonal,
+            ModoRegistro.Entrada,
+            id_o_dni,
+            mes
+          ),
+          this.repository.eliminarRegistroMensual(
+            tipoPersonal,
+            ModoRegistro.Salida,
+            id_o_dni,
+            mes
+          ),
+        ]);
+
+        // Forzar consulta completa a API
+        console.log("📡 Forzando consulta API por inconsistencia...");
+        return await this.consultarAPIYGuardar(
+          rol,
+          id_o_dni,
+          mes,
+          `Corrección por inconsistencia: ${validacionConsistencia.razon}`
+        );
+      }
+
+      console.log(`✅ Datos consistentes: ${validacionConsistencia.razon}`);
+    }
+
     // PASO 2: Si NO hay registros mensuales → API + Redis
     if (!registroEntrada && !registroSalida) {
       console.log(`📭 Sin registros mensuales → API + Redis`);
@@ -1326,9 +1510,6 @@ export class AsistenciaPersonalSyncService {
   }
 
   /**
-   * ✅ NUEVO: Consultar solo Redis con control de rango
-   */
-  /**
    * ✅ OPTIMIZADO: Consultar solo Redis con integración inteligente de cache
    */
   private async consultarSoloRedis(
@@ -1339,6 +1520,48 @@ export class AsistenciaPersonalSyncService {
     diaActual: number,
     estrategia: any
   ): Promise<ConsultaAsistenciaResult> {
+    // ✅ CONTROL GLOBAL CENTRALIZADO
+    const controlGlobal = this.cacheManager.yaSeConsultoRedisEnRango(
+      id_o_dni,
+      estrategia.estrategia
+    );
+
+    if (controlGlobal.yaConsultado) {
+      console.log(
+        `⏭️ CONTROL GLOBAL: ${controlGlobal.razon} - Saltando consulta Redis`
+      );
+
+      // Obtener registros actuales y combinar con cache existente
+      const [registroEntrada, registroSalida] = await Promise.all([
+        this.repository.obtenerRegistroMensual(
+          tipoPersonal,
+          ModoRegistro.Entrada,
+          id_o_dni,
+          mes
+        ),
+        this.repository.obtenerRegistroMensual(
+          tipoPersonal,
+          ModoRegistro.Salida,
+          id_o_dni,
+          mes
+        ),
+      ]);
+
+      return await this.cacheManager.combinarDatosHistoricosYActuales(
+        registroEntrada,
+        registroSalida,
+        rol,
+        id_o_dni,
+        true,
+        diaActual,
+        `${estrategia.razon} + ${controlGlobal.razon}`
+      );
+    }
+
+    console.log(
+      `🔓 CONTROL GLOBAL: ${controlGlobal.razon} - Procediendo con consulta Redis`
+    );
+
     // Obtener registros actuales
     let [registroEntrada, registroSalida] = await Promise.all([
       this.repository.obtenerRegistroMensual(
@@ -1355,17 +1578,38 @@ export class AsistenciaPersonalSyncService {
       ),
     ]);
 
-    // ✅ CONTROL DE RANGO: Solo para evitar consultas Redis duplicadas
-    const registroParaControl = registroEntrada || registroSalida;
-    if (registroParaControl) {
-      const controlRango = this.dateHelper.yaSeConsultoEnRangoActual(
-        registroParaControl.ultima_fecha_actualizacion
-      );
+    // Verificar datos en cache local (para optimización)
+    const fechaHoy = this.dateHelper.obtenerFechaStringActual();
+    const actor = this.mapper.obtenerActorDesdeRol(rol);
 
-      if (controlRango.yaConsultado) {
+    let tieneEntradaHoy = false;
+    let tieneSalidaHoy = false;
+
+    if (fechaHoy) {
+      const [entradaLocal, salidaLocal] = await Promise.all([
+        this.cacheManager.consultarCacheAsistenciaHoyDirecto(
+          actor,
+          ModoRegistro.Entrada,
+          id_o_dni,
+          fechaHoy
+        ),
+        this.cacheManager.consultarCacheAsistenciaHoyDirecto(
+          actor,
+          ModoRegistro.Salida,
+          id_o_dni,
+          fechaHoy
+        ),
+      ]);
+
+      tieneEntradaHoy = !!entradaLocal;
+      tieneSalidaHoy = !!salidaLocal;
+
+      // Si ya tengo todos los datos necesarios, no consultar Redis pero sí marcar como consultado
+      if (estrategia.estrategia === "REDIS_ENTRADAS" && tieneEntradaHoy) {
         console.log(
-          `⏭️ Redis ya consultado en este rango: ${controlRango.razon}`
+          "✅ Ya tengo entrada local completa - marcando como consultado y saltando Redis"
         );
+        this.cacheManager.marcarConsultaRedisRealizada(id_o_dni);
         return await this.cacheManager.combinarDatosHistoricosYActuales(
           registroEntrada,
           registroSalida,
@@ -1373,80 +1617,87 @@ export class AsistenciaPersonalSyncService {
           id_o_dni,
           true,
           diaActual,
-          `${estrategia.razon} + ${controlRango.razon}`
+          "Datos de entrada completos en cache local"
+        );
+      }
+
+      if (
+        estrategia.estrategia === "REDIS_COMPLETO" &&
+        tieneEntradaHoy &&
+        tieneSalidaHoy
+      ) {
+        console.log(
+          "✅ Ya tengo entrada y salida local completas - marcando como consultado y saltando Redis"
+        );
+        this.cacheManager.marcarConsultaRedisRealizada(id_o_dni);
+        return await this.cacheManager.combinarDatosHistoricosYActuales(
+          registroEntrada,
+          registroSalida,
+          rol,
+          id_o_dni,
+          true,
+          diaActual,
+          "Datos completos en cache local"
         );
       }
     }
 
-    // ✅ NUEVA LÓGICA: Usar consulta inteligente con fallback a Redis
-    console.log(
-      `📡 Consultando con estrategia inteligente: ${estrategia.estrategia}`
-    );
+    // ✅ CONSULTAR REDIS API
+    console.log(`📡 Consultando Redis API: ${estrategia.estrategia}`);
+
+    const necesitaEntradas =
+      estrategia.estrategia === "REDIS_ENTRADAS" ||
+      (estrategia.estrategia === "REDIS_COMPLETO" && !tieneEntradaHoy);
+    const necesitaSalidas =
+      estrategia.estrategia === "REDIS_COMPLETO" && !tieneSalidaHoy;
 
     let mensajeConsulta = "";
+    let datosRedisObtenidos = false;
 
-    // Determinar qué consultar según estrategia
-    const modosAConsultar = [];
-    if (
-      estrategia.estrategia === "REDIS_ENTRADAS" ||
-      estrategia.estrategia === "REDIS_COMPLETO"
-    ) {
-      modosAConsultar.push(ModoRegistro.Entrada);
-    }
-    if (estrategia.estrategia === "REDIS_COMPLETO") {
-      modosAConsultar.push(ModoRegistro.Salida);
-    }
-
-    // Consultar cada modo con la nueva lógica inteligente
-    for (const modo of modosAConsultar) {
+    if (necesitaEntradas || necesitaSalidas) {
       try {
-        const resultado =
-          await this.cacheManager.consultarAsistenciaConFallbackRedis(
+        const datosRedis =
+          await this.apiClient.consultarRedisCompletoPorPersona(
             rol,
             id_o_dni,
-            modo,
-            estrategia.estrategia
+            necesitaSalidas
           );
 
-        if (resultado.encontrado && resultado.datos) {
-          // Integrar datos encontrados en el registro mensual correspondiente
-          const registroActual =
-            modo === ModoRegistro.Entrada ? registroEntrada : registroSalida;
+        // ✅ MARCAR CONSULTA REALIZADA INMEDIATAMENTE
+        this.cacheManager.marcarConsultaRedisRealizada(id_o_dni);
 
-          const registroActualizado =
-            this.cacheManager.integrarDatosDeCacheEnRegistroMensual(
-              registroActual,
-              resultado.datos,
-              diaActual,
-              modo,
+        if (datosRedis.encontradoEntrada || datosRedis.encontradoSalida) {
+          const integracion =
+            await this.cacheManager.integrarDatosDirectosDeRedis(
+              registroEntrada,
+              registroSalida,
+              datosRedis,
+              rol,
               id_o_dni,
-              resultado.datos.fecha
+              diaActual
             );
 
-          if (modo === ModoRegistro.Entrada) {
-            registroEntrada = registroActualizado;
-          } else {
-            registroSalida = registroActualizado;
+          if (integracion.integrado) {
+            console.log(`✅ Datos de Redis API integrados exitosamente`);
+            datosRedisObtenidos = true;
+            mensajeConsulta = `Datos actualizados desde Redis API: ${integracion.mensaje}`;
+            registroEntrada = integracion.entrada || registroEntrada;
+            registroSalida = integracion.salida || registroSalida;
           }
+        }
 
-          mensajeConsulta += `${modo}: ${resultado.fuente}, `;
-
-          console.log(
-            `✅ ${modo} integrado desde ${resultado.fuente}: ${resultado.datos.estado}`
-          );
-        } else {
-          console.log(`📭 ${modo} no encontrado: ${resultado.mensaje}`);
+        if (!datosRedisObtenidos) {
+          console.log(`📭 No se encontraron datos nuevos en Redis API`);
+          mensajeConsulta = "No se encontraron datos nuevos en Redis API";
         }
       } catch (error) {
-        console.error(`❌ Error al consultar ${modo}:`, error);
+        console.error(`❌ Error al consultar Redis API:`, error);
+        // Marcar como consultado incluso si hay error para evitar reintentos inmediatos
+        this.cacheManager.marcarConsultaRedisRealizada(id_o_dni);
+        mensajeConsulta = "Error al consultar Redis API";
       }
     }
 
-    // Limpiar mensaje
-    mensajeConsulta =
-      mensajeConsulta.replace(/, $/, "") || "No se encontraron datos nuevos";
-
-    // ✅ COMBINAR DATOS FINALES
     return await this.cacheManager.combinarDatosHistoricosYActuales(
       registroEntrada,
       registroSalida,
@@ -1454,9 +1705,10 @@ export class AsistenciaPersonalSyncService {
       id_o_dni,
       true,
       diaActual,
-      `${estrategia.razon} + Consulta inteligente: ${mensajeConsulta}`
+      `${estrategia.razon} + ${mensajeConsulta}`
     );
   }
+
   /**
    * ✅ NUEVO: Procesa consulta para mes anterior
    */
@@ -1949,7 +2201,7 @@ export class AsistenciaPersonalSyncService {
   }
 
   /**
-   * ✅ NUEVO: Consulta API y guarda con timestamp actualizado
+   * ✅ MODIFICADO: Consulta API y luego Redis si corresponde según horario
    */
   private async consultarAPIYGuardar(
     rol: RolesSistema,
@@ -1988,6 +2240,61 @@ export class AsistenciaPersonalSyncService {
       const esConsultaMesActual = this.dateHelper.esConsultaMesActual(mes);
       const diaActual = this.dateHelper.obtenerDiaActual() || 1;
 
+      // ✅ NUEVO: Si es mes actual, verificar si también se debe consultar Redis
+      if (esConsultaMesActual) {
+        const estrategia = this.dateHelper.determinarEstrategiaSegunHorario();
+
+        console.log(
+          `🔍 API completada. Evaluando Redis según horario: ${estrategia.estrategia} - ${estrategia.razon}`
+        );
+
+        // Si la estrategia indica consultar Redis, hacerlo
+        if (
+          estrategia.estrategia === "REDIS_ENTRADAS" ||
+          estrategia.estrategia === "REDIS_COMPLETO"
+        ) {
+          console.log(`☁️ Consultando Redis adicional después de API...`);
+
+          try {
+            // Usar el método existente que ya maneja toda la lógica de Redis
+            const resultadoConRedis = await this.consultarSoloRedis(
+              tipoPersonal,
+              rol,
+              id_o_dni,
+              mes,
+              diaActual,
+              {
+                ...estrategia,
+                razon: `${estrategia.razon} + Post-API: consultando Redis para datos del día actual`,
+              }
+            );
+
+            // Si Redis devolvió datos, usarlos; si no, usar los de API
+            if (resultadoConRedis.encontrado) {
+              console.log(`✅ Datos de API + Redis combinados exitosamente`);
+              return {
+                ...resultadoConRedis,
+                mensaje: `${razon} + Datos complementados con Redis: ${resultadoConRedis.mensaje}`,
+              };
+            } else {
+              console.log(
+                `📭 Redis no tenía datos adicionales, usando solo API`
+              );
+            }
+          } catch (error) {
+            console.warn(
+              `⚠️ Error al consultar Redis después de API, continuando con datos de API:`,
+              error
+            );
+          }
+        } else {
+          console.log(
+            `⏭️ No corresponde consultar Redis según horario: ${estrategia.razon}`
+          );
+        }
+      }
+
+      // Retornar resultado combinando datos históricos (API) con datos actuales (cache si existe)
       return await this.cacheManager.combinarDatosHistoricosYActuales(
         nuevaEntrada,
         nuevaSalida,
@@ -2123,7 +2430,7 @@ export class AsistenciaPersonalSyncService {
   }
 
   /**
-   * ✅ NUEVO: Consulta API para mis asistencias y guarda
+   * ✅ MODIFICADO: Consulta mi API y luego mi Redis si corresponde
    */
   private async consultarMiAPIYGuardar(
     rol: RolesSistema,
@@ -2158,6 +2465,51 @@ export class AsistenciaPersonalSyncService {
 
       const esConsultaMesActual = this.dateHelper.esConsultaMesActual(mes);
       const diaActual = this.dateHelper.obtenerDiaActual() || 1;
+
+      // ✅ NUEVO: Si es mes actual, verificar si también se debe consultar mi Redis
+      if (esConsultaMesActual) {
+        const estrategia = this.dateHelper.determinarEstrategiaSegunHorario();
+
+        console.log(
+          `🔍 Mi API completada. Evaluando mi Redis según horario: ${estrategia.estrategia}`
+        );
+
+        if (
+          estrategia.estrategia === "REDIS_ENTRADAS" ||
+          estrategia.estrategia === "REDIS_COMPLETO"
+        ) {
+          console.log(`☁️ Consultando mi Redis adicional después de mi API...`);
+
+          try {
+            const resultadoConRedis = await this.consultarSoloMiRedis(
+              tipoPersonal,
+              rol,
+              miDNI,
+              mes,
+              diaActual,
+              {
+                ...estrategia,
+                razon: `${estrategia.razon} + Post-API: consultando mi Redis para datos del día actual`,
+              }
+            );
+
+            if (resultadoConRedis.encontrado) {
+              console.log(
+                `✅ Mis datos de API + Redis combinados exitosamente`
+              );
+              return {
+                ...resultadoConRedis,
+                mensaje: `${razon} + Mis datos complementados con Redis: ${resultadoConRedis.mensaje}`,
+              };
+            }
+          } catch (error) {
+            console.warn(
+              `⚠️ Error al consultar mi Redis después de API:`,
+              error
+            );
+          }
+        }
+      }
 
       return await this.cacheManager.combinarDatosHistoricosYActuales(
         nuevaEntrada,

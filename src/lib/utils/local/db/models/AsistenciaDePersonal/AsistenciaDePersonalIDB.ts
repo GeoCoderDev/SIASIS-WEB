@@ -95,7 +95,8 @@ export class AsistenciaDePersonalIDB {
     this.cacheManager = new AsistenciaDePersonalCacheManager(
       this.mapper,
       this.dateHelper,
-      this.apiClient
+      this.apiClient,
+      this.validator
     );
 
     // Inicializar servicio de sincronización que coordina todos los demás
@@ -249,6 +250,38 @@ export class AsistenciaDePersonalIDB {
       console.log(
         `✅ Registro mensual sincronizado para ${dni} - día ${dia}/${mes}`
       );
+
+      const [entradaActual, salidaActual] = await Promise.all([
+        this.repository.obtenerRegistroMensual(
+          tipoPersonal,
+          ModoRegistro.Entrada,
+          dni,
+          mes
+        ),
+        this.repository.obtenerRegistroMensual(
+          tipoPersonal,
+          ModoRegistro.Salida,
+          dni,
+          mes
+        ),
+      ]);
+
+      const validacionConsistencia =
+        await this.validator.validarConsistenciaEntradaSalida(
+          entradaActual,
+          salidaActual,
+          mes,
+          dni
+        );
+
+      if (
+        !validacionConsistencia.esConsistente &&
+        validacionConsistencia.requiereCorreccion
+      ) {
+        console.error(
+          `🚨 Sincronización Redis→Local generó inconsistencia: ${validacionConsistencia.razon}`
+        );
+      }
     } catch (error) {
       console.error("❌ Error al sincronizar con registro mensual:", error);
       // No lanzar error para no afectar el flujo principal
@@ -332,9 +365,118 @@ export class AsistenciaDePersonalIDB {
   }
 
   /**
+   * 🆕 NUEVO: Sincroniza mi marcado de Redis con el registro mensual
+   */
+  private async sincronizarMiMarcadoConRegistroMensual(
+    rol: RolesSistema,
+    modoRegistro: ModoRegistro,
+    diaActual: number,
+    mesActual: number,
+    datosRedis: any
+  ): Promise<void> {
+    try {
+      // Obtener DNI del usuario logueado
+      const { DatosAsistenciaHoyIDB } = await import(
+        "../DatosAsistenciaHoy/DatosAsistenciaHoyIDB"
+      );
+      const datosIDB = new DatosAsistenciaHoyIDB();
+      const handler = await datosIDB.getHandler();
+
+      if (!handler) {
+        console.warn(
+          "⚠️ No se pudo obtener handler para sincronizar mi marcado"
+        );
+        return;
+      }
+
+      const miDNI = (handler as any).getMiDNI();
+      if (!miDNI) {
+        console.warn("⚠️ No se pudo obtener mi DNI para sincronizar marcado");
+        return;
+      }
+
+      const tipoPersonal = this.mapper.obtenerTipoPersonalDesdeRolOActor(rol);
+
+      // Extraer datos de la respuesta de Redis
+      const timestamp =
+        datosRedis.timestamp || this.dateHelper.obtenerTimestampPeruano();
+      const desfaseSegundos = datosRedis.desfaseSegundos || 0;
+      const estado = this.mapper.determinarEstadoAsistencia(
+        desfaseSegundos,
+        modoRegistro
+      );
+
+      // Crear el registro para el día
+      const registroDia: RegistroEntradaSalida = {
+        timestamp,
+        desfaseSegundos,
+        estado,
+      };
+
+      // Verificar si ya existe un registro mensual
+      const registroExistente = await this.repository.obtenerRegistroMensual(
+        tipoPersonal,
+        modoRegistro,
+        miDNI,
+        mesActual
+      );
+
+      if (registroExistente) {
+        // Actualizar registro existente
+        console.log(
+          `🔄 Actualizando mi registro mensual existente para día ${diaActual}`
+        );
+        await this.repository.actualizarRegistroExistente(
+          tipoPersonal,
+          modoRegistro,
+          miDNI,
+          mesActual,
+          diaActual,
+          registroDia,
+          registroExistente.Id_Registro_Mensual
+        );
+      } else {
+        // No existe registro mensual → Guardar como asistencia huérfana
+        console.log(
+          `📝 Guardando mi asistencia huérfana en cache temporal para día ${diaActual}`
+        );
+
+        const actor = this.mapper.obtenerActorDesdeRol(rol);
+        const fechaString = this.dateHelper.generarFechaString(
+          mesActual,
+          diaActual
+        );
+
+        const asistenciaHuerfana = this.cacheManager.crearAsistenciaParaCache(
+          miDNI,
+          actor,
+          modoRegistro,
+          timestamp,
+          desfaseSegundos,
+          estado,
+          fechaString
+        );
+
+        await this.cacheManager.guardarAsistenciaEnCache(asistenciaHuerfana);
+      }
+
+      console.log(
+        `✅ Mi registro mensual sincronizado para día ${diaActual}/${mesActual}`
+      );
+    } catch (error) {
+      console.error(
+        "❌ Error al sincronizar mi marcado con registro mensual:",
+        error
+      );
+      // No lanzar error para no afectar el flujo principal
+    }
+  }
+
+  /**
    * 🆕 NUEVO: Marca mi asistencia propia
    */
   public async marcarMiAsistenciaPropia(
+    rol: RolesSistema,
     modoRegistro: ModoRegistro,
     horaEsperadaISO: string
   ): Promise<void> {
@@ -350,7 +492,23 @@ export class AsistenciaDePersonalIDB {
       );
 
       if (resultadoMarcado.exitoso) {
-        console.log(`✅ Mi asistencia marcada: ${resultadoMarcado.mensaje}`);
+        // ✅ NUEVO: Sincronizar con registro mensual
+        const infoFecha = this.dateHelper.obtenerInfoFechaActual();
+        if (infoFecha) {
+          const { diaActual, mesActual } = infoFecha;
+
+          await this.sincronizarMiMarcadoConRegistroMensual(
+            rol,
+            modoRegistro,
+            diaActual,
+            mesActual,
+            resultadoMarcado.datos
+          );
+        }
+
+        console.log(
+          `✅ Mi asistencia marcada y sincronizada: ${resultadoMarcado.mensaje}`
+        );
         this.errorHandler.handleSuccess(
           "Mi asistencia registrada exitosamente"
         );
