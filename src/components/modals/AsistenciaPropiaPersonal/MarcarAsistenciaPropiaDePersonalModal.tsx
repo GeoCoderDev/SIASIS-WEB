@@ -515,7 +515,7 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
           {texto}
         </p>
 
-        {REQUERIR_VALIDACION_GPS && ENTORNO === Entorno.LOCAL && (
+        {REQUERIR_VALIDACION_GPS && (
           <img
             className="rounded-[5px] w-[11rem] xs:w-[11rem] sm:w-[11.5rem] md:w-[10.5rem] h-auto object-contain"
             src="/images/gif/UbicacionColegioViajeGuiado.gif"
