@@ -500,7 +500,7 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
               estar <b>dentro del colegio</b>.
             </>
           ),
-          boton: "Registrar Asistencia",
+          boton: `Registrar ${modoRegistroTextos[modoRegistro]}`,
         };
       }
     }
@@ -524,7 +524,11 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
         )}
 
         <BotonConIcono
-          className="bg-verde-principal text-blanco flex gap-3 px-4 py-2 rounded-md text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+          className={`${
+            modoRegistro === ModoRegistro.Entrada
+              ? "bg-verde-principal"
+              : "bg-rojo-oscuro"
+          } text-blanco flex gap-3 px-4 py-2 rounded-md text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed`}
           texto={boton}
           IconTSX={
             estaProcessando ? (
