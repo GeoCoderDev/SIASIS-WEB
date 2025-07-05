@@ -419,7 +419,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Obtener la fecha actual en Perú
-    const fechaActualPeru = obtenerFechaActualPeru();
+    const fechaActualPeru = await obtenerFechaActualPeru();
 
     // ✅ CREAR PATRÓN DE BÚSQUEDA con lógica mejorada
     let patronBusqueda: string;
