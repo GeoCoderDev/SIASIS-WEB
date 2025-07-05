@@ -501,7 +501,7 @@ export async function POST(req: NextRequest) {
     );
 
     // Crear clave para Redis usando la función original (mantiene retrocompatibilidad)
-    const fechaHoy = obtenerFechaActualPeru();
+    const fechaHoy = await obtenerFechaActualPeru();
     let clave: string;
 
     if (esEstudiante) {
