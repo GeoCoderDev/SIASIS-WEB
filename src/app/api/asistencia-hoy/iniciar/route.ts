@@ -25,9 +25,9 @@ import {
  * Ahora usa la función mejorada que maneja offsets automáticamente
  * @returns Segundos hasta el final del día en Perú
  */
-function calcularSegundosHastaFinDiaPeru(): number {
+async function calcularSegundosHastaFinDiaPeru(): Promise<number> {
   // ✅ Usar la nueva función que maneja todos los offsets automáticamente
-  const fechaActualPeru = obtenerFechaHoraActualPeru();
+  const fechaActualPeru = await obtenerFechaHoraActualPeru();
 
   // Crear una fecha que represente las 23:59:59 del mismo día en Perú
   const finDiaPeruano = new Date(fechaActualPeru);
@@ -87,11 +87,11 @@ export async function POST(req: NextRequest) {
 
     // ✅ Obtener la fecha actual en Perú usando ambas funciones
     // La función original sigue funcionando para retrocompatibilidad
-    const fechaActualPeru = obtenerFechaActualPeru();
+    const fechaActualPeru = await obtenerFechaActualPeru();
     const [anio, mes, dia] = fechaActualPeru.split("-").map(Number);
 
     // ✅ También podemos obtener la fecha/hora completa para logs adicionales si es necesario
-    const fechaHoraCompletaPeru = obtenerFechaHoraActualPeru();
+    const fechaHoraCompletaPeru = await obtenerFechaHoraActualPeru();
     console.log(
       `📅 Fecha completa Perú (con offsets): ${fechaHoraCompletaPeru.toISOString()}`
     );
@@ -119,7 +119,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ✅ Calcular segundos hasta el final del día usando la función mejorada
-    const segundosHastaFinDia = calcularSegundosHastaFinDiaPeru();
+    const segundosHastaFinDia = await calcularSegundosHastaFinDiaPeru();
 
     console.log(
       `⏰ Estableciendo bandera con expiración de ${segundosHastaFinDia} segundos (hasta las 23:59:59 hora peruana)`
