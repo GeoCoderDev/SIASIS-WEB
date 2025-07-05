@@ -12,7 +12,7 @@ import getRandomAPI03IntanceURL from "@/lib/helpers/functions/getRandomAPI03Inst
 const API03_ACTIVADO_SEGUN_ENTORNO: Record<Entorno, boolean> = {
   [Entorno.LOCAL]: false,
   [Entorno.DESARROLLO]: true,
-  [Entorno.CERTIFICACION]: false,
+  [Entorno.CERTIFICACION]: true,
   [Entorno.PRODUCCION]: false,
   [Entorno.TEST]: false,
 };
