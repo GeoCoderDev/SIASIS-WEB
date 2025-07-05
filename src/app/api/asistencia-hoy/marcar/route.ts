@@ -226,7 +226,7 @@ const validarPermisosRegistro = (
   }
 };
 
-const calcularSegundosHastaExpiracion = async () => {
+const calcularSegundosHastaExpiracion = async (): Promise<number> => {
   // ✅ Usar la nueva función que maneja todos los offsets
   const fechaActualPeru = await obtenerFechaHoraActualPeru();
 
