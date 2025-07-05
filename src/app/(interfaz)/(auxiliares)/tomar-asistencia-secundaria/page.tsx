@@ -48,6 +48,12 @@ const TomarAsistenciaSecundaria = () => {
     };
   }, [isReady]); // Solo depende de isReady
 
+
+
+
+
+
+  
   // Función para enviar saludo (estilo original)
   const saludarme = useCallback(() => {
     if (!isReady) {

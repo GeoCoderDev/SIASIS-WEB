@@ -65,7 +65,7 @@ export class SocketEmitter<T> {
 
 export class SocketHandler<T> {
   private listenerAttached: boolean = false;
-  private _wrappedCallback?: (data: T) => void;
+  private _wrappedCallback?: (data: string) => void;
 
   constructor(
     private socketConnection: Socket | SocketIOClient.Socket,
@@ -95,7 +95,7 @@ export class SocketHandler<T> {
         return true;
       }
       // Wrapper para logging y error handling
-      this._wrappedCallback = (data: T) => {
+      this._wrappedCallback = (data: string) => {
         try {
           if (ENABLE_SOCKET_LOGS) {
             console.log(
@@ -103,7 +103,7 @@ export class SocketHandler<T> {
               data
             );
           }
-          this.callback(data);
+          this.callback(JSON.parse(data) as T);
         } catch (error) {
           if (ENABLE_SOCKET_LOGS) {
             console.error(

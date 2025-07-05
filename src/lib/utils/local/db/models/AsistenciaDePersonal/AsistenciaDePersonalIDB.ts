@@ -15,6 +15,7 @@ import {
   ParametrosConsultaAsistencia,
   RegistroEntradaSalida,
   EstadosAsistenciaPersonal,
+  OperationResult,
 } from "./AsistenciaDePersonalTypes";
 import { Meses } from "@/interfaces/shared/Meses";
 
@@ -1308,6 +1309,437 @@ export class AsistenciaDePersonalIDB {
         registrosNuevos: 0,
         registrosExistentes: 0,
         errores: 1,
+      };
+    } finally {
+      this.errorHandler.setLoading(false);
+    }
+  }
+
+  /**
+   * 🔍 CONSULTA asistencia de hoy para cualquier persona en local
+   * ✅ SOLO LOCAL: Sin APIs, solo IndexedDB y cache temporal
+   */
+  public async consultarAsistenciaDeHoyDePersonal(
+    id_o_dni: string | number,
+    modoRegistro: ModoRegistro,
+    rol: RolesSistema
+  ): Promise<{
+    marcada: boolean;
+    timestamp?: number;
+    desfaseSegundos?: number;
+    estado?: EstadosAsistenciaPersonal;
+    fuente: "REGISTRO_MENSUAL" | "CACHE_LOCAL" | "NO_ENCONTRADO";
+    mensaje: string;
+  }> {
+    try {
+      this.errorHandler.clearErrors();
+
+      // Obtener información de fecha actual desde Redux
+      const infoFecha = this.dateHelper.obtenerInfoFechaActual();
+      if (!infoFecha) {
+        return {
+          marcada: false,
+          fuente: "NO_ENCONTRADO",
+          mensaje: "No se pudo obtener información de fecha desde Redux",
+        };
+      }
+
+      const { diaActual, mesActual } = infoFecha;
+
+      console.log(
+        `🔍 Consultando asistencia de hoy LOCAL: ${id_o_dni} - ${modoRegistro} - día ${diaActual}/${mesActual}`
+      );
+
+      // PASO 1: Consultar en registro mensual
+      const tipoPersonal = this.mapper.obtenerTipoPersonalDesdeRolOActor(rol);
+      const registroMensual = await this.repository.obtenerRegistroMensual(
+        tipoPersonal,
+        modoRegistro,
+        id_o_dni,
+        mesActual
+      );
+
+      if (registroMensual && registroMensual.registros[diaActual.toString()]) {
+        const registroDia = registroMensual.registros[diaActual.toString()];
+        console.log(
+          `✅ ${modoRegistro} encontrada en registro mensual: ${registroDia.estado}`
+        );
+
+        return {
+          marcada: true,
+          timestamp: registroDia.timestamp,
+          desfaseSegundos: registroDia.desfaseSegundos,
+          estado: registroDia.estado,
+          fuente: "REGISTRO_MENSUAL",
+          mensaje: `${modoRegistro} encontrada en registro mensual`,
+        };
+      }
+
+      // PASO 2: Consultar en cache local
+      const fechaHoy = this.dateHelper.obtenerFechaStringActual();
+      if (fechaHoy) {
+        const actor = this.mapper.obtenerActorDesdeRol(rol);
+        const asistenciaCache =
+          await this.cacheManager.consultarCacheAsistenciaHoyDirecto(
+            actor,
+            modoRegistro,
+            id_o_dni,
+            fechaHoy
+          );
+
+        if (asistenciaCache) {
+          console.log(
+            `✅ ${modoRegistro} encontrada en cache local: ${asistenciaCache.estado}`
+          );
+
+          return {
+            marcada: true,
+            timestamp: asistenciaCache.timestamp,
+            desfaseSegundos: asistenciaCache.desfaseSegundos,
+            estado: asistenciaCache.estado,
+            fuente: "CACHE_LOCAL",
+            mensaje: `${modoRegistro} encontrada en cache local`,
+          };
+        }
+      }
+
+      return {
+        marcada: false,
+        fuente: "NO_ENCONTRADO",
+        mensaje: `${modoRegistro} no registrada hoy`,
+      };
+    } catch (error) {
+      console.error(
+        `❌ Error al consultar ${modoRegistro} de hoy LOCAL:`,
+        error
+      );
+      return {
+        marcada: false,
+        fuente: "NO_ENCONTRADO",
+        mensaje: `Error: ${
+          error instanceof Error ? error.message : "Error desconocido"
+        }`,
+      };
+    }
+  }
+
+  /**
+   * 🔍 CONSULTA mi asistencia de hoy en local
+   * ✅ SOLO LOCAL: Sin APIs, solo IndexedDB y cache temporal
+   */
+  public async consultarMiAsistenciaDeHoyEnLocal(
+    modoRegistro: ModoRegistro,
+    rol: RolesSistema
+  ): Promise<{
+    marcada: boolean;
+    timestamp?: number;
+    desfaseSegundos?: number;
+    estado?: EstadosAsistenciaPersonal;
+    fuente: "REGISTRO_MENSUAL" | "CACHE_LOCAL" | "NO_ENCONTRADO";
+    mensaje: string;
+  }> {
+    try {
+      this.errorHandler.clearErrors();
+
+      // Obtener DNI del usuario logueado
+      const { DatosAsistenciaHoyIDB } = await import(
+        "../DatosAsistenciaHoy/DatosAsistenciaHoyIDB"
+      );
+      const datosIDB = new DatosAsistenciaHoyIDB();
+      const handler = await datosIDB.getHandler();
+
+      if (!handler) {
+        return {
+          marcada: false,
+          fuente: "NO_ENCONTRADO",
+          mensaje: "No se pudo obtener handler para el DNI del usuario",
+        };
+      }
+
+      const miDNI = (handler as any).getMiDNI();
+      if (!miDNI) {
+        return {
+          marcada: false,
+          fuente: "NO_ENCONTRADO",
+          mensaje: "No se pudo obtener DNI del usuario logueado",
+        };
+      }
+
+      // Usar el método anterior para consultar mi propia asistencia
+      return await this.consultarAsistenciaDeHoyDePersonal(
+        miDNI,
+        modoRegistro,
+        rol
+      );
+    } catch (error) {
+      console.error(
+        `❌ Error al consultar mi ${modoRegistro} de hoy LOCAL:`,
+        error
+      );
+      return {
+        marcada: false,
+        fuente: "NO_ENCONTRADO",
+        mensaje: `Error: ${
+          error instanceof Error ? error.message : "Error desconocido"
+        }`,
+      };
+    }
+  }
+
+  /**
+   * 📝 MARCA asistencia solo en local (IndexedDB + Cache)
+   * ✅ SOLO LOCAL: Sin APIs, solo registros locales
+   */
+  public async marcarAsistenciaEnLocal(
+    id_o_dni: string | number,
+    rol: RolesSistema,
+    modoRegistro: ModoRegistro,
+    registroAsistencia: RegistroEntradaSalida
+  ): Promise<OperationResult> {
+    try {
+      this.errorHandler.setLoading(true);
+      this.errorHandler.clearErrors();
+
+      // Obtener información de fecha actual desde Redux
+      const infoFecha = this.dateHelper.obtenerInfoFechaActual();
+      if (!infoFecha) {
+        throw new Error("No se pudo obtener información de fecha desde Redux");
+      }
+
+      const { diaActual, mesActual } = infoFecha;
+
+      console.log(
+        `📝 Marcando asistencia LOCAL: ${id_o_dni} - ${modoRegistro} - día ${diaActual}/${mesActual}`
+      );
+
+      const tipoPersonal = this.mapper.obtenerTipoPersonalDesdeRolOActor(rol);
+
+      // PASO 1: Verificar si ya existe un registro mensual
+      const registroExistente = await this.repository.obtenerRegistroMensual(
+        tipoPersonal,
+        modoRegistro,
+        id_o_dni,
+        mesActual
+      );
+
+      if (registroExistente) {
+        // Actualizar registro existente
+        console.log(
+          `🔄 Actualizando registro mensual existente para día ${diaActual}`
+        );
+
+        const resultadoActualizacion =
+          await this.repository.actualizarRegistroExistente(
+            tipoPersonal,
+            modoRegistro,
+            String(id_o_dni),
+            mesActual,
+            diaActual,
+            registroAsistencia,
+            registroExistente.Id_Registro_Mensual
+          );
+
+        if (resultadoActualizacion.exitoso) {
+          console.log(
+            `✅ Asistencia marcada en registro mensual: ${registroAsistencia.estado}`
+          );
+          this.errorHandler.handleSuccess(
+            "Asistencia registrada exitosamente en IndexedDB"
+          );
+
+          return {
+            exitoso: true,
+            mensaje: "Asistencia marcada exitosamente en registro mensual",
+            datos: {
+              fuente: "REGISTRO_MENSUAL",
+              dia: diaActual,
+              mes: mesActual,
+              estado: registroAsistencia.estado,
+            },
+          };
+        } else {
+          throw new Error(resultadoActualizacion.mensaje);
+        }
+      } else {
+        // No existe registro mensual → Guardar como asistencia huérfana en cache
+        console.log(
+          `📝 Guardando asistencia huérfana en cache temporal para día ${diaActual}`
+        );
+
+        const actor = this.mapper.obtenerActorDesdeRol(rol);
+        const fechaString = this.dateHelper.obtenerFechaStringActual();
+
+        if (!fechaString) {
+          throw new Error("No se pudo obtener fecha string actual");
+        }
+
+        const asistenciaHuerfana = this.cacheManager.crearAsistenciaParaCache(
+          String(id_o_dni),
+          actor,
+          modoRegistro,
+          registroAsistencia.timestamp,
+          registroAsistencia.desfaseSegundos,
+          registroAsistencia.estado,
+          fechaString
+        );
+
+        const resultadoCache = await this.cacheManager.guardarAsistenciaEnCache(
+          asistenciaHuerfana
+        );
+
+        if (resultadoCache.exitoso) {
+          console.log(
+            `✅ Asistencia huérfana guardada en cache: ${registroAsistencia.estado}`
+          );
+          this.errorHandler.handleSuccess(
+            "Asistencia registrada exitosamente en cache temporal"
+          );
+
+          return {
+            exitoso: true,
+            mensaje: "Asistencia marcada exitosamente en cache temporal",
+            datos: {
+              fuente: "CACHE_LOCAL",
+              dia: diaActual,
+              mes: mesActual,
+              estado: registroAsistencia.estado,
+              clave: asistenciaHuerfana.clave,
+            },
+          };
+        } else {
+          throw new Error(resultadoCache.mensaje);
+        }
+      }
+    } catch (error) {
+      console.error(`❌ Error al marcar asistencia LOCAL:`, error);
+      this.errorHandler.handleErrorWithRecovery(
+        error,
+        "marcar asistencia LOCAL"
+      );
+
+      return {
+        exitoso: false,
+        mensaje: `Error al marcar asistencia LOCAL: ${
+          error instanceof Error ? error.message : "Error desconocido"
+        }`,
+      };
+    } finally {
+      this.errorHandler.setLoading(false);
+    }
+  }
+
+  /**
+   * 🗑️ ELIMINA asistencia solo en local (IndexedDB + Cache)
+   * ✅ SOLO LOCAL: Sin APIs, solo registros locales
+   */
+  public async eliminarAsistenciaEnLocal(
+    id_o_dni: string | number,
+    rol: RolesSistema,
+    modoRegistro: ModoRegistro
+  ): Promise<EliminacionResult> {
+    try {
+      this.errorHandler.setLoading(true);
+      this.errorHandler.clearErrors();
+
+      // Obtener información de fecha actual desde Redux
+      const infoFecha = this.dateHelper.obtenerInfoFechaActual();
+      if (!infoFecha) {
+        throw new Error("No se pudo obtener información de fecha desde Redux");
+      }
+
+      const { diaActual, mesActual } = infoFecha;
+      const fechaString = this.dateHelper.obtenerFechaStringActual();
+
+      console.log(
+        `🗑️ Eliminando asistencia LOCAL: ${id_o_dni} - ${modoRegistro} - día ${diaActual}/${mesActual}`
+      );
+
+      let eliminadoLocal = false;
+      let eliminadoCache = false;
+
+      // PASO 1: Eliminar del cache temporal
+      try {
+        if (fechaString) {
+          const resultadoCache =
+            await this.cacheManager.eliminarAsistenciaDelCache(
+              id_o_dni,
+              rol,
+              modoRegistro,
+              fechaString
+            );
+          eliminadoCache = resultadoCache.exitoso;
+          console.log(
+            `🗄️ Eliminación cache: ${
+              eliminadoCache ? "exitosa" : "no encontrada"
+            }`
+          );
+        }
+      } catch (error) {
+        console.error("Error al eliminar del cache:", error);
+      }
+
+      // PASO 2: Eliminar del registro mensual (solo el día específico)
+      try {
+        const tipoPersonal = this.mapper.obtenerTipoPersonalDesdeRolOActor(rol);
+        const resultadoLocal =
+          await this.repository.eliminarDiaDeRegistroMensual(
+            tipoPersonal,
+            modoRegistro,
+            id_o_dni,
+            mesActual,
+            diaActual
+          );
+        eliminadoLocal = resultadoLocal.exitoso;
+        console.log(
+          `📱 Eliminación local: ${
+            eliminadoLocal ? "exitosa" : "no encontrada"
+          }`
+        );
+      } catch (error) {
+        console.error("Error al eliminar de registro mensual:", error);
+      }
+
+      // Determinar resultado general
+      const exitoso = eliminadoLocal || eliminadoCache;
+      let mensaje = "";
+
+      if (eliminadoCache && eliminadoLocal) {
+        mensaje =
+          "Asistencia eliminada completamente: Cache + Registro mensual";
+      } else if (eliminadoCache) {
+        mensaje =
+          "Asistencia eliminada del Cache temporal (no estaba en registro mensual)";
+      } else if (eliminadoLocal) {
+        mensaje =
+          "Asistencia eliminada del Registro mensual (no estaba en cache)";
+      } else {
+        mensaje = "No se encontró la asistencia en ningún sistema local";
+      }
+
+      if (exitoso) {
+        this.errorHandler.handleSuccess(mensaje);
+      }
+
+      return {
+        exitoso,
+        mensaje,
+        eliminadoLocal,
+        eliminadoRedis: false, // No se usó Redis
+        eliminadoCache,
+      };
+    } catch (error) {
+      console.error("Error general al eliminar asistencia LOCAL:", error);
+      this.errorHandler.handleErrorWithRecovery(
+        error,
+        "eliminar asistencia LOCAL"
+      );
+
+      return {
+        exitoso: false,
+        mensaje: "Error al eliminar la asistencia LOCAL",
+        eliminadoLocal: false,
+        eliminadoRedis: false,
+        eliminadoCache: false,
       };
     } finally {
       this.errorHandler.setLoading(false);

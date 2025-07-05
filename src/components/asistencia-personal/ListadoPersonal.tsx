@@ -7,17 +7,24 @@ import {
   modoRegistroTextos,
 } from "@/interfaces/shared/ModoRegistroPersonal";
 import { HandlerDirectivoAsistenciaResponse } from "@/lib/utils/local/db/models/DatosAsistenciaHoy/handlers/HandlerDirectivoAsistenciaResponse";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 import { AsistenciaDePersonalIDB } from "../../lib/utils/local/db/models/AsistenciaDePersonal/AsistenciaDePersonalIDB";
 import { FechaHoraActualRealState } from "@/global/state/others/fechaHoraActualReal";
-import { RolesSistema } from "@/interfaces/shared/RolesSistema";
+import {
+  PersonalDelColegio,
+  RolesSistema,
+} from "@/interfaces/shared/RolesSistema";
 import { Loader2 } from "lucide-react";
 import { AsistenciaDiariaResultado } from "@/interfaces/shared/AsistenciaRequests";
 import { ErrorResponseAPIBase } from "@/interfaces/shared/apis/types";
 import { useSelector } from "react-redux";
 import { RootState } from "@/global/store";
+import { useSS01 } from "@/hooks/useSS01";
+import { TomaAsistenciaPersonalSIU01Events } from "@/SS01/sockets/events/AsistenciaDePersonal/frontend/TomaAsistenciaPersonalSIU01Events";
+
+import { SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER } from "../../SS01/sockets/events/AsistenciaDePersonal/interfaces/SalasTomaAsistenciaDePersonal";
 
 // Obtener texto según el rol
 export const obtenerTextoRol = (rol: RolesSistema): string => {
@@ -49,6 +56,76 @@ export const ListaPersonal = ({
   handlerDatosAsistenciaHoyDirectivo: HandlerDirectivoAsistenciaResponse;
   fechaHoraActual: FechaHoraActualRealState;
 }) => {
+  // Enlace con el SS01
+  const { isReady } = useSS01();
+
+  // Unirse a Sala de toma de asistencia de personal correspondiente cada que varia el estado de la conexion
+  // y tambien el modo de registro y rol
+  useEffect(() => {
+    if (!isReady) {
+      console.warn("⚠️ Conexión no está lista");
+      return;
+    }
+
+    // Crear y ejecutar emisor (estilo original)
+    const emitter =
+      new TomaAsistenciaPersonalSIU01Events.UNIRME_A_SALA_DE_TOMA_DE_ASISTENCIA_DE_PERSONAL_EMITTER(
+        SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER[
+          rol as PersonalDelColegio
+        ][modoRegistro]
+      );
+    const sent = emitter.execute();
+
+    if (!sent) {
+      console.error("❌ Error al enviar el evento de unión a sala");
+    }
+  }, [rol, modoRegistro, isReady]);
+
+  const marcarAsistenciaEnElRestoDeSesionesPorSS01 = useCallback(
+    async (id_o_dni: string | number, nombres: string, apellidos: string) => {
+      if (!isReady) {
+        console.warn("⚠️ Conexión no está lista");
+        return;
+      }
+
+      const asistenciaRecienRegistrada =
+        await asistenciaDePersonalIDB.consultarAsistenciaDeHoyDePersonal(
+          id_o_dni,
+          modoRegistro,
+          rol
+        );
+
+      // Crear y ejecutar emisor (estilo original)
+      const emitter =
+        new TomaAsistenciaPersonalSIU01Events.MARQUE_LA_ASISTENCIA_DE_ESTE_PERSONAL_EMITTER(
+          {
+            id_o_dni,
+            nombres,
+            apellidos,
+            Sala_Toma_Asistencia_de_Personal:
+              SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER[
+                rol as PersonalDelColegio
+              ][modoRegistro],
+            modoRegistro,
+            RegistroEntradaSalida: {
+              desfaseSegundos: asistenciaRecienRegistrada.desfaseSegundos!,
+              timestamp: asistenciaRecienRegistrada.timestamp!,
+              estado: asistenciaRecienRegistrada.estado!,
+            },
+            rol,
+          }
+        );
+
+      const sent = emitter.execute();
+
+      if (!sent) {
+        console.error("❌ Error al enviar el evento de unión a sala");
+      }
+    },
+
+    [rol, modoRegistro, isReady]
+  );
+
   const { toast } = useToast();
   const [procesando, setProcesando] = useState<string | null>(null);
   const [cargandoAsistencias, setCargandoAsistencias] = useState(true);
@@ -82,6 +159,220 @@ export const ListaPersonal = ({
   const personal = rol
     ? handlerDatosAsistenciaHoyDirectivo.obtenerPersonalPorRol(rol)
     : [];
+
+  // ✅ MODIFICADO: Cargar las asistencias ya registradas
+  const ultimaConsultaRef = useRef<string>("");
+
+  useEffect(() => {
+    const claveConsulta = `${rol}-${modoRegistro}`;
+
+    // ✅ Evitar consulta si es la misma que la anterior
+    if (ultimaConsultaRef.current === claveConsulta) {
+      console.log("🚫 Consulta duplicada evitada:", claveConsulta);
+      return;
+    }
+
+    ultimaConsultaRef.current = claveConsulta;
+    const cargarAsistenciasRegistradas = async () => {
+      try {
+        setCargandoAsistencias(true);
+
+        console.log(`🔍 Cargando asistencias para ${rol} - ${modoRegistro}`);
+
+        // ✅ USAR ORQUESTADOR en lugar de fetch directo
+        const resultado =
+          await asistenciaDePersonalIDB.consultarYSincronizarAsistenciasRedis(
+            rol,
+            modoRegistro
+          );
+
+        if (resultado.exitoso && resultado.datos) {
+          // Crear mapa de asistencias por DNI
+          const mapaAsistencias = new Map<string, AsistenciaDiariaResultado>();
+
+          const resultados = Array.isArray(resultado.datos.Resultados)
+            ? resultado.datos.Resultados
+            : [resultado.datos.Resultados];
+
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          resultados.forEach((resultado: any) => {
+            if (resultado && resultado.ID_o_DNI) {
+              mapaAsistencias.set(resultado.ID_o_DNI, resultado);
+            }
+          });
+
+          console.log("🗺️ Mapa final de asistencias:", mapaAsistencias);
+          setAsistenciasRegistradas(mapaAsistencias);
+        } else {
+          console.error("❌ Error al cargar asistencias:", resultado.mensaje);
+          toast({
+            title: "Error",
+            description: "No se pudieron cargar las asistencias registradas",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error("❌ Error al consultar asistencias registradas:", error);
+        toast({
+          title: "Error",
+          description: "No se pudieron cargar las asistencias registradas",
+          variant: "destructive",
+        });
+      } finally {
+        setCargandoAsistencias(false);
+      }
+    };
+
+    if (rol && modoRegistro) {
+      cargarAsistenciasRegistradas();
+    }
+  }, [rol, modoRegistro]);
+
+  const handlePersonaSeleccionada = async (
+    personal: PersonalParaTomarAsistencia
+  ) => {
+    if (procesando !== null) return;
+
+    setProcesando(personal.ID_o_DNI);
+
+    try {
+      // Obtener la hora esperada
+      const horaEsperadaISO =
+        handlerDatosAsistenciaHoyDirectivo.obtenerHorarioPersonalISO(
+          rol!,
+          personal.ID_o_DNI,
+          modoRegistro
+        );
+
+      // ✅ USAR ORQUESTADOR en lugar de fetch directo
+      await asistenciaDePersonalIDB.marcarAsistencia(
+        {
+          datos: {
+            ModoRegistro: modoRegistro,
+            DNI: personal.ID_o_DNI,
+            Rol: rol!,
+            Dia: fechaHoraActual.utilidades!.diaMes,
+          },
+        },
+        horaEsperadaISO // ✅ PASAR hora esperada
+      );
+
+      marcarAsistenciaEnElRestoDeSesionesPorSS01(
+        personal.ID_o_DNI,
+        personal.Nombres,
+        personal.Apellidos
+      );
+
+      actualizarInterfaz(
+        personal.Nombres,
+        personal.Apellidos,
+        personal.ID_o_DNI
+      );
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      // El orquestador ya manejó el error, solo dar feedback por voz
+      const speaker = Speaker.getInstance();
+      speaker.start(
+        `Error al registrar ${modoRegistroTextos[modoRegistro].toLowerCase()}`
+      );
+    } finally {
+      setProcesando(null);
+    }
+  };
+
+  const actualizarInterfaz = (
+    Nombres: string,
+    Apellidos: string,
+    ID_o_DNI: string
+  ) => {
+    // Feedback por voz
+    const speaker = Speaker.getInstance();
+    speaker.start(
+      `${modoRegistroTextos[modoRegistro]} registrada para ${Nombres.split(
+        " "
+      ).shift()} ${Apellidos.split(" ").shift()}`
+    );
+
+    // ✅ ACTUALIZAR estado local (simulando respuesta exitosa)
+    const timestampActual = fechaHoraRedux.utilidades?.timestamp || Date.now();
+    const nuevoRegistro: AsistenciaDiariaResultado = {
+      ID_o_DNI,
+      AsistenciaMarcada: true,
+      Detalles: {
+        Timestamp: timestampActual,
+        DesfaseSegundos: 0, // El servidor calculará el valor real
+      },
+    };
+
+    setAsistenciasRegistradas((prev) => {
+      const nuevo = new Map(prev);
+      nuevo.set(ID_o_DNI, nuevoRegistro);
+      return nuevo;
+    });
+  };
+
+  // Ref para mantener referencia al handler
+  const seAcabaDeMarcarLaAsistenciaDeEstePersonalHandlerRef =
+    useRef<InstanceType<
+      typeof TomaAsistenciaPersonalSIU01Events.SE_ACABA_DE_MARCAR_LA_ASISTENCIA_DE_ESTE_PERSONAL_HANDLER
+    > | null>(null);
+
+  // Configurar handlers cuando el socket esté REALMENTE listo
+  useEffect(() => {
+    if (!isReady) {
+      return;
+    }
+
+    //HANDLERS
+
+    // Configurar handler para respuesta de saludo (estilo original)
+    seAcabaDeMarcarLaAsistenciaDeEstePersonalHandlerRef.current =
+      new TomaAsistenciaPersonalSIU01Events.SE_ACABA_DE_MARCAR_LA_ASISTENCIA_DE_ESTE_PERSONAL_HANDLER(
+        async ({
+          id_o_dni,
+          nombres,
+          apellidos,
+          modoRegistro,
+          RegistroEntradaSalida,
+          rol,
+        }) => {
+          console.table({
+            id_o_dni,
+            nombres,
+            apellidos,
+            modoRegistro,
+            RegistroEntradaSalida,
+            rol,
+          });
+
+          await asistenciaDePersonalIDB.marcarAsistenciaEnLocal(
+            id_o_dni,
+            rol,
+            modoRegistro,
+            RegistroEntradaSalida
+          );
+
+          actualizarInterfaz(nombres, apellidos, String(id_o_dni));
+        }
+      );
+
+    // Registrar el handler (estilo original)
+    // const handlerRegistered =
+    seAcabaDeMarcarLaAsistenciaDeEstePersonalHandlerRef.current.hand();
+
+    // if (handlerRegistered) {
+    //   console.log("✅ Handler de saludo registrado correctamente");
+    // }
+
+    // Cleanup al desmontar o cambiar de socket (estilo original)
+    return () => {
+      if (seAcabaDeMarcarLaAsistenciaDeEstePersonalHandlerRef.current) {
+        seAcabaDeMarcarLaAsistenciaDeEstePersonalHandlerRef.current.unhand();
+        seAcabaDeMarcarLaAsistenciaDeEstePersonalHandlerRef.current = null;
+      }
+    };
+  }, [isReady]); // Solo depende de isReady
 
   // Manejar eliminación de asistencia CON FEEDBACK DE VOZ
   const handleEliminarAsistencia = async (
@@ -169,143 +460,6 @@ export const ListaPersonal = ({
     }
   };
 
-  // ✅ MODIFICADO: Cargar las asistencias ya registradas
-  const ultimaConsultaRef = useRef<string>("");
-
-  useEffect(() => {
-    const claveConsulta = `${rol}-${modoRegistro}`;
-
-    // ✅ Evitar consulta si es la misma que la anterior
-    if (ultimaConsultaRef.current === claveConsulta) {
-      console.log("🚫 Consulta duplicada evitada:", claveConsulta);
-      return;
-    }
-
-    ultimaConsultaRef.current = claveConsulta;
-    const cargarAsistenciasRegistradas = async () => {
-      try {
-        setCargandoAsistencias(true);
-
-        console.log(`🔍 Cargando asistencias para ${rol} - ${modoRegistro}`);
-
-        // ✅ USAR ORQUESTADOR en lugar de fetch directo
-        const resultado =
-          await asistenciaDePersonalIDB.consultarYSincronizarAsistenciasRedis(
-            rol,
-            modoRegistro
-          );
-
-        if (resultado.exitoso && resultado.datos) {
-          // Crear mapa de asistencias por DNI
-          const mapaAsistencias = new Map<string, AsistenciaDiariaResultado>();
-
-          const resultados = Array.isArray(resultado.datos.Resultados)
-            ? resultado.datos.Resultados
-            : [resultado.datos.Resultados];
-
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          resultados.forEach((resultado: any) => {
-            if (resultado && resultado.ID_o_DNI) {
-              mapaAsistencias.set(resultado.ID_o_DNI, resultado);
-            }
-          });
-
-          console.log("🗺️ Mapa final de asistencias:", mapaAsistencias);
-          setAsistenciasRegistradas(mapaAsistencias);
-        } else {
-          console.error("❌ Error al cargar asistencias:", resultado.mensaje);
-          toast({
-            title: "Error",
-            description: "No se pudieron cargar las asistencias registradas",
-            variant: "destructive",
-          });
-        }
-      } catch (error) {
-        console.error("❌ Error al consultar asistencias registradas:", error);
-        toast({
-          title: "Error",
-          description: "No se pudieron cargar las asistencias registradas",
-          variant: "destructive",
-        });
-      } finally {
-        setCargandoAsistencias(false);
-      }
-    };
-
-    if (rol && modoRegistro) {
-      cargarAsistenciasRegistradas();
-    }
-  }, [rol, modoRegistro]);
-
-  // ✅ MODIFICADO: Manejador simplificado
-  const handlePersonaSeleccionada = async (
-    personal: PersonalParaTomarAsistencia
-  ) => {
-    if (procesando !== null) return;
-
-    setProcesando(personal.ID_o_DNI);
-
-    try {
-      // Obtener la hora esperada
-      const horaEsperadaISO =
-        handlerDatosAsistenciaHoyDirectivo.obtenerHorarioPersonalISO(
-          rol!,
-          personal.ID_o_DNI,
-          modoRegistro
-        );
-
-
-      // ✅ USAR ORQUESTADOR en lugar de fetch directo
-      await asistenciaDePersonalIDB.marcarAsistencia(
-        {
-          datos: {
-            ModoRegistro: modoRegistro,
-            DNI: personal.ID_o_DNI,
-            Rol: rol!,
-            Dia: fechaHoraActual.utilidades!.diaMes,
-          },
-        },
-        horaEsperadaISO // ✅ PASAR hora esperada
-      );
-
-      // Feedback por voz
-      const speaker = Speaker.getInstance();
-      speaker.start(
-        `${
-          modoRegistroTextos[modoRegistro]
-        } registrada para ${personal.Nombres.split(
-          " "
-        ).shift()} ${personal.Apellidos.split(" ").shift()}`
-      );
-
-      // ✅ ACTUALIZAR estado local (simulando respuesta exitosa)
-      const timestampActual =
-        fechaHoraRedux.utilidades?.timestamp || Date.now();
-      const nuevoRegistro: AsistenciaDiariaResultado = {
-        ID_o_DNI: personal.ID_o_DNI,
-        AsistenciaMarcada: true,
-        Detalles: {
-          Timestamp: timestampActual,
-          DesfaseSegundos: 0, // El servidor calculará el valor real
-        },
-      };
-
-      setAsistenciasRegistradas((prev) => {
-        const nuevo = new Map(prev);
-        nuevo.set(personal.ID_o_DNI, nuevoRegistro);
-        return nuevo;
-      });
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      // El orquestador ya manejó el error, solo dar feedback por voz
-      const speaker = Speaker.getInstance();
-      speaker.start(
-        `Error al registrar ${modoRegistroTextos[modoRegistro].toLowerCase()}`
-      );
-    } finally {
-      setProcesando(null);
-    }
-  };
   const textoRol = obtenerTextoRol(rol);
 
   // Mostrar error si existe
