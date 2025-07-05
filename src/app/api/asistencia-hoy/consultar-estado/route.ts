@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Obtener la fecha actual en Perú
-    const fechaActualPeru = obtenerFechaActualPeru();
+    const fechaActualPeru = await obtenerFechaActualPeru();
     const [anio, mes, dia] = fechaActualPeru.split("-").map(Number);
 
     // Determinar la key correcta en Redis según el TipoAsistencia

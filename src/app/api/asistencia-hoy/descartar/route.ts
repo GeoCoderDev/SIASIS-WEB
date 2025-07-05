@@ -251,7 +251,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     // Determinar la fecha a usar
-    const fechaEliminacion = Fecha || obtenerFechaActualPeru();
+    const fechaEliminacion = Fecha || await obtenerFechaActualPeru();
 
     // Validar formato de fecha si se proporciona
     if (Fecha && !/^\d{4}-\d{2}-\d{2}$/.test(Fecha)) {
