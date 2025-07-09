@@ -337,15 +337,6 @@ export const ListaPersonal = ({
           RegistroEntradaSalida,
           rol,
         }) => {
-          console.table({
-            id_o_dni,
-            nombres,
-            apellidos,
-            modoRegistro,
-            RegistroEntradaSalida,
-            rol,
-          });
-
           await asistenciaDePersonalIDB.marcarAsistenciaEnLocal(
             id_o_dni,
             rol,

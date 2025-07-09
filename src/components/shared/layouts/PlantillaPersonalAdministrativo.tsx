@@ -27,7 +27,7 @@ const PlantillaPersonalAdministrativo = ({
         Rol={RolesSistema.PersonalAdministrativo}
         Google_Drive_Foto_ID={Google_Drive_Foto_ID}
       />
-      {children}
+      <main className=" py-4 px-4 min-h-full min-w-full">{children}</main>
       <MarcarAsistenciaDePersonalButton
         rol={RolesSistema.PersonalAdministrativo}
       />

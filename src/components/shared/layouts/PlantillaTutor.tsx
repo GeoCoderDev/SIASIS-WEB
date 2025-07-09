@@ -27,7 +27,7 @@ const PlantillaTutor = ({
         Apellidos={Apellidos}
         Rol={RolesSistema.Tutor}
       />
-      {children}
+      <main className=" py-4 px-4 min-h-full min-w-full">{children}</main>
       <MarcarAsistenciaDePersonalButton rol={RolesSistema.Tutor} />
       <NavBarFooter Rol={RolesSistema.Tutor} />
     </main>
