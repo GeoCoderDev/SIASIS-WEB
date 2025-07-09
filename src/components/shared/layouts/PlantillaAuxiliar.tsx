@@ -27,7 +27,7 @@ const PlantillaAuxiliar = ({
         Apellidos={Apellidos}
         Rol={RolesSistema.Auxiliar}
       />
-      <main className=" py-4 px-4 min-h-full min-w-full">
+      <main className=" py-4 px-4 min-h-full min-w-full flex justify-center items-center">
         {children}
       </main>
 
