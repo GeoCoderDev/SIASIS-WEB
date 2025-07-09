@@ -9,12 +9,18 @@ import { Meses, mesesTextos } from "@/interfaces/shared/Meses";
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import getDiasEscolaresPorMes from "@/lib/helpers/functions/date/getDiasEsolaresPorMes";
 import { segundosAMinutos } from "@/lib/helpers/functions/time/segundosAMinutos";
-import { ErrorResponseAPIBase, MessageProperty } from "@/interfaces/shared/apis/types";
+import {
+  ErrorResponseAPIBase,
+  MessageProperty,
+} from "@/interfaces/shared/apis/types";
 import { AsistenciaDePersonalIDB } from "@/lib/utils/local/db/models/AsistenciaDePersonal/AsistenciaDePersonalIDB";
 import { convertirAFormato12Horas } from "@/lib/helpers/formatters/fechas-hora/formatearAFormato12Horas";
 import { ENTORNO } from "@/constants/ENTORNO";
 import { Entorno } from "@/interfaces/shared/Entornos";
-import { EventosIDB, IEventoLocal } from "@/lib/utils/local/db/models/EventosIDB";
+import {
+  EventosIDB,
+  IEventoLocal,
+} from "@/lib/utils/local/db/models/EventosIDB";
 import { RegistroEntradaSalida } from "@/interfaces/shared/AsistenciaRequests";
 import { AsistenciaMensualPersonalLocal } from "@/lib/utils/local/db/models/AsistenciaDePersonal/AsistenciaDePersonalTypes";
 import SiasisUserSelector from "@/components/inputs/SiasisUserSelector";
@@ -24,8 +30,6 @@ import InfoUsuarioAsistencia from "@/components/asistencia-personal/registros-as
 import MensajesEstadoAsistencia from "@/components/asistencia-personal/registros-asistencia-personal/MensajesEstadoAsistencia";
 import TablaRegistrosAsistencia from "@/components/asistencia-personal/registros-asistencia-personal/TablaRegistrosAsistencias";
 import LeyendaEstadosAsistencia from "@/components/asistencia-personal/registros-asistencia-personal/LeyendaEstadosAsistencia";
-
-
 
 // 🔧 CONSTANTE DE CONFIGURACIÓN PARA DESARROLLO
 const CONSIDERAR_DIAS_NO_ESCOLARES = false; // false = solo días laborales, true = incluir sábados y domingos
@@ -101,7 +105,10 @@ const RegistrosAsistenciaDePersonal = () => {
     { value: RolesSistema.ProfesorPrimaria, label: "Profesor de Primaria" },
     { value: RolesSistema.ProfesorSecundaria, label: "Profesor de Secundaria" },
     { value: RolesSistema.Auxiliar, label: "Auxiliar" },
-    { value: RolesSistema.PersonalAdministrativo, label: "Personal Administrativo" },
+    {
+      value: RolesSistema.PersonalAdministrativo,
+      label: "Personal Administrativo",
+    },
   ];
 
   // Instancia del orquestador
@@ -161,19 +168,31 @@ const RegistrosAsistenciaDePersonal = () => {
     return fechaObj <= fechaHoy;
   };
 
-  // 🔧 Función para verificar si un día es evento
-  const esEvento = (fecha: string): { esEvento: boolean; nombreEvento?: string } => {
-    const evento = eventos.find((e) => {
+  // 🔧 🆕 FUNCIÓN MODIFICADA: Verificar si un día es evento (PRIORIDAD ABSOLUTA)
+  const esEvento = (
+    fecha: string,
+    eventosParaUsar: IEventoLocal[] = eventos
+  ): { esEvento: boolean; nombreEvento?: string } => {
+    const evento = eventosParaUsar.find((e) => {
       const fechaInicio = new Date(e.Fecha_Inicio + "T00:00:00");
       const fechaFin = new Date(e.Fecha_Conclusion + "T00:00:00");
       const fechaConsulta = new Date(fecha + "T00:00:00");
       return fechaConsulta >= fechaInicio && fechaConsulta <= fechaFin;
     });
 
-    return {
+    const resultado = {
       esEvento: !!evento,
       nombreEvento: evento?.Nombre,
     };
+
+    // 🆕 LOG para debugging de eventos encontrados
+    if (resultado.esEvento) {
+      console.log(
+        `🎉 EVENTO DETECTADO para ${fecha}: ${resultado.nombreEvento}`
+      );
+    }
+
+    return resultado;
   };
 
   // Función para mapear estados del enum a strings para la UI
@@ -196,7 +215,10 @@ const RegistrosAsistenciaDePersonal = () => {
   };
 
   // 🕐 Función para calcular la hora programada con formato 12 horas
-  const calcularHoraProgramada = (timestamp: number, desfaseSegundos: number): string => {
+  const calcularHoraProgramada = (
+    timestamp: number,
+    desfaseSegundos: number
+  ): string => {
     if (timestamp === 0 || timestamp === null) return "N/A";
 
     const timestampProgramado = timestamp - desfaseSegundos * 1000;
@@ -261,83 +283,119 @@ const RegistrosAsistenciaDePersonal = () => {
     rol: RolesSistema,
     id_o_dni: string | number,
     mes: number
-  ): Promise<Record<string, { entrada?: RegistroEntradaSalida; salida?: RegistroEntradaSalida }> | null> => {
+  ): Promise<Record<
+    string,
+    { entrada?: RegistroEntradaSalida; salida?: RegistroEntradaSalida }
+  > | null> => {
     try {
-      const resultado = await asistenciaPersonalIDB.obtenerAsistenciaMensualConAPI({
-        id_o_dni,
-        mes,
-        rol,
-      });
+      const resultado =
+        await asistenciaPersonalIDB.obtenerAsistenciaMensualConAPI({
+          id_o_dni,
+          mes,
+          rol,
+        });
 
       if (!resultado.encontrado) {
         return null;
       }
 
-      const registrosCombinados: Record<string, { entrada?: RegistroEntradaSalida; salida?: RegistroEntradaSalida }> = {};
+      const registrosCombinados: Record<
+        string,
+        { entrada?: RegistroEntradaSalida; salida?: RegistroEntradaSalida }
+      > = {};
       const año = new Date().getFullYear();
 
       // Procesar entradas
       if (resultado.entrada) {
-        Object.entries(resultado.entrada.registros).forEach(([dia, registro]) => {
-          const fechaCompleta = `${año}-${mes.toString().padStart(2, "0")}-${dia.padStart(2, "0")}`;
-          const esLaboral = esDiaLaboral(fechaCompleta);
-          const debeIncluir = CONSIDERAR_DIAS_NO_ESCOLARES || esLaboral;
+        Object.entries(resultado.entrada.registros).forEach(
+          ([dia, registro]) => {
+            const fechaCompleta = `${año}-${mes
+              .toString()
+              .padStart(2, "0")}-${dia.padStart(2, "0")}`;
+            const esLaboral = esDiaLaboral(fechaCompleta);
+            const debeIncluir = CONSIDERAR_DIAS_NO_ESCOLARES || esLaboral;
 
-          if (debeIncluir) {
-            if (!registrosCombinados[dia]) {
-              registrosCombinados[dia] = {};
+            if (debeIncluir) {
+              if (!registrosCombinados[dia]) {
+                registrosCombinados[dia] = {};
+              }
+              registrosCombinados[dia].entrada = registro;
             }
-            registrosCombinados[dia].entrada = registro;
           }
-        });
+        );
       }
 
       // Procesar salidas
       if (resultado.salida) {
-        Object.entries(resultado.salida.registros).forEach(([dia, registro]) => {
-          const fechaCompleta = `${año}-${mes.toString().padStart(2, "0")}-${dia.padStart(2, "0")}`;
-          const esLaboral = esDiaLaboral(fechaCompleta);
-          const debeIncluir = CONSIDERAR_DIAS_NO_ESCOLARES || esLaboral;
+        Object.entries(resultado.salida.registros).forEach(
+          ([dia, registro]) => {
+            const fechaCompleta = `${año}-${mes
+              .toString()
+              .padStart(2, "0")}-${dia.padStart(2, "0")}`;
+            const esLaboral = esDiaLaboral(fechaCompleta);
+            const debeIncluir = CONSIDERAR_DIAS_NO_ESCOLARES || esLaboral;
 
-          if (debeIncluir) {
-            if (!registrosCombinados[dia]) {
-              registrosCombinados[dia] = {};
+            if (debeIncluir) {
+              if (!registrosCombinados[dia]) {
+                registrosCombinados[dia] = {};
+              }
+              registrosCombinados[dia].salida = registro;
             }
-            registrosCombinados[dia].salida = registro;
           }
-        });
+        );
       }
 
-      return Object.keys(registrosCombinados).length > 0 ? registrosCombinados : null;
+      return Object.keys(registrosCombinados).length > 0
+        ? registrosCombinados
+        : null;
     } catch (error) {
       console.error("Error al obtener asistencias combinadas:", error);
       return null;
     }
   };
 
-  // Función para procesar datos
-  const procesarDatos = async (rol: RolesSistema, id_o_dni: string | number, mes: number) => {
+  // 🆕 FUNCIÓN MODIFICADA: Procesar datos con eventos prioritarios
+  const procesarDatos = async (
+    rol: RolesSistema,
+    id_o_dni: string | number,
+    mes: number,
+    eventosDelMes: IEventoLocal[]
+  ) => {
     try {
-      const registrosCombinados = await obtenerAsistenciasCombinadas(rol, id_o_dni, mes);
+      const registrosCombinados = await obtenerAsistenciasCombinadas(
+        rol,
+        id_o_dni,
+        mes
+      );
       const año = new Date().getFullYear();
       const todasLasFechas = obtenerFechasDelMes(mes, año);
-      const fechasFiltradas = todasLasFechas.filter((fecha) => esFechaValida(fecha));
+      const fechasFiltradas = todasLasFechas.filter((fecha) =>
+        esFechaValida(fecha)
+      );
+
+      console.log(
+        `📊 Procesando ${fechasFiltradas.length} fechas para ${id_o_dni} - mes ${mes}`
+      );
+      console.log(`🎯 Eventos recibidos para procesamiento: ${eventosDelMes.length}`);
 
       const registrosResultado: RegistroDia[] = fechasFiltradas.map((fecha) => {
         const fechaObj = new Date(fecha + "T00:00:00");
         const dia = fechaObj.getDate().toString();
-        const eventoInfo = esEvento(fecha);
+        const eventoInfo = esEvento(fecha, eventosDelMes); // 🆕 Usar eventos pasados como parámetro
         const esLaboral = esDiaLaboral(fecha);
 
-        // Si es evento, retornar registro especial
+        // 🆕 ✅ PRIORIDAD ABSOLUTA: Si es evento, retornar registro especial SIN IMPORTAR SI HAY ASISTENCIAS
         if (eventoInfo.esEvento) {
+          console.log(
+            `🎉 SOBREPONIENDO EVENTO "${eventoInfo.nombreEvento}" sobre cualquier asistencia para ${fecha}`
+          );
           return {
             fecha,
-            entradaProgramada: "N/A",
+            entradaProgramada: "Evento",
             entradaReal: "Evento",
             diferenciaEntrada: "N/A",
             estadoEntrada: EstadosAsistenciaPersonal.Evento,
-            salidaProgramada: "N/A",
+            salidaProgramada: "Evento",
             salidaReal: "Evento",
             diferenciaSalida: "N/A",
             estadoSalida: EstadosAsistenciaPersonal.Evento,
@@ -347,6 +405,7 @@ const RegistrosAsistenciaDePersonal = () => {
           };
         }
 
+        // Solo procesar asistencias normales si NO hay evento
         // Si no hay registros combinados
         if (!registrosCombinados || !registrosCombinados[dia]) {
           return {
@@ -377,8 +436,10 @@ const RegistrosAsistenciaDePersonal = () => {
             entradaReal = "Inactivo";
             estadoEntrada = EstadosAsistenciaPersonal.Inactivo;
           } else if (
-            (registroDia.entrada.timestamp === null || registroDia.entrada.timestamp === 0) &&
-            (registroDia.entrada.desfaseSegundos === null || registroDia.entrada.desfaseSegundos === 0)
+            (registroDia.entrada.timestamp === null ||
+              registroDia.entrada.timestamp === 0) &&
+            (registroDia.entrada.desfaseSegundos === null ||
+              registroDia.entrada.desfaseSegundos === 0)
           ) {
             entradaReal = "Falta";
             estadoEntrada = EstadosAsistenciaPersonal.Falta;
@@ -389,8 +450,12 @@ const RegistrosAsistenciaDePersonal = () => {
               registroDia.entrada.desfaseSegundos
             );
             entradaReal = formatearHora(registroDia.entrada.timestamp);
-            const desfaseMinutos = segundosAMinutos(registroDia.entrada.desfaseSegundos);
-            diferenciaEntrada = `${desfaseMinutos >= 0 ? "+" : ""}${desfaseMinutos} min`;
+            const desfaseMinutos = segundosAMinutos(
+              registroDia.entrada.desfaseSegundos
+            );
+            diferenciaEntrada = `${
+              desfaseMinutos >= 0 ? "+" : ""
+            }${desfaseMinutos} min`;
           } else {
             estadoEntrada = registroDia.entrada.estado;
             entradaReal = mapearEstadoParaUI(estadoEntrada);
@@ -408,8 +473,10 @@ const RegistrosAsistenciaDePersonal = () => {
             salidaReal = "Inactivo";
             estadoSalida = EstadosAsistenciaPersonal.Inactivo;
           } else if (
-            (registroDia.salida.timestamp === null || registroDia.salida.timestamp === 0) &&
-            (registroDia.salida.desfaseSegundos === null || registroDia.salida.desfaseSegundos === 0)
+            (registroDia.salida.timestamp === null ||
+              registroDia.salida.timestamp === 0) &&
+            (registroDia.salida.desfaseSegundos === null ||
+              registroDia.salida.desfaseSegundos === 0)
           ) {
             salidaReal = "Falta";
             estadoSalida = EstadosAsistenciaPersonal.Falta;
@@ -420,8 +487,12 @@ const RegistrosAsistenciaDePersonal = () => {
               registroDia.salida.desfaseSegundos
             );
             salidaReal = formatearHora(registroDia.salida.timestamp);
-            const desfaseMinutos = segundosAMinutos(registroDia.salida.desfaseSegundos);
-            diferenciaSalida = `${desfaseMinutos >= 0 ? "+" : ""}${desfaseMinutos} min`;
+            const desfaseMinutos = segundosAMinutos(
+              registroDia.salida.desfaseSegundos
+            );
+            diferenciaSalida = `${
+              desfaseMinutos >= 0 ? "+" : ""
+            }${desfaseMinutos} min`;
           } else {
             estadoSalida = registroDia.salida.estado;
             salidaReal = mapearEstadoParaUI(estadoSalida);
@@ -443,6 +514,15 @@ const RegistrosAsistenciaDePersonal = () => {
         };
       });
 
+      // 🆕 LOG de eventos encontrados en el procesamiento final
+      const eventosEncontrados = registrosResultado.filter((r) => r.esEvento);
+      console.log(
+        `🎯 EVENTOS PROCESADOS: ${eventosEncontrados.length} de ${registrosResultado.length} días`
+      );
+      eventosEncontrados.forEach((evento) => {
+        console.log(`   📅 ${evento.fecha}: ${evento.nombreEvento}`);
+      });
+
       setRegistros(registrosResultado);
     } catch (error) {
       console.error("Error al procesar datos:", error);
@@ -454,19 +534,32 @@ const RegistrosAsistenciaDePersonal = () => {
   };
 
   // Función para obtener eventos
-  const obtenerEventos = async (mes: number) => {
+  const obtenerEventos = async (mes: number): Promise<IEventoLocal[]> => {
     try {
+      console.log(`🔍 Obteniendo eventos para mes ${mes}...`);
       const eventosIDB = new EventosIDB("API01", setLoadingEventos);
       const eventosDelMes = await eventosIDB.getEventosPorMes(mes);
+      console.log(`✅ Eventos obtenidos: ${eventosDelMes.length}`);
+      eventosDelMes.forEach((evento) => {
+        console.log(
+          `   🎉 ${evento.Nombre}: ${evento.Fecha_Inicio} a ${evento.Fecha_Conclusion}`
+        );
+      });
       setEventos(eventosDelMes);
+      return eventosDelMes; // 🆕 Retornar los eventos obtenidos
     } catch (error) {
       console.error("Error obteniendo eventos:", error);
+      return []; // 🆕 Retornar array vacío en caso de error
     }
   };
 
   // ✅ Función de búsqueda
   const buscarAsistencias = async () => {
-    if (!selectedRol || !selectedMes || !usuarioSeleccionado?.ID_O_DNI_Usuario) {
+    if (
+      !selectedRol ||
+      !selectedMes ||
+      !usuarioSeleccionado?.ID_O_DNI_Usuario
+    ) {
       setError({
         success: false,
         message: "Por favor completa todos los campos correctamente",
@@ -479,13 +572,18 @@ const RegistrosAsistenciaDePersonal = () => {
     setLoading(true);
 
     try {
-      await obtenerEventos(parseInt(selectedMes));
+      // 🆕 ✅ PRIMERO obtener eventos para que estén disponibles al procesar
+      console.log(`🔍 Paso 1: Obteniendo eventos para mes ${selectedMes}...`);
+      const eventosDelMes = await obtenerEventos(parseInt(selectedMes));
+      console.log(`✅ Paso 1 completado: ${eventosDelMes.length} eventos obtenidos`);
 
-      const resultado = await asistenciaPersonalIDB.obtenerAsistenciaMensualConAPI({
-        rol: selectedRol as RolesSistema,
-        id_o_dni: usuarioSeleccionado.ID_O_DNI_Usuario,
-        mes: parseInt(selectedMes),
-      });
+      console.log(`🔍 Paso 2: Consultando asistencias para mes ${selectedMes}...`);
+      const resultado =
+        await asistenciaPersonalIDB.obtenerAsistenciaMensualConAPI({
+          rol: selectedRol as RolesSistema,
+          id_o_dni: usuarioSeleccionado.ID_O_DNI_Usuario,
+          mes: parseInt(selectedMes),
+        });
 
       if (resultado.encontrado) {
         let datosParaMostrar: AsistenciaMensualPersonalLocal;
@@ -501,7 +599,15 @@ const RegistrosAsistenciaDePersonal = () => {
         setData(datosParaMostrar);
         setSuccessMessage(resultado.mensaje);
 
-        await procesarDatos(selectedRol, usuarioSeleccionado.ID_O_DNI_Usuario, parseInt(selectedMes));
+        console.log(`🔍 Paso 3: Procesando datos con ${eventosDelMes.length} eventos...`);
+        // ✅ Procesar datos pasando directamente los eventos obtenidos
+        await procesarDatos(
+          selectedRol,
+          usuarioSeleccionado.ID_O_DNI_Usuario,
+          parseInt(selectedMes),
+          eventosDelMes
+        );
+        console.log(`✅ Paso 3 completado: Datos procesados con eventos`);
       } else {
         setError({ success: false, message: resultado.mensaje });
         setData(null);
@@ -522,7 +628,12 @@ const RegistrosAsistenciaDePersonal = () => {
 
   // 📊 Función de exportación a Excel (versión simplificada)
   const exportarAsistenciaPersonalAExcel = async (): Promise<void> => {
-    if (!data || !usuarioSeleccionado || !selectedRol || registros.length === 0) {
+    if (
+      !data ||
+      !usuarioSeleccionado ||
+      !selectedRol ||
+      registros.length === 0
+    ) {
       setError({
         success: false,
         message: "No hay datos para exportar. Realiza una búsqueda primero.",
@@ -555,20 +666,42 @@ const RegistrosAsistenciaDePersonal = () => {
       tituloCell.value = "REGISTRO MENSUAL DE ASISTENCIA DEL PERSONAL";
       tituloCell.style = {
         font: { size: 16, bold: true, color: { argb: "FFFFFF" } },
-        fill: { type: "pattern", pattern: "solid", fgColor: { argb: "1E40AF" } },
+        fill: {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "1E40AF" },
+        },
         alignment: { horizontal: "center", vertical: "middle" },
       };
 
       // Encabezados
-      const encabezados = ["FECHA", "ENTRADA\nPROGRAMADA", "ENTRADA\nREAL", "DIFERENCIA\nENTRADA", "ESTADO\nENTRADA", "SALIDA\nPROGRAMADA", "SALIDA\nREAL", "DIFERENCIA\nSALIDA", "ESTADO\nSALIDA"];
-      
+      const encabezados = [
+        "FECHA",
+        "ENTRADA\nPROGRAMADA",
+        "ENTRADA\nREAL",
+        "DIFERENCIA\nENTRADA",
+        "ESTADO\nENTRADA",
+        "SALIDA\nPROGRAMADA",
+        "SALIDA\nREAL",
+        "DIFERENCIA\nSALIDA",
+        "ESTADO\nSALIDA",
+      ];
+
       encabezados.forEach((encabezado, index) => {
         const cell = worksheet.getCell(3, index + 1);
         cell.value = encabezado;
         cell.style = {
           font: { bold: true, size: 10, color: { argb: "FFFFFF" } },
-          fill: { type: "pattern", pattern: "solid", fgColor: { argb: "374151" } },
-          alignment: { horizontal: "center", vertical: "middle", wrapText: true },
+          fill: {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "374151" },
+          },
+          alignment: {
+            horizontal: "center",
+            vertical: "middle",
+            wrapText: true,
+          },
         };
       });
 
@@ -590,7 +723,12 @@ const RegistrosAsistenciaDePersonal = () => {
 
       // Generar y descargar
       const buffer = await workbook.xlsx.writeBuffer();
-      const nombreFinal = `Asistencia_${usuarioSeleccionado.Nombres.replace(/\s+/g, "_")}_${mesesTextos[parseInt(selectedMes) as Meses]}_${new Date().getFullYear()}`;
+      const nombreFinal = `Asistencia_${usuarioSeleccionado.Nombres.replace(
+        /\s+/g,
+        "_"
+      )}_${
+        mesesTextos[parseInt(selectedMes) as Meses]
+      }_${new Date().getFullYear()}`;
 
       const blob = new Blob([buffer], {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -640,7 +778,12 @@ const RegistrosAsistenciaDePersonal = () => {
 
   // ✅ Manejar Enter en los campos
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && todosLosCamposCompletos && !loading && !loadingEventos) {
+    if (
+      e.key === "Enter" &&
+      todosLosCamposCompletos &&
+      !loading &&
+      !loadingEventos
+    ) {
       buscarAsistencias();
     }
   };
@@ -649,7 +792,8 @@ const RegistrosAsistenciaDePersonal = () => {
   const rolEstaSeleccionado = !!selectedRol;
   const usuarioEstaSeleccionado = !!usuarioSeleccionado?.ID_O_DNI_Usuario;
   const mesEstaSeleccionado = !!selectedMes;
-  const todosLosCamposCompletos = rolEstaSeleccionado && usuarioEstaSeleccionado && mesEstaSeleccionado;
+  const todosLosCamposCompletos =
+    rolEstaSeleccionado && usuarioEstaSeleccionado && mesEstaSeleccionado;
 
   return (
     <div className="min-h-full min-w-full -bg-gray-50 sxs-only:p-2 xs-only:p-3 sm-only:p-4 md-only:p-4 lg-only:p-6 xl-only:p-6">
@@ -665,7 +809,8 @@ const RegistrosAsistenciaDePersonal = () => {
                 Consulta de Asistencias de Personal
               </h1>
               <p className="text-gray-600 sxs-only:text-xs xs-only:text-xs sm-only:text-xs md-only:text-xs lg-only:text-sm xl-only:text-sm">
-                Consulta los registros mensuales de entrada y salida del personal institucional
+                Consulta los registros mensuales de entrada y salida del
+                personal institucional
               </p>
             </div>
           </div>
@@ -683,7 +828,9 @@ const RegistrosAsistenciaDePersonal = () => {
                 </label>
                 <select
                   value={selectedRol || ""}
-                  onChange={(e) => handleRolChange(e.target.value as RolesSistema)}
+                  onChange={(e) =>
+                    handleRolChange(e.target.value as RolesSistema)
+                  }
                   onKeyPress={handleKeyPress}
                   disabled={loading || loadingEventos}
                   className={`w-full sxs-only:px-3 sxs-only:py-2.5 xs-only:px-3 xs-only:py-2.5 sm-only:px-3 sm-only:py-2.5 md-only:px-3 md-only:py-2.5 lg-only:px-3 lg-only:py-2.5 xl-only:px-3 xl-only:py-2.5 border-2 rounded-lg transition-all duration-200 sxs-only:text-sm xs-only:text-sm sm-only:text-sm md-only:text-sm lg-only:text-sm xl-only:text-sm bg-white sxs-only:min-h-[2.75rem] xs-only:min-h-[2.75rem] sm-only:min-h-[3rem] md-only:min-h-[3rem] lg-only:min-h-[3rem] xl-only:min-h-[3rem] shadow-sm ${
@@ -705,7 +852,7 @@ const RegistrosAsistenciaDePersonal = () => {
               <div className="sxs-only:col-span-1 xs-only:col-span-1 sm-only:col-span-2 md-only:col-span-2 lg-only:col-span-4 xl-only:col-span-4">
                 <SiasisUserSelector
                   usuarioSeleccionado={usuarioSeleccionado}
-                  ID_SELECTOR_USUARIO_GENERICO_HTML="SIASIS-SDU_Seccion-Consulta-Registros-Mensuales-Personal-Simplificado"
+                  ID_SELECTOR_USUARIO_GENERICO_HTML="SIASIS-SDU_Seccion-Consulta-Registros-Mensuales-Personal-Eventos-Prioritarios"
                   siasisAPI="API01"
                   rolUsuariosABuscar={selectedRol}
                   setUsuarioSeleccionado={setUsuarioSeleccionado}
@@ -724,7 +871,9 @@ const RegistrosAsistenciaDePersonal = () => {
                     value={selectedMes}
                     onChange={(e) => handleMesChange(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    disabled={!usuarioEstaSeleccionado || loading || loadingEventos}
+                    disabled={
+                      !usuarioEstaSeleccionado || loading || loadingEventos
+                    }
                     className={`w-full pl-9 pr-3 sxs-only:py-2.5 xs-only:py-2.5 sm-only:py-2.5 md-only:py-2.5 lg-only:py-2.5 xl-only:py-2.5 border-2 rounded-lg transition-all duration-200 sxs-only:text-sm xs-only:text-sm sm-only:text-sm md-only:text-sm lg-only:text-sm xl-only:text-sm bg-white sxs-only:min-h-[2.75rem] xs-only:min-h-[2.75rem] sm-only:min-h-[3rem] md-only:min-h-[3rem] lg-only:min-h-[3rem] xl-only:min-h-[3rem] shadow-sm appearance-none ${
                       !usuarioEstaSeleccionado || loading || loadingEventos
                         ? "border-gray-200 bg-gray-50 cursor-not-allowed opacity-60"
@@ -732,7 +881,9 @@ const RegistrosAsistenciaDePersonal = () => {
                     }`}
                   >
                     <option value="">
-                      {!usuarioEstaSeleccionado ? "Selecciona usuario primero" : "Seleccionar mes"}
+                      {!usuarioEstaSeleccionado
+                        ? "Selecciona usuario primero"
+                        : "Seleccionar mes"}
                     </option>
                     {usuarioEstaSeleccionado &&
                       getMesesDisponibles().map(({ value, label }) => (
@@ -752,7 +903,9 @@ const RegistrosAsistenciaDePersonal = () => {
                 <button
                   type="button"
                   onClick={buscarAsistencias}
-                  disabled={!todosLosCamposCompletos || loading || loadingEventos}
+                  disabled={
+                    !todosLosCamposCompletos || loading || loadingEventos
+                  }
                   className={`w-full sxs-only:px-3 sxs-only:py-2.5 xs-only:px-3 xs-only:py-2.5 sm-only:px-4 sm-only:py-2.5 md-only:px-4 md-only:py-2.5 lg-only:px-4 lg-only:py-2.5 xl-only:px-4 xl-only:py-2.5 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center sxs-only:text-sm xs-only:text-sm sm-only:text-sm md-only:text-sm lg-only:text-sm xl-only:text-sm sxs-only:min-h-[2.75rem] xs-only:min-h-[2.75rem] sm-only:min-h-[3rem] md-only:min-h-[3rem] lg-only:min-h-[3rem] xl-only:min-h-[3rem] shadow-sm ${
                     !todosLosCamposCompletos || loading || loadingEventos
                       ? "bg-gray-100 text-gray-400 cursor-not-allowed border-2 border-gray-200"

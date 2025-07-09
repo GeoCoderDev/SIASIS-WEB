@@ -234,21 +234,31 @@ const MisAsistencias = () => {
     return fechaObj <= fechaHoy;
   };
 
-  // 🔧 Función para verificar si un día es evento
+  // 🔧 🆕 FUNCIÓN MODIFICADA: Verificar si un día es evento (PRIORIDAD ABSOLUTA)
   const esEvento = (
-    fecha: string
+    fecha: string,
+    eventosParaUsar: IEventoLocal[] = eventos
   ): { esEvento: boolean; nombreEvento?: string } => {
-    const evento = eventos.find((e) => {
+    const evento = eventosParaUsar.find((e) => {
       const fechaInicio = new Date(e.Fecha_Inicio + "T00:00:00");
       const fechaFin = new Date(e.Fecha_Conclusion + "T00:00:00");
       const fechaConsulta = new Date(fecha + "T00:00:00");
       return fechaConsulta >= fechaInicio && fechaConsulta <= fechaFin;
     });
 
-    return {
+    const resultado = {
       esEvento: !!evento,
       nombreEvento: evento?.Nombre,
     };
+
+    // 🆕 LOG para debugging de eventos encontrados
+    if (resultado.esEvento) {
+      console.log(
+        `🎉 EVENTO DETECTADO para ${fecha}: ${resultado.nombreEvento}`
+      );
+    }
+
+    return resultado;
   };
 
   // Función para mapear estados del enum a strings para la UI
@@ -411,8 +421,8 @@ const MisAsistencias = () => {
     }
   };
 
-  // Función para procesar datos (similar a la original pero usa mis datos)
-  const procesarMisDatos = async (mes: number) => {
+  // 🆕 FUNCIÓN MODIFICADA: Procesar mis datos con eventos prioritarios
+  const procesarMisDatos = async (mes: number, eventosDelMes: IEventoLocal[]) => {
     try {
       const registrosCombinados = await obtenerMisAsistenciasCombinadas(mes);
       const año = new Date().getFullYear();
@@ -421,21 +431,29 @@ const MisAsistencias = () => {
         esFechaValida(fecha)
       );
 
+      console.log(
+        `📊 Procesando mis datos: ${fechasFiltradas.length} fechas para mes ${mes}`
+      );
+      console.log(`🎯 Eventos recibidos para procesamiento: ${eventosDelMes.length}`);
+
       const registrosResultado: RegistroDia[] = fechasFiltradas.map((fecha) => {
         const fechaObj = new Date(fecha + "T00:00:00");
         const dia = fechaObj.getDate().toString();
-        const eventoInfo = esEvento(fecha);
+        const eventoInfo = esEvento(fecha, eventosDelMes); // 🆕 Usar eventos pasados como parámetro
         const esLaboral = esDiaLaboral(fecha);
 
-        // Si es evento, retornar registro especial
+        // 🆕 ✅ PRIORIDAD ABSOLUTA: Si es evento, retornar registro especial SIN IMPORTAR SI HAY ASISTENCIAS
         if (eventoInfo.esEvento) {
+          console.log(
+            `🎉 SOBREPONIENDO EVENTO "${eventoInfo.nombreEvento}" sobre cualquier asistencia para ${fecha}`
+          );
           return {
             fecha,
-            entradaProgramada: "N/A",
+            entradaProgramada: "Evento",
             entradaReal: "Evento",
             diferenciaEntrada: "N/A",
             estadoEntrada: EstadosAsistenciaPersonal.Evento,
-            salidaProgramada: "N/A",
+            salidaProgramada: "Evento",
             salidaReal: "Evento",
             diferenciaSalida: "N/A",
             estadoSalida: EstadosAsistenciaPersonal.Evento,
@@ -445,6 +463,7 @@ const MisAsistencias = () => {
           };
         }
 
+        // Solo procesar asistencias normales si NO hay evento
         // Si no hay registros combinados
         if (!registrosCombinados || !registrosCombinados[dia]) {
           return {
@@ -553,6 +572,15 @@ const MisAsistencias = () => {
         };
       });
 
+      // 🆕 LOG de eventos encontrados en el procesamiento final
+      const eventosEncontrados = registrosResultado.filter((r) => r.esEvento);
+      console.log(
+        `🎯 EVENTOS PROCESADOS: ${eventosEncontrados.length} de ${registrosResultado.length} días`
+      );
+      eventosEncontrados.forEach((evento) => {
+        console.log(`   📅 ${evento.fecha}: ${evento.nombreEvento}`);
+      });
+
       setRegistros(registrosResultado);
     } catch (error) {
       console.error("Error al procesar mis datos:", error);
@@ -564,17 +592,26 @@ const MisAsistencias = () => {
   };
 
   // Función para obtener eventos
-  const obtenerEventos = async (mes: number) => {
+  const obtenerEventos = async (mes: number): Promise<IEventoLocal[]> => {
     try {
+      console.log(`🔍 Obteniendo eventos para mes ${mes}...`);
       const eventosIDB = new EventosIDB("API01", setLoadingEventos);
       const eventosDelMes = await eventosIDB.getEventosPorMes(mes);
+      console.log(`✅ Eventos obtenidos: ${eventosDelMes.length}`);
+      eventosDelMes.forEach((evento) => {
+        console.log(
+          `   🎉 ${evento.Nombre}: ${evento.Fecha_Inicio} a ${evento.Fecha_Conclusion}`
+        );
+      });
       setEventos(eventosDelMes);
+      return eventosDelMes; // 🆕 Retornar los eventos obtenidos
     } catch (error) {
       console.error("Error obteniendo eventos:", error);
+      return []; // 🆕 Retornar array vacío en caso de error
     }
   };
 
-  // ✅ 🆕 Función de búsqueda simplificada (solo necesita el mes)
+  // ✅ 🆕 Función de búsqueda simplificada (solo necesita el mes) - MODIFICADA
   const buscarMisAsistencias = async () => {
     if (!selectedMes || !misDatos?.Rol) {
       setError({
@@ -589,9 +626,12 @@ const MisAsistencias = () => {
     setLoading(true);
 
     try {
-      await obtenerEventos(parseInt(selectedMes));
+      // 🆕 ✅ PRIMERO obtener eventos para que estén disponibles al procesar
+      console.log(`🔍 Paso 1: Obteniendo eventos para mes ${selectedMes}...`);
+      const eventosDelMes = await obtenerEventos(parseInt(selectedMes));
+      console.log(`✅ Paso 1 completado: ${eventosDelMes.length} eventos obtenidos`);
 
-      console.log(`🔍 Consultando mis asistencias para mes ${selectedMes}...`);
+      console.log(`🔍 Paso 2: Consultando mis asistencias para mes ${selectedMes}...`);
 
       const resultado =
         await asistenciaPersonalIDB.consultarMiAsistenciaMensual(
@@ -615,7 +655,10 @@ const MisAsistencias = () => {
           resultado.mensaje || "Mis asistencias obtenidas exitosamente"
         );
 
-        await procesarMisDatos(parseInt(selectedMes));
+        console.log(`🔍 Paso 3: Procesando datos con ${eventosDelMes.length} eventos...`);
+        // ✅ Procesar datos pasando directamente los eventos obtenidos
+        await procesarMisDatos(parseInt(selectedMes), eventosDelMes);
+        console.log(`✅ Paso 3 completado: Datos procesados con eventos`);
       } else {
         setError({
           success: false,
