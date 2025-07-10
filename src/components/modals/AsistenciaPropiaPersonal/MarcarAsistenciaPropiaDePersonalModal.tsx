@@ -23,20 +23,20 @@ const TESTING_EXPLICITO = false; // ✅ Cambiar a true para mostrar mensajes de 
 
 // 🎯 Configuración de validación GPS según entorno
 const REQUERIR_VALIDACION_GPS_SEGUN_ENTORNO: Record<Entorno, boolean> = {
-  [Entorno.LOCAL]: true, // GPS habilitado en local
-  [Entorno.DESARROLLO]: true, // GPS habilitado en desarrollo
-  [Entorno.CERTIFICACION]: true, // GPS habilitado en certificación
-  [Entorno.PRODUCCION]: true, // GPS habilitado en producción
-  [Entorno.TEST]: true, // GPS habilitado en test
+  [Entorno.LOCAL]: true,
+  [Entorno.DESARROLLO]: true, // ✅ GPS habilitado (solicitar permisos)
+  [Entorno.CERTIFICACION]: true,
+  [Entorno.PRODUCCION]: true,
+  [Entorno.TEST]: true,
 };
 
 // 🎭 Configuración de coordenadas mockeadas según entorno
 const USAR_COORDENADAS_MOCKEADAS_SEGUN_ENTORNO: Record<Entorno, boolean> = {
-  [Entorno.LOCAL]: false, // Sin mockeo en local
-  [Entorno.DESARROLLO]: true, // ✅ CON MOCKEO en desarrollo
-  [Entorno.CERTIFICACION]: true, // ✅ CON MOCKEO en certificación
-  [Entorno.PRODUCCION]: false, // Sin mockeo en producción
-  [Entorno.TEST]: false, // Sin mockeo en test
+  [Entorno.LOCAL]: false,
+  [Entorno.DESARROLLO]: true, // ✅ Reemplazar con coordenadas mockeadas al final
+  [Entorno.CERTIFICACION]: true,
+  [Entorno.PRODUCCION]: false,
+  [Entorno.TEST]: false,
 };
 
 // 📱 Configuración de restricción de dispositivos según entorno
@@ -190,57 +190,7 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
 
   const obtenerUbicacion = (): Promise<PuntoGeografico> => {
     return new Promise((resolve, reject) => {
-      // 🎭 USAR COORDENADAS MOCKEADAS
-      if (USAR_COORDENADAS_MOCKEADAS) {
-        if (TESTING_EXPLICITO) {
-          console.log(
-            `🎭 MODO MOCKEO ACTIVADO - Entorno: ${ENTORNO} (${
-              Object.keys(Entorno)[Object.values(Entorno).indexOf(ENTORNO)]
-            })`
-          );
-        }
-
-        console.log("📍 Usando coordenadas mockeadas:", {
-          latitud: LATITUD_MOCKEADA,
-          longitud: LONGITUD_MOCKEADA,
-          entorno: ENTORNO,
-          coordenadasDisponibles: COORDENADAS_DEBUGGING,
-        });
-
-        // ✅ DEBUGGING: Verificar que las coordenadas mockeadas están dentro
-        console.log("🔍 DEBUGGING - Verificando coordenadas mockeadas:");
-        const puntoMockeado = {
-          latitud: LATITUD_MOCKEADA,
-          longitud: LONGITUD_MOCKEADA,
-        };
-
-        // Pre-verificar si las coordenadas están dentro del colegio
-        const estaDentroMockeado = estaDentroDelColegioIE20935(puntoMockeado);
-        console.log("🎯 PRE-VERIFICACIÓN COORDENADAS MOCKEADAS:", {
-          coordenadas: puntoMockeado,
-          estaDentroDelColegio: estaDentroMockeado,
-          funcionUsada: "estaDentroDelColegioIE20935",
-        });
-
-        if (!estaDentroMockeado) {
-          console.error(
-            "🚨 ERROR: Las coordenadas mockeadas NO están dentro del colegio!"
-          );
-          console.log(
-            "💡 SUGERENCIA: Usar coordenadas alternativas:",
-            COORDENADAS_DEBUGGING.DENTRO_COLEGIO_2
-          );
-        }
-
-        // Simular delay del GPS real
-        setTimeout(() => {
-          resolve(puntoMockeado);
-        }, 1000);
-
-        return;
-      }
-
-      // 🔄 MODO NORMAL - GPS REAL
+      // 🔄 MODO NORMAL - GPS REAL (pero con posible reemplazo al final)
       if (!navigator.geolocation) {
         reject(new Error("Geolocalización no soportada"));
         return;
@@ -255,16 +205,58 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
       navigator.geolocation.getCurrentPosition(
         (position) => {
           console.log("📍 Posición REAL obtenida:", {
-            latitud: position.coords.latitude,
-            longitud: position.coords.longitude,
+            latitudReal: position.coords.latitude,
+            longitudReal: position.coords.longitude,
             precision: position.coords.accuracy,
             entorno: ENTORNO,
           });
 
-          resolve({
-            latitud: position.coords.latitude,
-            longitud: position.coords.longitude,
-          });
+          // 🎭 VERIFICAR SI DEBE REEMPLAZAR CON COORDENADAS MOCKEADAS
+          if (USAR_COORDENADAS_MOCKEADAS) {
+            console.log("🔄 REEMPLAZANDO coordenadas reales con mockeadas");
+
+            const puntoMockeado = {
+              latitud: LATITUD_MOCKEADA,
+              longitud: LONGITUD_MOCKEADA,
+            };
+
+            console.log("🎭 Coordenadas finales (MOCKEADAS):", puntoMockeado);
+
+            if (TESTING_EXPLICITO) {
+              console.log("🎯 MODO HÍBRIDO:", {
+                coordenadasRealesObtenidas: {
+                  lat: position.coords.latitude,
+                  lng: position.coords.longitude,
+                },
+                coordenadasQueSeUsaran: puntoMockeado,
+                entorno: ENTORNO,
+                mensaje: "GPS solicitado ✅ pero coordenadas reemplazadas ✅",
+              });
+            }
+
+            // ✅ PRE-VERIFICACIÓN DE COORDENADAS MOCKEADAS
+            const estaDentroMockeado =
+              estaDentroDelColegioIE20935(puntoMockeado);
+            console.log("🔍 PRE-VERIFICACIÓN coordenadas mockeadas:", {
+              coordenadas: puntoMockeado,
+              estaDentroDelColegio: estaDentroMockeado,
+            });
+
+            if (!estaDentroMockeado) {
+              console.error(
+                "🚨 ERROR: Las coordenadas mockeadas NO están dentro del colegio!"
+              );
+            }
+
+            resolve(puntoMockeado);
+          } else {
+            // ✅ USAR COORDENADAS REALES
+            console.log("✅ Usando coordenadas REALES obtenidas");
+            resolve({
+              latitud: position.coords.latitude,
+              longitud: position.coords.longitude,
+            });
+          }
         },
         (error) => {
           console.error("❌ Error de geolocalización:", {
