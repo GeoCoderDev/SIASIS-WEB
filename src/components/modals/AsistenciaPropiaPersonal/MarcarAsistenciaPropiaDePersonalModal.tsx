@@ -15,58 +15,84 @@ import { ENTORNO } from "@/constants/ENTORNO";
 import { Entorno } from "@/interfaces/shared/Entornos";
 
 // ========================================================================================
-// CONSTANTES DE CONFIGURACIÓN
+// CONFIGURACIÓN POR ENTORNO
 // ========================================================================================
-export const SOLO_PERMITIR_CELULARES_PARA_ASISTENCIA =
-  ENTORNO !== Entorno.LOCAL || false; // Cambiar a false para permitir laptops
 
-// 🆕 FUNCIONES DE DESARROLLO - SOLO ACTIVAS EN ENTORNO LOCAL
-export const REQUERIR_VALIDACION_GPS = true; // 🔧 Cambiar a false para saltarse GPS (SOLO en local)
-export const USAR_COORDENADAS_MOCKEADAS = false; // 🎭 Cambiar a true para usar coordenadas fake (SOLO en local)
+// 🎯 Configuración de validación GPS según entorno
+const REQUERIR_VALIDACION_GPS_SEGUN_ENTORNO: Record<Entorno, boolean> = {
+  [Entorno.LOCAL]: true, // GPS habilitado en local
+  [Entorno.DESARROLLO]: true, // GPS habilitado en desarrollo
+  [Entorno.CERTIFICACION]: true, // GPS habilitado en certificación
+  [Entorno.PRODUCCION]: true, // GPS habilitado en producción
+  [Entorno.TEST]: true, // GPS habilitado en test
+};
 
-// 🎯 COORDENADAS PARA TESTING (SOLO en local)
-export const LATITUD_MOCKEADA = -13.056668; // Coordenada de prueba
-export const LONGITUD_MOCKEADA = -76.346977; // Coordenada de prueba
+// 🎭 Configuración de coordenadas mockeadas según entorno
+const USAR_COORDENADAS_MOCKEADAS_SEGUN_ENTORNO: Record<Entorno, boolean> = {
+  [Entorno.LOCAL]: false, // Sin mockeo en local
+  [Entorno.DESARROLLO]: false, // Sin mockeo en desarrollo
+  [Entorno.CERTIFICACION]: true, // ✅ CON MOCKEO en certificación
+  [Entorno.PRODUCCION]: false, // Sin mockeo en producción
+  [Entorno.TEST]: false, // Sin mockeo en test
+};
+
+// 📱 Configuración de restricción de dispositivos según entorno
+const SOLO_PERMITIR_CELULARES_SEGUN_ENTORNO: Record<Entorno, boolean> = {
+  [Entorno.LOCAL]: false, // Permitir laptops en local (para desarrollo)
+  [Entorno.DESARROLLO]: true, // Solo celulares en desarrollo
+  [Entorno.CERTIFICACION]: true, // Solo celulares en certificación
+  [Entorno.PRODUCCION]: true, // Solo celulares en producción
+  [Entorno.TEST]: true, // Solo celulares en test
+};
+
+// 🚀 VALORES FINALES CALCULADOS SEGÚN ENTORNO ACTUAL
+const REQUERIR_VALIDACION_GPS = REQUERIR_VALIDACION_GPS_SEGUN_ENTORNO[ENTORNO];
+const USAR_COORDENADAS_MOCKEADAS =
+  USAR_COORDENADAS_MOCKEADAS_SEGUN_ENTORNO[ENTORNO];
+const SOLO_PERMITIR_CELULARES_PARA_ASISTENCIA =
+  SOLO_PERMITIR_CELULARES_SEGUN_ENTORNO[ENTORNO];
+
+// 🎯 COORDENADAS PARA CERTIFICACIÓN/TESTING
+export const LATITUD_MOCKEADA = -13.0393; // Dentro del colegio IE 20935
+export const LONGITUD_MOCKEADA = -76.3806; // Dentro del colegio IE 20935
 
 /*
-🎭 INSTRUCCIONES PARA FUNCIONES DE DESARROLLO:
+📋 CONFIGURACIÓN ACTUAL POR ENTORNO:
 
-⚠️ IMPORTANTE: Estas funciones SOLO trabajan en ENTORNO LOCAL
-   En producción, siempre se usa GPS real con validación completa.
+🔧 LOCAL (L):
+   - REQUERIR_VALIDACION_GPS = true
+   - USAR_COORDENADAS_MOCKEADAS = false
+   → GPS real con validación completa
 
-1. BYPASS DE GPS (Solo en Local):
-   - REQUERIR_VALIDACION_GPS = false
-   - Se salta TODA la validación de ubicación
-   - Útil para desarrollo sin GPS
+🛠️ DESARROLLO (D):
+   - REQUERIR_VALIDACION_GPS = true
+   - USAR_COORDENADAS_MOCKEADAS = false
+   → GPS real con validación completa
 
-2. MOCKEO DE COORDENADAS (Solo en Local):
+🧪 CERTIFICACIÓN (C):
+   - REQUERIR_VALIDACION_GPS = true
    - USAR_COORDENADAS_MOCKEADAS = true
-   - REQUERIR_VALIDACION_GPS = true (para probar flujo completo)
-   - Simula GPS real pero con coordenadas predefinidas
+   → GPS fake (coordenadas mockeadas) con validación completa
 
-📍 COORDENADAS ÚTILES PARA TESTING:
+🚀 PRODUCCIÓN (P):
+   - REQUERIR_VALIDACION_GPS = true
+   - USAR_COORDENADAS_MOCKEADAS = false
+   → GPS real con validación completa
 
-DENTRO DEL COLEGIO IE 20935:
+🔬 TEST (T):
+   - REQUERIR_VALIDACION_GPS = true
+   - USAR_COORDENADAS_MOCKEADAS = false
+   → GPS real con validación completa
+
+📍 COORDENADAS ÚTILES PARA TESTING EN CERTIFICACIÓN:
+
+DENTRO DEL COLEGIO IE 20935 (DEFAULT):
 - LATITUD_MOCKEADA = -13.0393
 - LONGITUD_MOCKEADA = -76.3806
 
-FUERA DEL COLEGIO:
+FUERA DEL COLEGIO (Para probar errores de ubicación):
 - LATITUD_MOCKEADA = -12.0464
 - LONGITUD_MOCKEADA = -77.0428
-
-🔧 MODOS DISPONIBLES (Solo en Local):
-
-MODO 1 - BYPASS COMPLETO:
-- REQUERIR_VALIDACION_GPS = false
-→ Sin GPS, sin validación
-
-MODO 2 - TESTING CON GPS FAKE:
-- REQUERIR_VALIDACION_GPS = true
-- USAR_COORDENADAS_MOCKEADAS = true
-→ GPS fake + validación completa
-
-MODO 3 - PRODUCCIÓN (Automático en otros entornos):
-→ GPS real + validación completa
 */
 
 interface MarcarAsistenciaPropiaDePersonalModalProps {
@@ -109,11 +135,6 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
   setMostrarModalDispositivoSinGPS,
 }: MarcarAsistenciaPropiaDePersonalModalProps) => {
   const [estaProcessando, setEstaProcessando] = useState(false);
-
-  // 🎯 DETERMINAR CONFIGURACIÓN FINAL (Solo funciones dev en local)
-  const esEntornoLocal = ENTORNO === Entorno.LOCAL;
-  const saltarValidacionGPS = esEntornoLocal && !REQUERIR_VALIDACION_GPS;
-  const usarCoordenadasFake = esEntornoLocal && USAR_COORDENADAS_MOCKEADAS;
 
   const verificarYSolicitarPermisos = async (): Promise<boolean> => {
     try {
@@ -164,15 +185,17 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
 
   const obtenerUbicacion = (): Promise<PuntoGeografico> => {
     return new Promise((resolve, reject) => {
-      // 🎭 USAR COORDENADAS MOCKEADAS (Solo en local)
-      if (usarCoordenadasFake) {
+      // 🎭 USAR COORDENADAS MOCKEADAS (Solo en certificación actualmente)
+      if (USAR_COORDENADAS_MOCKEADAS) {
         console.log(
-          "🎭 MODO MOCKEO ACTIVADO - Usando coordenadas fake (Solo en local)"
+          `🎭 MODO MOCKEO ACTIVADO - Entorno: ${ENTORNO} (${
+            Object.keys(Entorno)[Object.values(Entorno).indexOf(ENTORNO)]
+          })`
         );
         console.log("📍 Coordenadas mockeadas:", {
           latitud: LATITUD_MOCKEADA,
           longitud: LONGITUD_MOCKEADA,
-          entorno: "LOCAL - TESTING",
+          entorno: ENTORNO,
         });
 
         // Simular delay del GPS real
@@ -204,6 +227,7 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
             latitud: position.coords.latitude,
             longitud: position.coords.longitude,
             precision: position.coords.accuracy,
+            entorno: ENTORNO,
           });
 
           resolve({
@@ -245,13 +269,14 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
 
       // MOSTRAR CONFIGURACIÓN ACTUAL EN CONSOLA
       console.log("🔧 CONFIGURACIÓN ACTUAL:", {
-        entorno: ENTORNO,
-        esEntornoLocal,
-        saltarValidacionGPS,
-        usarCoordenadasFake,
-        configuracionOriginal: {
-          REQUERIR_VALIDACION_GPS,
-          USAR_COORDENADAS_MOCKEADAS,
+        entorno: `${ENTORNO} (${
+          Object.keys(Entorno)[Object.values(Entorno).indexOf(ENTORNO)]
+        })`,
+        requiereValidacionGPS: REQUERIR_VALIDACION_GPS,
+        usaCoordenadasMockeadas: USAR_COORDENADAS_MOCKEADAS,
+        configuracionCompleta: {
+          validacionGPS: REQUERIR_VALIDACION_GPS_SEGUN_ENTORNO,
+          coordenadasMock: USAR_COORDENADAS_MOCKEADAS_SEGUN_ENTORNO,
         },
       });
 
@@ -269,9 +294,9 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
         console.log("✅ Dispositivo permitido: móvil");
       }
 
-      // 🚀 BYPASS COMPLETO DE GPS (Solo en local)
-      if (saltarValidacionGPS) {
-        console.log("⚡ BYPASS DE GPS ACTIVADO (Solo en entorno local)");
+      // PASO 2: Verificar si debe validar GPS
+      if (!REQUERIR_VALIDACION_GPS) {
+        console.log("⚡ VALIDACIÓN GPS DESHABILITADA");
         console.log("🚀 Saltando TODA la validación de ubicación...");
 
         // Ir directamente a marcar asistencia
@@ -283,13 +308,13 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
         return;
       }
 
-      // 🔍 VALIDACIÓN GPS COMPLETA (Producción o local con GPS habilitado)
+      // 🔍 VALIDACIÓN GPS COMPLETA
       console.log(
         "🔍 Validación GPS habilitada, procediendo con verificaciones..."
       );
 
-      // PASO 2: Verificar disponibilidad de GPS (Solo si no usamos coordenadas fake)
-      if (!usarCoordenadasFake) {
+      // PASO 3: Verificar disponibilidad de GPS (Solo si no usamos coordenadas fake)
+      if (!USAR_COORDENADAS_MOCKEADAS) {
         if (!verificarDisponibilidadGPS()) {
           console.log("❌ GPS no disponible en el dispositivo");
           eliminateModal();
@@ -299,7 +324,7 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
 
         console.log("✅ GPS disponible, verificando permisos...");
 
-        // PASO 3: Verificar y solicitar permisos de geolocalización
+        // PASO 4: Verificar y solicitar permisos de geolocalización
         const tienePermisos = await verificarYSolicitarPermisos();
 
         if (!tienePermisos) {
@@ -312,14 +337,14 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
         console.log("✅ Permisos GPS obtenidos");
       }
 
-      // PASO 4: Obtener ubicación
+      // PASO 5: Obtener ubicación
       let ubicacion: PuntoGeografico;
       try {
         ubicacion = await obtenerUbicacion();
 
-        if (usarCoordenadasFake) {
+        if (USAR_COORDENADAS_MOCKEADAS) {
           console.log(
-            "🎭 Ubicación MOCKEADA obtenida (Solo en local):",
+            `🎭 Ubicación MOCKEADA obtenida (Entorno: ${ENTORNO}):`,
             ubicacion
           );
         } else {
@@ -332,11 +357,11 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
         return;
       }
 
-      // PASO 5: Verificar si está dentro del colegio
+      // PASO 6: Verificar si está dentro del colegio
       const estaDentroDelColegio = estaDentroDelColegioIE20935(ubicacion);
 
       if (!estaDentroDelColegio) {
-        if (usarCoordenadasFake) {
+        if (USAR_COORDENADAS_MOCKEADAS) {
           console.log(
             "❌ Coordenadas MOCKEADAS están fuera del área del colegio"
           );
@@ -353,7 +378,7 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
         return;
       }
 
-      if (usarCoordenadasFake) {
+      if (USAR_COORDENADAS_MOCKEADAS) {
         console.log(
           "✅ Coordenadas MOCKEADAS están dentro del área, marcando asistencia..."
         );
@@ -392,9 +417,6 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
     }
   }, [
     estaProcessando,
-    esEntornoLocal,
-    saltarValidacionGPS,
-    usarCoordenadasFake,
     eliminateModal,
     marcarMiAsistenciaDeHoy,
     setMostrarModalConfirmacioAsistenciaMarcada,
@@ -409,7 +431,7 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
   // 🎨 DETERMINAR TEXTO Y ESTILO SEGÚN CONFIGURACIÓN
   const obtenerTextoModal = () => {
     if (estaProcessando) {
-      if (saltarValidacionGPS) {
+      if (!REQUERIR_VALIDACION_GPS) {
         return {
           texto: (
             <>
@@ -417,13 +439,13 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
               <br />
               <br />
               <span className="text-orange-600">
-                <b>🚀 Modo sin GPS</b> (Solo en local)
+                <b>🚀 Modo sin GPS</b> (Entorno: {ENTORNO})
               </span>
             </>
           ),
           boton: "Registrando...",
         };
-      } else if (usarCoordenadasFake) {
+      } else if (USAR_COORDENADAS_MOCKEADAS) {
         return {
           texto: (
             <>
@@ -432,7 +454,7 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
               <br />
               <br />
               <span className="text-purple-600">
-                <b>🎭 Modo MOCKEO</b> (Solo en local)
+                <b>🎭 Modo MOCKEO</b> (Entorno: {ENTORNO})
               </span>
             </>
           ),
@@ -455,7 +477,7 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
         };
       }
     } else {
-      if (saltarValidacionGPS) {
+      if (!REQUERIR_VALIDACION_GPS) {
         return {
           texto: (
             <>
@@ -464,13 +486,13 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
               <br />
               <br />
               <span className="text-orange-600">
-                <b>🚀 Sin validación GPS</b> (Solo en local)
+                <b>🚀 Sin validación GPS</b> (Entorno: {ENTORNO})
               </span>
             </>
           ),
           boton: "🚀 Registrar (Sin GPS)",
         };
-      } else if (usarCoordenadasFake) {
+      } else if (USAR_COORDENADAS_MOCKEADAS) {
         return {
           texto: (
             <>
@@ -480,7 +502,7 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
               <br />
               <br />
               <span className="text-purple-600">
-                <b>🎭 Modo TESTING</b> (Solo en local)
+                <b>🎭 Modo TESTING</b> (Entorno: {ENTORNO})
               </span>
             </>
           ),
