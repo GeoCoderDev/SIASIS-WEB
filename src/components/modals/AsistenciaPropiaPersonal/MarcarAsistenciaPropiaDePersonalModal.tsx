@@ -30,7 +30,7 @@ const REQUERIR_VALIDACION_GPS_SEGUN_ENTORNO: Record<Entorno, boolean> = {
 // 🎭 Configuración de coordenadas mockeadas según entorno
 const USAR_COORDENADAS_MOCKEADAS_SEGUN_ENTORNO: Record<Entorno, boolean> = {
   [Entorno.LOCAL]: false, // Sin mockeo en local
-  [Entorno.DESARROLLO]: false, // Sin mockeo en desarrollo
+  [Entorno.DESARROLLO]: true, // ✅ CON MOCKEO en certificación
   [Entorno.CERTIFICACION]: true, // ✅ CON MOCKEO en certificación
   [Entorno.PRODUCCION]: false, // Sin mockeo en producción
   [Entorno.TEST]: false, // Sin mockeo en test

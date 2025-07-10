@@ -283,6 +283,10 @@ const MarcarAsistenciaDePersonalButton = memo(
     const [mostrarModalDispositivoSinGPS, setMostrarModalDispositivoSinGPS] =
       useState(false);
 
+    const [fechaHoraRegistro, setFechaHoraRegistro] = useState<Date | null>(
+      null
+    );
+
     // ===================================================================================
 
     const [asistenciaIDB, setAsistenciaIDB] =
@@ -1117,7 +1121,7 @@ const MarcarAsistenciaDePersonalButton = memo(
       };
     }, []);
 
-    // ✅ FUNCIÓN PARA MARCAR ASISTENCIA DE HOY
+    // ✅ MODIFICAR la función marcarMiAsistenciaDeHoy
     const marcarMiAsistenciaDeHoy = useCallback(async () => {
       try {
         if (!estadoBoton.tipo || !horario) {
@@ -1164,11 +1168,15 @@ const MarcarAsistenciaDePersonalButton = memo(
           return;
         }
 
+        // ✅ MARCAR ASISTENCIA
         await asistenciaIDB.marcarMiAsistenciaPropia(
           rol,
           estadoBoton.tipo,
           horaEsperadaISO
         );
+
+        // ✅ GUARDAR LA FECHA/HORA DE REGISTRO EXITOSO
+        setFechaHoraRegistro(new Date()); // Hora actual del registro
 
         // Si llegamos aquí, todo fue exitoso
         console.log("✅ Asistencia marcada exitosamente");
@@ -1176,8 +1184,7 @@ const MarcarAsistenciaDePersonalButton = memo(
         console.error("❌ Error al marcar mi asistencia:", error);
         throw error; // Re-lanzar para que el modal lo maneje
       }
-    }, [estadoBoton.tipo, horario, obtenerFechaActual, asistenciaIDB]);
-
+    }, [estadoBoton.tipo, horario, obtenerFechaActual, asistenciaIDB, rol]);
     // ✅ RENDER: Mensaje informativo o botón
     const mostrarTooltipActual = !tooltipOculto && !mensajeInformativo.mostrar;
 
@@ -1223,7 +1230,10 @@ const MarcarAsistenciaDePersonalButton = memo(
           <ConfirmacionAsistenciaMarcadaModal
             eliminateModal={() => {
               setMostrarModalConfirmacioAsistenciaMarcada(false);
+              setFechaHoraRegistro(null); // Limpiar la fecha al cerrar
             }}
+            fechaHoraRegistro={fechaHoraRegistro}
+            tipoRegistro={estadoBoton.tipo}
           />
         )}
 
