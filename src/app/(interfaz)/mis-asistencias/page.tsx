@@ -422,7 +422,10 @@ const MisAsistencias = () => {
   };
 
   // 🆕 FUNCIÓN MODIFICADA: Procesar mis datos con eventos prioritarios
-  const procesarMisDatos = async (mes: number, eventosDelMes: IEventoLocal[]) => {
+  const procesarMisDatos = async (
+    mes: number,
+    eventosDelMes: IEventoLocal[]
+  ) => {
     try {
       const registrosCombinados = await obtenerMisAsistenciasCombinadas(mes);
       const año = new Date().getFullYear();
@@ -434,7 +437,9 @@ const MisAsistencias = () => {
       console.log(
         `📊 Procesando mis datos: ${fechasFiltradas.length} fechas para mes ${mes}`
       );
-      console.log(`🎯 Eventos recibidos para procesamiento: ${eventosDelMes.length}`);
+      console.log(
+        `🎯 Eventos recibidos para procesamiento: ${eventosDelMes.length}`
+      );
 
       const registrosResultado: RegistroDia[] = fechasFiltradas.map((fecha) => {
         const fechaObj = new Date(fecha + "T00:00:00");
@@ -629,9 +634,13 @@ const MisAsistencias = () => {
       // 🆕 ✅ PRIMERO obtener eventos para que estén disponibles al procesar
       console.log(`🔍 Paso 1: Obteniendo eventos para mes ${selectedMes}...`);
       const eventosDelMes = await obtenerEventos(parseInt(selectedMes));
-      console.log(`✅ Paso 1 completado: ${eventosDelMes.length} eventos obtenidos`);
+      console.log(
+        `✅ Paso 1 completado: ${eventosDelMes.length} eventos obtenidos`
+      );
 
-      console.log(`🔍 Paso 2: Consultando mis asistencias para mes ${selectedMes}...`);
+      console.log(
+        `🔍 Paso 2: Consultando mis asistencias para mes ${selectedMes}...`
+      );
 
       const resultado =
         await asistenciaPersonalIDB.consultarMiAsistenciaMensual(
@@ -655,7 +664,9 @@ const MisAsistencias = () => {
           resultado.mensaje || "Mis asistencias obtenidas exitosamente"
         );
 
-        console.log(`🔍 Paso 3: Procesando datos con ${eventosDelMes.length} eventos...`);
+        console.log(
+          `🔍 Paso 3: Procesando datos con ${eventosDelMes.length} eventos...`
+        );
         // ✅ Procesar datos pasando directamente los eventos obtenidos
         await procesarMisDatos(parseInt(selectedMes), eventosDelMes);
         console.log(`✅ Paso 3 completado: Datos procesados con eventos`);
@@ -682,7 +693,7 @@ const MisAsistencias = () => {
     }
   };
 
-  // 📊 🆕 Función de exportación a Excel simplificada (para mis datos)
+  // 📊 FUNCIÓN DE EXPORTACIÓN A EXCEL PROFESIONAL PARA MIS ASISTENCIAS
   const exportarMisAsistenciasAExcel = async (): Promise<void> => {
     if (!data || !misDatos || registros.length === 0) {
       setError({
@@ -695,50 +706,349 @@ const MisAsistencias = () => {
     setExportandoExcel(true);
 
     try {
+      // Crear el workbook
       const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet("Mis Registros de Asistencia");
+      const worksheet = workbook.addWorksheet("Mis Registros de Asistencia", {
+        pageSetup: {
+          paperSize: 9, // A4
+          orientation: "landscape",
+          fitToPage: true,
+          fitToWidth: 1,
+          fitToHeight: 0,
+          margins: {
+            left: 0.5,
+            right: 0.5,
+            top: 0.75,
+            bottom: 0.75,
+            header: 0.3,
+            footer: 0.3,
+          },
+        },
+      });
 
-      // Configurar columnas
+      // Configurar columnas con anchos apropiados
       worksheet.columns = [
-        { key: "fecha", width: 15 },
-        { key: "entradaProgramada", width: 16 },
-        { key: "entradaReal", width: 16 },
-        { key: "diferenciaEntrada", width: 15 },
-        { key: "estadoEntrada", width: 18 },
-        { key: "salidaProgramada", width: 16 },
-        { key: "salidaReal", width: 16 },
-        { key: "diferenciaSalida", width: 15 },
-        { key: "estadoSalida", width: 18 },
+        { key: "fecha", width: 12 },
+        { key: "entradaProgramada", width: 14 },
+        { key: "entradaReal", width: 14 },
+        { key: "diferenciaEntrada", width: 12 },
+        { key: "estadoEntrada", width: 16 },
+        { key: "salidaProgramada", width: 14 },
+        { key: "salidaReal", width: 14 },
+        { key: "diferenciaSalida", width: 12 },
+        { key: "estadoSalida", width: 16 },
       ];
+
+      // === SECCIÓN DE ENCABEZADO INSTITUCIONAL ===
 
       // Título principal
       worksheet.mergeCells("A1:I1");
       const tituloCell = worksheet.getCell("A1");
-      tituloCell.value = "MIS REGISTROS MENSUALES DE ASISTENCIA";
+      tituloCell.value = "I.E. 20935 ASUNCIÓN 8 - IMPERIAL, CAÑETE";
       tituloCell.style = {
         font: { size: 16, bold: true, color: { argb: "FFFFFF" } },
         fill: {
           type: "pattern",
           pattern: "solid",
-          fgColor: { argb: "1E40AF" },
+          fgColor: { argb: "059669" }, // Verde para "Mis Asistencias"
         },
         alignment: { horizontal: "center", vertical: "middle" },
+        border: {
+          top: { style: "medium", color: { argb: "000000" } },
+          left: { style: "medium", color: { argb: "000000" } },
+          bottom: { style: "medium", color: { argb: "000000" } },
+          right: { style: "medium", color: { argb: "000000" } },
+        },
       };
+      worksheet.getRow(1).height = 25;
 
-      // Información del usuario
+      // Aplicar bordes a todas las celdas del título
+      for (let col = 1; col <= 9; col++) {
+        const cell = worksheet.getCell(1, col);
+        cell.style = {
+          ...cell.style,
+          border: {
+            top: { style: "medium", color: { argb: "000000" } },
+            left: { style: "medium", color: { argb: "000000" } },
+            bottom: { style: "medium", color: { argb: "000000" } },
+            right: { style: "medium", color: { argb: "000000" } },
+          },
+        };
+      }
+
+      // Subtítulo
       worksheet.mergeCells("A2:I2");
-      const infoCell = worksheet.getCell("A2");
+      const subtituloCell = worksheet.getCell("A2");
+      subtituloCell.value = "MIS REGISTROS MENSUALES DE ASISTENCIA";
+      subtituloCell.style = {
+        font: { size: 14, bold: true, color: { argb: "FFFFFF" } },
+        fill: {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "10B981" }, // Verde más claro
+        },
+        alignment: { horizontal: "center", vertical: "middle" },
+        border: {
+          top: { style: "medium", color: { argb: "000000" } },
+          left: { style: "medium", color: { argb: "000000" } },
+          bottom: { style: "medium", color: { argb: "000000" } },
+          right: { style: "medium", color: { argb: "000000" } },
+        },
+      };
+      worksheet.getRow(2).height = 20;
+
+      // Aplicar bordes a todas las celdas del subtítulo
+      for (let col = 1; col <= 9; col++) {
+        const cell = worksheet.getCell(2, col);
+        cell.style = {
+          ...cell.style,
+          border: {
+            top: { style: "medium", color: { argb: "000000" } },
+            left: { style: "medium", color: { argb: "000000" } },
+            bottom: { style: "medium", color: { argb: "000000" } },
+            right: { style: "medium", color: { argb: "000000" } },
+          },
+        };
+      }
+
+      // === SECCIÓN DE INFORMACIÓN DEL USUARIO ===
+
+      // Espacio
+      worksheet.getRow(3).height = 5;
+
+      // Obtener rol legible
       const rolLegible =
         roles.find((r) => r.value === misDatos.Rol)?.label || misDatos.Rol;
-      infoCell.value = `${misDatos.Nombres} ${
-        misDatos.Apellidos
-      } - ${rolLegible} - ${mesesTextos[parseInt(selectedMes) as Meses]}`;
-      infoCell.style = {
-        font: { size: 12, bold: true },
-        alignment: { horizontal: "center", vertical: "middle" },
+
+      // Función helper para aplicar bordes a celdas combinadas
+      const aplicarBordesACeldasCombinadas = (rango: string, estilo: any) => {
+        const celdaInicial = worksheet.getCell(rango.split(":")[0]);
+        celdaInicial.style = estilo;
+
+        // Obtener todas las celdas en el rango
+        const startCol = Number(worksheet.getCell(rango.split(":")[0]).col);
+        const endCol = Number(worksheet.getCell(rango.split(":")[1]).col);
+        const row = Number(worksheet.getCell(rango.split(":")[0]).row);
+
+        for (let col = startCol; col <= endCol; col++) {
+          const cell = worksheet.getCell(row, col);
+          cell.style = { ...cell.style, border: estilo.border };
+        }
       };
 
-      // Encabezados
+      // Información del usuario en formato tabla
+      let filaActual = 4;
+
+      // Fila 1: NOMBRE COMPLETO y DNI
+      worksheet.mergeCells(`A${filaActual}:C${filaActual}`);
+      worksheet.mergeCells(`D${filaActual}:F${filaActual}`);
+      worksheet.mergeCells(`G${filaActual}:H${filaActual}`);
+
+      const nombreLabelCell = worksheet.getCell(`A${filaActual}`);
+      nombreLabelCell.value = "NOMBRE COMPLETO:";
+      aplicarBordesACeldasCombinadas(`A${filaActual}:C${filaActual}`, {
+        font: { bold: true, size: 10 },
+        fill: {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "E5E7EB" },
+        },
+        alignment: { horizontal: "left", vertical: "middle", indent: 1 },
+        border: {
+          top: { style: "thin", color: { argb: "000000" } },
+          left: { style: "thin", color: { argb: "000000" } },
+          bottom: { style: "thin", color: { argb: "000000" } },
+          right: { style: "thin", color: { argb: "000000" } },
+        },
+      });
+
+      const nombreValueCell = worksheet.getCell(`D${filaActual}`);
+      nombreValueCell.value = `${misDatos.Nombres} ${misDatos.Apellidos}`;
+      aplicarBordesACeldasCombinadas(`D${filaActual}:F${filaActual}`, {
+        font: { size: 10 },
+        alignment: { horizontal: "left", vertical: "middle", indent: 1 },
+        border: {
+          top: { style: "thin", color: { argb: "000000" } },
+          left: { style: "thin", color: { argb: "000000" } },
+          bottom: { style: "thin", color: { argb: "000000" } },
+          right: { style: "thin", color: { argb: "000000" } },
+        },
+      });
+
+      const dniLabelCell = worksheet.getCell(`G${filaActual}`);
+      dniLabelCell.value = "DNI:";
+      aplicarBordesACeldasCombinadas(`G${filaActual}:H${filaActual}`, {
+        font: { bold: true, size: 10 },
+        fill: {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "E5E7EB" },
+        },
+        alignment: { horizontal: "left", vertical: "middle", indent: 1 },
+        border: {
+          top: { style: "thin", color: { argb: "000000" } },
+          left: { style: "thin", color: { argb: "000000" } },
+          bottom: { style: "thin", color: { argb: "000000" } },
+          right: { style: "thin", color: { argb: "000000" } },
+        },
+      });
+
+      const dniValueCell = worksheet.getCell(`I${filaActual}`);
+      dniValueCell.value = misDatos.ID_O_DNI_Usuario;
+      dniValueCell.style = {
+        font: { size: 10 },
+        alignment: { horizontal: "left", vertical: "middle", indent: 1 },
+        border: {
+          top: { style: "thin", color: { argb: "000000" } },
+          left: { style: "thin", color: { argb: "000000" } },
+          bottom: { style: "thin", color: { argb: "000000" } },
+          right: { style: "thin", color: { argb: "000000" } },
+        },
+      };
+
+      filaActual++;
+
+      // Fila 2: ROL y MES
+      worksheet.mergeCells(`A${filaActual}:C${filaActual}`);
+      worksheet.mergeCells(`D${filaActual}:F${filaActual}`);
+      worksheet.mergeCells(`G${filaActual}:H${filaActual}`);
+
+      const rolLabelCell = worksheet.getCell(`A${filaActual}`);
+      rolLabelCell.value = "ROL:";
+      aplicarBordesACeldasCombinadas(`A${filaActual}:C${filaActual}`, {
+        font: { bold: true, size: 10 },
+        fill: {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "E5E7EB" },
+        },
+        alignment: { horizontal: "left", vertical: "middle", indent: 1 },
+        border: {
+          top: { style: "thin", color: { argb: "000000" } },
+          left: { style: "thin", color: { argb: "000000" } },
+          bottom: { style: "thin", color: { argb: "000000" } },
+          right: { style: "thin", color: { argb: "000000" } },
+        },
+      });
+
+      const rolValueCell = worksheet.getCell(`D${filaActual}`);
+      rolValueCell.value = rolLegible;
+      aplicarBordesACeldasCombinadas(`D${filaActual}:F${filaActual}`, {
+        font: { size: 10 },
+        alignment: { horizontal: "left", vertical: "middle", indent: 1 },
+        border: {
+          top: { style: "thin", color: { argb: "000000" } },
+          left: { style: "thin", color: { argb: "000000" } },
+          bottom: { style: "thin", color: { argb: "000000" } },
+          right: { style: "thin", color: { argb: "000000" } },
+        },
+      });
+
+      const mesLabelCell = worksheet.getCell(`G${filaActual}`);
+      mesLabelCell.value = "MES:";
+      aplicarBordesACeldasCombinadas(`G${filaActual}:H${filaActual}`, {
+        font: { bold: true, size: 10 },
+        fill: {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "E5E7EB" },
+        },
+        alignment: { horizontal: "left", vertical: "middle", indent: 1 },
+        border: {
+          top: { style: "thin", color: { argb: "000000" } },
+          left: { style: "thin", color: { argb: "000000" } },
+          bottom: { style: "thin", color: { argb: "000000" } },
+          right: { style: "thin", color: { argb: "000000" } },
+        },
+      });
+
+      const mesValueCell = worksheet.getCell(`I${filaActual}`);
+      mesValueCell.value = mesesTextos[parseInt(selectedMes) as Meses];
+      mesValueCell.style = {
+        font: { size: 10 },
+        alignment: { horizontal: "left", vertical: "middle", indent: 1 },
+        border: {
+          top: { style: "thin", color: { argb: "000000" } },
+          left: { style: "thin", color: { argb: "000000" } },
+          bottom: { style: "thin", color: { argb: "000000" } },
+          right: { style: "thin", color: { argb: "000000" } },
+        },
+      };
+
+      filaActual++;
+
+      // Fila 3: TOTAL REGISTROS y FECHA GENERACIÓN
+      worksheet.mergeCells(`A${filaActual}:C${filaActual}`);
+      worksheet.mergeCells(`D${filaActual}:F${filaActual}`);
+      worksheet.mergeCells(`G${filaActual}:H${filaActual}`);
+
+      const totalLabelCell = worksheet.getCell(`A${filaActual}`);
+      totalLabelCell.value = "TOTAL REGISTROS:";
+      aplicarBordesACeldasCombinadas(`A${filaActual}:C${filaActual}`, {
+        font: { bold: true, size: 10 },
+        fill: {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "E5E7EB" },
+        },
+        alignment: { horizontal: "left", vertical: "middle", indent: 1 },
+        border: {
+          top: { style: "thin", color: { argb: "000000" } },
+          left: { style: "thin", color: { argb: "000000" } },
+          bottom: { style: "thin", color: { argb: "000000" } },
+          right: { style: "thin", color: { argb: "000000" } },
+        },
+      });
+
+      const totalValueCell = worksheet.getCell(`D${filaActual}`);
+      totalValueCell.value = registros.length.toString();
+      aplicarBordesACeldasCombinadas(`D${filaActual}:F${filaActual}`, {
+        font: { size: 10 },
+        alignment: { horizontal: "left", vertical: "middle", indent: 1 },
+        border: {
+          top: { style: "thin", color: { argb: "000000" } },
+          left: { style: "thin", color: { argb: "000000" } },
+          bottom: { style: "thin", color: { argb: "000000" } },
+          right: { style: "thin", color: { argb: "000000" } },
+        },
+      });
+
+      const fechaGenLabelCell = worksheet.getCell(`G${filaActual}`);
+      fechaGenLabelCell.value = "FECHA GENERACIÓN:";
+      aplicarBordesACeldasCombinadas(`G${filaActual}:H${filaActual}`, {
+        font: { bold: true, size: 10 },
+        fill: {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "E5E7EB" },
+        },
+        alignment: { horizontal: "left", vertical: "middle", indent: 1 },
+        border: {
+          top: { style: "thin", color: { argb: "000000" } },
+          left: { style: "thin", color: { argb: "000000" } },
+          bottom: { style: "thin", color: { argb: "000000" } },
+          right: { style: "thin", color: { argb: "000000" } },
+        },
+      });
+
+      const fechaGenValueCell = worksheet.getCell(`I${filaActual}`);
+      fechaGenValueCell.value = new Date().toLocaleDateString("es-ES");
+      fechaGenValueCell.style = {
+        font: { size: 10 },
+        alignment: { horizontal: "left", vertical: "middle", indent: 1 },
+        border: {
+          top: { style: "thin", color: { argb: "000000" } },
+          left: { style: "thin", color: { argb: "000000" } },
+          bottom: { style: "thin", color: { argb: "000000" } },
+          right: { style: "thin", color: { argb: "000000" } },
+        },
+      };
+
+      // Espacio antes de la tabla
+      filaActual += 2;
+
+      // === SECCIÓN DE ENCABEZADOS DE LA TABLA ===
+
       const encabezados = [
         "FECHA",
         "ENTRADA\nPROGRAMADA",
@@ -751,11 +1061,12 @@ const MisAsistencias = () => {
         "ESTADO\nSALIDA",
       ];
 
+      const filaEncabezados = filaActual;
       encabezados.forEach((encabezado, index) => {
-        const cell = worksheet.getCell(4, index + 1);
+        const cell = worksheet.getCell(filaEncabezados, index + 1);
         cell.value = encabezado;
         cell.style = {
-          font: { bold: true, size: 10, color: { argb: "FFFFFF" } },
+          font: { bold: true, size: 9, color: { argb: "FFFFFF" } },
           fill: {
             type: "pattern",
             pattern: "solid",
@@ -766,45 +1077,442 @@ const MisAsistencias = () => {
             vertical: "middle",
             wrapText: true,
           },
+          border: {
+            top: { style: "medium", color: { argb: "000000" } },
+            left: { style: "thin", color: { argb: "000000" } },
+            bottom: { style: "medium", color: { argb: "000000" } },
+            right: { style: "thin", color: { argb: "000000" } },
+          },
         };
       });
 
-      // Datos
+      worksheet.getRow(filaEncabezados).height = 30;
+
+      // === SECCIÓN DE DATOS ===
+
+      let filaData = filaEncabezados + 1;
+
+      // Mapeo de estados a colores para Excel
+      const COLORES_ESTADOS_EXCEL = {
+        [EstadosAsistenciaPersonal.En_Tiempo]: {
+          background: "D4F7D4",
+          font: "047857",
+          nombre: "En tiempo",
+        },
+        [EstadosAsistenciaPersonal.Temprano]: {
+          background: "BFDBFE",
+          font: "1E40AF",
+          nombre: "Temprano",
+        },
+        [EstadosAsistenciaPersonal.Tarde]: {
+          background: "FED7BA",
+          font: "C2410C",
+          nombre: "Tarde",
+        },
+        [EstadosAsistenciaPersonal.Cumplido]: {
+          background: "D4F7D4",
+          font: "047857",
+          nombre: "Cumplido",
+        },
+        [EstadosAsistenciaPersonal.Salida_Anticipada]: {
+          background: "FEF3C7",
+          font: "A16207",
+          nombre: "Salida anticipada",
+        },
+        [EstadosAsistenciaPersonal.Falta]: {
+          background: "FECACA",
+          font: "DC2626",
+          nombre: "Falta",
+        },
+        [EstadosAsistenciaPersonal.No_Registrado]: {
+          background: "F3F4F6",
+          font: "6B7280",
+          nombre: "No registrado",
+        },
+        [EstadosAsistenciaPersonal.Sin_Registro]: {
+          background: "F3F4F6",
+          font: "6B7280",
+          nombre: "Sin registro",
+        },
+        [EstadosAsistenciaPersonal.Inactivo]: {
+          background: "E5E7EB",
+          font: "4B5563",
+          nombre: "Inactivo",
+        },
+        [EstadosAsistenciaPersonal.Evento]: {
+          background: "DDD6FE",
+          font: "7C3AED",
+          nombre: "Evento",
+        },
+        [EstadosAsistenciaPersonal.Otro]: {
+          background: "F3F4F6",
+          font: "6B7280",
+          nombre: "Otro",
+        },
+      };
+
       registros.forEach((registro, index) => {
-        const fila = worksheet.getRow(index + 5);
-        fila.values = [
-          new Date(registro.fecha + "T00:00:00").toLocaleDateString("es-ES"),
-          registro.entradaProgramada,
-          registro.entradaReal,
-          registro.diferenciaEntrada,
-          mapearEstadoParaUI(registro.estadoEntrada),
-          registro.salidaProgramada,
-          registro.salidaReal,
-          registro.diferenciaSalida,
-          mapearEstadoParaUI(registro.estadoSalida),
-        ];
+        const fila = worksheet.getRow(filaData);
+
+        // Determinar color de fondo de la fila
+        let colorFondo = index % 2 === 0 ? "FFFFFF" : "F9FAFB";
+
+        // Colores especiales
+        if (registro.esEvento) {
+          colorFondo = "DDD6FE"; // violeta claro para eventos
+        } else if (registro.esDiaNoEscolar && !registro.esEvento) {
+          colorFondo = "EBF8FF"; // azul claro para fines de semana
+        }
+
+        // Fecha
+        const fechaCell = fila.getCell(1);
+        let textoFecha = new Date(
+          registro.fecha + "T00:00:00"
+        ).toLocaleDateString("es-ES", {
+          weekday: "short",
+          day: "2-digit",
+          month: "2-digit",
+        });
+
+        if (registro.esEvento) {
+          textoFecha += `\n🎉 ${registro.nombreEvento}`;
+        } else if (registro.esDiaNoEscolar) {
+          textoFecha += "\n📅 Fin de semana";
+        }
+
+        fechaCell.value = textoFecha;
+        fechaCell.style = {
+          font: { size: 8 },
+          fill: {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: colorFondo },
+          },
+          alignment: {
+            horizontal: "center",
+            vertical: "middle",
+            wrapText: true,
+          },
+          border: {
+            top: { style: "thin", color: { argb: "000000" } },
+            left: { style: "thin", color: { argb: "000000" } },
+            bottom: { style: "thin", color: { argb: "000000" } },
+            right: { style: "thin", color: { argb: "000000" } },
+          },
+        };
+
+        // Función para aplicar estilo estándar a celdas
+        const aplicarEstiloEstandar = (celda: any, valor: string) => {
+          celda.value = valor;
+          celda.style = {
+            font: { size: 8 },
+            fill: {
+              type: "pattern",
+              pattern: "solid",
+              fgColor: { argb: colorFondo },
+            },
+            alignment: { horizontal: "center", vertical: "middle" },
+            border: {
+              top: { style: "thin", color: { argb: "000000" } },
+              left: { style: "thin", color: { argb: "000000" } },
+              bottom: { style: "thin", color: { argb: "000000" } },
+              right: { style: "thin", color: { argb: "000000" } },
+            },
+          };
+        };
+
+        // Aplicar datos con estilo estándar
+        aplicarEstiloEstandar(fila.getCell(2), registro.entradaProgramada);
+        aplicarEstiloEstandar(fila.getCell(3), registro.entradaReal);
+        aplicarEstiloEstandar(fila.getCell(4), registro.diferenciaEntrada);
+        aplicarEstiloEstandar(fila.getCell(6), registro.salidaProgramada);
+        aplicarEstiloEstandar(fila.getCell(7), registro.salidaReal);
+        aplicarEstiloEstandar(fila.getCell(8), registro.diferenciaSalida);
+
+        // Estado Entrada (con color específico)
+        const estadoEntradaCell = fila.getCell(5);
+        const colorEstadoEntrada =
+          COLORES_ESTADOS_EXCEL[registro.estadoEntrada];
+        estadoEntradaCell.value = colorEstadoEntrada.nombre;
+        estadoEntradaCell.style = {
+          font: {
+            size: 8,
+            bold: true,
+            color: { argb: colorEstadoEntrada.font },
+          },
+          fill: {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: colorEstadoEntrada.background },
+          },
+          alignment: { horizontal: "center", vertical: "middle" },
+          border: {
+            top: { style: "thin", color: { argb: "000000" } },
+            left: { style: "thin", color: { argb: "000000" } },
+            bottom: { style: "thin", color: { argb: "000000" } },
+            right: { style: "thin", color: { argb: "000000" } },
+          },
+        };
+
+        // Estado Salida (con color específico)
+        const estadoSalidaCell = fila.getCell(9);
+        const colorEstadoSalida = COLORES_ESTADOS_EXCEL[registro.estadoSalida];
+        estadoSalidaCell.value = colorEstadoSalida.nombre;
+        estadoSalidaCell.style = {
+          font: {
+            size: 8,
+            bold: true,
+            color: { argb: colorEstadoSalida.font },
+          },
+          fill: {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: colorEstadoSalida.background },
+          },
+          alignment: { horizontal: "center", vertical: "middle" },
+          border: {
+            top: { style: "thin", color: { argb: "000000" } },
+            left: { style: "thin", color: { argb: "000000" } },
+            bottom: { style: "thin", color: { argb: "000000" } },
+            right: { style: "thin", color: { argb: "000000" } },
+          },
+        };
+
+        fila.height = 20;
+        filaData++;
       });
 
-      // Generar y descargar
-      const buffer = await workbook.xlsx.writeBuffer();
-      const nombreFinal = `Mis_Asistencias_${
+      // === SECCIÓN DE RESUMEN ESTADÍSTICO ===
+
+      filaData += 1;
+
+      // Calcular estadísticas
+      const totalAsistencias = registros.filter(
+        (r) =>
+          r.estadoEntrada === EstadosAsistenciaPersonal.En_Tiempo ||
+          r.estadoEntrada === EstadosAsistenciaPersonal.Temprano
+      ).length;
+
+      const totalTardanzas = registros.filter(
+        (r) => r.estadoEntrada === EstadosAsistenciaPersonal.Tarde
+      ).length;
+
+      const totalFaltas = registros.filter(
+        (r) => r.estadoEntrada === EstadosAsistenciaPersonal.Falta
+      ).length;
+
+      const totalEventos = registros.filter((r) => r.esEvento).length;
+
+      // Título del resumen
+      worksheet.mergeCells(`A${filaData}:I${filaData}`);
+      const resumenTituloCell = worksheet.getCell(`A${filaData}`);
+      resumenTituloCell.value = "RESUMEN ESTADÍSTICO";
+      resumenTituloCell.style = {
+        font: { size: 12, bold: true, color: { argb: "FFFFFF" } },
+        fill: {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "059669" }, // Verde consistente con el tema
+        },
+        alignment: { horizontal: "center", vertical: "middle" },
+        border: {
+          top: { style: "medium", color: { argb: "000000" } },
+          left: { style: "medium", color: { argb: "000000" } },
+          bottom: { style: "medium", color: { argb: "000000" } },
+          right: { style: "medium", color: { argb: "000000" } },
+        },
+      };
+      worksheet.getRow(filaData).height = 20;
+
+      // Aplicar bordes a todas las celdas del rango combinado del título
+      for (let col = 1; col <= 9; col++) {
+        const cell = worksheet.getCell(filaData, col);
+        cell.style = {
+          ...cell.style,
+          border: {
+            top: { style: "medium", color: { argb: "000000" } },
+            left: { style: "medium", color: { argb: "000000" } },
+            bottom: { style: "medium", color: { argb: "000000" } },
+            right: { style: "medium", color: { argb: "000000" } },
+          },
+        };
+      }
+      filaData++;
+
+      // Datos del resumen en tabla
+      const datosResumen = [
+        {
+          concepto: "Total Asistencias:",
+          valor: totalAsistencias,
+          color: "D4F7D4",
+        },
+        {
+          concepto: "Total Tardanzas:",
+          valor: totalTardanzas,
+          color: "FED7BA",
+        },
+        { concepto: "Total Faltas:", valor: totalFaltas, color: "FECACA" },
+        { concepto: "Días de Evento:", valor: totalEventos, color: "DDD6FE" },
+      ];
+
+      datosResumen.forEach((dato) => {
+        // Combinar celdas primero
+        worksheet.mergeCells(`A${filaData}:G${filaData}`);
+        worksheet.mergeCells(`H${filaData}:I${filaData}`);
+
+        const conceptoCell = worksheet.getCell(`A${filaData}`);
+        conceptoCell.value = dato.concepto;
+        aplicarBordesACeldasCombinadas(`A${filaData}:G${filaData}`, {
+          font: { bold: true, size: 10 },
+          fill: {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "F3F4F6" },
+          },
+          alignment: { horizontal: "left", vertical: "middle", indent: 1 },
+          border: {
+            top: { style: "thin", color: { argb: "000000" } },
+            left: { style: "thin", color: { argb: "000000" } },
+            bottom: { style: "thin", color: { argb: "000000" } },
+            right: { style: "thin", color: { argb: "000000" } },
+          },
+        });
+
+        const valorCell = worksheet.getCell(`H${filaData}`);
+        valorCell.value = dato.valor;
+        aplicarBordesACeldasCombinadas(`H${filaData}:I${filaData}`, {
+          font: { bold: true, size: 10 },
+          fill: {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: dato.color },
+          },
+          alignment: { horizontal: "center", vertical: "middle" },
+          border: {
+            top: { style: "thin", color: { argb: "000000" } },
+            left: { style: "thin", color: { argb: "000000" } },
+            bottom: { style: "thin", color: { argb: "000000" } },
+            right: { style: "thin", color: { argb: "000000" } },
+          },
+        });
+
+        filaData++;
+      });
+
+      // Información de generación
+      filaData += 1;
+      worksheet.mergeCells(`A${filaData}:I${filaData}`);
+      const infoGenCell = worksheet.getCell(`A${filaData}`);
+      infoGenCell.value = `Documento generado automáticamente el ${new Date().toLocaleString(
+        "es-ES"
+      )} | Sistema SIASIS - I.E. 20935 Asunción 8`;
+      infoGenCell.style = {
+        font: { size: 8, italic: true },
+        fill: {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "F9FAFB" },
+        },
+        alignment: { horizontal: "center", vertical: "middle" },
+        border: {
+          top: { style: "thin", color: { argb: "000000" } },
+          left: { style: "thin", color: { argb: "000000" } },
+          bottom: { style: "thin", color: { argb: "000000" } },
+          right: { style: "thin", color: { argb: "000000" } },
+        },
+      };
+
+      // Aplicar bordes a todas las celdas del rango combinado de la información de generación
+      for (let col = 1; col <= 9; col++) {
+        const cell = worksheet.getCell(filaData, col);
+        cell.style = {
+          ...cell.style,
+          border: {
+            top: { style: "thin", color: { argb: "000000" } },
+            left: { style: "thin", color: { argb: "000000" } },
+            bottom: { style: "thin", color: { argb: "000000" } },
+            right: { style: "thin", color: { argb: "000000" } },
+          },
+        };
+      }
+
+      // === GENERAR Y GUARDAR ARCHIVO CON DIÁLOGO ===
+
+      const nombreFinal = `Mis_Asistencias_${misDatos.Nombres.replace(
+        /\s+/g,
+        "_"
+      )}_${
         mesesTextos[parseInt(selectedMes) as Meses]
       }_${new Date().getFullYear()}`;
 
-      const blob = new Blob([buffer], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      });
+      // Generar buffer
+      const buffer = await workbook.xlsx.writeBuffer();
 
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${nombreFinal}.xlsx`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      // 🔍 DEBUG: Logs detallados para diagnosticar
+      console.log("🔍 === INICIANDO PROCESO DE GUARDADO ===");
+      console.log(
+        "- API showSaveFilePicker disponible:",
+        "showSaveFilePicker" in window
+      );
+      console.log("- Protocolo actual:", window.location.protocol);
+      console.log("- Hostname actual:", window.location.hostname);
+      console.log("- Es contexto seguro:", window.isSecureContext);
+      console.log("- Tamaño del buffer:", buffer.byteLength, "bytes");
 
-      setSuccessMessage("✅ Mis asistencias exportadas exitosamente");
+      // ✅ VERIFICACIÓN EXPLÍCITA: Solo usar File System Access API si está realmente disponible
+      const tieneFileSystemAPI = "showSaveFilePicker" in window;
+
+      if (tieneFileSystemAPI) {
+        console.log("🚀 === INTENTANDO FILE SYSTEM ACCESS API ===");
+
+        try {
+          console.log("📂 Mostrando diálogo de guardar...");
+
+          // Usar la nueva API de File System Access
+          const fileHandle = await (window as any).showSaveFilePicker({
+            suggestedName: `${nombreFinal}.xlsx`,
+            types: [
+              {
+                description: "Archivos Excel",
+                accept: {
+                  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+                    [".xlsx"],
+                },
+              },
+            ],
+          });
+
+          console.log("✅ Usuario seleccionó ubicación:", fileHandle.name);
+          console.log("💾 Escribiendo archivo...");
+
+          const writable = await fileHandle.createWritable();
+          await writable.write(buffer);
+          await writable.close();
+
+          console.log("🎉 === ARCHIVO GUARDADO EXITOSAMENTE ===");
+          setSuccessMessage("✅ Mis asistencias exportadas exitosamente");
+        } catch (error: any) {
+          console.log("❌ === ERROR EN FILE SYSTEM ACCESS API ===");
+          console.log("- Tipo de error:", error.name);
+          console.log("- Mensaje:", error.message);
+          console.log("- Error completo:", error);
+
+          if (error.name === "AbortError") {
+            console.log("👤 Usuario canceló el diálogo de guardar");
+            setSuccessMessage("❌ Operación cancelada por el usuario");
+          } else {
+            console.log("🔄 Fallback a descarga tradicional...");
+            downloadTraditional(buffer, nombreFinal);
+          }
+        }
+      } else {
+        console.log("⚠️ === FILE SYSTEM ACCESS API NO DISPONIBLE ===");
+        console.log("🔄 Usando descarga tradicional...");
+        downloadTraditional(buffer, nombreFinal);
+      }
+
+      // Limpiar mensaje después de 4 segundos
+      setTimeout(() => setSuccessMessage(""), 4000);
     } catch (error) {
       console.error("❌ Error al exportar mis asistencias:", error);
       setError({
@@ -816,6 +1524,23 @@ const MisAsistencias = () => {
     }
   };
 
+  // Función helper para descarga tradicional
+  const downloadTraditional = (buffer: ArrayBuffer, nombreFinal: string) => {
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${nombreFinal}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    setSuccessMessage("✅ Mis asistencias exportadas exitosamente");
+  };
   // ✅ Función auxiliar para limpiar resultados
   const limpiarResultados = () => {
     setData(null);
