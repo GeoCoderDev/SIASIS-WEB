@@ -500,13 +500,14 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
               asistencia usando <br />
               <b>coordenadas de prueba</b>.
               <br />
-              <br />
+              {/* <br />
               <span className="text-purple-600">
                 <b>🎭 Modo TESTING</b> (Entorno: {ENTORNO})
-              </span>
+              </span> */}
             </>
           ),
-          boton: "🎭 Registrar (Modo Testing)",
+          // boton: "🎭 Registrar (Modo Testing)",
+          boton: `Registrar ${modoRegistroTextos[modoRegistro]}`,
         };
       } else {
         return {
