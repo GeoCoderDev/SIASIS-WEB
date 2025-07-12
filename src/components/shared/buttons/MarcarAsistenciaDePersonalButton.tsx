@@ -68,7 +68,7 @@ interface MensajeInformativo {
 
 // ✅ CONSTANTES
 const RETRY_HORARIO_MS = 30000; // 30 segundos
-const TIMEOUT_EMERGENCIA_REINTENTO_MS = 3700; // 3.7 segundos
+const TIMEOUT_EMERGENCIA_REINTENTO_MS = 3800; // 3.8 segundos
 
 // ✅ SELECTOR OPTIMIZADO - Solo para hora/minuto (NO cada segundo)
 const selectHoraMinutoActual = (state: RootState) => {
