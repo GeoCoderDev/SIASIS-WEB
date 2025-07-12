@@ -10,6 +10,9 @@ import allSiasisModules from "@/Assets/routes/modules.routes";
 import { useDelegacionEventos } from "@/hooks/useDelegacionDeEventos";
 import { setNavBarFooterHeight } from "@/global/state/ElementDimensions/navBarFooterHeight";
 import { setSidebarIsOpen } from "@/global/state/Flags/sidebarIsOpen";
+import EstadoDeAsistenciaSegunHorarioDeAsistencia from "../messages/EstadoDeAsistenciaSegunHorarioDeAsistencia";
+import MarcarAsistenciaDePersonalButton from "../buttons/MarcarAsistenciaDePersonalButton";
+import { useAsistenciaCompartida } from "@/hooks/asistencia-personal-no-directivo/useAsistenciaCompartida";
 
 // Estilos uniformes para todos los contenedores de navegación
 const getUniformContainerStyles = (itemsCount: number) => {
@@ -116,6 +119,9 @@ const NavBarFooter = ({ Rol }: { Rol: RolesSistema }) => {
   const { delegarEvento } = useDelegacionEventos();
   const dispatch = useDispatch<AppDispatch>();
 
+  // ✅ NUEVA LÍNEA: Hook compartido para evitar doble consulta
+  const datosAsistencia = useAsistenciaCompartida(Rol);
+
   useEffect(() => {
     if (!delegarEvento) return;
 
@@ -159,21 +165,31 @@ const NavBarFooter = ({ Rol }: { Rol: RolesSistema }) => {
 
   return (
     <>
+      {/* ✅ PASAMOS LOS DATOS COMPARTIDOS AL BOTÓN FLOTANTE */}
+      {Rol !== RolesSistema.Responsable && (
+        <MarcarAsistenciaDePersonalButton
+          rol={Rol}
+          datosAsistencia={datosAsistencia}
+        />
+      )}
       <nav
-        className={`shadow-[0_0_12px_4px_rgba(0,0,0,0.20)] 
-        animate__animated fixed
+        className={`max-w-[100vw] w-full z-[101] bottom-0 left-0 bg-white shadow-[0_0_12px_4px_rgba(0,0,0,0.20)] animate__animated fixed
         ${
           montado && navBarFooterIsOpen
             ? "animate__slideInUp sticky"
             : "animate__slideOutDown"
         } 
-        [animation-duration:150ms] 
-        flex items-center justify-center 
-        max-w-[100vw] w-full 
-         z-[101] bottom-0 left-0 bg-white
-      `}
+        [animation-duration:150ms] `}
       >
-        {getNavBarFooterByRol(Rol, pathname)}
+        {/* ✅ PASAMOS LOS DATOS COMPARTIDOS AL COMPONENTE DE ESTADO */}
+        {Rol !== RolesSistema.Responsable && (
+          <EstadoDeAsistenciaSegunHorarioDeAsistencia
+            datosAsistencia={datosAsistencia}
+          />
+        )}
+        <div className="flex items-center justify-center">
+          {getNavBarFooterByRol(Rol, pathname)}
+        </div>
       </nav>
     </>
   );

@@ -3,7 +3,6 @@ import React from "react";
 import Header from "./Header";
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import NavBarFooter from "./NavBarFooter";
-import MarcarAsistenciaDePersonalButton from "../buttons/MarcarAsistenciaDePersonalButton";
 
 const PlantillaTutor = ({
   children,
@@ -30,7 +29,7 @@ const PlantillaTutor = ({
       <main className=" py-4 px-4 min-h-full min-w-full flex justify-center items-center">
         {children}
       </main>
-      <MarcarAsistenciaDePersonalButton rol={RolesSistema.Tutor} />
+      
       <NavBarFooter Rol={RolesSistema.Tutor} />
     </main>
   );

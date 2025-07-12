@@ -3,7 +3,6 @@ import React from "react";
 import Header from "./Header";
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import NavBarFooter from "./NavBarFooter";
-import MarcarAsistenciaDePersonalButton from "../buttons/MarcarAsistenciaDePersonalButton";
 
 const PlantillaProfesorPrimaria = ({
   children,
@@ -31,7 +30,6 @@ const PlantillaProfesorPrimaria = ({
         {children}
       </main>
 
-      <MarcarAsistenciaDePersonalButton rol={RolesSistema.ProfesorPrimaria} />
       <NavBarFooter Rol={RolesSistema.ProfesorPrimaria} />
     </main>
   );

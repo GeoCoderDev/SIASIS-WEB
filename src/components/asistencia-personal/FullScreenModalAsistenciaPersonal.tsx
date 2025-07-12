@@ -10,7 +10,7 @@ import userStorage from "@/lib/utils/local/db/models/UserStorage";
 import { RolBoton } from "../shared/buttons/RolButton";
 import { FechaHoraActualRealState } from "@/global/state/others/fechaHoraActualReal";
 import { determinarPeriodoDia } from "@/lib/calc/determinarPeriodoDia";
-import { saludosDia } from "@/Assets/voice/others/SaludosDIa";
+import { saludosDia } from "@/Assets/voice/others/SaludosDia";
 import { TiempoRestante } from "@/lib/calc/time/tiempoRestanteHasta";
 import VolverIcon from "../icons/VolverIcon";
 import { ListaPersonal, obtenerTextoRol } from "./ListadoPersonal";

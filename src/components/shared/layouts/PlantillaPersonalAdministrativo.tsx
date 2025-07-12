@@ -3,7 +3,6 @@ import React from "react";
 import Header from "./Header";
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import NavBarFooter from "./NavBarFooter";
-import MarcarAsistenciaDePersonalButton from "../buttons/MarcarAsistenciaDePersonalButton";
 
 const PlantillaPersonalAdministrativo = ({
   children,
@@ -28,9 +27,7 @@ const PlantillaPersonalAdministrativo = ({
         Google_Drive_Foto_ID={Google_Drive_Foto_ID}
       />
       <main className=" py-4 px-4 min-h-full min-w-full flex justify-center items-center">{children}</main>
-      <MarcarAsistenciaDePersonalButton
-        rol={RolesSistema.PersonalAdministrativo}
-      />
+
       <NavBarFooter Rol={RolesSistema.PersonalAdministrativo} />
     </main>
   );

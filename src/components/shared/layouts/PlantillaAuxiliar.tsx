@@ -3,7 +3,6 @@ import React from "react";
 import Header from "./Header";
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import NavBarFooter from "./NavBarFooter";
-import MarcarAsistenciaDePersonalButton from "../buttons/MarcarAsistenciaDePersonalButton";
 
 const PlantillaAuxiliar = ({
   children,
@@ -31,7 +30,6 @@ const PlantillaAuxiliar = ({
         {children}
       </main>
 
-      <MarcarAsistenciaDePersonalButton rol={RolesSistema.Auxiliar} />
       <NavBarFooter Rol={RolesSistema.Auxiliar} />
     </main>
   );

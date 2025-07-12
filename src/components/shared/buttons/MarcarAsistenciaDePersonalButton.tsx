@@ -2,30 +2,13 @@
 import LapizFirmando from "@/components/icons/LapizFirmando";
 import MarcarAsistenciaPropiaDePersonalModal from "@/components/modals/AsistenciaPropiaPersonal/MarcarAsistenciaPropiaDePersonalModal";
 import store, { RootState } from "@/global/store";
-import React, { useState, useEffect, useCallback, useRef, memo } from "react";
+import React, { useState, useEffect, useCallback, memo } from "react";
 import { useSelector } from "react-redux";
 import { SE_MOSTRO_TOLTIP_TOMAR_ASISTENCIA_PERSONAL_KEY } from "../PlantillaLogin";
 import { useDelegacionEventos } from "@/hooks/useDelegacionDeEventos";
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import { AsistenciaDePersonalIDB } from "@/lib/utils/local/db/models/AsistenciaDePersonal/AsistenciaDePersonalIDB";
-import { DatosAsistenciaHoyIDB } from "@/lib/utils/local/db/models/DatosAsistenciaHoy/DatosAsistenciaHoyIDB";
-import { HandlerAsistenciaBase } from "@/lib/utils/local/db/models/DatosAsistenciaHoy/handlers/HandlerDatosAsistenciaBase";
-import { HandlerProfesorPrimariaAsistenciaResponse } from "@/lib/utils/local/db/models/DatosAsistenciaHoy/handlers/HandlerProfesorPrimariaAsistenciaResponse";
-import { HorarioTomaAsistencia } from "@/interfaces/shared/Asistencia/DatosAsistenciaHoyIE20935";
-import { HandlerAuxiliarAsistenciaResponse } from "../../../lib/utils/local/db/models/DatosAsistenciaHoy/handlers/HandlerAuxiliarAsistenciaResponse";
-import { HandlerProfesorTutorSecundariaAsistenciaResponse } from "@/lib/utils/local/db/models/DatosAsistenciaHoy/handlers/HandlerProfesorTutorSecundariaAsistenciaResponse";
-import { HandlerPersonalAdministrativoAsistenciaResponse } from "@/lib/utils/local/db/models/DatosAsistenciaHoy/handlers/HandlerPersonalAdministrativoAsistenciaResponse";
-import {
-  ModoRegistro,
-  modoRegistroTextos,
-} from "@/interfaces/shared/ModoRegistroPersonal";
-
-import {
-  HORAS_ANTES_INICIO_ACTIVACION,
-  HORAS_ANTES_SALIDA_CAMBIO_MODO,
-  HORAS_DESPUES_SALIDA_LIMITE,
-  INTERVALO_CONSULTA_ASISTENCIA_OPTIMIZADO_MS,
-} from "@/constants/INTERVALOS_CONSULTAS_ASISTENCIAS_PROPIAS_PARA_PERSONAL_NO_DIRECTIVO";
+import { ModoRegistro, modoRegistroTextos } from "@/interfaces/shared/ModoRegistroPersonal";
 import ConfirmacionAsistenciaMarcadaModal from "@/components/modals/AsistenciaPropiaPersonal/ConfirmacionAsistenciaMarcadaModal";
 import ActivarGPSoBrindarPermisosGPSModal from "@/components/modals/AsistenciaPropiaPersonal/ActivarGPSAsistenciaPropia";
 import FalloConexionAInternetAlMarcarAsistenciaPropiaModal from "@/components/modals/AsistenciaPropiaPersonal/ConexionInternetMarcarAsistenciaPropia";
@@ -33,26 +16,15 @@ import ErrorGenericoAlRegistrarAsistenciaPropiaModal from "@/components/modals/A
 import UbicacionFueraDelColegioAlRegistrarAsistenciaPropiaModal from "@/components/modals/AsistenciaPropiaPersonal/UbicacionFueraDelColegioAlRegistrarAsistenciaPropiaModal";
 import NoSePuedeUsarLaptopParaAsistenciaModal from "@/components/modals/AsistenciaPropiaPersonal/NoSePuedeUsarLaptopParaAsistenciaModal";
 import DispositivoSinGPSModal from "@/components/modals/AsistenciaPropiaPersonal/DispositivoSinGPSModal";
+import { DatosAsistenciaCompartidos } from "@/hooks/asistencia-personal-no-directivo/useAsistenciaCompartida";
 
 // ✅ INTERFACES SIMPLIFICADAS
-interface EstadoAsistencia {
-  entradaMarcada: boolean;
-  salidaMarcada: boolean;
-  inicializado: boolean;
-}
-
 interface EstadoBoton {
   visible: boolean;
   tipo: ModoRegistro | null;
   color: "verde" | "rojizo" | "carga";
   tooltip: string;
   esCarga: boolean;
-}
-
-interface ModoActual {
-  activo: boolean;
-  tipo: ModoRegistro | null;
-  razon: string;
 }
 
 interface MensajeInformativo {
@@ -66,29 +38,7 @@ interface MensajeInformativo {
     | "fecha-no-disponible";
 }
 
-// ✅ CONSTANTES
-const RETRY_HORARIO_MS = 30000; // 30 segundos
-const TIMEOUT_EMERGENCIA_REINTENTO_MS = 3800; // 3.8 segundos
-
-// ✅ SELECTOR OPTIMIZADO - Solo para hora/minuto (NO cada segundo)
-const selectHoraMinutoActual = (state: RootState) => {
-  const fechaHora = state.others.fechaHoraActualReal.fechaHora;
-  if (!fechaHora) return null;
-
-  const fecha = new Date(fechaHora);
-  fecha.setHours(fecha.getHours() - 5); // Corregir zona horaria
-
-  // ✅ CLAVE: Solo retornar timestamp redondeado a MINUTOS (no segundos)
-  const timestamp = Math.floor(fecha.getTime() / 60000) * 60000; // Redondear a minutos
-
-  return {
-    fecha,
-    timestamp, // Solo cambia cada minuto
-    hora: fecha.getHours(),
-    minuto: fecha.getMinutes(),
-  };
-};
-
+// ✅ SELECTOR OPTIMIZADO
 const selectSidebar = (state: RootState) => ({
   height: state.elementsDimensions.navBarFooterHeight,
   isOpen: state.flags.sidebarIsOpen,
@@ -213,23 +163,22 @@ const MensajeInformativoAsistencia = memo(
 MensajeInformativoAsistencia.displayName = "MensajeInformativoAsistencia";
 
 const MarcarAsistenciaDePersonalButton = memo(
-  ({ rol }: { rol: RolesSistema }) => {
+  ({ 
+    rol, 
+    datosAsistencia 
+  }: { 
+    rol: RolesSistema;
+    datosAsistencia: DatosAsistenciaCompartidos;
+  }) => {
     const { delegarEvento } = useDelegacionEventos();
-    const selectReduxInicializado = (state: RootState) =>
-      state.others.fechaHoraActualReal.inicializado;
+    
     // ✅ SELECTORES
-    const horaMinutoActual = useSelector(selectHoraMinutoActual);
-    const reduxInicializado = useSelector(selectReduxInicializado);
     const sidebar = useSelector(selectSidebar);
 
-    // ✅ ESTADOS PRINCIPALES
-    const [horario, setHorario] = useState<HorarioTomaAsistencia | null>(null);
-    const [asistencia, setAsistencia] = useState<EstadoAsistencia>({
-      entradaMarcada: false,
-      salidaMarcada: false,
-      inicializado: false,
-    });
+    // ✅ EXTRAER DATOS DEL HOOK COMPARTIDO (NO MÁS CONSULTAS PROPIAS)
+    const { horario, handlerBase, asistencia, modoActual, inicializado } = datosAsistencia;
 
+    // ✅ ESTADOS SIMPLIFICADOS (SIN LÓGICA DE CONSULTA)
     const [estadoBoton, setEstadoBoton] = useState<EstadoBoton>({
       visible: true,
       tipo: null,
@@ -238,81 +187,28 @@ const MarcarAsistenciaDePersonalButton = memo(
       esCarga: true,
     });
 
-    // ✅ NUEVO: Estado para mensaje informativo
-    const [mensajeInformativo, setMensajeInformativo] =
-      useState<MensajeInformativo>({
-        mostrar: false,
-        texto: "",
-        tipo: "sin-horario",
-      });
+    const [mensajeInformativo, setMensajeInformativo] = useState<MensajeInformativo>({
+      mostrar: false,
+      texto: "",
+      tipo: "sin-horario",
+    });
 
-    // ✅ NUEVO: Estado para el handler base
-    const [handlerBase, setHandlerBase] =
-      useState<HandlerAsistenciaBase | null>(null);
-
-    // ✅ 🔧 NUEVO ESTADO CRÍTICO: Control de consulta única
-    const [consultaInicialEnProceso, setConsultaInicialEnProceso] =
-      useState(false);
-    const [consultaInicialCompletada, setConsultaInicialCompletada] =
-      useState(false);
-
-    // ✅ NUEVO ESTADO - Timer de emergencia
-    const [timerEmergenciaActivo, setTimerEmergenciaActivo] = useState(true);
-    const timerEmergenciaRef = useRef<NodeJS.Timeout | null>(null);
-    const consultaEnProcesoRef = useRef<boolean>(false);
+    const [asistenciaIDB, setAsistenciaIDB] = useState<AsistenciaDePersonalIDB | null>(null);
 
     // ===================================================================================
     //                         Variables de estado para modales
     // ===================================================================================
-    const [mostrarModalTomarMiAsistencia, setMostrarModalTomarMiAsistencia] =
-      useState(false);
-    const [
-      mostrarModalConfirmacioAsistenciaMarcada,
-      setMostrarModalConfirmacioAsistenciaMarcada,
-    ] = useState(false);
-    const [
-      mostrarModalFaltaActivarGPSoBrindarPermisosGPS,
-      setMostrarModalFaltaActivarGPSoBrindarPermisosGPS,
-    ] = useState(false);
+    const [mostrarModalTomarMiAsistencia, setMostrarModalTomarMiAsistencia] = useState(false);
+    const [mostrarModalConfirmacioAsistenciaMarcada, setMostrarModalConfirmacioAsistenciaMarcada] = useState(false);
+    const [mostrarModalFaltaActivarGPSoBrindarPermisosGPS, setMostrarModalFaltaActivarGPSoBrindarPermisosGPS] = useState(false);
+    const [mostrarModalUbicacionFueraDelColegioAlRegistrarAsistenciaPropia, setMostrarModalFueraDelColegioAlRegistrarAsistenciaPropia] = useState(false);
+    const [mostrarModalErrorGenericoAlRegistrarAsistenciaPropia, setMostrarErrorGenericoAlRegistrarAsistenciaPropia] = useState(false);
+    const [mostrarModalFalloConexionAInternetAlMarcarAsistenciaPropia, setMostrarModalFalloConexionAInternetAlMarcarAsistenciaPropia] = useState(false);
+    const [mostrarModalNoSePuedeUsarLaptop, setMostrarModalNoSePuedeUsarLaptop] = useState(false);
+    const [mostrarModalDispositivoSinGPS, setMostrarModalDispositivoSinGPS] = useState(false);
+    const [fechaHoraRegistro, setFechaHoraRegistro] = useState<Date | null>(null);
 
-    const [
-      mostrarModalUbicacionFueraDelColegioAlRegistrarAsistenciaPropia,
-      setMostrarModalFueraDelColegioAlRegistrarAsistenciaPropia,
-    ] = useState(false);
-
-    const [
-      mostrarModalErrorGenericoAlRegistrarAsistenciaPropia,
-      setMostrarErrorGenericoAlRegistrarAsistenciaPropia,
-    ] = useState(false);
-
-    const [
-      mostrarModalFalloConexionAInternetAlMarcarAsistenciaPropia,
-      setMostrarModalFalloConexionAInternetAlMarcarAsistenciaPropia,
-    ] = useState(false);
-
-    const [
-      mostrarModalNoSePuedeUsarLaptop,
-      setMostrarModalNoSePuedeUsarLaptop,
-    ] = useState(false);
-
-    const [mostrarModalDispositivoSinGPS, setMostrarModalDispositivoSinGPS] =
-      useState(false);
-
-    const [fechaHoraRegistro, setFechaHoraRegistro] = useState<Date | null>(
-      null
-    );
-
-    // ===================================================================================
-
-    const [asistenciaIDB, setAsistenciaIDB] =
-      useState<AsistenciaDePersonalIDB | null>(null);
-
-    // ✅ REFS
-    const intervalRef = useRef<NodeJS.Timeout | null>(null);
-    const retryRef = useRef<NodeJS.Timeout | null>(null);
-    const ultimoModoConsultado = useRef<ModoRegistro | null>(null);
-
-    // ✅ TOOLTIP MANAGEMENT (Reutilizado para mensaje informativo)
+    // ✅ TOOLTIP MANAGEMENT
     const [tooltipOculto, setTooltipOculto] = useState(() => {
       if (typeof window !== "undefined") {
         return (
@@ -340,10 +236,9 @@ const MarcarAsistenciaDePersonalButton = memo(
       );
     }, []);
 
-    // ✅ NUEVO: Funciones para manejar mensaje informativo
+    // ✅ FUNCIÓN: Ocultar mensaje informativo
     const ocultarMensajeInformativo = useCallback(() => {
       setMensajeInformativo((prev) => ({ ...prev, mostrar: false }));
-      // Usar las mismas constantes que el tooltip
       sessionStorage.setItem(
         SE_MOSTRO_TOLTIP_TOMAR_ASISTENCIA_PERSONAL_KEY,
         "true"
@@ -356,32 +251,18 @@ const MarcarAsistenciaDePersonalButton = memo(
       const fechaHora = state.others.fechaHoraActualReal.fechaHora;
       const inicializado = state.others.fechaHoraActualReal.inicializado;
 
-      console.log("🕐 OBTENIENDO FECHA ACTUAL DESDE REDUX:", {
-        fechaHoraOriginal: fechaHora,
-        inicializado,
-      });
-
       if (!fechaHora || !inicializado) {
         console.log("❌ Fecha Redux no disponible o no inicializada");
         return null;
       }
 
-      const fechaOriginal = new Date(fechaHora);
       const fecha = new Date(fechaHora);
       fecha.setHours(fecha.getHours() - 5); // Corregir zona horaria
-
-      console.log("✅ FECHA CORREGIDA:", {
-        fechaOriginal: fechaOriginal.toISOString(),
-        fechaCorregida: fecha.toISOString(),
-        horaOriginal: fechaOriginal.getHours(),
-        horaCorregida: fecha.getHours(),
-        diferencia: "5 horas restadas",
-      });
 
       return fecha;
     }, []);
 
-    // ✅ NUEVO: Verificar condiciones especiales (CON VERIFICACIÓN DE FECHAS)
+    // ✅ FUNCIÓN: Verificar condiciones especiales (USANDO DATOS COMPARTIDOS)
     const verificarCondicionesEspeciales = useCallback((): string | null => {
       if (!handlerBase) return null;
 
@@ -391,7 +272,7 @@ const MarcarAsistenciaDePersonalButton = memo(
       const fueraAño = handlerBase.estaFueraDeAnioEscolar();
       if (fueraAño) {
         console.log("🚫 FUERA DEL AÑO ESCOLAR");
-        return "Fuera del periode escolar, no se registra asistencia";
+        return "Fuera del período escolar, no se registra asistencia";
       }
 
       // 2. Día de evento
@@ -425,19 +306,9 @@ const MarcarAsistenciaDePersonalButton = memo(
           fechaLocalPeru.getDate()
         );
 
-        console.log("📅 COMPARACIÓN DE FECHAS:", {
-          fechaPeruSinHora: fechaPeruSinHora.toISOString(),
-          fechaReduxSinHora: fechaReduxSinHora.toISOString(),
-          esFechaPeruMenor: fechaPeruSinHora < fechaReduxSinHora,
-          diferenciaDias: Math.floor(
-            (fechaReduxSinHora.getTime() - fechaPeruSinHora.getTime()) /
-              (1000 * 60 * 60 * 24)
-          ),
-        });
-
         if (fechaPeruSinHora < fechaReduxSinHora) {
           console.log("🚫 FECHA LOCAL MENOR - Mostrando mensaje de espera");
-          return "Aun no puedes registrar tu asistencia";
+          return "Aún no puedes registrar tu asistencia";
         }
 
         // 4. Fin de semana (después de verificar fechas)
@@ -458,283 +329,32 @@ const MarcarAsistenciaDePersonalButton = memo(
       return null;
     }, [handlerBase, obtenerFechaActual]);
 
-    // ✅ FUNCIÓN: Determinar modo actual basado en horario y fecha
-    const determinarModoActual = useCallback(
-      (
-        horario: HorarioTomaAsistencia | null,
-        fechaActual: Date | null = null
-      ): ModoActual => {
-        console.log("🔍 INICIANDO determinarModoActual:", {
-          horario,
-          fechaActual,
-        });
-
-        if (!horario) {
-          console.log("❌ Sin horario disponible");
-          return { activo: false, tipo: null, razon: "Horario no disponible" };
-        }
-
-        // ✅ Obtener fecha actual si no se proporciona
-        const fecha = fechaActual || obtenerFechaActual();
-        if (!fecha) {
-          console.log("❌ Sin fecha disponible");
-          return { activo: false, tipo: null, razon: "Fecha no disponible" };
-        }
-
-        console.log("📅 FECHA ACTUAL OBTENIDA:", {
-          fecha: fecha.toISOString(),
-          horaLocal: fecha.toLocaleTimeString(),
-          timestamp: fecha.getTime(),
-        });
-
-        const horarioInicio = new Date(horario.Inicio);
-        const horarioFin = new Date(horario.Fin);
-
-        console.log("🕐 HORARIOS ORIGINALES:", {
-          inicio: horarioInicio.toISOString(),
-          fin: horarioFin.toISOString(),
-          inicioLocal: horarioInicio.toLocaleTimeString(),
-          finLocal: horarioFin.toLocaleTimeString(),
-        });
-
-        // Normalizar horarios a la fecha actual
-        const inicioHoy = new Date(fecha);
-        inicioHoy.setHours(
-          horarioInicio.getHours(),
-          horarioInicio.getMinutes(),
-          0,
-          0
-        );
-
-        const finHoy = new Date(fecha);
-        finHoy.setHours(horarioFin.getHours(), horarioFin.getMinutes(), 0, 0);
-
-        console.log("🕐 HORARIOS NORMALIZADOS HOY:", {
-          inicioHoy: inicioHoy.toLocaleTimeString(),
-          finHoy: finHoy.toLocaleTimeString(),
-        });
-
-        // Calcular puntos de control
-        const unaHoraAntesInicio = new Date(
-          inicioHoy.getTime() - HORAS_ANTES_INICIO_ACTIVACION * 60 * 60 * 1000
-        );
-        const unaHoraAntesSalida = new Date(
-          finHoy.getTime() - HORAS_ANTES_SALIDA_CAMBIO_MODO * 60 * 60 * 1000
-        );
-        const dosHorasDespuesSalida = new Date(
-          finHoy.getTime() + HORAS_DESPUES_SALIDA_LIMITE * 60 * 60 * 1000
-        );
-
-        console.log("⏰ PUNTOS DE CONTROL:", {
-          fechaActual: fecha.toLocaleTimeString(),
-          unaHoraAntesInicio: unaHoraAntesInicio.toLocaleTimeString(),
-          unaHoraAntesSalida: unaHoraAntesSalida.toLocaleTimeString(),
-          dosHorasDespuesSalida: dosHorasDespuesSalida.toLocaleTimeString(),
-          constantes: {
-            HORAS_ANTES_INICIO_ACTIVACION,
-            HORAS_ANTES_SALIDA_CAMBIO_MODO,
-            HORAS_DESPUES_SALIDA_LIMITE,
-          },
-        });
-
-        // Si estamos antes de 1 hora antes del inicio
-        if (fecha < unaHoraAntesInicio) {
-          const razon = `Muy temprano. Activación a las ${unaHoraAntesInicio.toLocaleTimeString()}`;
-          console.log("🚫 RESULTADO: Muy temprano", razon);
-          return {
-            activo: false,
-            tipo: null,
-            razon,
-          };
-        }
-
-        // Si estamos después de 2 horas después de la salida
-        if (fecha > dosHorasDespuesSalida) {
-          const razon = "Período de asistencia finalizado";
-          console.log("🚫 RESULTADO: Muy tarde", razon);
-          return {
-            activo: false,
-            tipo: null,
-            razon,
-          };
-        }
-
-        // Determinar el modo según el momento
-        if (fecha < unaHoraAntesSalida) {
-          console.log("✅ RESULTADO: Modo ENTRADA");
-          return {
-            activo: true,
-            tipo: ModoRegistro.Entrada,
-            razon: "Período de registro de entrada",
-          };
-        } else {
-          console.log("✅ RESULTADO: Modo SALIDA");
-          return {
-            activo: true,
-            tipo: ModoRegistro.Salida,
-            razon: "Período de registro de salida",
-          };
-        }
-      },
-      [obtenerFechaActual]
-    );
-
-    // ✅ 🔧 FUNCIÓN CORREGIDA: Consultar asistencia del modo específico (CON PROTECCIÓN CONTRA DUPLICADOS)
-    const consultarAsistenciaModo = useCallback(
-      async (modo: ModoRegistro, razon: string): Promise<void> => {
-        if (!asistenciaIDB) {
-          console.log("❌ AsistenciaIDB no disponible");
-          return;
-        }
-
-        // ✅ 🔧 PROTECCIÓN INMEDIATA CON REF
-        if (consultaEnProcesoRef.current) {
-          console.log(
-            `⏭️ CONSULTA YA EN PROCESO - BLOQUEANDO ${modo} (${razon})`
-          );
-          return;
-        }
-
-        try {
-          console.log(`🔍 CONSULTANDO ${modo} - Razón: ${razon}`);
-
-          // ✅ 🔧 BLOQUEAR INMEDIATAMENTE
-          consultaEnProcesoRef.current = true;
-          setConsultaInicialEnProceso(true);
-
-          const resultado = await asistenciaIDB.consultarMiAsistenciaDeHoy(
-            modo,
-            rol
-          );
-
-          console.log(`✅ Resultado ${modo}:`, {
-            marcada: resultado.marcada,
-            fuente: resultado.fuente,
-          });
-
-          setAsistencia((prev) => ({
-            ...prev,
-            entradaMarcada:
-              modo === ModoRegistro.Entrada
-                ? resultado.marcada
-                : prev.entradaMarcada,
-            salidaMarcada:
-              modo === ModoRegistro.Salida
-                ? resultado.marcada
-                : prev.salidaMarcada,
-            inicializado: true,
-          }));
-
-          setConsultaInicialCompletada(true);
-        } catch (error) {
-          console.error(`❌ Error al consultar ${modo}:`, error);
-        } finally {
-          // ✅ 🔧 LIBERAR LOCKS SIEMPRE
-          consultaEnProcesoRef.current = false;
-          setConsultaInicialEnProceso(false);
-        }
-      },
-      [asistenciaIDB, rol]
-    );
-
-    // ✅ FUNCIÓN: Obtener horario del usuario
-    const obtenerHorario = useCallback(async () => {
-      if (rol === RolesSistema.Directivo || rol === RolesSistema.Responsable)
-        return;
-
-      try {
-        console.log(`🔄 Obteniendo horario para ${rol}`);
-
-        const datosIDB = new DatosAsistenciaHoyIDB();
-        const handler = (await datosIDB.getHandler()) as HandlerAsistenciaBase;
-
-        if (!handler) {
-          console.warn("Handler no disponible, reintentando...");
-          if (retryRef.current) clearTimeout(retryRef.current);
-          retryRef.current = setTimeout(obtenerHorario, RETRY_HORARIO_MS);
-          return;
-        }
-
-        // ✅ NUEVO: Guardar el handler base para verificaciones
-        setHandlerBase(handler);
-
-        let nuevoHorario: HorarioTomaAsistencia | null = null;
-
-        switch (rol) {
-          case RolesSistema.ProfesorPrimaria:
-            nuevoHorario = (
-              handler as HandlerProfesorPrimariaAsistenciaResponse
-            ).getMiHorarioTomaAsistencia();
-            break;
-          case RolesSistema.Auxiliar:
-            nuevoHorario = (
-              handler as HandlerAuxiliarAsistenciaResponse
-            ).getMiHorarioTomaAsistencia();
-            break;
-          case RolesSistema.ProfesorSecundaria:
-          case RolesSistema.Tutor:
-            const horarioPersonal = (
-              handler as HandlerProfesorTutorSecundariaAsistenciaResponse
-            ).getMiHorarioTomaAsistencia();
-            if (horarioPersonal) {
-              nuevoHorario = {
-                Inicio: horarioPersonal.Hora_Entrada_Dia_Actual,
-                Fin: horarioPersonal.Hora_Salida_Dia_Actual,
-              };
-            }
-            break;
-          case RolesSistema.PersonalAdministrativo:
-            const horarioAdmin = (
-              handler as HandlerPersonalAdministrativoAsistenciaResponse
-            ).getHorarioPersonal();
-            if (horarioAdmin) {
-              nuevoHorario = {
-                Inicio: horarioAdmin.Horario_Laboral_Entrada,
-                Fin: horarioAdmin.Horario_Laboral_Salida,
-              };
-            }
-            break;
-        }
-
-        if (nuevoHorario) {
-          setHorario(nuevoHorario);
-          console.log(`✅ Horario obtenido para ${rol}:`, nuevoHorario);
-        } else {
-          console.warn(
-            "Horario no disponible, El usuario no registra asistencia hoy..."
-          );
-          setHorario(null); // Importante: establecer null explícitamente
-        }
-      } catch (error) {
-        console.error("Error al obtener horario:", error);
-        if (retryRef.current) clearTimeout(retryRef.current);
-        retryRef.current = setTimeout(obtenerHorario, RETRY_HORARIO_MS);
-      }
-    }, [rol]);
-
-    // ✅ FUNCIÓN: Actualizar estado del botón CON ESTADO DE CARGA
+    // ✅ FUNCIÓN: Actualizar estado del botón (USANDO DATOS COMPARTIDOS)
     const actualizarEstadoBoton = useCallback(() => {
-      // ✅ NUEVO: Verificar si aún estamos en proceso de inicialización
+      console.log("🔍 ===== INICIO actualizarEstadoBoton =====");
+      
+      // ✅ Verificar si aún estamos en proceso de inicialización
       const estaInicializando =
-        !reduxInicializado ||
+        !inicializado ||
         !asistenciaIDB ||
         (rol !== RolesSistema.Directivo &&
           rol !== RolesSistema.Responsable &&
           !handlerBase) ||
         !asistencia.inicializado;
 
-      console.log("🎯 ESTADO DE INICIALIZACIÓN:", {
-        reduxInicializado,
+      console.log("🎯 EVALUACIÓN COMPLETA:", {
+        inicializado,
         asistenciaIDB: !!asistenciaIDB,
         handlerBase: !!handlerBase,
         asistenciaInicializada: asistencia.inicializado,
         estaInicializando,
         rol,
+        esDirectivoOResponsable: rol === RolesSistema.Directivo || rol === RolesSistema.Responsable,
       });
 
       // ✅ MOSTRAR ESTADO DE CARGA mientras se inicializa
       if (estaInicializando) {
-        console.log("⏳ Mostrando estado de carga");
+        console.log("⏳ RESULTADO: Manteniendo estado de carga");
         setEstadoBoton({
           visible: true,
           tipo: null,
@@ -745,10 +365,12 @@ const MarcarAsistenciaDePersonalButton = memo(
         return;
       }
 
-      // ✅ A partir de aquí, todo está inicializado - lógica normal
+      console.log("✅ INICIALIZACIÓN COMPLETADA - Evaluando condiciones...");
+
+      // ✅ Verificar condiciones especiales
       const condicionEspecial = verificarCondicionesEspeciales();
       if (condicionEspecial) {
-        console.log("🚫 Condición especial detectada:", condicionEspecial);
+        console.log("🚫 RESULTADO: Ocultando por condición especial:", condicionEspecial);
         setEstadoBoton({
           visible: false,
           tipo: null,
@@ -758,10 +380,12 @@ const MarcarAsistenciaDePersonalButton = memo(
         });
         return;
       }
+
+      console.log("✅ Sin condiciones especiales");
 
       // ✅ Verificar si no hay horario (después de condiciones especiales)
       if (handlerBase && !horario) {
-        console.log("🚫 Sin horario disponible");
+        console.log("🚫 RESULTADO: Ocultando por falta de horario");
         setEstadoBoton({
           visible: false,
           tipo: null,
@@ -772,12 +396,18 @@ const MarcarAsistenciaDePersonalButton = memo(
         return;
       }
 
-      const modoActual = determinarModoActual(horario);
+      console.log("✅ Horario disponible:", !!horario);
 
-      console.log("🎯 MODO ACTUAL:", modoActual);
+      // ✅ USAR EL MODO ACTUAL CALCULADO POR EL HOOK COMPARTIDO
+      console.log("🎯 MODO ACTUAL EVALUADO:", {
+        activo: modoActual.activo,
+        tipo: modoActual.tipo,
+        razon: modoActual.razon,
+      });
 
+      // ✅ Si el modo no está activo (fuera del rango de tiempo), OCULTAR el botón
       if (!modoActual.activo || !modoActual.tipo) {
-        console.log("🚫 Botón oculto:", modoActual.razon);
+        console.log("🚫 RESULTADO: Ocultando botón - Fuera del rango de tiempo:", modoActual.razon);
         setEstadoBoton({
           visible: false,
           tipo: null,
@@ -788,14 +418,23 @@ const MarcarAsistenciaDePersonalButton = memo(
         return;
       }
 
-      // ✅ VERIFICAR SI YA SE MARCÓ LA ASISTENCIA DEL MODO ACTUAL
+      console.log("✅ Dentro del rango de tiempo válido");
+
+      // ✅ VERIFICAR SI YA SE MARCÓ LA ASISTENCIA DEL MODO ACTUAL (USANDO DATOS COMPARTIDOS)
       const yaSeMarco =
         modoActual.tipo === ModoRegistro.Entrada
           ? asistencia.entradaMarcada
           : asistencia.salidaMarcada;
 
+      console.log("🎯 VERIFICACIÓN DE ASISTENCIA:", {
+        modoTipo: modoActual.tipo,
+        entradaMarcada: asistencia.entradaMarcada,
+        salidaMarcada: asistencia.salidaMarcada,
+        yaSeMarco,
+      });
+
       if (yaSeMarco) {
-        console.log(`✅ ${modoActual.tipo} ya marcada, ocultando botón`);
+        console.log(`🚫 RESULTADO: Ocultando botón - ${modoActual.tipo} ya marcada`);
         setEstadoBoton({
           visible: false,
           tipo: null,
@@ -810,7 +449,7 @@ const MarcarAsistenciaDePersonalButton = memo(
       const esEntrada = modoActual.tipo === ModoRegistro.Entrada;
       const color = esEntrada ? "verde" : "rojizo";
 
-      console.log(`👁️ Mostrando botón para ${modoActual.tipo}`);
+      console.log(`👁️ RESULTADO: Mostrando botón ${color} para ${modoActual.tipo}`);
 
       setEstadoBoton({
         visible: true,
@@ -819,8 +458,10 @@ const MarcarAsistenciaDePersonalButton = memo(
         tooltip: `¡Registra tu ${modoRegistroTextos[modoActual.tipo]}!`,
         esCarga: false,
       });
+
+      console.log("🔍 ===== FIN actualizarEstadoBoton =====");
     }, [
-      reduxInicializado,
+      inicializado,
       asistenciaIDB,
       handlerBase,
       asistencia.inicializado,
@@ -828,11 +469,11 @@ const MarcarAsistenciaDePersonalButton = memo(
       asistencia.salidaMarcada,
       horario,
       rol,
-      determinarModoActual,
+      modoActual,
       verificarCondicionesEspeciales,
     ]);
 
-    // ✅ NUEVO: Verificar y mostrar mensaje informativo
+    // ✅ FUNCIÓN: Verificar y mostrar mensaje informativo
     const verificarMensajeInformativo = useCallback(() => {
       // Solo mostrar si no se ha mostrado antes en esta sesión
       if (tooltipOculto) return;
@@ -842,14 +483,14 @@ const MarcarAsistenciaDePersonalButton = memo(
       if (condicionEspecial) {
         let tipo: MensajeInformativo["tipo"] = "sin-horario";
 
-        if (condicionEspecial.includes("Fuera del periode")) {
+        if (condicionEspecial.includes("Fuera del período")) {
           tipo = "fuera-año";
         } else if (
           condicionEspecial.includes("domingo") ||
           condicionEspecial.includes("sábado")
         ) {
           tipo = "fin-semana";
-        } else if (condicionEspecial.includes("Aun no puedes")) {
+        } else if (condicionEspecial.includes("Aún no puedes")) {
           tipo = "fecha-no-disponible";
         } else if (condicionEspecial.includes("no se registra asistencia")) {
           tipo = "dia-evento";
@@ -874,380 +515,25 @@ const MarcarAsistenciaDePersonalButton = memo(
       }
     }, [tooltipOculto, verificarCondicionesEspeciales, handlerBase, horario]);
 
-    // ✅ FUNCIÓN: Consulta periódica inteligente (INDEPENDIENTE de Redux)
-    const consultaPeriodicaInteligente = useCallback(() => {
-      // No ejecutar si hay mensaje informativo
-      if (mensajeInformativo.mostrar) return;
-
-      // ✅ 🔧 NUEVA PROTECCIÓN: No ejecutar si consulta inicial no completada
-      if (!consultaInicialCompletada) {
-        console.log(
-          "⏭️ Esperando consulta inicial completada antes de consulta periódica"
-        );
-        return;
-      }
-
-      const modoActual = determinarModoActual(horario);
-
-      if (!modoActual.activo || !modoActual.tipo) {
-        console.log("⏭️ Sin consulta periódica: modo no activo");
-        return;
-      }
-
-      const yaSeMarco =
-        modoActual.tipo === ModoRegistro.Entrada
-          ? asistencia.entradaMarcada
-          : asistencia.salidaMarcada;
-
-      if (yaSeMarco) {
-        console.log(`⏭️ Sin consulta periódica: ${modoActual.tipo} ya marcada`);
-        return;
-      }
-
-      // ✅ SOLO CONSULTAR SI ES UN MODO DIFERENTE
-      if (ultimoModoConsultado.current !== modoActual.tipo) {
-        console.log(
-          `🔄 Cambio de modo detectado: ${ultimoModoConsultado.current} → ${modoActual.tipo}`
-        );
-        ultimoModoConsultado.current = modoActual.tipo;
-        consultarAsistenciaModo(
-          modoActual.tipo,
-          "consulta periódica inteligente"
-        );
-      }
-    }, [
-      mensajeInformativo.mostrar,
-      consultaInicialCompletada, // ✅ 🔧 NUEVA DEPENDENCIA CRÍTICA
-      horario,
-      asistencia.entradaMarcada,
-      asistencia.salidaMarcada,
-      consultarAsistenciaModo,
-      determinarModoActual,
-    ]);
-
-    // ✅ 🔧 FUNCIÓN CORREGIDA: Reintento de emergencia (SIN CONSULTAS DUPLICADAS)
-    const reintentoForzadoEmergencia = useCallback(() => {
-      console.log("🚨 REINTENTO FORZADO DE EMERGENCIA");
-
-      // ✅ 🔧 VERIFICACIÓN MÁS ESTRICTA
-      if (consultaEnProcesoRef.current) {
-        console.log("⏭️ Ya hay consulta en proceso, saltando emergencia");
-        setTimerEmergenciaActivo(false);
-        return;
-      }
-
-      if (!horario && !handlerBase) {
-        console.log("🔄 Forzando obtenerHorario()");
-        obtenerHorario();
-      }
-
-      // ✅ 🔧 SOLO SI REALMENTE ES NECESARIO
-      if (!asistencia.inicializado && horario && !consultaInicialCompletada) {
-        console.log("🔄 Ejecutando consulta de emergencia");
-        const modoActual = determinarModoActual(horario);
-        if (modoActual.activo && modoActual.tipo) {
-          consultarAsistenciaModo(modoActual.tipo, "emergencia");
-        }
-      }
-
-      actualizarEstadoBoton();
-      setTimerEmergenciaActivo(false);
-    }, [
-      horario,
-      handlerBase,
-      asistencia.inicializado,
-      consultaInicialCompletada,
-      obtenerHorario,
-      determinarModoActual,
-      consultarAsistenciaModo,
-      actualizarEstadoBoton,
-    ]);
-
-    // ✅ INICIALIZACIÓN
+    // ✅ INICIALIZACIÓN (SOLO AsistenciaIDB, sin más consultas)
     useEffect(() => {
       console.log("🔧 INICIALIZANDO AsistenciaDePersonalIDB...");
       const nuevaAsistenciaIDB = new AsistenciaDePersonalIDB("API01");
       setAsistenciaIDB(nuevaAsistenciaIDB);
-      console.log(
-        "✅ AsistenciaDePersonalIDB inicializada:",
-        nuevaAsistenciaIDB
-      );
+      console.log("✅ AsistenciaDePersonalIDB inicializada:", nuevaAsistenciaIDB);
     }, []);
-
-    useEffect(() => {
-      if (!horario && !handlerBase) {
-        obtenerHorario();
-      } else {
-        console.log("📋 HORARIO/HANDLER YA DISPONIBLE, MOSTRANDO CONSTANTES:", {
-          HORAS_ANTES_INICIO_ACTIVACION,
-          HORAS_ANTES_SALIDA_CAMBIO_MODO,
-          HORAS_DESPUES_SALIDA_LIMITE,
-          INTERVALO_CONSULTA_MS:
-            INTERVALO_CONSULTA_ASISTENCIA_OPTIMIZADO_MS / (1000 * 60) +
-            " minutos",
-        });
-      }
-    }, [horario, handlerBase, obtenerHorario]);
 
     // ✅ NUEVO: Verificar mensaje informativo cuando se obtiene handler/horario
     useEffect(() => {
-      if (handlerBase && reduxInicializado) {
+      if (handlerBase && inicializado) {
         verificarMensajeInformativo();
       }
-    }, [handlerBase, horario, reduxInicializado, verificarMensajeInformativo]);
+    }, [handlerBase, horario, inicializado, verificarMensajeInformativo]);
 
-    // ✅ 🔧 CONSULTA INICIAL CORREGIDA (PROTEGIDA CONTRA DUPLICADOS)
+    // ✅ EFECTO PRINCIPAL: Actualizar estado del botón cuando cambien los datos compartidos
     useEffect(() => {
-      console.log("🚀 USEEFFECT CONSULTA INICIAL - Verificando condiciones:", {
-        horario: !!horario,
-        inicializadoAsistencia: asistencia.inicializado,
-        reduxInicializado,
-        mensajeInformativo: mensajeInformativo.mostrar,
-        consultaInicialCompletada,
-        consultaInicialEnProceso,
-        debeEjecutar:
-          horario &&
-          !asistencia.inicializado &&
-          reduxInicializado &&
-          !mensajeInformativo.mostrar &&
-          !consultaInicialCompletada &&
-          !consultaInicialEnProceso,
-      });
-
-      if (
-        horario &&
-        !asistencia.inicializado &&
-        reduxInicializado &&
-        !mensajeInformativo.mostrar &&
-        !consultaInicialCompletada && // ✅ 🔧 NUEVA CONDICIÓN CRÍTICA
-        !consultaInicialEnProceso // ✅ 🔧 NUEVA CONDICIÓN CRÍTICA
-      ) {
-        console.log("🚀 INICIANDO CONSULTA INICIAL... (Redux ya inicializado)");
-
-        const modoActual = determinarModoActual(horario);
-
-        console.log("🎯 MODO DETERMINADO EN CONSULTA INICIAL:", modoActual);
-
-        if (modoActual.activo && modoActual.tipo) {
-          console.log(
-            "✅ EJECUTANDO CONSULTA INICIAL - Modo:",
-            modoActual.tipo
-          );
-          ultimoModoConsultado.current = modoActual.tipo;
-          consultarAsistenciaModo(modoActual.tipo, "consulta inicial");
-        } else {
-          console.log(
-            "❌ NO SE EJECUTA CONSULTA INICIAL - Razón:",
-            modoActual.razon
-          );
-          // ✅ 🔧 MARCAR COMO COMPLETADA AUNQUE NO HAYA CONSULTADO (porque no era necesario)
-          setConsultaInicialCompletada(true);
-        }
-      } else {
-        if (!horario)
-          console.log("⏭️ Sin horario disponible para consulta inicial");
-        if (asistencia.inicializado)
-          console.log("⏭️ Ya inicializado, no ejecutar consulta inicial");
-        if (!reduxInicializado)
-          console.log("⏭️ Redux no inicializado, esperando...");
-        if (mensajeInformativo.mostrar)
-          console.log("⏭️ Mensaje informativo activo, no consultar");
-        if (consultaInicialCompletada)
-          console.log("⏭️ Consulta inicial ya completada anteriormente");
-        if (consultaInicialEnProceso)
-          console.log("⏭️ Consulta inicial ya en proceso");
-      }
-    }, [
-      horario,
-      asistencia.inicializado,
-      reduxInicializado,
-      mensajeInformativo.mostrar,
-      consultaInicialCompletada, // ✅ 🔧 NUEVA DEPENDENCIA CRÍTICA
-      consultaInicialEnProceso, // ✅ 🔧 NUEVA DEPENDENCIA CRÍTICA
-      consultarAsistenciaModo,
-      determinarModoActual,
-    ]);
-
-    // ✅ MODIFICAR el useEffect de actualización del botón
-    useEffect(() => {
-      // ✅ Verificar si todo está completamente inicializado
-      const estaCompleto =
-        reduxInicializado &&
-        asistenciaIDB &&
-        (rol === RolesSistema.Directivo ||
-          rol === RolesSistema.Responsable ||
-          handlerBase) &&
-        asistencia.inicializado;
-
-      if (estaCompleto) {
-        console.log("✅ SISTEMA COMPLETAMENTE INICIALIZADO");
-
-        // ✅ DESACTIVAR TIMER DE EMERGENCIA
-        if (timerEmergenciaActivo) {
-          console.log("⏰ Desactivando timer de emergencia - Todo está listo");
-          setTimerEmergenciaActivo(false);
-        }
-
-        actualizarEstadoBoton();
-      } else {
-        console.log("⏳ Sistema aún inicializando:", {
-          reduxInicializado,
-          asistenciaIDB: !!asistenciaIDB,
-          handlerBase: !!handlerBase,
-          asistenciaInicializada: asistencia.inicializado,
-          rol,
-          timerEmergenciaActivo,
-        });
-      }
-    }, [
-      reduxInicializado,
-      asistenciaIDB,
-      handlerBase,
-      asistencia.inicializado,
-      rol,
-      timerEmergenciaActivo,
-      setTimerEmergenciaActivo,
-      actualizarEstadoBoton,
-    ]);
-
-    // ✅ TIMER DE EMERGENCIA
-    useEffect(() => {
-      if (!timerEmergenciaActivo) return;
-
-      console.log(
-        `⏰ Iniciando timer de emergencia: ${
-          TIMEOUT_EMERGENCIA_REINTENTO_MS / 1000
-        } segundos`
-      );
-
-      timerEmergenciaRef.current = setTimeout(() => {
-        console.log("🚨 TIMEOUT DE EMERGENCIA ALCANZADO");
-        reintentoForzadoEmergencia();
-      }, TIMEOUT_EMERGENCIA_REINTENTO_MS);
-
-      return () => {
-        if (timerEmergenciaRef.current) {
-          clearTimeout(timerEmergenciaRef.current);
-          timerEmergenciaRef.current = null;
-        }
-      };
-    }, [timerEmergenciaActivo, reintentoForzadoEmergencia]);
-
-    // ✅ 🔧 INTERVALO CORREGIDO (CON PROTECCIÓN ADICIONAL)
-    useEffect(() => {
-      // ✅ Si el timer de emergencia ya no está activo, siempre intentar configurar el intervalo
-      if (timerEmergenciaActivo) return; // Solo esperar durante los primeros 4 segundos
-
-      if (
-        !asistencia.inicializado ||
-        !horario ||
-        !reduxInicializado ||
-        mensajeInformativo.mostrar ||
-        !consultaInicialCompletada // ✅ 🔧 NUEVA CONDICIÓN CRÍTICA
-      ) {
-        console.log(
-          "⚠️ Condiciones no cumplidas para intervalo, pero timer de emergencia ya pasó"
-        );
-        // ✅ Después del timer de emergencia, intentar una consulta manual SOLO si es necesario
-        // if (
-        //   reduxInicializado &&
-        //   horario &&
-        //   !consultaInicialCompletada &&
-        //   !consultaInicialEnProceso
-        // ) {
-        //   console.log(
-        //     "🔄 Intentando consulta manual después de timer de emergencia"
-        //   );
-        //   const modoActual = determinarModoActual(horario);
-        //   if (modoActual.activo && modoActual.tipo) {
-        //     consultarAsistenciaModo(
-        //       modoActual.tipo,
-        //       "consulta post-timer emergencia"
-        //     );
-        //   }
-        // }
-        return;
-      }
-
-      console.log(
-        `⏰ Configurando consulta cada ${
-          INTERVALO_CONSULTA_ASISTENCIA_OPTIMIZADO_MS / (1000 * 60)
-        } minutos`
-      );
-
-      const intervalo = setInterval(() => {
-        consultaPeriodicaInteligente();
-      }, INTERVALO_CONSULTA_ASISTENCIA_OPTIMIZADO_MS);
-
-      intervalRef.current = intervalo;
-
-      return () => {
-        if (intervalRef.current) {
-          clearInterval(intervalRef.current);
-          intervalRef.current = null;
-        }
-      };
-    }, [
-      timerEmergenciaActivo,
-      asistencia.inicializado,
-      horario,
-      reduxInicializado,
-      mensajeInformativo.mostrar,
-      consultaInicialCompletada, // ✅ 🔧 NUEVA DEPENDENCIA CRÍTICA
-      consultaInicialEnProceso, // ✅ 🔧 NUEVA DEPENDENCIA CRÍTICA
-      consultaPeriodicaInteligente,
-      determinarModoActual,
-      consultarAsistenciaModo,
-    ]);
-
-    // ✅ 🔧 DETECTAR CAMBIO DE MODO CORREGIDO - Con protección contra duplicados
-    useEffect(() => {
-      if (
-        !horaMinutoActual ||
-        !asistencia.inicializado ||
-        !horario ||
-        !reduxInicializado ||
-        mensajeInformativo.mostrar ||
-        !consultaInicialCompletada // ✅ 🔧 NUEVA CONDICIÓN CRÍTICA
-      )
-        return;
-
-      // ✅ Solo verificar cambio de modo cada 10 minutos
-      if (horaMinutoActual.minuto % 10 === 0) {
-        console.log(
-          `🕐 Verificación de cambio de modo cada 10min: ${horaMinutoActual.hora}:${horaMinutoActual.minuto}`
-        );
-
-        const modoActual = determinarModoActual(
-          horario,
-          horaMinutoActual.fecha
-        );
-
-        if (
-          modoActual.activo &&
-          modoActual.tipo &&
-          ultimoModoConsultado.current !== modoActual.tipo
-        ) {
-          console.log(
-            `🔄 CAMBIO DE MODO DETECTADO: ${ultimoModoConsultado.current} → ${modoActual.tipo}`
-          );
-          ultimoModoConsultado.current = modoActual.tipo;
-          consultarAsistenciaModo(
-            modoActual.tipo,
-            "cambio de modo por horario"
-          );
-        }
-      }
-    }, [
-      horaMinutoActual?.timestamp,
-      asistencia.inicializado,
-      horario,
-      reduxInicializado,
-      mensajeInformativo.mostrar,
-      consultaInicialCompletada, // ✅ 🔧 NUEVA DEPENDENCIA CRÍTICA
-      consultarAsistenciaModo,
-      determinarModoActual,
-    ]);
+      actualizarEstadoBoton();
+    }, [actualizarEstadoBoton]);
 
     // ✅ DELEGACIÓN DE EVENTOS PARA TOOLTIP
     useEffect(() => {
@@ -1259,48 +545,6 @@ const MarcarAsistenciaDePersonalButton = memo(
         true
       );
     }, [delegarEvento, ocultarTooltip]);
-
-    // ✅ 🔧 VISIBILIDAD DE PESTAÑA CORREGIDA - Con protección contra duplicados
-    useEffect(() => {
-      const handleVisibility = () => {
-        if (
-          document.visibilityState === "visible" &&
-          asistencia.inicializado &&
-          horario &&
-          reduxInicializado &&
-          !mensajeInformativo.mostrar &&
-          consultaInicialCompletada // ✅ 🔧 NUEVA CONDICIÓN CRÍTICA
-        ) {
-          console.log("👁️ Pestaña visible, verificando modo actual");
-          const modoActual = determinarModoActual(horario);
-
-          if (modoActual.activo && modoActual.tipo) {
-            const yaSeMarco =
-              modoActual.tipo === ModoRegistro.Entrada
-                ? asistencia.entradaMarcada
-                : asistencia.salidaMarcada;
-
-            if (!yaSeMarco) {
-              consultarAsistenciaModo(modoActual.tipo, "pestaña visible");
-            }
-          }
-        }
-      };
-
-      document.addEventListener("visibilitychange", handleVisibility);
-      return () =>
-        document.removeEventListener("visibilitychange", handleVisibility);
-    }, [
-      asistencia.inicializado,
-      asistencia.entradaMarcada,
-      asistencia.salidaMarcada,
-      horario,
-      reduxInicializado,
-      mensajeInformativo.mostrar,
-      consultaInicialCompletada, // ✅ 🔧 NUEVA DEPENDENCIA CRÍTICA
-      consultarAsistenciaModo,
-      determinarModoActual,
-    ]);
 
     // ✅ MOSTRAR TOOLTIP AL CAMBIAR TIPO (solo si no hay mensaje informativo)
     useEffect(() => {
@@ -1322,24 +566,7 @@ const MarcarAsistenciaDePersonalButton = memo(
       ocultarTooltip,
     ]);
 
-    useEffect(() => {
-      console.log("🔄 Rol cambió, reseteando flags de consulta");
-      setConsultaInicialCompletada(false);
-      setConsultaInicialEnProceso(false);
-      consultaEnProcesoRef.current = false; // ✅ 🔧 AGREGAR ESTA LÍNEA
-    }, [rol]);
-
-    // ✅ CLEANUP
-    useEffect(() => {
-      return () => {
-        if (intervalRef.current) clearInterval(intervalRef.current);
-        if (retryRef.current) clearTimeout(retryRef.current);
-        if (timerEmergenciaRef.current)
-          clearTimeout(timerEmergenciaRef.current);
-      };
-    }, []);
-
-    // ✅ MODIFICAR la función marcarMiAsistenciaDeHoy
+    // ✅ FUNCIÓN: Marcar asistencia de hoy (USANDO DATOS COMPARTIDOS)
     const marcarMiAsistenciaDeHoy = useCallback(async () => {
       try {
         if (!estadoBoton.tipo || !horario) {
@@ -1411,7 +638,7 @@ const MarcarAsistenciaDePersonalButton = memo(
 
     return (
       <>
-        {/* ✅ NUEVO: Mensaje informativo */}
+        {/* ✅ MENSAJE INFORMATIVO */}
         {mensajeInformativo.mostrar && (
           <MensajeInformativoAsistencia
             mensaje={mensajeInformativo}
@@ -1420,10 +647,11 @@ const MarcarAsistenciaDePersonalButton = memo(
           />
         )}
 
+        {/* ✅ MODALES */}
         {mostrarModalTomarMiAsistencia && (
           <MarcarAsistenciaPropiaDePersonalModal
             eliminateModal={() => setMostrarModalTomarMiAsistencia(false)}
-            modoRegistro={determinarModoActual(horario).tipo!}
+            modoRegistro={modoActual.tipo!}
             marcarMiAsistenciaDeHoy={marcarMiAsistenciaDeHoy}
             setMostrarModalConfirmacioAsistenciaMarcada={
               setMostrarModalConfirmacioAsistenciaMarcada
