@@ -39,6 +39,8 @@ export interface DatosAsistenciaCompartidos {
   modoActual: ModoActualCompartido;
   inicializado: boolean;
   consultaInicialCompletada: boolean;
+  // ✅ NUEVA FUNCIÓN PARA REFRESCAR INMEDIATAMENTE
+  refrescarAsistencia: () => Promise<void>;
 }
 
 // ✅ CONSTANTES
@@ -239,6 +241,48 @@ export const useAsistenciaCompartida = (
     },
     [asistenciaIDB, rol]
   );
+
+  // ✅ NUEVA FUNCIÓN: Refrescar asistencia inmediatamente
+  const refrescarAsistencia = useCallback(async (): Promise<void> => {
+    if (
+      !asistenciaIDB ||
+      !horario ||
+      rol === RolesSistema.Directivo ||
+      rol === RolesSistema.Responsable
+    ) {
+      console.log(
+        "❌ No se puede refrescar: faltan datos o es Directivo/Responsable"
+      );
+      return;
+    }
+
+    try {
+      console.log("🔄 REFRESCANDO ASISTENCIA INMEDIATAMENTE...");
+
+      const modoActual = determinarModoActual(horario);
+
+      if (modoActual.activo && modoActual.tipo) {
+        // Consultar ambos modos para asegurar sincronización completa
+        const [resultadoEntrada, resultadoSalida] = await Promise.all([
+          asistenciaIDB.consultarMiAsistenciaDeHoy(ModoRegistro.Entrada, rol),
+          asistenciaIDB.consultarMiAsistenciaDeHoy(ModoRegistro.Salida, rol),
+        ]);
+
+        console.log("✅ DATOS REFRESCADOS:", {
+          entrada: resultadoEntrada.marcada,
+          salida: resultadoSalida.marcada,
+        });
+
+        setAsistencia({
+          entradaMarcada: resultadoEntrada.marcada,
+          salidaMarcada: resultadoSalida.marcada,
+          inicializado: true,
+        });
+      }
+    } catch (error) {
+      console.error("❌ Error al refrescar asistencia:", error);
+    }
+  }, [asistenciaIDB, horario, rol, determinarModoActual]);
 
   // ✅ FUNCIÓN: Obtener horario del usuario
   const obtenerHorario = useCallback(async () => {
@@ -573,5 +617,6 @@ export const useAsistenciaCompartida = (
     modoActual,
     inicializado,
     consultaInicialCompletada,
+    refrescarAsistencia, // ✅ NUEVA FUNCIÓN EXPUESTA
   };
 };

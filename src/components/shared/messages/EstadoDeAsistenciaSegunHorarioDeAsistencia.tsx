@@ -218,7 +218,9 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
         if (modoActual.razon.includes("Muy temprano")) {
           // Calcular tiempo para activación
           const horarioInicio = new Date(horario.Inicio);
-          const fechaActual = new Date(String(store.getState().others.fechaHoraActualReal.fechaHora));
+          const fechaActual = new Date(
+            String(store.getState().others.fechaHoraActualReal.fechaHora)
+          );
           fechaActual.setHours(fechaActual.getHours() - 5);
 
           const inicioHoy = new Date(fechaActual);
@@ -265,7 +267,9 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
 
         // Calcular tiempo hasta cambio a salida
         const horarioFin = new Date(horario.Fin);
-        const fechaActual = new Date(String(store.getState().others.fechaHoraActualReal.fechaHora));
+        const fechaActual = new Date(
+          String(store.getState().others.fechaHoraActualReal.fechaHora)
+        );
         fechaActual.setHours(fechaActual.getHours() - 5);
 
         const finHoy = new Date(fechaActual);
@@ -299,7 +303,9 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
 
         // Calcular tiempo hasta cierre
         const horarioFin = new Date(horario.Fin);
-        const fechaActual = new Date(String(store.getState().others.fechaHoraActualReal.fechaHora));
+        const fechaActual = new Date(
+          String(store.getState().others.fechaHoraActualReal.fechaHora)
+        );
         fechaActual.setHours(fechaActual.getHours() - 5);
 
         const finHoy = new Date(fechaActual);
@@ -371,7 +377,9 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
         return "📅 Fuera del período escolar";
       case "evento":
         const evento = handlerBase?.esHoyDiaDeEvento();
-        return `🎉 ${(evento as T_Eventos).Nombre || "Día de evento"} - No laboral`;
+        return `🎉 ${
+          (evento as T_Eventos).Nombre || "Día de evento"
+        } - No laboral`;
       case "fin-semana":
         const dia = horaMinutoActual.diaSemana === 0 ? "Domingo" : "Sábado";
         return `🏠 ${dia} - No laboral`;

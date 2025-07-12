@@ -42,7 +42,7 @@ interface MensajeInformativo {
 }
 
 // ✅ SELECTOR OPTIMIZADO
-const selectNavbarFooter = (state: RootState) => ({
+const selectSidebar = (state: RootState) => ({
   height: state.elementsDimensions.navBarFooterHeight,
   isOpen: state.flags.sidebarIsOpen,
 });
@@ -176,12 +176,17 @@ const MarcarAsistenciaDePersonalButton = memo(
     const { delegarEvento } = useDelegacionEventos();
 
     // ✅ SELECTORES
-    const navbarFooter = useSelector(selectNavbarFooter);
-
+    const navbarFooter = useSelector(selectSidebar);
 
     // ✅ EXTRAER DATOS DEL HOOK COMPARTIDO (NO MÁS CONSULTAS PROPIAS)
-    const { horario, handlerBase, asistencia, modoActual, inicializado } =
-      datosAsistencia;
+    const {
+      horario,
+      handlerBase,
+      asistencia,
+      modoActual,
+      inicializado,
+      refrescarAsistencia,
+    } = datosAsistencia;
 
     // ✅ ESTADOS SIMPLIFICADOS (SIN LÓGICA DE CONSULTA)
     const [estadoBoton, setEstadoBoton] = useState<EstadoBoton>({
@@ -668,13 +673,26 @@ const MarcarAsistenciaDePersonalButton = memo(
           new Date(store.getState().others.fechaHoraActualReal.fechaHora!)
         ); // Hora actual del registro
 
-        // Si llegamos aquí, todo fue exitoso
+        await refrescarAsistencia();
+
+        // ✅ NUEVO: OCULTAR BOTÓN INMEDIATAMENTE DESPUÉS DEL REGISTRO EXITOSO
+        console.log(
+          `✅ Asistencia de ${estadoBoton.tipo} marcada exitosamente - Ocultando botón`
+        );
+
         console.log("✅ Asistencia marcada exitosamente");
       } catch (error) {
         console.error("❌ Error al marcar mi asistencia:", error);
         throw error; // Re-lanzar para que el modal lo maneje
       }
-    }, [estadoBoton.tipo, horario, obtenerFechaActual, asistenciaIDB, rol]);
+    }, [
+      estadoBoton.tipo,
+      horario,
+      obtenerFechaActual,
+      asistenciaIDB,
+      rol,
+      actualizarEstadoBoton,
+    ]);
 
     // ✅ RENDER: Mensaje informativo o botón
     const mostrarTooltipActual = !tooltipOculto && !mensajeInformativo.mostrar;
@@ -780,7 +798,9 @@ const MarcarAsistenciaDePersonalButton = memo(
           {`
         @keyframes Modificar-Bottom-NavBarFooter {
             to {
-                bottom: ${navbarFooter.isOpen ? `${navbarFooter.height}px` : "0px"};
+                bottom: ${
+                  navbarFooter.isOpen ? `${navbarFooter.height}px` : "0px"
+                };
             }
         }
         .Mover-NavBarFooter {
