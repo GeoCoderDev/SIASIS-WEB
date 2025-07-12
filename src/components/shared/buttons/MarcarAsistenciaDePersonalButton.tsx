@@ -8,7 +8,10 @@ import { SE_MOSTRO_TOLTIP_TOMAR_ASISTENCIA_PERSONAL_KEY } from "../PlantillaLogi
 import { useDelegacionEventos } from "@/hooks/useDelegacionDeEventos";
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import { AsistenciaDePersonalIDB } from "@/lib/utils/local/db/models/AsistenciaDePersonal/AsistenciaDePersonalIDB";
-import { ModoRegistro, modoRegistroTextos } from "@/interfaces/shared/ModoRegistroPersonal";
+import {
+  ModoRegistro,
+  modoRegistroTextos,
+} from "@/interfaces/shared/ModoRegistroPersonal";
 import ConfirmacionAsistenciaMarcadaModal from "@/components/modals/AsistenciaPropiaPersonal/ConfirmacionAsistenciaMarcadaModal";
 import ActivarGPSoBrindarPermisosGPSModal from "@/components/modals/AsistenciaPropiaPersonal/ActivarGPSAsistenciaPropia";
 import FalloConexionAInternetAlMarcarAsistenciaPropiaModal from "@/components/modals/AsistenciaPropiaPersonal/ConexionInternetMarcarAsistenciaPropia";
@@ -39,7 +42,7 @@ interface MensajeInformativo {
 }
 
 // ✅ SELECTOR OPTIMIZADO
-const selectSidebar = (state: RootState) => ({
+const selectNavbarFooter = (state: RootState) => ({
   height: state.elementsDimensions.navBarFooterHeight,
   isOpen: state.flags.sidebarIsOpen,
 });
@@ -163,20 +166,22 @@ const MensajeInformativoAsistencia = memo(
 MensajeInformativoAsistencia.displayName = "MensajeInformativoAsistencia";
 
 const MarcarAsistenciaDePersonalButton = memo(
-  ({ 
-    rol, 
-    datosAsistencia 
-  }: { 
+  ({
+    rol,
+    datosAsistencia,
+  }: {
     rol: RolesSistema;
     datosAsistencia: DatosAsistenciaCompartidos;
   }) => {
     const { delegarEvento } = useDelegacionEventos();
-    
+
     // ✅ SELECTORES
-    const sidebar = useSelector(selectSidebar);
+    const navbarFooter = useSelector(selectNavbarFooter);
+
 
     // ✅ EXTRAER DATOS DEL HOOK COMPARTIDO (NO MÁS CONSULTAS PROPIAS)
-    const { horario, handlerBase, asistencia, modoActual, inicializado } = datosAsistencia;
+    const { horario, handlerBase, asistencia, modoActual, inicializado } =
+      datosAsistencia;
 
     // ✅ ESTADOS SIMPLIFICADOS (SIN LÓGICA DE CONSULTA)
     const [estadoBoton, setEstadoBoton] = useState<EstadoBoton>({
@@ -187,26 +192,50 @@ const MarcarAsistenciaDePersonalButton = memo(
       esCarga: true,
     });
 
-    const [mensajeInformativo, setMensajeInformativo] = useState<MensajeInformativo>({
-      mostrar: false,
-      texto: "",
-      tipo: "sin-horario",
-    });
+    const [mensajeInformativo, setMensajeInformativo] =
+      useState<MensajeInformativo>({
+        mostrar: false,
+        texto: "",
+        tipo: "sin-horario",
+      });
 
-    const [asistenciaIDB, setAsistenciaIDB] = useState<AsistenciaDePersonalIDB | null>(null);
+    const [asistenciaIDB, setAsistenciaIDB] =
+      useState<AsistenciaDePersonalIDB | null>(null);
 
     // ===================================================================================
     //                         Variables de estado para modales
     // ===================================================================================
-    const [mostrarModalTomarMiAsistencia, setMostrarModalTomarMiAsistencia] = useState(false);
-    const [mostrarModalConfirmacioAsistenciaMarcada, setMostrarModalConfirmacioAsistenciaMarcada] = useState(false);
-    const [mostrarModalFaltaActivarGPSoBrindarPermisosGPS, setMostrarModalFaltaActivarGPSoBrindarPermisosGPS] = useState(false);
-    const [mostrarModalUbicacionFueraDelColegioAlRegistrarAsistenciaPropia, setMostrarModalFueraDelColegioAlRegistrarAsistenciaPropia] = useState(false);
-    const [mostrarModalErrorGenericoAlRegistrarAsistenciaPropia, setMostrarErrorGenericoAlRegistrarAsistenciaPropia] = useState(false);
-    const [mostrarModalFalloConexionAInternetAlMarcarAsistenciaPropia, setMostrarModalFalloConexionAInternetAlMarcarAsistenciaPropia] = useState(false);
-    const [mostrarModalNoSePuedeUsarLaptop, setMostrarModalNoSePuedeUsarLaptop] = useState(false);
-    const [mostrarModalDispositivoSinGPS, setMostrarModalDispositivoSinGPS] = useState(false);
-    const [fechaHoraRegistro, setFechaHoraRegistro] = useState<Date | null>(null);
+    const [mostrarModalTomarMiAsistencia, setMostrarModalTomarMiAsistencia] =
+      useState(false);
+    const [
+      mostrarModalConfirmacioAsistenciaMarcada,
+      setMostrarModalConfirmacioAsistenciaMarcada,
+    ] = useState(false);
+    const [
+      mostrarModalFaltaActivarGPSoBrindarPermisosGPS,
+      setMostrarModalFaltaActivarGPSoBrindarPermisosGPS,
+    ] = useState(false);
+    const [
+      mostrarModalUbicacionFueraDelColegioAlRegistrarAsistenciaPropia,
+      setMostrarModalFueraDelColegioAlRegistrarAsistenciaPropia,
+    ] = useState(false);
+    const [
+      mostrarModalErrorGenericoAlRegistrarAsistenciaPropia,
+      setMostrarErrorGenericoAlRegistrarAsistenciaPropia,
+    ] = useState(false);
+    const [
+      mostrarModalFalloConexionAInternetAlMarcarAsistenciaPropia,
+      setMostrarModalFalloConexionAInternetAlMarcarAsistenciaPropia,
+    ] = useState(false);
+    const [
+      mostrarModalNoSePuedeUsarLaptop,
+      setMostrarModalNoSePuedeUsarLaptop,
+    ] = useState(false);
+    const [mostrarModalDispositivoSinGPS, setMostrarModalDispositivoSinGPS] =
+      useState(false);
+    const [fechaHoraRegistro, setFechaHoraRegistro] = useState<Date | null>(
+      null
+    );
 
     // ✅ TOOLTIP MANAGEMENT
     const [tooltipOculto, setTooltipOculto] = useState(() => {
@@ -332,7 +361,7 @@ const MarcarAsistenciaDePersonalButton = memo(
     // ✅ FUNCIÓN: Actualizar estado del botón (USANDO DATOS COMPARTIDOS)
     const actualizarEstadoBoton = useCallback(() => {
       console.log("🔍 ===== INICIO actualizarEstadoBoton =====");
-      
+
       // ✅ Verificar si aún estamos en proceso de inicialización
       const estaInicializando =
         !inicializado ||
@@ -349,7 +378,8 @@ const MarcarAsistenciaDePersonalButton = memo(
         asistenciaInicializada: asistencia.inicializado,
         estaInicializando,
         rol,
-        esDirectivoOResponsable: rol === RolesSistema.Directivo || rol === RolesSistema.Responsable,
+        esDirectivoOResponsable:
+          rol === RolesSistema.Directivo || rol === RolesSistema.Responsable,
       });
 
       // ✅ MOSTRAR ESTADO DE CARGA mientras se inicializa
@@ -370,7 +400,10 @@ const MarcarAsistenciaDePersonalButton = memo(
       // ✅ Verificar condiciones especiales
       const condicionEspecial = verificarCondicionesEspeciales();
       if (condicionEspecial) {
-        console.log("🚫 RESULTADO: Ocultando por condición especial:", condicionEspecial);
+        console.log(
+          "🚫 RESULTADO: Ocultando por condición especial:",
+          condicionEspecial
+        );
         setEstadoBoton({
           visible: false,
           tipo: null,
@@ -407,7 +440,10 @@ const MarcarAsistenciaDePersonalButton = memo(
 
       // ✅ Si el modo no está activo (fuera del rango de tiempo), OCULTAR el botón
       if (!modoActual.activo || !modoActual.tipo) {
-        console.log("🚫 RESULTADO: Ocultando botón - Fuera del rango de tiempo:", modoActual.razon);
+        console.log(
+          "🚫 RESULTADO: Ocultando botón - Fuera del rango de tiempo:",
+          modoActual.razon
+        );
         setEstadoBoton({
           visible: false,
           tipo: null,
@@ -434,7 +470,9 @@ const MarcarAsistenciaDePersonalButton = memo(
       });
 
       if (yaSeMarco) {
-        console.log(`🚫 RESULTADO: Ocultando botón - ${modoActual.tipo} ya marcada`);
+        console.log(
+          `🚫 RESULTADO: Ocultando botón - ${modoActual.tipo} ya marcada`
+        );
         setEstadoBoton({
           visible: false,
           tipo: null,
@@ -449,7 +487,9 @@ const MarcarAsistenciaDePersonalButton = memo(
       const esEntrada = modoActual.tipo === ModoRegistro.Entrada;
       const color = esEntrada ? "verde" : "rojizo";
 
-      console.log(`👁️ RESULTADO: Mostrando botón ${color} para ${modoActual.tipo}`);
+      console.log(
+        `👁️ RESULTADO: Mostrando botón ${color} para ${modoActual.tipo}`
+      );
 
       setEstadoBoton({
         visible: true,
@@ -520,7 +560,10 @@ const MarcarAsistenciaDePersonalButton = memo(
       console.log("🔧 INICIALIZANDO AsistenciaDePersonalIDB...");
       const nuevaAsistenciaIDB = new AsistenciaDePersonalIDB("API01");
       setAsistenciaIDB(nuevaAsistenciaIDB);
-      console.log("✅ AsistenciaDePersonalIDB inicializada:", nuevaAsistenciaIDB);
+      console.log(
+        "✅ AsistenciaDePersonalIDB inicializada:",
+        nuevaAsistenciaIDB
+      );
     }, []);
 
     // ✅ NUEVO: Verificar mensaje informativo cuando se obtiene handler/horario
@@ -643,7 +686,7 @@ const MarcarAsistenciaDePersonalButton = memo(
           <MensajeInformativoAsistencia
             mensaje={mensajeInformativo}
             onCerrar={ocultarMensajeInformativo}
-            navbarHeight={sidebar.height}
+            navbarHeight={navbarFooter.height}
           />
         )}
 
@@ -737,7 +780,7 @@ const MarcarAsistenciaDePersonalButton = memo(
           {`
         @keyframes Modificar-Bottom-NavBarFooter {
             to {
-                bottom: ${sidebar.isOpen ? `${sidebar.height + 12}px` : "12px"};
+                bottom: ${navbarFooter.isOpen ? `${navbarFooter.height}px` : "0px"};
             }
         }
         .Mover-NavBarFooter {
@@ -902,7 +945,7 @@ const MarcarAsistenciaDePersonalButton = memo(
              xs-only:mr-4 xs-only:mb-4
              sm-only:mr-5 sm-only:mb-4
              mr-6 mb-5"
-            style={{ bottom: sidebar.height + 12 }}
+            style={{ bottom: navbarFooter.height + 80 }}
           >
             {/* Tooltip - Solo mostrar si NO es estado de carga */}
             {mostrarTooltipActual && !estadoBoton.esCarga && (

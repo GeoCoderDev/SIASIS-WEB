@@ -141,7 +141,7 @@ const NavBarFooter = ({ Rol }: { Rol: RolesSistema }) => {
       dispatch(setSidebarIsOpen({ value: true }));
     }
 
-    const navBarFooterHTML = document.getElementById("header");
+    const navBarFooterHTML = document.getElementById("navbar-footer");
 
     if (!navBarFooterHTML) return;
     resizeObserver.observe(navBarFooterHTML);
@@ -173,6 +173,7 @@ const NavBarFooter = ({ Rol }: { Rol: RolesSistema }) => {
         />
       )}
       <nav
+      id="navbar-footer"
         className={`max-w-[100vw] w-full z-[101] bottom-0 left-0 bg-white shadow-[0_0_12px_4px_rgba(0,0,0,0.20)] animate__animated fixed
         ${
           montado && navBarFooterIsOpen
