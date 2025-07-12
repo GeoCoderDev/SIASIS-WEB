@@ -44,9 +44,9 @@ interface EstadoAsistencia {
 interface EstadoBoton {
   visible: boolean;
   tipo: ModoRegistro | null;
-  color: "verde" | "rojizo" | "carga"; // ✅ Agregar estado "carga"
+  color: "verde" | "rojizo" | "carga";
   tooltip: string;
-  esCarga: boolean; // ✅ Nueva propiedad para identificar estado de carga
+  esCarga: boolean;
 }
 
 interface ModoActual {
@@ -68,7 +68,6 @@ interface MensajeInformativo {
 
 // ✅ CONSTANTES
 const RETRY_HORARIO_MS = 30000; // 30 segundos
-
 const TIMEOUT_EMERGENCIA_REINTENTO_MS = 4000; // 4 segundos
 
 // ✅ SELECTOR OPTIMIZADO - Solo para hora/minuto (NO cada segundo)
@@ -251,9 +250,16 @@ const MarcarAsistenciaDePersonalButton = memo(
     const [handlerBase, setHandlerBase] =
       useState<HandlerAsistenciaBase | null>(null);
 
-    // ✅ NUEVO ESTADO - Agregar después de los otros useState
+    // ✅ 🔧 NUEVO ESTADO CRÍTICO: Control de consulta única
+    const [consultaInicialEnProceso, setConsultaInicialEnProceso] =
+      useState(false);
+    const [consultaInicialCompletada, setConsultaInicialCompletada] =
+      useState(false);
+
+    // ✅ NUEVO ESTADO - Timer de emergencia
     const [timerEmergenciaActivo, setTimerEmergenciaActivo] = useState(true);
     const timerEmergenciaRef = useRef<NodeJS.Timeout | null>(null);
+    const consultaEnProcesoRef = useRef<boolean>(false);
 
     // ===================================================================================
     //                         Variables de estado para modales
@@ -573,7 +579,7 @@ const MarcarAsistenciaDePersonalButton = memo(
       [obtenerFechaActual]
     );
 
-    // ✅ FUNCIÓN: Consultar asistencia del modo específico
+    // ✅ 🔧 FUNCIÓN CORREGIDA: Consultar asistencia del modo específico (CON PROTECCIÓN CONTRA DUPLICADOS)
     const consultarAsistenciaModo = useCallback(
       async (modo: ModoRegistro, razon: string): Promise<void> => {
         if (!asistenciaIDB) {
@@ -581,8 +587,20 @@ const MarcarAsistenciaDePersonalButton = memo(
           return;
         }
 
+        // ✅ 🔧 PROTECCIÓN INMEDIATA CON REF
+        if (consultaEnProcesoRef.current) {
+          console.log(
+            `⏭️ CONSULTA YA EN PROCESO - BLOQUEANDO ${modo} (${razon})`
+          );
+          return;
+        }
+
         try {
           console.log(`🔍 CONSULTANDO ${modo} - Razón: ${razon}`);
+
+          // ✅ 🔧 BLOQUEAR INMEDIATAMENTE
+          consultaEnProcesoRef.current = true;
+          setConsultaInicialEnProceso(true);
 
           const resultado = await asistenciaIDB.consultarMiAsistenciaDeHoy(
             modo,
@@ -594,7 +612,6 @@ const MarcarAsistenciaDePersonalButton = memo(
             fuente: resultado.fuente,
           });
 
-          // ✅ ACTUALIZAR SOLO EL ESTADO CORRESPONDIENTE
           setAsistencia((prev) => ({
             ...prev,
             entradaMarcada:
@@ -607,8 +624,14 @@ const MarcarAsistenciaDePersonalButton = memo(
                 : prev.salidaMarcada,
             inicializado: true,
           }));
+
+          setConsultaInicialCompletada(true);
         } catch (error) {
           console.error(`❌ Error al consultar ${modo}:`, error);
+        } finally {
+          // ✅ 🔧 LIBERAR LOCKS SIEMPRE
+          consultaEnProcesoRef.current = false;
+          setConsultaInicialEnProceso(false);
         }
       },
       [asistenciaIDB, rol]
@@ -856,6 +879,14 @@ const MarcarAsistenciaDePersonalButton = memo(
       // No ejecutar si hay mensaje informativo
       if (mensajeInformativo.mostrar) return;
 
+      // ✅ 🔧 NUEVA PROTECCIÓN: No ejecutar si consulta inicial no completada
+      if (!consultaInicialCompletada) {
+        console.log(
+          "⏭️ Esperando consulta inicial completada antes de consulta periódica"
+        );
+        return;
+      }
+
       const modoActual = determinarModoActual(horario);
 
       if (!modoActual.activo || !modoActual.tipo) {
@@ -873,25 +904,63 @@ const MarcarAsistenciaDePersonalButton = memo(
         return;
       }
 
-      // ✅ SOLO CONSULTAR SI ES UN MODO DIFERENTE O ES LA PRIMERA VEZ
+      // ✅ SOLO CONSULTAR SI ES UN MODO DIFERENTE
       if (ultimoModoConsultado.current !== modoActual.tipo) {
         console.log(
           `🔄 Cambio de modo detectado: ${ultimoModoConsultado.current} → ${modoActual.tipo}`
         );
         ultimoModoConsultado.current = modoActual.tipo;
+        consultarAsistenciaModo(
+          modoActual.tipo,
+          "consulta periódica inteligente"
+        );
       }
-
-      consultarAsistenciaModo(
-        modoActual.tipo,
-        "consulta periódica inteligente"
-      );
     }, [
       mensajeInformativo.mostrar,
+      consultaInicialCompletada, // ✅ 🔧 NUEVA DEPENDENCIA CRÍTICA
       horario,
       asistencia.entradaMarcada,
       asistencia.salidaMarcada,
       consultarAsistenciaModo,
       determinarModoActual,
+    ]);
+
+    // ✅ 🔧 FUNCIÓN CORREGIDA: Reintento de emergencia (SIN CONSULTAS DUPLICADAS)
+    const reintentoForzadoEmergencia = useCallback(() => {
+      console.log("🚨 REINTENTO FORZADO DE EMERGENCIA");
+
+      // ✅ 🔧 VERIFICACIÓN MÁS ESTRICTA
+      if (consultaEnProcesoRef.current) {
+        console.log("⏭️ Ya hay consulta en proceso, saltando emergencia");
+        setTimerEmergenciaActivo(false);
+        return;
+      }
+
+      if (!horario && !handlerBase) {
+        console.log("🔄 Forzando obtenerHorario()");
+        obtenerHorario();
+      }
+
+      // ✅ 🔧 SOLO SI REALMENTE ES NECESARIO
+      if (!asistencia.inicializado && horario && !consultaInicialCompletada) {
+        console.log("🔄 Ejecutando consulta de emergencia");
+        const modoActual = determinarModoActual(horario);
+        if (modoActual.activo && modoActual.tipo) {
+          consultarAsistenciaModo(modoActual.tipo, "emergencia");
+        }
+      }
+
+      actualizarEstadoBoton();
+      setTimerEmergenciaActivo(false);
+    }, [
+      horario,
+      handlerBase,
+      asistencia.inicializado,
+      consultaInicialCompletada,
+      obtenerHorario,
+      determinarModoActual,
+      consultarAsistenciaModo,
+      actualizarEstadoBoton,
     ]);
 
     // ✅ INICIALIZACIÓN
@@ -927,25 +996,31 @@ const MarcarAsistenciaDePersonalButton = memo(
       }
     }, [handlerBase, horario, reduxInicializado, verificarMensajeInformativo]);
 
-    // ✅ CONSULTA INICIAL cuando se obtiene el horario Y Redux está inicializado
+    // ✅ 🔧 CONSULTA INICIAL CORREGIDA (PROTEGIDA CONTRA DUPLICADOS)
     useEffect(() => {
       console.log("🚀 USEEFFECT CONSULTA INICIAL - Verificando condiciones:", {
         horario: !!horario,
         inicializadoAsistencia: asistencia.inicializado,
         reduxInicializado,
         mensajeInformativo: mensajeInformativo.mostrar,
+        consultaInicialCompletada,
+        consultaInicialEnProceso,
         debeEjecutar:
           horario &&
           !asistencia.inicializado &&
           reduxInicializado &&
-          !mensajeInformativo.mostrar,
+          !mensajeInformativo.mostrar &&
+          !consultaInicialCompletada &&
+          !consultaInicialEnProceso,
       });
 
       if (
         horario &&
         !asistencia.inicializado &&
         reduxInicializado &&
-        !mensajeInformativo.mostrar
+        !mensajeInformativo.mostrar &&
+        !consultaInicialCompletada && // ✅ 🔧 NUEVA CONDICIÓN CRÍTICA
+        !consultaInicialEnProceso // ✅ 🔧 NUEVA CONDICIÓN CRÍTICA
       ) {
         console.log("🚀 INICIANDO CONSULTA INICIAL... (Redux ya inicializado)");
 
@@ -965,6 +1040,8 @@ const MarcarAsistenciaDePersonalButton = memo(
             "❌ NO SE EJECUTA CONSULTA INICIAL - Razón:",
             modoActual.razon
           );
+          // ✅ 🔧 MARCAR COMO COMPLETADA AUNQUE NO HAYA CONSULTADO (porque no era necesario)
+          setConsultaInicialCompletada(true);
         }
       } else {
         if (!horario)
@@ -975,12 +1052,18 @@ const MarcarAsistenciaDePersonalButton = memo(
           console.log("⏭️ Redux no inicializado, esperando...");
         if (mensajeInformativo.mostrar)
           console.log("⏭️ Mensaje informativo activo, no consultar");
+        if (consultaInicialCompletada)
+          console.log("⏭️ Consulta inicial ya completada anteriormente");
+        if (consultaInicialEnProceso)
+          console.log("⏭️ Consulta inicial ya en proceso");
       }
     }, [
       horario,
       asistencia.inicializado,
       reduxInicializado,
       mensajeInformativo.mostrar,
+      consultaInicialCompletada, // ✅ 🔧 NUEVA DEPENDENCIA CRÍTICA
+      consultaInicialEnProceso, // ✅ 🔧 NUEVA DEPENDENCIA CRÍTICA
       consultarAsistenciaModo,
       determinarModoActual,
     ]);
@@ -1027,50 +1110,7 @@ const MarcarAsistenciaDePersonalButton = memo(
       actualizarEstadoBoton,
     ]);
 
-    // ✅ NUEVA FUNCIÓN - Agregar después de las otras funciones
-    const reintentoForzadoEmergencia = useCallback(() => {
-      console.log(
-        "🚨 REINTENTO FORZADO DE EMERGENCIA - 4 segundos transcurridos"
-      );
-      console.log("🔄 Forzando re-ejecución de procesos críticos...");
-
-      // 1. Forzar re-obtención de horario si no existe
-      if (!horario && !handlerBase) {
-        console.log("🔄 Forzando obtenerHorario()");
-        obtenerHorario();
-      }
-
-      // 2. Forzar consulta de asistencia si no está inicializada
-      if (!asistencia.inicializado && horario) {
-        console.log("🔄 Forzando consulta de asistencia");
-        const modoActual = determinarModoActual(horario);
-        if (modoActual.activo && modoActual.tipo) {
-          consultarAsistenciaModo(
-            modoActual.tipo,
-            "reintento forzado de emergencia"
-          );
-        }
-      }
-
-      // 3. Forzar actualización del estado del botón
-      console.log("🔄 Forzando actualización del estado del botón");
-      actualizarEstadoBoton();
-
-      // 4. Desactivar el timer de emergencia
-      setTimerEmergenciaActivo(false);
-
-      console.log("✅ Reintento forzado completado");
-    }, [
-      horario,
-      handlerBase,
-      asistencia.inicializado,
-      obtenerHorario,
-      determinarModoActual,
-      consultarAsistenciaModo,
-      actualizarEstadoBoton,
-    ]);
-
-    // ✅ NUEVO USEEFFECT - Timer de emergencia
+    // ✅ TIMER DE EMERGENCIA
     useEffect(() => {
       if (!timerEmergenciaActivo) return;
 
@@ -1093,6 +1133,7 @@ const MarcarAsistenciaDePersonalButton = memo(
       };
     }, [timerEmergenciaActivo, reintentoForzadoEmergencia]);
 
+    // ✅ 🔧 INTERVALO CORREGIDO (CON PROTECCIÓN ADICIONAL)
     useEffect(() => {
       // ✅ Si el timer de emergencia ya no está activo, siempre intentar configurar el intervalo
       if (timerEmergenciaActivo) return; // Solo esperar durante los primeros 4 segundos
@@ -1101,24 +1142,30 @@ const MarcarAsistenciaDePersonalButton = memo(
         !asistencia.inicializado ||
         !horario ||
         !reduxInicializado ||
-        mensajeInformativo.mostrar
+        mensajeInformativo.mostrar ||
+        !consultaInicialCompletada // ✅ 🔧 NUEVA CONDICIÓN CRÍTICA
       ) {
         console.log(
           "⚠️ Condiciones no cumplidas para intervalo, pero timer de emergencia ya pasó"
         );
-        // ✅ Después del timer de emergencia, intentar una consulta manual
-        if (reduxInicializado && horario) {
-          console.log(
-            "🔄 Intentando consulta manual después de timer de emergencia"
-          );
-          const modoActual = determinarModoActual(horario);
-          if (modoActual.activo && modoActual.tipo) {
-            consultarAsistenciaModo(
-              modoActual.tipo,
-              "consulta post-timer emergencia"
-            );
-          }
-        }
+        // ✅ Después del timer de emergencia, intentar una consulta manual SOLO si es necesario
+        // if (
+        //   reduxInicializado &&
+        //   horario &&
+        //   !consultaInicialCompletada &&
+        //   !consultaInicialEnProceso
+        // ) {
+        //   console.log(
+        //     "🔄 Intentando consulta manual después de timer de emergencia"
+        //   );
+        //   const modoActual = determinarModoActual(horario);
+        //   if (modoActual.activo && modoActual.tipo) {
+        //     consultarAsistenciaModo(
+        //       modoActual.tipo,
+        //       "consulta post-timer emergencia"
+        //     );
+        //   }
+        // }
         return;
       }
 
@@ -1141,24 +1188,27 @@ const MarcarAsistenciaDePersonalButton = memo(
         }
       };
     }, [
-      timerEmergenciaActivo, // ✅ AGREGAR esta dependencia
+      timerEmergenciaActivo,
       asistencia.inicializado,
       horario,
       reduxInicializado,
       mensajeInformativo.mostrar,
+      consultaInicialCompletada, // ✅ 🔧 NUEVA DEPENDENCIA CRÍTICA
+      consultaInicialEnProceso, // ✅ 🔧 NUEVA DEPENDENCIA CRÍTICA
       consultaPeriodicaInteligente,
       determinarModoActual,
       consultarAsistenciaModo,
     ]);
 
-    // ✅ DETECTAR CAMBIO DE MODO SOLO CADA 10 MINUTOS (no cada segundo)
+    // ✅ 🔧 DETECTAR CAMBIO DE MODO CORREGIDO - Con protección contra duplicados
     useEffect(() => {
       if (
         !horaMinutoActual ||
         !asistencia.inicializado ||
         !horario ||
         !reduxInicializado ||
-        mensajeInformativo.mostrar
+        mensajeInformativo.mostrar ||
+        !consultaInicialCompletada // ✅ 🔧 NUEVA CONDICIÓN CRÍTICA
       )
         return;
 
@@ -1194,6 +1244,7 @@ const MarcarAsistenciaDePersonalButton = memo(
       horario,
       reduxInicializado,
       mensajeInformativo.mostrar,
+      consultaInicialCompletada, // ✅ 🔧 NUEVA DEPENDENCIA CRÍTICA
       consultarAsistenciaModo,
       determinarModoActual,
     ]);
@@ -1209,7 +1260,7 @@ const MarcarAsistenciaDePersonalButton = memo(
       );
     }, [delegarEvento, ocultarTooltip]);
 
-    // ✅ VISIBILIDAD DE PESTAÑA
+    // ✅ 🔧 VISIBILIDAD DE PESTAÑA CORREGIDA - Con protección contra duplicados
     useEffect(() => {
       const handleVisibility = () => {
         if (
@@ -1217,7 +1268,8 @@ const MarcarAsistenciaDePersonalButton = memo(
           asistencia.inicializado &&
           horario &&
           reduxInicializado &&
-          !mensajeInformativo.mostrar
+          !mensajeInformativo.mostrar &&
+          consultaInicialCompletada // ✅ 🔧 NUEVA CONDICIÓN CRÍTICA
         ) {
           console.log("👁️ Pestaña visible, verificando modo actual");
           const modoActual = determinarModoActual(horario);
@@ -1245,6 +1297,7 @@ const MarcarAsistenciaDePersonalButton = memo(
       horario,
       reduxInicializado,
       mensajeInformativo.mostrar,
+      consultaInicialCompletada, // ✅ 🔧 NUEVA DEPENDENCIA CRÍTICA
       consultarAsistenciaModo,
       determinarModoActual,
     ]);
@@ -1256,7 +1309,6 @@ const MarcarAsistenciaDePersonalButton = memo(
       }
     }, [estadoBoton.tipo, mensajeInformativo.mostrar, mostrarTooltip]);
 
-    // ✅ HANDLE CLICK
     // ✅ HANDLE CLICK - No permitir click en estado de carga
     const handleClick = useCallback(() => {
       if (!estadoBoton.visible || estadoBoton.esCarga) return;
@@ -1270,12 +1322,18 @@ const MarcarAsistenciaDePersonalButton = memo(
       ocultarTooltip,
     ]);
 
+    useEffect(() => {
+      console.log("🔄 Rol cambió, reseteando flags de consulta");
+      setConsultaInicialCompletada(false);
+      setConsultaInicialEnProceso(false);
+      consultaEnProcesoRef.current = false; // ✅ 🔧 AGREGAR ESTA LÍNEA
+    }, [rol]);
+
     // ✅ CLEANUP
     useEffect(() => {
       return () => {
         if (intervalRef.current) clearInterval(intervalRef.current);
         if (retryRef.current) clearTimeout(retryRef.current);
-        // ✅ AGREGAR cleanup del timer de emergencia
         if (timerEmergenciaRef.current)
           clearTimeout(timerEmergenciaRef.current);
       };
@@ -1345,6 +1403,7 @@ const MarcarAsistenciaDePersonalButton = memo(
         throw error; // Re-lanzar para que el modal lo maneje
       }
     }, [estadoBoton.tipo, horario, obtenerFechaActual, asistenciaIDB, rol]);
+
     // ✅ RENDER: Mensaje informativo o botón
     const mostrarTooltipActual = !tooltipOculto && !mensajeInformativo.mostrar;
 
