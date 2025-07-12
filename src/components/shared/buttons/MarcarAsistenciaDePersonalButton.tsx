@@ -1394,7 +1394,9 @@ const MarcarAsistenciaDePersonalButton = memo(
         );
 
         // ✅ GUARDAR LA FECHA/HORA DE REGISTRO EXITOSO
-        setFechaHoraRegistro(new Date()); // Hora actual del registro
+        setFechaHoraRegistro(
+          new Date(store.getState().others.fechaHoraActualReal.fechaHora!)
+        ); // Hora actual del registro
 
         // Si llegamos aquí, todo fue exitoso
         console.log("✅ Asistencia marcada exitosamente");
@@ -1452,7 +1454,7 @@ const MarcarAsistenciaDePersonalButton = memo(
               setFechaHoraRegistro(null); // Limpiar la fecha al cerrar
             }}
             fechaHoraRegistro={fechaHoraRegistro}
-            tipoRegistro={estadoBoton.tipo}
+            modoRegistro={estadoBoton.tipo}
           />
         )}
 

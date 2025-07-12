@@ -7,13 +7,13 @@ import {
 interface ConfirmacionAsistenciaMarcadaModalProps {
   eliminateModal: () => void;
   fechaHoraRegistro: Date | null;
-  tipoRegistro: ModoRegistro | null;
+  modoRegistro: ModoRegistro | null;
 }
 
 const ConfirmacionAsistenciaMarcadaModal = ({
   eliminateModal,
   fechaHoraRegistro,
-  tipoRegistro,
+  modoRegistro,
 }: ConfirmacionAsistenciaMarcadaModalProps) => {
   // Función para formatear la fecha y hora
   const formatearFechaHora = (fecha: Date): string => {
@@ -32,8 +32,8 @@ const ConfirmacionAsistenciaMarcadaModal = ({
 
   // Función para obtener texto del tipo de registro
   const obtenerTextoRegistro = (): string => {
-    if (!tipoRegistro) return "asistencia";
-    return modoRegistroTextos[tipoRegistro].toLowerCase();
+    if (!modoRegistro) return "asistencia";
+    return modoRegistroTextos[modoRegistro].toLowerCase();
   };
 
   // Obtener fecha formateada
