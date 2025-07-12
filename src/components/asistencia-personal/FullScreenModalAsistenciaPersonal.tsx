@@ -10,7 +10,6 @@ import userStorage from "@/lib/utils/local/db/models/UserStorage";
 import { RolBoton } from "../shared/buttons/RolButton";
 import { FechaHoraActualRealState } from "@/global/state/others/fechaHoraActualReal";
 import { determinarPeriodoDia } from "@/lib/calc/determinarPeriodoDia";
-import { saludosDia } from "@/Assets/voice/others/SaludosDia";
 import { TiempoRestante } from "@/lib/calc/time/tiempoRestanteHasta";
 import VolverIcon from "../icons/VolverIcon";
 import { ListaPersonal, obtenerTextoRol } from "./ListadoPersonal";
@@ -24,6 +23,7 @@ import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import DirectivoIcon from "../icons/DirectivoIcon";
 import { AsistenciaHoy } from "@/lib/utils/local/db/models/AsistenciasTomadasHoy/AsistenciasTomadasHoyIDB";
 import IndexedDBConnection from "@/lib/utils/local/db/IndexedDBConnection";
+import { saludosDia } from "@/Assets/voice/others/SaludosDelDia";
 
 const FullScreenModalAsistenciaPersonal = ({
   closeFullScreenModal,
