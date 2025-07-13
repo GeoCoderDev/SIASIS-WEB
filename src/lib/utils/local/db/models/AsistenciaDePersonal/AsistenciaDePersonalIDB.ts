@@ -681,7 +681,7 @@ export class AsistenciaDePersonalIDB {
   ): Promise<{
     marcada: boolean;
     timestamp?: number;
-    estado?: string;
+    estado?: EstadosAsistenciaPersonal;
     fuente: "REGISTRO_MENSUAL" | "CACHE_LOCAL" | "REDIS" | "NO_ENCONTRADO";
     mensaje: string;
   }> {

@@ -715,6 +715,7 @@ const MarcarAsistenciaDePersonalButton = memo(
         {/* ✅ MODALES */}
         {mostrarModalTomarMiAsistencia && (
           <MarcarAsistenciaPropiaDePersonalModal
+            Rol={rol}
             eliminateModal={() => setMostrarModalTomarMiAsistencia(false)}
             modoRegistro={modoActual.tipo!}
             marcarMiAsistenciaDeHoy={marcarMiAsistenciaDeHoy}

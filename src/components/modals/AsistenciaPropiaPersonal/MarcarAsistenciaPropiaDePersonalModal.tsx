@@ -14,91 +14,65 @@ import Loader from "@/components/shared/loaders/Loader";
 import { ENTORNO } from "@/constants/ENTORNO";
 import { Entorno } from "@/interfaces/shared/Entornos";
 
+// ✅ NUEVAS IMPORTACIONES PARA SOCKETS
+import { useSS01 } from "@/hooks/useSS01";
+import { TomaAsistenciaPersonalSIU01Events } from "@/SS01/sockets/events/AsistenciaDePersonal/frontend/TomaAsistenciaPersonalSIU01Events";
+import { SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER } from "@/SS01/sockets/events/AsistenciaDePersonal/interfaces/SalasTomaAsistenciaDePersonal";
+import {
+  PersonalDelColegio,
+  RolesSistema,
+} from "@/interfaces/shared/RolesSistema";
+import { AsistenciaDePersonalIDB } from "@/lib/utils/local/db/models/AsistenciaDePersonal/AsistenciaDePersonalIDB";
+import { HandlerProfesorPrimariaAsistenciaResponse } from "@/lib/utils/local/db/models/DatosAsistenciaHoy/handlers/HandlerProfesorPrimariaAsistenciaResponse";
+import { HandlerAuxiliarAsistenciaResponse } from "@/lib/utils/local/db/models/DatosAsistenciaHoy/handlers/HandlerAuxiliarAsistenciaResponse";
+import { HandlerProfesorTutorSecundariaAsistenciaResponse } from "@/lib/utils/local/db/models/DatosAsistenciaHoy/handlers/HandlerProfesorTutorSecundariaAsistenciaResponse";
+import { HandlerPersonalAdministrativoAsistenciaResponse } from "@/lib/utils/local/db/models/DatosAsistenciaHoy/handlers/HandlerPersonalAdministrativoAsistenciaResponse";
+import userStorage from "@/lib/utils/local/db/models/UserStorage";
+
 // ========================================================================================
-// CONFIGURACIÓN POR ENTORNO
+// CONFIGURACIÓN POR ENTORNO (mantener la configuración existente)
 // ========================================================================================
 
-// 🔧 TESTING: Mostrar mensajes de debugging y modo de prueba
-const TESTING_EXPLICITO = false; // ✅ Cambiar a true para mostrar mensajes de debugging
+const TESTING_EXPLICITO = false;
 
-// 🎯 Configuración de validación GPS según entorno
 const REQUERIR_VALIDACION_GPS_SEGUN_ENTORNO: Record<Entorno, boolean> = {
   [Entorno.LOCAL]: false,
-  [Entorno.DESARROLLO]: false, // ✅ GPS habilitado (solicitar permisos)
+  [Entorno.DESARROLLO]: false,
   [Entorno.CERTIFICACION]: true,
   [Entorno.PRODUCCION]: true,
   [Entorno.TEST]: true,
 };
 
-// 🎭 Configuración de coordenadas mockeadas según entorno
 const USAR_COORDENADAS_MOCKEADAS_SEGUN_ENTORNO: Record<Entorno, boolean> = {
   [Entorno.LOCAL]: false,
   [Entorno.DESARROLLO]: false,
-  [Entorno.CERTIFICACION]: true, // ✅ Reemplazar con coordenadas mockeadas al final
+  [Entorno.CERTIFICACION]: true,
   [Entorno.PRODUCCION]: false,
   [Entorno.TEST]: false,
 };
 
-// 📱 Configuración de restricción de dispositivos según entorno
 const SOLO_PERMITIR_CELULARES_SEGUN_ENTORNO: Record<Entorno, boolean> = {
-  [Entorno.LOCAL]: false, // Permitir laptops en local (para desarrollo)
-  [Entorno.DESARROLLO]: false, // ✅ PERMITIR LAPTOPS en desarrollo para testing
-  [Entorno.CERTIFICACION]: true, // Solo celulares en certificación
-  [Entorno.PRODUCCION]: true, // Solo celulares en producción
-  [Entorno.TEST]: false, // Permitir laptops en test
+  [Entorno.LOCAL]: false,
+  [Entorno.DESARROLLO]: false,
+  [Entorno.CERTIFICACION]: true,
+  [Entorno.PRODUCCION]: true,
+  [Entorno.TEST]: false,
 };
 
-// 🚀 VALORES FINALES CALCULADOS SEGÚN ENTORNO ACTUAL
 const REQUERIR_VALIDACION_GPS = REQUERIR_VALIDACION_GPS_SEGUN_ENTORNO[ENTORNO];
 const USAR_COORDENADAS_MOCKEADAS =
   USAR_COORDENADAS_MOCKEADAS_SEGUN_ENTORNO[ENTORNO];
 const SOLO_PERMITIR_CELULARES_PARA_ASISTENCIA =
   SOLO_PERMITIR_CELULARES_SEGUN_ENTORNO[ENTORNO];
 
-// 🎯 COORDENADAS PARA TESTING (VERIFICADAS - DENTRO DEL COLEGIO IE 20935)
-export const LATITUD_MOCKEADA = -13.0567; // ✅ CONFIRMADO: Dentro del colegio
-export const LONGITUD_MOCKEADA = -76.347049; // ✅ CONFIRMADO: Dentro del colegio
+export const LATITUD_MOCKEADA = -13.0567;
+export const LONGITUD_MOCKEADA = -76.347049;
 
-// 🔍 COORDENADAS ALTERNATIVAS PARA DEBUGGING
 const COORDENADAS_DEBUGGING = {
   DENTRO_COLEGIO_1: { lat: -13.0567, lng: -76.347049 },
   DENTRO_COLEGIO_2: { lat: -13.056641, lng: -76.346922 },
-  FUERA_COLEGIO: { lat: -12.0464, lng: -77.0428 }, // Lima, definitivamente fuera
+  FUERA_COLEGIO: { lat: -12.0464, lng: -77.0428 },
 };
-
-/*
-📋 CONFIGURACIÓN ACTUAL POR ENTORNO:
-
-🔧 LOCAL (L):
-   - REQUERIR_VALIDACION_GPS = true
-   - USAR_COORDENADAS_MOCKEADAS = false
-   - SOLO_PERMITIR_CELULARES = false
-   → GPS real con validación completa, laptops permitidas
-
-🛠️ DESARROLLO (D):
-   - REQUERIR_VALIDACION_GPS = true
-   - USAR_COORDENADAS_MOCKEADAS = true ← GPS FAKE
-   - SOLO_PERMITIR_CELULARES = false ← LAPTOPS PERMITIDAS
-   → GPS fake (coordenadas mockeadas) con validación completa
-
-🧪 CERTIFICACIÓN (C):
-   - REQUERIR_VALIDACION_GPS = true
-   - USAR_COORDENADAS_MOCKEADAS = true
-   - SOLO_PERMITIR_CELULARES = true
-   → GPS fake (coordenadas mockeadas) con validación completa
-
-🚀 PRODUCCIÓN (P):
-   - REQUERIR_VALIDACION_GPS = true
-   - USAR_COORDENADAS_MOCKEADAS = false
-   - SOLO_PERMITIR_CELULARES = true
-   → GPS real con validación completa
-
-🔬 TEST (T):
-   - REQUERIR_VALIDACION_GPS = true
-   - USAR_COORDENADAS_MOCKEADAS = false
-   - SOLO_PERMITIR_CELULARES = false
-   → GPS real con validación completa, laptops permitidas
-*/
 
 interface MarcarAsistenciaPropiaDePersonalModalProps {
   eliminateModal: () => void;
@@ -125,9 +99,11 @@ interface MarcarAsistenciaPropiaDePersonalModalProps {
   setMostrarModalDispositivoSinGPS: React.Dispatch<
     React.SetStateAction<boolean>
   >;
+  Rol: RolesSistema;
 }
 
 const MarcarAsistenciaPropiaDePersonalModal = ({
+  Rol,
   eliminateModal,
   modoRegistro,
   marcarMiAsistenciaDeHoy,
@@ -141,9 +117,137 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
 }: MarcarAsistenciaPropiaDePersonalModalProps) => {
   const [estaProcessando, setEstaProcessando] = useState(false);
 
+  // ✅ NUEVO: Hook para conexión Socket.io
+  const { isReady, globalSocket } = useSS01();
+
+  // ✅ NUEVO: Función para enviar evento emisor después del registro exitoso
+  const enviarEventoEmisoreAsistenciaRegistrada = useCallback(async () => {
+    try {
+      if (!isReady || !globalSocket) {
+        console.warn("⚠️ Socket no está listo para enviar evento emisor");
+        return;
+      }
+
+      console.log(
+        "🚀 Enviando evento emisor de asistencia propia registrada..."
+      );
+
+      // PASO 1: Obtener datos del usuario logueado
+      const { DatosAsistenciaHoyIDB } = await import(
+        "@/lib/utils/local/db/models/DatosAsistenciaHoy/DatosAsistenciaHoyIDB"
+      );
+      const datosIDB = new DatosAsistenciaHoyIDB();
+      const handler = await datosIDB.getHandler();
+
+      if (!handler) {
+        console.error("❌ No se pudo obtener handler para datos del usuario");
+        return;
+      }
+
+      // Extraer datos del usuario
+      const miDNI = (
+        handler as
+          | HandlerProfesorPrimariaAsistenciaResponse
+          | HandlerAuxiliarAsistenciaResponse
+          | HandlerProfesorTutorSecundariaAsistenciaResponse
+          | HandlerPersonalAdministrativoAsistenciaResponse
+      ).getMiDNI();
+
+      const miNombres = await userStorage.getNombres();
+      const miApellidos = await userStorage.getApellidos();
+      const miGenero = await userStorage.getGenero();
+
+      if (!miDNI) {
+        console.error("❌ No se pudieron obtener datos básicos del usuario:", {
+          miDNI,
+          Rol,
+        });
+        return;
+      }
+
+      console.log("👤 Datos del usuario obtenidos:", {
+        dni: miDNI,
+        rol: Rol,
+        nombres: miNombres,
+        apellidos: miApellidos,
+        genero: miGenero,
+      });
+
+      // PASO 2: Consultar la asistencia recién registrada
+      const asistenciaIDB = new AsistenciaDePersonalIDB("API01");
+      const asistenciaRecienRegistrada =
+        await asistenciaIDB.consultarMiAsistenciaDeHoy(modoRegistro, Rol);
+
+      if (!asistenciaRecienRegistrada.marcada) {
+        console.error("❌ No se encontró la asistencia recién registrada");
+        return;
+      }
+
+      console.log(
+        "📋 Asistencia recién registrada encontrada:",
+        asistenciaRecienRegistrada
+      );
+
+      // PASO 3: Verificar que tenemos todos los datos necesarios
+      if (
+        !asistenciaRecienRegistrada.timestamp ||
+        !asistenciaRecienRegistrada.estado
+      ) {
+        console.error("❌ Faltan datos de la asistencia registrada:", {
+          timestamp: asistenciaRecienRegistrada.timestamp,
+          estado: asistenciaRecienRegistrada.estado,
+        });
+        return;
+      }
+
+      // PASO 4: Crear y ejecutar el evento emisor
+      const emitter =
+        new TomaAsistenciaPersonalSIU01Events.MARQUE_LA_ASISTENCIA_DE_ESTE_PERSONAL_EMITTER(
+          {
+            Mi_Socket_Id: globalSocket.id,
+            id_o_dni: miDNI,
+            genero: miGenero!,
+            nombres: miNombres!,
+            apellidos: miApellidos!,
+            Sala_Toma_Asistencia_de_Personal:
+              SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER[
+                Rol as PersonalDelColegio
+              ][modoRegistro],
+            modoRegistro,
+            RegistroEntradaSalida: {
+              desfaseSegundos: 0, // Calculado por el servidor
+              timestamp: asistenciaRecienRegistrada.timestamp,
+              estado: asistenciaRecienRegistrada.estado,
+            },
+            rol: Rol,
+          }
+        );
+
+      const sent = emitter.execute();
+
+      if (sent) {
+        console.log("✅ Evento emisor enviado exitosamente:", {
+          dni: miDNI,
+          modoRegistro,
+          sala: SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER[
+            Rol as PersonalDelColegio
+          ][modoRegistro],
+          socketId: globalSocket.id,
+        });
+      } else {
+        console.error("❌ Error al enviar evento emisor");
+      }
+    } catch (error) {
+      console.error(
+        "❌ Error al enviar evento emisor de asistencia propia:",
+        error
+      );
+      // No lanzar error para no afectar el flujo principal del registro
+    }
+  }, [isReady, globalSocket, modoRegistro]);
+
   const verificarYSolicitarPermisos = async (): Promise<boolean> => {
     try {
-      // Verificar si ya tenemos permisos
       if ("permissions" in navigator) {
         const permission = await navigator.permissions.query({
           name: "geolocation",
@@ -164,7 +268,6 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
         console.log("🔄 Permisos en estado prompt, solicitando...");
       }
 
-      // Solicitar permisos
       return new Promise((resolve) => {
         navigator.geolocation.getCurrentPosition(
           () => {
@@ -190,7 +293,6 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
 
   const obtenerUbicacion = (): Promise<PuntoGeografico> => {
     return new Promise((resolve, reject) => {
-      // 🔄 MODO NORMAL - GPS REAL (pero con posible reemplazo al final)
       if (!navigator.geolocation) {
         reject(new Error("Geolocalización no soportada"));
         return;
@@ -211,7 +313,6 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
             entorno: ENTORNO,
           });
 
-          // 🎭 VERIFICAR SI DEBE REEMPLAZAR CON COORDENADAS MOCKEADAS
           if (USAR_COORDENADAS_MOCKEADAS) {
             console.log("🔄 REEMPLAZANDO coordenadas reales con mockeadas");
 
@@ -234,7 +335,6 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
               });
             }
 
-            // ✅ PRE-VERIFICACIÓN DE COORDENADAS MOCKEADAS
             const estaDentroMockeado =
               estaDentroDelColegioIE20935(puntoMockeado);
             console.log("🔍 PRE-VERIFICACIÓN coordenadas mockeadas:", {
@@ -250,7 +350,6 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
 
             resolve(puntoMockeado);
           } else {
-            // ✅ USAR COORDENADAS REALES
             console.log("✅ Usando coordenadas REALES obtenidas");
             resolve({
               latitud: position.coords.latitude,
@@ -290,7 +389,6 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
     try {
       setEstaProcessando(true);
 
-      // MOSTRAR CONFIGURACIÓN ACTUAL EN CONSOLA
       console.log("🔧 CONFIGURACIÓN ACTUAL:", {
         entorno: `${ENTORNO} (${
           Object.keys(Entorno)[Object.values(Entorno).indexOf(ENTORNO)]
@@ -299,11 +397,6 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
         usaCoordenadasMockeadas: USAR_COORDENADAS_MOCKEADAS,
         soloPermitirCelulares: SOLO_PERMITIR_CELULARES_PARA_ASISTENCIA,
         testingExplicito: TESTING_EXPLICITO,
-        configuracionCompleta: {
-          validacionGPS: REQUERIR_VALIDACION_GPS_SEGUN_ENTORNO,
-          coordenadasMock: USAR_COORDENADAS_MOCKEADAS_SEGUN_ENTORNO,
-          celularesOnly: SOLO_PERMITIR_CELULARES_SEGUN_ENTORNO,
-        },
       });
 
       // PASO 1: Verificar tipo de dispositivo
@@ -333,17 +426,20 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
         await marcarMiAsistenciaDeHoy();
 
         console.log("✅ Asistencia registrada exitosamente (sin GPS)");
+
+        // ✅ NUEVO: Enviar evento emisor después del registro exitoso
+        await enviarEventoEmisoreAsistenciaRegistrada();
+
         eliminateModal();
         setMostrarModalConfirmacioAsistenciaMarcada(true);
         return;
       }
 
-      // 🔍 VALIDACIÓN GPS COMPLETA
       console.log(
         "🔍 Validación GPS habilitada, procediendo con verificaciones..."
       );
 
-      // PASO 3: Verificar disponibilidad de GPS (Solo si no usamos coordenadas fake)
+      // PASO 3: Verificar disponibilidad de GPS
       if (!USAR_COORDENADAS_MOCKEADAS) {
         if (!verificarDisponibilidadGPS()) {
           console.log("❌ GPS no disponible en el dispositivo");
@@ -354,7 +450,6 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
 
         console.log("✅ GPS disponible, verificando permisos...");
 
-        // PASO 4: Verificar y solicitar permisos de geolocalización
         const tienePermisos = await verificarYSolicitarPermisos();
 
         if (!tienePermisos) {
@@ -371,7 +466,7 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
         );
       }
 
-      // PASO 5: Obtener ubicación
+      // PASO 4: Obtener ubicación
       let ubicacion: PuntoGeografico;
       try {
         console.log("📍 Obteniendo ubicación...");
@@ -396,7 +491,7 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
         return;
       }
 
-      // PASO 6: Verificar si está dentro del colegio
+      // PASO 5: Verificar si está dentro del colegio
       console.log("🏫 Verificando si está dentro del colegio...");
       console.log("📊 DATOS PARA VERIFICACIÓN:", {
         ubicacionObtenida: ubicacion,
@@ -464,13 +559,16 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
       await marcarMiAsistenciaDeHoy();
 
       console.log("✅ Asistencia registrada exitosamente");
+
+      // ✅ NUEVO: Enviar evento emisor después del registro exitoso
+      await enviarEventoEmisoreAsistenciaRegistrada();
+
       eliminateModal();
       setMostrarModalConfirmacioAsistenciaMarcada(true);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("❌ Error al marcar asistencia:", error);
 
-      // Verificar si es error de conexión
       if (
         error?.message?.includes("network") ||
         error?.message?.includes("conexión") ||
@@ -498,9 +596,10 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
     setMostrarModalFalloConexionAInternet,
     setMostrarModalNoSePuedeUsarLaptop,
     setMostrarModalDispositivoSinGPS,
+    enviarEventoEmisoreAsistenciaRegistrada, // ✅ NUEVA DEPENDENCIA
   ]);
 
-  // 🎨 DETERMINAR TEXTO Y ESTILO SEGÚN CONFIGURACIÓN
+  // Determinar texto y estilo según configuración
   const obtenerTextoModal = () => {
     if (estaProcessando) {
       if (!REQUERIR_VALIDACION_GPS) {
