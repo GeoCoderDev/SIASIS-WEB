@@ -443,10 +443,6 @@ export const ListaPersonal = ({
 
     seAcabaDeEliminarLaAsistenciaDeEstePersonalHandlerRef.current.hand();
 
-    // if (handlerRegistered) {
-    //   console.log("✅ Handler de saludo registrado correctamente");
-    // }
-
     // Cleanup al desmontar o cambiar de socket (estilo original)
     return () => {
       if (seAcabaDeMarcarLaAsistenciaDeEstePersonalHandlerRef.current) {
