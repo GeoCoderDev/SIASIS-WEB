@@ -48,7 +48,8 @@ const selectHoraMinutoActual = (state: RootState) => {
   if (!fechaHora) return null;
 
   const fecha = new Date(fechaHora);
-  fecha.setHours(fecha.getHours() - 5);
+
+  
 
   return {
     fecha,
@@ -85,7 +86,6 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
       if (!fechaHoraRedux) return "Calculando...";
 
       const fechaActual = new Date(fechaHoraRedux);
-      fechaActual.setHours(fechaActual.getHours() - 5);
 
       const diff = fechaObjetivo.getTime() - fechaActual.getTime();
       if (diff <= 0) return "00:00:00";
@@ -221,7 +221,7 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
           const fechaActual = new Date(
             String(store.getState().others.fechaHoraActualReal.fechaHora)
           );
-          fechaActual.setHours(fechaActual.getHours() - 5);
+
 
           const inicioHoy = new Date(fechaActual);
           inicioHoy.setHours(
@@ -270,7 +270,7 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
         const fechaActual = new Date(
           String(store.getState().others.fechaHoraActualReal.fechaHora)
         );
-        fechaActual.setHours(fechaActual.getHours() - 5);
+
 
         const finHoy = new Date(fechaActual);
         finHoy.setHours(horarioFin.getHours(), horarioFin.getMinutes(), 0, 0);
@@ -306,7 +306,7 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
         const fechaActual = new Date(
           String(store.getState().others.fechaHoraActualReal.fechaHora)
         );
-        fechaActual.setHours(fechaActual.getHours() - 5);
+
 
         const finHoy = new Date(fechaActual);
         finHoy.setHours(horarioFin.getHours(), horarioFin.getMinutes(), 0, 0);
