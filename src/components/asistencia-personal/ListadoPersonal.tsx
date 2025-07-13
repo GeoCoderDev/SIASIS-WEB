@@ -25,6 +25,7 @@ import { useSS01 } from "@/hooks/useSS01";
 import { TomaAsistenciaPersonalSIU01Events } from "@/SS01/sockets/events/AsistenciaDePersonal/frontend/TomaAsistenciaPersonalSIU01Events";
 
 import { SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER } from "../../SS01/sockets/events/AsistenciaDePersonal/interfaces/SalasTomaAsistenciaDePersonal";
+import { Genero } from "@/interfaces/shared/Genero";
 
 // Obtener texto según el rol
 export const obtenerTextoRol = (rol: RolesSistema): string => {
@@ -57,7 +58,7 @@ export const ListaPersonal = ({
   fechaHoraActual: FechaHoraActualRealState;
 }) => {
   // Enlace con el SS01
-  const { isReady } = useSS01();
+  const { isReady, globalSocket } = useSS01();
 
   // Unirse a Sala de toma de asistencia de personal correspondiente cada que varia el estado de la conexion
   // y tambien el modo de registro y rol
@@ -82,8 +83,13 @@ export const ListaPersonal = ({
   }, [rol, modoRegistro, isReady]);
 
   const marcarAsistenciaEnElRestoDeSesionesPorSS01 = useCallback(
-    async (id_o_dni: string | number, nombres: string, apellidos: string) => {
-      if (!isReady) {
+    async (
+      id_o_dni: string | number,
+      nombres: string,
+      apellidos: string,
+      genero: Genero
+    ) => {
+      if (!isReady || !globalSocket) {
         console.warn("⚠️ Conexión no está lista");
         return;
       }
@@ -99,7 +105,9 @@ export const ListaPersonal = ({
       const emitter =
         new TomaAsistenciaPersonalSIU01Events.MARQUE_LA_ASISTENCIA_DE_ESTE_PERSONAL_EMITTER(
           {
+            Mi_Socket_Id: globalSocket?.id,
             id_o_dni,
+            genero,
             nombres,
             apellidos,
             Sala_Toma_Asistencia_de_Personal:
@@ -123,7 +131,47 @@ export const ListaPersonal = ({
       }
     },
 
-    [rol, modoRegistro, isReady]
+    [rol, modoRegistro, isReady, globalSocket]
+  );
+
+  const eliminarAsistenciaEnElRestoDeSesionesPorSS01 = useCallback(
+    async (
+      id_o_dni: string | number,
+      nombres: string,
+      apellidos: string,
+      genero: Genero
+    ) => {
+      if (!isReady || !globalSocket) {
+        console.warn("⚠️ Conexión no está lista");
+        return;
+      }
+
+      // Crear y ejecutar emisor (estilo original)
+      const emitter =
+        new TomaAsistenciaPersonalSIU01Events.ELIMINE_LA_ASISTENCIA_DE_ESTE_PERSONAL_EMITTER(
+          {
+            Mi_Socket_Id: globalSocket.id,
+            id_o_dni,
+            genero,
+            nombres,
+            apellidos,
+            Sala_Toma_Asistencia_de_Personal:
+              SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER[
+                rol as PersonalDelColegio
+              ][modoRegistro],
+            modoRegistro,
+            rol,
+          }
+        );
+
+      const sent = emitter.execute();
+
+      if (!sent) {
+        console.error("❌ Error al enviar el evento de unión a sala");
+      }
+    },
+
+    [rol, modoRegistro, isReady, globalSocket]
   );
 
   const { toast } = useToast();
@@ -228,7 +276,7 @@ export const ListaPersonal = ({
     }
   }, [rol, modoRegistro]);
 
-  const handlePersonaSeleccionada = async (
+  const handleMarcarAsistencia = async (
     personal: PersonalParaTomarAsistencia
   ) => {
     if (procesando !== null) return;
@@ -260,10 +308,11 @@ export const ListaPersonal = ({
       marcarAsistenciaEnElRestoDeSesionesPorSS01(
         personal.ID_o_DNI,
         personal.Nombres,
-        personal.Apellidos
+        personal.Apellidos,
+        personal.Genero
       );
 
-      actualizarInterfaz(
+      actualizarInterfazPorNuevaMarcacion(
         personal.Nombres,
         personal.Apellidos,
         personal.ID_o_DNI
@@ -281,7 +330,7 @@ export const ListaPersonal = ({
     }
   };
 
-  const actualizarInterfaz = (
+  const actualizarInterfazPorNuevaMarcacion = (
     Nombres: string,
     Apellidos: string,
     ID_o_DNI: string
@@ -312,15 +361,20 @@ export const ListaPersonal = ({
     });
   };
 
-  // Ref para mantener referencia al handler
+  // Refs para mantener referencia a los handlers
   const seAcabaDeMarcarLaAsistenciaDeEstePersonalHandlerRef =
     useRef<InstanceType<
       typeof TomaAsistenciaPersonalSIU01Events.SE_ACABA_DE_MARCAR_LA_ASISTENCIA_DE_ESTE_PERSONAL_HANDLER
     > | null>(null);
 
+  const seAcabaDeEliminarLaAsistenciaDeEstePersonalHandlerRef =
+    useRef<InstanceType<
+      typeof TomaAsistenciaPersonalSIU01Events.SE_ACABA_DE_ELIMINAR_LA_ASISTENCIA_DE_ESTE_PERSONAL_HANDLER
+    > | null>(null);
+
   // Configurar handlers cuando el socket esté REALMENTE listo
   useEffect(() => {
-    if (!isReady) {
+    if (!isReady || !globalSocket) {
       return;
     }
 
@@ -336,7 +390,10 @@ export const ListaPersonal = ({
           modoRegistro,
           RegistroEntradaSalida,
           rol,
+          Mi_Socket_Id,
         }) => {
+          if (globalSocket.id == Mi_Socket_Id) return;
+
           await asistenciaDePersonalIDB.marcarAsistenciaEnLocal(
             id_o_dni,
             rol,
@@ -344,13 +401,47 @@ export const ListaPersonal = ({
             RegistroEntradaSalida
           );
 
-          actualizarInterfaz(nombres, apellidos, String(id_o_dni));
+          actualizarInterfazPorNuevaMarcacion(
+            nombres,
+            apellidos,
+            String(id_o_dni)
+          );
         }
       );
 
     // Registrar el handler (estilo original)
     // const handlerRegistered =
     seAcabaDeMarcarLaAsistenciaDeEstePersonalHandlerRef.current.hand();
+
+    seAcabaDeEliminarLaAsistenciaDeEstePersonalHandlerRef.current =
+      new TomaAsistenciaPersonalSIU01Events.SE_ACABA_DE_ELIMINAR_LA_ASISTENCIA_DE_ESTE_PERSONAL_HANDLER(
+        async ({
+          Mi_Socket_Id,
+          id_o_dni,
+          nombres,
+          apellidos,
+          modoRegistro,
+          genero,
+          rol,
+        }) => {
+          if (globalSocket.id == Mi_Socket_Id) return;
+
+          await asistenciaDePersonalIDB.eliminarAsistenciaEnLocal(
+            id_o_dni,
+            rol,
+            modoRegistro
+          );
+
+          actualizarInterfazPorEliminacionDeAsistencia({
+            ID_o_DNI: String(id_o_dni),
+            Nombres: nombres,
+            Apellidos: apellidos,
+            Genero: genero,
+          });
+        }
+      );
+
+    seAcabaDeEliminarLaAsistenciaDeEstePersonalHandlerRef.current.hand();
 
     // if (handlerRegistered) {
     //   console.log("✅ Handler de saludo registrado correctamente");
@@ -362,8 +453,35 @@ export const ListaPersonal = ({
         seAcabaDeMarcarLaAsistenciaDeEstePersonalHandlerRef.current.unhand();
         seAcabaDeMarcarLaAsistenciaDeEstePersonalHandlerRef.current = null;
       }
+      if (seAcabaDeEliminarLaAsistenciaDeEstePersonalHandlerRef.current) {
+        seAcabaDeEliminarLaAsistenciaDeEstePersonalHandlerRef.current.unhand();
+        seAcabaDeEliminarLaAsistenciaDeEstePersonalHandlerRef.current = null;
+      }
     };
   }, [isReady]); // Solo depende de isReady
+
+  const actualizarInterfazPorEliminacionDeAsistencia = (
+    personal: Omit<PersonalParaTomarAsistencia, "GoogleDriveFotoId">
+  ) => {
+    // ✅ Actualizar el mapa de asistencias registradas (eliminar la entrada)
+    setAsistenciasRegistradas((prev) => {
+      const nuevo = new Map(prev);
+      nuevo.delete(personal.ID_o_DNI);
+      return nuevo;
+    });
+
+    // 🎯 NUEVO: Feedback por voz para eliminación exitosa
+    const speaker = Speaker.getInstance();
+    speaker.start(
+      `${
+        modoRegistroTextos[modoRegistro]
+      } eliminada para ${personal.Nombres.split(
+        " "
+      ).shift()} ${personal.Apellidos.split(" ").shift()}`
+    );
+
+    console.log("✅ Eliminación exitosa, estado actualizado");
+  };
 
   // Manejar eliminación de asistencia CON FEEDBACK DE VOZ
   const handleEliminarAsistencia = async (
@@ -386,24 +504,14 @@ export const ListaPersonal = ({
       });
 
       if (resultado.exitoso) {
-        // ✅ Actualizar el mapa de asistencias registradas (eliminar la entrada)
-        setAsistenciasRegistradas((prev) => {
-          const nuevo = new Map(prev);
-          nuevo.delete(personal.ID_o_DNI);
-          return nuevo;
-        });
+        actualizarInterfazPorEliminacionDeAsistencia(personal);
 
-        // 🎯 NUEVO: Feedback por voz para eliminación exitosa
-        const speaker = Speaker.getInstance();
-        speaker.start(
-          `${
-            modoRegistroTextos[modoRegistro]
-          } eliminada para ${personal.Nombres.split(
-            " "
-          ).shift()} ${personal.Apellidos.split(" ").shift()}`
+        eliminarAsistenciaEnElRestoDeSesionesPorSS01(
+          personal.ID_o_DNI,
+          personal.Nombres,
+          personal.Apellidos,
+          personal.Genero
         );
-
-        console.log("✅ Eliminación exitosa, estado actualizado");
 
         toast({
           title: "Asistencia eliminada",
@@ -523,21 +631,11 @@ export const ListaPersonal = ({
                 persona.ID_o_DNI
               );
 
-              // 🐛 DEBUG: Log para verificar datos
-              // console.log(`🔍 Debug persona ${persona.ID_o_DNI}:`, {
-              //   asistenciaPersona,
-              //   tieneDatos: !!asistenciaPersona,
-              //   asistenciaMarcada: asistenciaPersona?.AsistenciaMarcada,
-              //   detalles: asistenciaPersona?.Detalles,
-              //   timestampActual,
-              //   mapaCompleto: asistenciasRegistradas,
-              // });
-
               return (
                 <ItemTomaAsistencia
                   key={index}
                   personal={persona}
-                  handlePersonalSeleccionado={handlePersonaSeleccionada}
+                  handlePersonalSeleccionado={handleMarcarAsistencia}
                   handleEliminarAsistencia={handleEliminarAsistencia} // ← NUEVO: Pasar función de eliminación
                   asistenciaRegistrada={asistenciaPersona} // ← NUEVO: Pasar los datos de asistencia
                   timestampActual={timestampActual} // ← NUEVO: Pasar timestamp de Redux
