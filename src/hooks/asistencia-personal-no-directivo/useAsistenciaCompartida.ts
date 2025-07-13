@@ -457,9 +457,11 @@ export const useAsistenciaCompartida = (
   }, [horario, handlerBase, obtenerHorario]);
 
   // ✅ CONSULTA INICIAL
+  // ✅ CONSULTA INICIAL - VERSIÓN CORREGIDA
   useEffect(() => {
+    // ✅ NUEVA CONDICIÓN: También ejecutar cuando inicializado=true AUNQUE no haya horario
     if (
-      horario &&
+      inicializado && // ✅ Cambio principal: usar 'inicializado' en lugar de 'horario'
       !asistencia.inicializado &&
       reduxInicializado &&
       !consultaInicialCompletada &&
@@ -467,6 +469,20 @@ export const useAsistenciaCompartida = (
     ) {
       console.log("🚀 INICIANDO CONSULTA INICIAL... (Redux ya inicializado)");
 
+      // ✅ NUEVA LÓGICA: Verificar si hay horario primero
+      if (!horario) {
+        console.log(
+          "❌ NO HAY HORARIO - Marcando como inicializado sin consultar"
+        );
+        setConsultaInicialCompletada(true);
+        setAsistencia((prev) => ({
+          ...prev,
+          inicializado: true, // ✅ CLAVE: Marcar como inicializado aunque no haya horario
+        }));
+        return;
+      }
+
+      // ✅ Solo si hay horario, proceder con la lógica normal
       const modoActual = determinarModoActual(horario);
 
       if (modoActual.activo && modoActual.tipo) {
@@ -486,7 +502,8 @@ export const useAsistenciaCompartida = (
       }
     }
   }, [
-    horario,
+    inicializado, // ✅ Cambio principal: usar 'inicializado' en lugar de 'horario'
+    horario, // ✅ Mantener horario como dependencia para detectar cambios
     asistencia.inicializado,
     reduxInicializado,
     consultaInicialCompletada,

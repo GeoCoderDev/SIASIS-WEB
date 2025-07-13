@@ -364,6 +364,7 @@ const MarcarAsistenciaDePersonalButton = memo(
     }, [handlerBase, obtenerFechaActual]);
 
     // ✅ FUNCIÓN: Actualizar estado del botón (USANDO DATOS COMPARTIDOS)
+    // ✅ FUNCIÓN: Actualizar estado del botón (USANDO DATOS COMPARTIDOS) - VERSIÓN CORREGIDA
     const actualizarEstadoBoton = useCallback(() => {
       console.log("🔍 ===== INICIO actualizarEstadoBoton =====");
 
@@ -383,6 +384,7 @@ const MarcarAsistenciaDePersonalButton = memo(
         asistenciaInicializada: asistencia.inicializado,
         estaInicializando,
         rol,
+        horario: !!horario, // ✅ NUEVO: Mostrar estado del horario
         esDirectivoOResponsable:
           rol === RolesSistema.Directivo || rol === RolesSistema.Responsable,
       });
@@ -402,7 +404,24 @@ const MarcarAsistenciaDePersonalButton = memo(
 
       console.log("✅ INICIALIZACIÓN COMPLETADA - Evaluando condiciones...");
 
-      // ✅ Verificar condiciones especiales
+      // ✅ NUEVA VERIFICACIÓN PRIORITARIA: Sin horario (ANTES de condiciones especiales)
+      if (inicializado && !horario) {
+        console.log(
+          "🚫 RESULTADO: Ocultando por falta de horario (usuario sin horario hoy)"
+        );
+        setEstadoBoton({
+          visible: false,
+          tipo: null,
+          color: "verde",
+          tooltip: "",
+          esCarga: false,
+        });
+        return;
+      }
+
+      console.log("✅ Horario disponible:", !!horario);
+
+      // ✅ Verificar condiciones especiales (DESPUÉS de verificar horario)
       const condicionEspecial = verificarCondicionesEspeciales();
       if (condicionEspecial) {
         console.log(
@@ -420,21 +439,6 @@ const MarcarAsistenciaDePersonalButton = memo(
       }
 
       console.log("✅ Sin condiciones especiales");
-
-      // ✅ Verificar si no hay horario (después de condiciones especiales)
-      if (handlerBase && !horario) {
-        console.log("🚫 RESULTADO: Ocultando por falta de horario");
-        setEstadoBoton({
-          visible: false,
-          tipo: null,
-          color: "verde",
-          tooltip: "",
-          esCarga: false,
-        });
-        return;
-      }
-
-      console.log("✅ Horario disponible:", !!horario);
 
       // ✅ USAR EL MODO ACTUAL CALCULADO POR EL HOOK COMPARTIDO
       console.log("🎯 MODO ACTUAL EVALUADO:", {
@@ -512,7 +516,7 @@ const MarcarAsistenciaDePersonalButton = memo(
       asistencia.inicializado,
       asistencia.entradaMarcada,
       asistencia.salidaMarcada,
-      horario,
+      horario, // ✅ NUEVA DEPENDENCIA CRÍTICA
       rol,
       modoActual,
       verificarCondicionesEspeciales,

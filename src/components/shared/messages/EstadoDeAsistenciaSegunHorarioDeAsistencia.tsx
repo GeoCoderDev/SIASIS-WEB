@@ -191,7 +191,7 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
       if (!horario) {
         return {
           tipo: "sin-horario",
-          titulo: "No tienes horario hoy",
+          titulo: "No asistes al colegio hoy",
           descripcion: "No debes asistir al colegio el día de hoy",
           informacionExtra: "Tu horario laboral no incluye este día",
           color: "gris",
@@ -384,7 +384,7 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
         const dia = horaMinutoActual.diaSemana === 0 ? "Domingo" : "Sábado";
         return `🏠 ${dia} - No laboral`;
       case "sin-horario":
-        return "📋 No tienes horario hoy";
+        return "📋 No asistes al colegio hoy";
       case "muy-temprano":
         return `⏰ Activación en: ${estadoActual.tiempoRestante?.replace(
           "Activación en: ",
