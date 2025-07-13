@@ -1,15 +1,22 @@
 import { RolesTextos } from "@/Assets/RolesTextos";
 import { useDelegacionEventos } from "@/hooks/useDelegacionDeEventos";
 import useRequestAPIFeatures from "@/hooks/useRequestSiasisAPIFeatures";
-import { GetGenericUsersSuccessResponse } from "@/interfaces/shared/apis/api01/usuarios-genericos/types";
 import { GenericUser } from "@/interfaces/shared/GenericUser";
 import { Genero } from "@/interfaces/shared/Genero";
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import { SiasisAPIS } from "@/interfaces/shared/SiasisComponents";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import Loader from "../shared/loaders/Loader";
-import { Search, Users, AlertCircle, ChevronDown } from "lucide-react";
+import { Search, Users, AlertCircle, ChevronDown, Clock } from "lucide-react";
 import FotoPerfilClientSide from "../utils/photos/FotoPerfilClientSide";
+import { UsuariosGenericosIDB } from "@/lib/utils/local/db/models/UsuariosGenericosIDB";
 
 interface SiasisUserSelectorProps {
   rolUsuariosABuscar?: RolesSistema;
@@ -80,6 +87,8 @@ const UsuarioGenericoEncontrado = ({
 };
 
 const LIMITE_USUARIOS_GENERICOS_A_TRAER = 5;
+// Controla si se muestra feedback visual al usuario mientras escribe (iconos, mensajes, etc.)
+const FEEDBACK_ESCRITURA = true;
 
 const SiasisUserSelector = ({
   rolUsuariosABuscar,
@@ -91,11 +100,11 @@ const SiasisUserSelector = ({
 }: SiasisUserSelectorProps) => {
   const {
     error,
-    fetchSiasisAPI,
     isSomethingLoading,
     setError,
     cancelAllRequests,
     setIsSomethingLoading,
+    setSuccessMessage,
   } = useRequestAPIFeatures(siasisAPI);
 
   const [usuariosGenericosObtenidos, setUsuariosGenericosObtenidos] = useState<
@@ -103,19 +112,36 @@ const SiasisUserSelector = ({
   >([]);
   const [estaDesplegado, setEstaDesplegado] = useState(false);
   const [criterioDeBusqueda, setCriterioDeBusqueda] = useState<string>("");
+  const [isTyping, setIsTyping] = useState(false);
 
   const { delegarEvento } = useDelegacionEventos();
 
+  // Ref para el timeout del debounce
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const DEBOUNCE_DELAY = 500; // 500ms de delay
+
+  // Instancia del modelo (se crea una sola vez)
+  const [usuariosGenericosIDB] = useState(
+    () =>
+      new UsuariosGenericosIDB(
+        siasisAPI,
+        setIsSomethingLoading,
+        setError,
+        setSuccessMessage
+      )
+  );
+
   // Función segura para establecer usuarios obtenidos
-  const setUsuariosSeguro = (usuarios: GenericUser[] | undefined | null) => {
-    setUsuariosGenericosObtenidos(Array.isArray(usuarios) ? usuarios : []);
-  };
+  const setUsuariosSeguro = useCallback(
+    (usuarios: GenericUser[] | undefined | null) => {
+      setUsuariosGenericosObtenidos(Array.isArray(usuarios) ? usuarios : []);
+    },
+    []
+  );
 
-  const fetchUsuariosGenericos = async () => {
+  // Función de búsqueda usando IndexedDB (equivalente al fetchUsuariosGenericos original)
+  const buscarUsuariosGenericos = useCallback(async () => {
     try {
-      setIsSomethingLoading(true);
-      setError(null);
-
       if (
         criterioDeBusqueda.trim().length > 0 &&
         criterioDeBusqueda.trim().length < 2
@@ -125,34 +151,16 @@ const SiasisUserSelector = ({
           message: "El criterio de búsqueda debe tener al menos 2 caracteres",
         });
         setUsuariosSeguro([]);
-        setIsSomethingLoading(false);
         return;
       }
 
-      const fetchCancellable = await fetchSiasisAPI({
-        endpoint: "/api/usuarios-genericos",
-        method: "GET",
-        queryParams: {
-          Rol: rolUsuariosABuscar!,
-          Criterio: criterioDeBusqueda.trim() || "",
-          Limite: LIMITE_USUARIOS_GENERICOS_A_TRAER,
-        },
-      });
+      const { resultados } = await usuariosGenericosIDB.buscarUsuarios(
+        rolUsuariosABuscar!,
+        criterioDeBusqueda.trim() || "",
+        LIMITE_USUARIOS_GENERICOS_A_TRAER
+      );
 
-      if (!fetchCancellable) throw new Error("No se pudo crear la petición");
-
-      const res = await fetchCancellable.fetch();
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Error en la petición");
-      }
-
-      const { data: usuariosGenericosEncontrados } =
-        (await res.json()) as GetGenericUsersSuccessResponse;
-
-      setUsuariosSeguro(usuariosGenericosEncontrados);
-      setIsSomethingLoading(false);
+      setUsuariosSeguro(resultados);
     } catch (e) {
       setUsuariosSeguro([]);
       if (e instanceof Error) {
@@ -166,9 +174,14 @@ const SiasisUserSelector = ({
           message: "Error inesperado al buscar usuarios",
         });
       }
-      setIsSomethingLoading(false);
     }
-  };
+  }, [
+    criterioDeBusqueda,
+    rolUsuariosABuscar,
+    usuariosGenericosIDB,
+    setError,
+    setUsuariosSeguro,
+  ]);
 
   useEffect(() => {
     if (!delegarEvento) return;
@@ -181,19 +194,56 @@ const SiasisUserSelector = ({
       },
       true
     );
-  }, [delegarEvento]);
+  }, [delegarEvento, ID_SELECTOR_USUARIO_GENERICO_HTML]);
 
   // Determinar si el componente está deshabilitado
   const estaDeshabilitado = disabled || !rolUsuariosABuscar;
 
+  // DEBOUNCE LOGIC + BÚSQUEDA INICIAL: Buscar después de que el usuario deje de escribir
+  // También busca los primeros 5 usuarios automáticamente al abrir el dropdown
   useEffect(() => {
+    // Limpiar timeout anterior
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+
+    // Si no está desplegado o está deshabilitado, limpiar y salir
     if (!estaDesplegado || estaDeshabilitado) {
       cancelAllRequests();
-      setUsuariosSeguro(usuariosGenericosObtenidos);
+      setUsuariosSeguro([]);
+      setIsTyping(false);
       return;
     }
 
-    fetchUsuariosGenericos();
+    // Si el criterio está vacío, ejecutar búsqueda inicial inmediatamente
+    // (muestra los primeros 5 usuarios sin filtros)
+    if (criterioDeBusqueda.trim() === "") {
+      setIsTyping(false);
+      setError(null);
+      buscarUsuariosGenericos();
+      return;
+    }
+
+    // Si hay criterio de búsqueda, aplicar debounce
+    if (FEEDBACK_ESCRITURA) {
+      setIsTyping(true);
+    }
+    setError(null);
+
+    // Configurar timeout para buscar después del delay
+    debounceTimeoutRef.current = setTimeout(() => {
+      if (FEEDBACK_ESCRITURA) {
+        setIsTyping(false);
+      }
+      buscarUsuariosGenericos();
+    }, DEBOUNCE_DELAY);
+
+    // Cleanup function
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
   }, [
     rolUsuariosABuscar,
     criterioDeBusqueda,
@@ -201,11 +251,23 @@ const SiasisUserSelector = ({
     estaDeshabilitado,
   ]);
 
-  const handleUsuarioSeleccionado = (usuarioSeleccionado: GenericUser) => {
-    setUsuarioSeleccionado(usuarioSeleccionado);
-    setEstaDesplegado(false);
-    setCriterioDeBusqueda("");
-  };
+  // Cleanup al desmontar el componente
+  useEffect(() => {
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleUsuarioSeleccionado = useCallback(
+    (usuarioSeleccionado: GenericUser) => {
+      setUsuarioSeleccionado(usuarioSeleccionado);
+      setEstaDesplegado(false);
+      setCriterioDeBusqueda("");
+    },
+    [setUsuarioSeleccionado]
+  );
 
   const DENOMINACION_USUARIOS = rolUsuariosABuscar
     ? RolesTextos[rolUsuariosABuscar]["desktop"][Genero.Masculino]
@@ -310,7 +372,15 @@ const SiasisUserSelector = ({
               className="p-3 border-b border-gray-100 bg-gray-200  rounded-t-lg"
             >
               <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                {FEEDBACK_ESCRITURA && isTyping ? (
+                  <Clock className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-blue-500" />
+                ) : isSomethingLoading ? (
+                  <div className="absolute left-2.5 top-1/2 transform -translate-y-1/2">
+                    <Loader className="w-4 h-4 text-blue-500" />
+                  </div>
+                ) : (
+                  <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                )}
                 <input
                   className="w-full pl-8 pr-3 py-2 text-sm border border-gris-oscuro rounded-md 
                            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
@@ -323,6 +393,13 @@ const SiasisUserSelector = ({
                   }}
                 />
               </div>
+
+              {FEEDBACK_ESCRITURA && isTyping && (
+                <div className="mt-1 text-xs text-blue-600 flex items-center">
+                  <Clock className="w-3 h-3 mr-1" />
+                  Escribiendo...
+                </div>
+              )}
             </div>
 
             {/* Resultados */}
@@ -330,7 +407,15 @@ const SiasisUserSelector = ({
               id={`${ID_SELECTOR_USUARIO_GENERICO_HTML}-users-founded-list`}
               className="overflow-y-auto max-h-64"
             >
-              {!isSomethingLoading ? (
+              {FEEDBACK_ESCRITURA && isTyping ? (
+                // Estado: Usuario escribiendo (solo si FEEDBACK_ESCRITURA está activo)
+                <div className="flex items-center justify-center py-6">
+                  <Clock className="w-5 h-5 mr-2 text-blue-500" />
+                  <span className="text-blue-600 text-sm">
+                    Esperando que termines de escribir...
+                  </span>
+                </div>
+              ) : !isSomethingLoading ? (
                 <>
                   {(usuariosGenericosObtenidos?.length ?? 0) > 0 ? (
                     <ul>
@@ -380,6 +465,7 @@ const SiasisUserSelector = ({
                   )}
                 </>
               ) : (
+                // Estado: API cargando
                 <div className="flex items-center justify-center py-6">
                   <Loader className="w-5 h-5 mr-2" />
                   <span className="text-gray-500 text-sm">

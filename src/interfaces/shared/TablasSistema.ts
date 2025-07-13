@@ -124,6 +124,7 @@ export enum TablasLocal {
   Tabla_Metadatos_Sistema = "system_meta",
   // ✅ NUEVA ENTRADA: Tabla para asistencias del día actual
   Tabla_Asistencias_Tomadas_Hoy = "asistencias_tomadas_hoy",
+  Tabla_Usuarios_Genericos_Cache = "usuarios_genericos_cache",
 }
 
 /**
@@ -417,6 +418,11 @@ export const TablasSistema = {
     descripcion:
       "Cache temporal de asistencias consultadas desde Redis para el día actual",
     sincronizable: false, // ✅ IMPORTANTE: No se sincroniza con servidor
+  },
+  USUARIOS_GENERICOS_CACHE: {
+    nombreLocal: TablasLocal.Tabla_Usuarios_Genericos_Cache,
+    descripcion: "Cache de consultas de usuarios genéricos",
+    sincronizable: false,
   },
 };
 

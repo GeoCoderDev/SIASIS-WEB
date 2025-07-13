@@ -1065,4 +1065,23 @@ export const CLN01_Stores = {
       },
     ],
   },
+  usuarios_genericos_cache: {
+    keyPath: "clave_busqueda",
+    autoIncrement: false,
+    indexes: [
+      { name: "por_rol", keyPath: "rol", options: { unique: false } },
+      { name: "por_criterio", keyPath: "criterio", options: { unique: false } },
+      { name: "por_limite", keyPath: "limite", options: { unique: false } },
+      {
+        name: "por_ultima_actualizacion",
+        keyPath: "ultima_actualizacion",
+        options: { unique: false },
+      },
+      {
+        name: "por_rol_criterio",
+        keyPath: ["rol", "criterio"],
+        options: { unique: false },
+      },
+    ],
+  },
 };
