@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import ModalContainer from "../ModalContainer";
 import BotonConIcono from "@/components/buttons/BotonConIcono";
 import LapizFirmando from "@/components/icons/LapizFirmando";
@@ -119,6 +119,42 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
 
   // ✅ NUEVO: Hook para conexión Socket.io
   const { isReady, globalSocket } = useSS01();
+
+  // ✅ NUEVO: useEffect para unirse a la sala correspondiente al rol y modo de registro
+  useEffect(() => {
+    if (!isReady) {
+      console.warn("⚠️ Conexión no está lista");
+      return;
+    }
+
+    console.log("🔗 Uniéndose a sala de toma de asistencia:", {
+      rol: Rol,
+      modoRegistro,
+      sala: SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER[
+        Rol as PersonalDelColegio
+      ][modoRegistro],
+    });
+
+    // Crear y ejecutar emisor (estilo original)
+    const emitter =
+      new TomaAsistenciaPersonalSIU01Events.UNIRME_A_SALA_DE_TOMA_DE_ASISTENCIA_DE_PERSONAL_EMITTER(
+        SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER[
+          Rol as PersonalDelColegio
+        ][modoRegistro]
+      );
+    const sent = emitter.execute();
+
+    if (!sent) {
+      console.error("❌ Error al enviar el evento de unión a sala");
+    } else {
+      console.log(
+        "✅ Usuario unido exitosamente a la sala:",
+        SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER[
+          Rol as PersonalDelColegio
+        ][modoRegistro]
+      );
+    }
+  }, [Rol, modoRegistro, isReady]);
 
   // ✅ NUEVO: Función para enviar evento emisor después del registro exitoso
   const enviarEventoEmisoreAsistenciaRegistrada = useCallback(async () => {
