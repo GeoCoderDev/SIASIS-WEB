@@ -197,6 +197,9 @@ const MarcarAsistenciaDePersonalButton = memo(
       esCarga: true,
     });
 
+    const [modoRegistroMarcado, setModoRegistroMarcado] =
+      useState<ModoRegistro | null>(null);
+
     const [mensajeInformativo, setMensajeInformativo] =
       useState<MensajeInformativo>({
         mostrar: false,
@@ -626,6 +629,8 @@ const MarcarAsistenciaDePersonalButton = memo(
           return;
         }
 
+        setModoRegistroMarcado(estadoBoton.tipo);
+
         // Obtener la hora esperada ISO basada en el modo de registro
         const fechaActual = obtenerFechaActual();
         if (!fechaActual) {
@@ -745,10 +750,11 @@ const MarcarAsistenciaDePersonalButton = memo(
           <ConfirmacionAsistenciaMarcadaModal
             eliminateModal={() => {
               setMostrarModalConfirmacioAsistenciaMarcada(false);
-              setFechaHoraRegistro(null); // Limpiar la fecha al cerrar
+              setFechaHoraRegistro(null);
+              setModoRegistroMarcado(null); // ✅ LIMPIAR el modo guardado
             }}
             fechaHoraRegistro={fechaHoraRegistro}
-            modoRegistro={estadoBoton.tipo}
+            modoRegistro={modoRegistroMarcado}
           />
         )}
 

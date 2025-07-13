@@ -40,7 +40,7 @@ import {
 const TESTING_EXPLICITO = false;
 
 const REQUERIR_VALIDACION_GPS_SEGUN_ENTORNO: Record<Entorno, boolean> = {
-  [Entorno.LOCAL]: false,
+  [Entorno.LOCAL]: true,
   [Entorno.DESARROLLO]: false,
   [Entorno.CERTIFICACION]: true,
   [Entorno.PRODUCCION]: true,
@@ -48,7 +48,7 @@ const REQUERIR_VALIDACION_GPS_SEGUN_ENTORNO: Record<Entorno, boolean> = {
 };
 
 const USAR_COORDENADAS_MOCKEADAS_SEGUN_ENTORNO: Record<Entorno, boolean> = {
-  [Entorno.LOCAL]: false,
+  [Entorno.LOCAL]: true,
   [Entorno.DESARROLLO]: false,
   [Entorno.CERTIFICACION]: true,
   [Entorno.PRODUCCION]: false,
