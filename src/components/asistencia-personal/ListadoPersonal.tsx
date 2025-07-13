@@ -27,6 +27,22 @@ import { TomaAsistenciaPersonalSIU01Events } from "@/SS01/sockets/events/Asisten
 import { SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER } from "../../SS01/sockets/events/AsistenciaDePersonal/interfaces/SalasTomaAsistenciaDePersonal";
 import { Genero } from "@/interfaces/shared/Genero";
 
+// ========================================================================================
+// CONFIGURACIÓN DE SOCKET Y TIMEOUT
+// ========================================================================================
+
+// 🕒 Tiempo máximo de espera para conexión de socket (4 segundos)
+const SOCKET_CONNECTION_TIMEOUT = 4000;
+
+// 🎨 Mensajes creativos para la espera de conexión
+const MENSAJES_CONEXION_SOCKET = [
+  "🔐 Estableciendo conexión segura...",
+  "🌐 Sincronizando con el sistema...",
+  "📡 Conectando con el servidor...",
+  "⚡ Preparando el entorno...",
+  "🛡️ Verificando credenciales...",
+];
+
 // Obtener texto según el rol
 export const obtenerTextoRol = (rol: RolesSistema): string => {
   switch (rol) {
@@ -57,16 +73,94 @@ export const ListaPersonal = ({
   handlerDatosAsistenciaHoyDirectivo: HandlerDirectivoAsistenciaResponse;
   fechaHoraActual: FechaHoraActualRealState;
 }) => {
+  // ========================================================================================
+  // ESTADOS PARA SOCKET Y TIMEOUT
+  // ========================================================================================
+
+  // 🆕 NUEVO: Estado para controlar la espera de conexión del socket
+  const [esperandoConexionSocket, setEsperandoConexionSocket] = useState(true);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [mensajeConexion, setMensajeConexion] = useState(
+    MENSAJES_CONEXION_SOCKET[
+      Math.floor(Math.random() * MENSAJES_CONEXION_SOCKET.length)
+    ]
+  );
+
+  // Ref para el timeout
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   // Enlace con el SS01
   const { isReady, globalSocket } = useSS01();
 
-  // Unirse a Sala de toma de asistencia de personal correspondiente cada que varia el estado de la conexion
-  // y tambien el modo de registro y rol
+  // ========================================================================================
+  // EFECTOS PARA MANEJO DE SOCKET CON TIMEOUT
+  // ========================================================================================
+
+  // 🚀 useEffect principal para manejar timeout de conexión de socket
   useEffect(() => {
-    if (!isReady) {
-      console.warn("⚠️ Conexión no está lista");
+    console.log("🔌 ListaPersonal: Iniciando espera de conexión de socket...", {
+      isReady,
+      timeout: SOCKET_CONNECTION_TIMEOUT,
+      mensaje: mensajeConexion,
+      rol,
+      modoRegistro,
+    });
+
+    // Si ya está conectado desde el inicio, no esperar
+    if (isReady) {
+      console.log("✅ Socket ya estaba conectado, saltando espera");
+      setEsperandoConexionSocket(false);
       return;
     }
+
+    // Establecer timeout para la espera máxima
+    timeoutRef.current = setTimeout(() => {
+      console.log(
+        `⏰ Timeout de ${SOCKET_CONNECTION_TIMEOUT}ms alcanzado, continuando sin socket`
+      );
+      setEsperandoConexionSocket(false);
+    }, SOCKET_CONNECTION_TIMEOUT);
+
+    // Cleanup function
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  }, []); // Solo se ejecuta al montar el componente
+
+  // 🎯 useEffect para detectar cuando el socket se conecta
+  useEffect(() => {
+    if (isReady && esperandoConexionSocket) {
+      console.log("🎉 Socket conectado antes del timeout, continuando...");
+
+      // Limpiar timeout ya que el socket se conectó
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+
+      setEsperandoConexionSocket(false);
+    }
+  }, [isReady, esperandoConexionSocket]);
+
+  // 🏠 useEffect para unirse a la sala cuando el socket esté listo y no estemos esperando
+  useEffect(() => {
+    if (!isReady || esperandoConexionSocket) {
+      if (!isReady) {
+        console.warn("⚠️ Conexión no está lista");
+      }
+      return;
+    }
+
+    console.log("🔗 ListaPersonal: Uniéndose a sala de toma de asistencia:", {
+      rol,
+      modoRegistro,
+      sala: SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER[
+        rol as PersonalDelColegio
+      ][modoRegistro],
+    });
 
     // Crear y ejecutar emisor (estilo original)
     const emitter =
@@ -79,8 +173,19 @@ export const ListaPersonal = ({
 
     if (!sent) {
       console.error("❌ Error al enviar el evento de unión a sala");
+    } else {
+      console.log(
+        "✅ Usuario unido exitosamente a la sala:",
+        SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER[
+          rol as PersonalDelColegio
+        ][modoRegistro]
+      );
     }
-  }, [rol, modoRegistro, isReady]);
+  }, [rol, modoRegistro, isReady, esperandoConexionSocket]);
+
+  // ========================================================================================
+  // FUNCIONES DE SOCKET (solo se ejecutan si socket está disponible)
+  // ========================================================================================
 
   const marcarAsistenciaEnElRestoDeSesionesPorSS01 = useCallback(
     async (
@@ -90,7 +195,9 @@ export const ListaPersonal = ({
       genero: Genero
     ) => {
       if (!isReady || !globalSocket) {
-        console.warn("⚠️ Conexión no está lista");
+        console.warn(
+          "⚠️ Socket no disponible para marcar asistencia, saltando evento..."
+        );
         return;
       }
 
@@ -127,10 +234,9 @@ export const ListaPersonal = ({
       const sent = emitter.execute();
 
       if (!sent) {
-        console.error("❌ Error al enviar el evento de unión a sala");
+        console.error("❌ Error al enviar el evento de marcado de asistencia");
       }
     },
-
     [rol, modoRegistro, isReady, globalSocket]
   );
 
@@ -142,7 +248,9 @@ export const ListaPersonal = ({
       genero: Genero
     ) => {
       if (!isReady || !globalSocket) {
-        console.warn("⚠️ Conexión no está lista");
+        console.warn(
+          "⚠️ Socket no disponible para eliminar asistencia, saltando evento..."
+        );
         return;
       }
 
@@ -167,12 +275,17 @@ export const ListaPersonal = ({
       const sent = emitter.execute();
 
       if (!sent) {
-        console.error("❌ Error al enviar el evento de unión a sala");
+        console.error(
+          "❌ Error al enviar el evento de eliminación de asistencia"
+        );
       }
     },
-
     [rol, modoRegistro, isReady, globalSocket]
   );
+
+  // ========================================================================================
+  // ESTADOS PRINCIPALES DEL COMPONENTE
+  // ========================================================================================
 
   const { toast } = useToast();
   const [procesando, setProcesando] = useState<string | null>(null);
@@ -208,10 +321,18 @@ export const ListaPersonal = ({
     ? handlerDatosAsistenciaHoyDirectivo.obtenerPersonalPorRol(rol)
     : [];
 
-  // ✅ MODIFICADO: Cargar las asistencias ya registradas
+  // ✅ MODIFICADO: Cargar las asistencias ya registradas (solo si no esperando socket)
   const ultimaConsultaRef = useRef<string>("");
 
   useEffect(() => {
+    // 🚀 NUEVO: No cargar asistencias si estamos esperando la conexión del socket
+    if (esperandoConexionSocket) {
+      console.log(
+        "⏳ Esperando conexión de socket, postergando carga de asistencias..."
+      );
+      return;
+    }
+
     const claveConsulta = `${rol}-${modoRegistro}`;
 
     // ✅ Evitar consulta si es la misma que la anterior
@@ -274,7 +395,11 @@ export const ListaPersonal = ({
     if (rol && modoRegistro) {
       cargarAsistenciasRegistradas();
     }
-  }, [rol, modoRegistro]);
+  }, [rol, modoRegistro, esperandoConexionSocket]); // 🚀 NUEVA DEPENDENCIA
+
+  // ========================================================================================
+  // FUNCIONES PRINCIPALES
+  // ========================================================================================
 
   const handleMarcarAsistencia = async (
     personal: PersonalParaTomarAsistencia
@@ -361,6 +486,10 @@ export const ListaPersonal = ({
     });
   };
 
+  // ========================================================================================
+  // HANDLERS DE SOCKET (solo se configuran si socket está disponible)
+  // ========================================================================================
+
   // Refs para mantener referencia a los handlers
   const seAcabaDeMarcarLaAsistenciaDeEstePersonalHandlerRef =
     useRef<InstanceType<
@@ -372,11 +501,13 @@ export const ListaPersonal = ({
       typeof TomaAsistenciaPersonalSIU01Events.SE_ACABA_DE_ELIMINAR_LA_ASISTENCIA_DE_ESTE_PERSONAL_HANDLER
     > | null>(null);
 
-  // Configurar handlers cuando el socket esté REALMENTE listo
+  // Configurar handlers cuando el socket esté REALMENTE listo y no estemos esperando
   useEffect(() => {
-    if (!isReady || !globalSocket) {
+    if (!isReady || !globalSocket || esperandoConexionSocket) {
       return;
     }
+
+    console.log("🎧 Configurando handlers de socket...");
 
     //HANDLERS
 
@@ -410,7 +541,6 @@ export const ListaPersonal = ({
       );
 
     // Registrar el handler (estilo original)
-    // const handlerRegistered =
     seAcabaDeMarcarLaAsistenciaDeEstePersonalHandlerRef.current.hand();
 
     seAcabaDeEliminarLaAsistenciaDeEstePersonalHandlerRef.current =
@@ -454,7 +584,7 @@ export const ListaPersonal = ({
         seAcabaDeEliminarLaAsistenciaDeEstePersonalHandlerRef.current = null;
       }
     };
-  }, [isReady]); // Solo depende de isReady
+  }, [isReady, esperandoConexionSocket]); // 🚀 NUEVA DEPENDENCIA
 
   const actualizarInterfazPorEliminacionDeAsistencia = (
     personal: Omit<PersonalParaTomarAsistencia, "GoogleDriveFotoId">
@@ -557,6 +687,27 @@ export const ListaPersonal = ({
 
   const textoRol = obtenerTextoRol(rol);
 
+  // ========================================================================================
+  // RENDERS CONDICIONALES
+  // ========================================================================================
+
+  // 🚀 NUEVO: Mostrar estado de espera de conexión de socket
+  if (esperandoConexionSocket) {
+    return (
+      <div className="h-full w-full flex flex-col items-center justify-center">
+        <div className="text-center max-w-md">
+          <div className="mb-4">
+            <Loader2 className="inline-block w-8 h-8 text-blue-500 animate-spin" />
+          </div>
+          <p className="text-lg text-gray-700 mb-2">{mensajeConexion}</p>
+          <p className="text-sm text-gray-500">
+            Esto solo tomará unos segundos...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   // Mostrar error si existe
   if (error) {
     return (
@@ -605,6 +756,15 @@ export const ListaPersonal = ({
             registrarla
           </p>
         </div>
+
+        {/* 🚀 NUEVO: Indicador de estado de socket */}
+        {!isReady && (
+          <div className="text-center mt-1 mb-2">
+            <p className="text-xs sm-only:text-sm text-amber-600 font-medium">
+              ⚠️ Funcionando sin conexión de tiempo real
+            </p>
+          </div>
+        )}
 
         {(cargandoAsistencias || isLoading) && (
           <p className="text-center text-blue-500 mt-1">

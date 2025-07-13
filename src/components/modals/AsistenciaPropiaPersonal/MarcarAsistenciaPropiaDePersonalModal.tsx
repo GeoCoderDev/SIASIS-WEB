@@ -28,22 +28,10 @@ import { HandlerAuxiliarAsistenciaResponse } from "@/lib/utils/local/db/models/D
 import { HandlerProfesorTutorSecundariaAsistenciaResponse } from "@/lib/utils/local/db/models/DatosAsistenciaHoy/handlers/HandlerProfesorTutorSecundariaAsistenciaResponse";
 import { HandlerPersonalAdministrativoAsistenciaResponse } from "@/lib/utils/local/db/models/DatosAsistenciaHoy/handlers/HandlerPersonalAdministrativoAsistenciaResponse";
 import userStorage from "@/lib/utils/local/db/models/UserStorage";
-
-// ========================================================================================
-// CONFIGURACIÓN DE SOCKET Y TIMEOUT
-// ========================================================================================
-
-// 🕒 Tiempo máximo de espera para conexión de socket (4 segundos)
-const SOCKET_CONNECTION_TIMEOUT = 4000;
-
-// 🎨 Mensajes creativos para la espera de conexión
-const MENSAJES_CONEXION_SOCKET = [
-  "🔐 Estableciendo conexión segura...",
-  "🌐 Sincronizando con el sistema...",
-  "📡 Conectando con el servidor...",
-  "⚡ Preparando el entorno...",
-  "🛡️ Verificando credenciales...",
-];
+import {
+  MENSAJES_CONEXION_SOCKET,
+  SOCKET_CONNECTION_TIMEOUT,
+} from "@/constants/SOCKET_FRONTEND_CONFIGURATION";
 
 // ========================================================================================
 // CONFIGURACIÓN POR ENTORNO
@@ -698,7 +686,7 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
 
       eliminateModal();
       setMostrarModalConfirmacioAsistenciaMarcada(true);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("❌ Error al marcar asistencia:", error);
 
