@@ -43,6 +43,7 @@ export async function obtenerFechaHoraActualPeru(): Promise<Date> {
     try {
       // Usar hora de la API03
       fechaPerú = await obtenerHoraAPI03();
+      fechaPerú.setHours(fechaPerú.getHours() - 5);
     } catch (error) {
       console.warn("Error al obtener hora de API03, usando hora local:", error);
       // Fallback a hora local si falla la API
