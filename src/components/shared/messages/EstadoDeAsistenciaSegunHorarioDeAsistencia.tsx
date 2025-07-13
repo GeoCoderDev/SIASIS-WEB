@@ -49,8 +49,6 @@ const selectHoraMinutoActual = (state: RootState) => {
 
   const fecha = new Date(fechaHora);
 
-  
-
   return {
     fecha,
     hora: fecha.getHours(),
@@ -87,7 +85,8 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
 
       const fechaActual = new Date(fechaHoraRedux);
 
-      const diff = fechaObjetivo.getTime() - fechaActual.getTime();
+      const diff =
+        fechaObjetivo.getTime() - fechaActual.getTime() + 5 * 60 * 60 * 1000;
       if (diff <= 0) return "00:00:00";
 
       const horas = Math.floor(diff / (1000 * 60 * 60));
@@ -126,6 +125,10 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
 
       // ✅ 1. Verificar si estamos en período de actualización de datos
       if (horaMinutoActual.hora < HORA_ACTUALIZACION_DATOS_ASISTENCIA_DIARIOS) {
+        console.log(
+          "c% LA HORA ES " + horaMinutoActual.hora,
+          "font-size:2rem; color:cyan"
+        );
         return {
           tipo: "datos-pendientes",
           titulo: "Sistema actualizando datos",
@@ -222,7 +225,6 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
             String(store.getState().others.fechaHoraActualReal.fechaHora)
           );
 
-
           const inicioHoy = new Date(fechaActual);
           inicioHoy.setHours(
             horarioInicio.getHours(),
@@ -271,7 +273,6 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
           String(store.getState().others.fechaHoraActualReal.fechaHora)
         );
 
-
         const finHoy = new Date(fechaActual);
         finHoy.setHours(horarioFin.getHours(), horarioFin.getMinutes(), 0, 0);
 
@@ -306,7 +307,6 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
         const fechaActual = new Date(
           String(store.getState().others.fechaHoraActualReal.fechaHora)
         );
-
 
         const finHoy = new Date(fechaActual);
         finHoy.setHours(horarioFin.getHours(), horarioFin.getMinutes(), 0, 0);
