@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import ModalContainer from "../ModalContainer";
 import BotonConIcono from "@/components/buttons/BotonConIcono";
 import LapizFirmando from "@/components/icons/LapizFirmando";
@@ -14,7 +14,7 @@ import Loader from "@/components/shared/loaders/Loader";
 import { ENTORNO } from "@/constants/ENTORNO";
 import { Entorno } from "@/interfaces/shared/Entornos";
 
-// ✅ NUEVAS IMPORTACIONES PARA SOCKETS
+// ✅ IMPORTACIONES PARA SOCKETS
 import { useSS01 } from "@/hooks/useSS01";
 import { TomaAsistenciaPersonalSIU01Events } from "@/SS01/sockets/events/AsistenciaDePersonal/frontend/TomaAsistenciaPersonalSIU01Events";
 import { SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER } from "@/SS01/sockets/events/AsistenciaDePersonal/interfaces/SalasTomaAsistenciaDePersonal";
@@ -30,10 +30,13 @@ import { HandlerPersonalAdministrativoAsistenciaResponse } from "@/lib/utils/loc
 import userStorage from "@/lib/utils/local/db/models/UserStorage";
 
 // ========================================================================================
-// CONFIGURACIÓN POR ENTORNO (mantener la configuración existente)
+// CONFIGURACIÓN POR ENTORNO
 // ========================================================================================
 
 const TESTING_EXPLICITO = false;
+
+// ✅ NUEVA CONSTANTE: Tiempo máximo de espera para conexión de socket
+const TIMEOUT_CONEXION_SOCKET_MS = 4000; // 4 segundos
 
 const REQUERIR_VALIDACION_GPS_SEGUN_ENTORNO: Record<Entorno, boolean> = {
   [Entorno.LOCAL]: false,
@@ -60,10 +63,8 @@ const SOLO_PERMITIR_CELULARES_SEGUN_ENTORNO: Record<Entorno, boolean> = {
 };
 
 const REQUERIR_VALIDACION_GPS = REQUERIR_VALIDACION_GPS_SEGUN_ENTORNO[ENTORNO];
-const USAR_COORDENADAS_MOCKEADAS =
-  USAR_COORDENADAS_MOCKEADAS_SEGUN_ENTORNO[ENTORNO];
-const SOLO_PERMITIR_CELULARES_PARA_ASISTENCIA =
-  SOLO_PERMITIR_CELULARES_SEGUN_ENTORNO[ENTORNO];
+const USAR_COORDENADAS_MOCKEADAS = USAR_COORDENADAS_MOCKEADAS_SEGUN_ENTORNO[ENTORNO];
+const SOLO_PERMITIR_CELULARES_PARA_ASISTENCIA = SOLO_PERMITIR_CELULARES_SEGUN_ENTORNO[ENTORNO];
 
 export const LATITUD_MOCKEADA = -13.0567;
 export const LONGITUD_MOCKEADA = -76.347049;
@@ -78,27 +79,13 @@ interface MarcarAsistenciaPropiaDePersonalModalProps {
   eliminateModal: () => void;
   modoRegistro: ModoRegistro;
   marcarMiAsistenciaDeHoy: () => Promise<void>;
-  setMostrarModalConfirmacioAsistenciaMarcada: React.Dispatch<
-    React.SetStateAction<boolean>
-  >;
-  setMostrarModalFaltaActivarGPSoBrindarPermisosGPS: React.Dispatch<
-    React.SetStateAction<boolean>
-  >;
-  setMostrarModalUbicacionFueraDelColegioAlRegistrarAsistenciaPropia: React.Dispatch<
-    React.SetStateAction<boolean>
-  >;
-  setMostrarModalErrorGenericoAlRegistrarAsistenciaPropia: React.Dispatch<
-    React.SetStateAction<boolean>
-  >;
-  setMostrarModalFalloConexionAInternet: React.Dispatch<
-    React.SetStateAction<boolean>
-  >;
-  setMostrarModalNoSePuedeUsarLaptop: React.Dispatch<
-    React.SetStateAction<boolean>
-  >;
-  setMostrarModalDispositivoSinGPS: React.Dispatch<
-    React.SetStateAction<boolean>
-  >;
+  setMostrarModalConfirmacioAsistenciaMarcada: React.Dispatch<React.SetStateAction<boolean>>;
+  setMostrarModalFaltaActivarGPSoBrindarPermisosGPS: React.Dispatch<React.SetStateAction<boolean>>;
+  setMostrarModalUbicacionFueraDelColegioAlRegistrarAsistenciaPropia: React.Dispatch<React.SetStateAction<boolean>>;
+  setMostrarModalErrorGenericoAlRegistrarAsistenciaPropia: React.Dispatch<React.SetStateAction<boolean>>;
+  setMostrarModalFalloConexionAInternet: React.Dispatch<React.SetStateAction<boolean>>;
+  setMostrarModalNoSePuedeUsarLaptop: React.Dispatch<React.SetStateAction<boolean>>;
+  setMostrarModalDispositivoSinGPS: React.Dispatch<React.SetStateAction<boolean>>;
   Rol: RolesSistema;
 }
 
@@ -116,57 +103,102 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
   setMostrarModalDispositivoSinGPS,
 }: MarcarAsistenciaPropiaDePersonalModalProps) => {
   const [estaProcessando, setEstaProcessando] = useState(false);
+  
+  // ✅ NUEVO: Estados para manejo tolerante de sockets
+  const [socketDisponible, setSocketDisponible] = useState(false);
+  const [tiempoEsperaSocketAgotado, setTiempoEsperaSocketAgotado] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // ✅ NUEVO: Hook para conexión Socket.io
+  // Hook para conexión Socket.io
   const { isReady, globalSocket } = useSS01();
 
-  // ✅ NUEVO: useEffect para unirse a la sala correspondiente al rol y modo de registro
+  // ✅ NUEVO: useEffect para esperar conexión de socket con timeout
   useEffect(() => {
-    if (!isReady) {
-      console.warn("⚠️ Conexión no está lista");
+    console.log("🔌 Iniciando proceso de conexión tolerante a socket...");
+
+    // Limpiar timeout anterior si existe
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    // Si ya está conectado, actualizar inmediatamente
+    if (isReady && globalSocket) {
+      console.log("✅ Socket ya conectado, procediendo inmediatamente");
+      setSocketDisponible(true);
+      setTiempoEsperaSocketAgotado(false);
       return;
     }
 
-    console.log("🔗 Uniéndose a sala de toma de asistencia:", {
+    // Establecer timeout para espera máxima
+    timeoutRef.current = setTimeout(() => {
+      if (!isReady || !globalSocket) {
+        console.log(`⏰ Timeout de ${TIMEOUT_CONEXION_SOCKET_MS}ms agotado - Usuario puede continuar sin sockets`);
+        setTiempoEsperaSocketAgotado(true);
+        setSocketDisponible(false);
+      }
+    }, TIMEOUT_CONEXION_SOCKET_MS);
+
+    // Cleanup
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  // ✅ NUEVO: useEffect para detectar cuando el socket se conecta durante la espera
+  useEffect(() => {
+    if (isReady && globalSocket && !tiempoEsperaSocketAgotado) {
+      console.log("✅ Socket conectado durante espera - Actualizando estado");
+      setSocketDisponible(true);
+      
+      // Limpiar timeout ya que se conectó
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    }
+  }, [isReady, globalSocket, tiempoEsperaSocketAgotado]);
+
+  // ✅ NUEVO: useEffect para unirse a sala (solo si socket está disponible)
+  useEffect(() => {
+    if (!socketDisponible || !isReady || !globalSocket) {
+      return;
+    }
+
+    console.log("🔗 Socket disponible - Uniéndose a sala de toma de asistencia:", {
       rol: Rol,
       modoRegistro,
-      sala: SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER[
-        Rol as PersonalDelColegio
-      ][modoRegistro],
+      sala: SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER[Rol as PersonalDelColegio][modoRegistro],
     });
 
-    // Crear y ejecutar emisor (estilo original)
-    const emitter =
-      new TomaAsistenciaPersonalSIU01Events.UNIRME_A_SALA_DE_TOMA_DE_ASISTENCIA_DE_PERSONAL_EMITTER(
-        SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER[
-          Rol as PersonalDelColegio
-        ][modoRegistro]
-      );
-    const sent = emitter.execute();
-
-    if (!sent) {
-      console.error("❌ Error al enviar el evento de unión a sala");
-    } else {
-      console.log(
-        "✅ Usuario unido exitosamente a la sala:",
-        SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER[
-          Rol as PersonalDelColegio
-        ][modoRegistro]
-      );
-    }
-  }, [Rol, modoRegistro, isReady]);
-
-  // ✅ NUEVO: Función para enviar evento emisor después del registro exitoso
-  const enviarEventoEmisoreAsistenciaRegistrada = useCallback(async () => {
     try {
-      if (!isReady || !globalSocket) {
-        console.warn("⚠️ Socket no está listo para enviar evento emisor");
-        return;
-      }
-
-      console.log(
-        "🚀 Enviando evento emisor de asistencia propia registrada..."
+      const emitter = new TomaAsistenciaPersonalSIU01Events.UNIRME_A_SALA_DE_TOMA_DE_ASISTENCIA_DE_PERSONAL_EMITTER(
+        SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER[Rol as PersonalDelColegio][modoRegistro]
       );
+      const sent = emitter.execute();
+
+      if (sent) {
+        console.log("✅ Usuario unido exitosamente a la sala:", 
+          SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER[Rol as PersonalDelColegio][modoRegistro]
+        );
+      } else {
+        console.warn("⚠️ No se pudo enviar evento de unión a sala");
+      }
+    } catch (error) {
+      console.error("❌ Error al unirse a sala:", error);
+    }
+  }, [socketDisponible, isReady, globalSocket, Rol, modoRegistro]);
+
+  // ✅ FUNCIÓN TOLERANTE: Enviar evento emisor después del registro exitoso
+  const enviarEventoEmisoreAsistenciaRegistrada = useCallback(async () => {
+    // Si no hay socket disponible, continuar sin emitir evento
+    if (!socketDisponible || !isReady || !globalSocket) {
+      console.log("⚠️ Socket no disponible - Saltando evento emisor (funcionamiento normal)");
+      return;
+    }
+
+    try {
+      console.log("🚀 Enviando evento emisor de asistencia propia registrada...");
 
       // PASO 1: Obtener datos del usuario logueado
       const { DatosAsistenciaHoyIDB } = await import(
@@ -211,24 +243,17 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
 
       // PASO 2: Consultar la asistencia recién registrada
       const asistenciaIDB = new AsistenciaDePersonalIDB("API01");
-      const asistenciaRecienRegistrada =
-        await asistenciaIDB.consultarMiAsistenciaDeHoy(modoRegistro, Rol);
+      const asistenciaRecienRegistrada = await asistenciaIDB.consultarMiAsistenciaDeHoy(modoRegistro, Rol);
 
       if (!asistenciaRecienRegistrada.marcada) {
         console.error("❌ No se encontró la asistencia recién registrada");
         return;
       }
 
-      console.log(
-        "📋 Asistencia recién registrada encontrada:",
-        asistenciaRecienRegistrada
-      );
+      console.log("📋 Asistencia recién registrada encontrada:", asistenciaRecienRegistrada);
 
       // PASO 3: Verificar que tenemos todos los datos necesarios
-      if (
-        !asistenciaRecienRegistrada.timestamp ||
-        !asistenciaRecienRegistrada.estado
-      ) {
+      if (!asistenciaRecienRegistrada.timestamp || !asistenciaRecienRegistrada.estado) {
         console.error("❌ Faltan datos de la asistencia registrada:", {
           timestamp: asistenciaRecienRegistrada.timestamp,
           estado: asistenciaRecienRegistrada.estado,
@@ -237,27 +262,21 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
       }
 
       // PASO 4: Crear y ejecutar el evento emisor
-      const emitter =
-        new TomaAsistenciaPersonalSIU01Events.MARQUE_LA_ASISTENCIA_DE_ESTE_PERSONAL_EMITTER(
-          {
-            Mi_Socket_Id: globalSocket.id,
-            id_o_dni: miDNI,
-            genero: miGenero!,
-            nombres: miNombres!,
-            apellidos: miApellidos!,
-            Sala_Toma_Asistencia_de_Personal:
-              SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER[
-                Rol as PersonalDelColegio
-              ][modoRegistro],
-            modoRegistro,
-            RegistroEntradaSalida: {
-              desfaseSegundos: 0, // Calculado por el servidor
-              timestamp: asistenciaRecienRegistrada.timestamp,
-              estado: asistenciaRecienRegistrada.estado,
-            },
-            rol: Rol,
-          }
-        );
+      const emitter = new TomaAsistenciaPersonalSIU01Events.MARQUE_LA_ASISTENCIA_DE_ESTE_PERSONAL_EMITTER({
+        Mi_Socket_Id: globalSocket.id,
+        id_o_dni: miDNI,
+        genero: miGenero!,
+        nombres: miNombres!,
+        apellidos: miApellidos!,
+        Sala_Toma_Asistencia_de_Personal: SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER[Rol as PersonalDelColegio][modoRegistro],
+        modoRegistro,
+        RegistroEntradaSalida: {
+          desfaseSegundos: 0, // Calculado por el servidor
+          timestamp: asistenciaRecienRegistrada.timestamp,
+          estado: asistenciaRecienRegistrada.estado,
+        },
+        rol: Rol,
+      });
 
       const sent = emitter.execute();
 
@@ -265,22 +284,17 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
         console.log("✅ Evento emisor enviado exitosamente:", {
           dni: miDNI,
           modoRegistro,
-          sala: SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER[
-            Rol as PersonalDelColegio
-          ][modoRegistro],
+          sala: SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER[Rol as PersonalDelColegio][modoRegistro],
           socketId: globalSocket.id,
         });
       } else {
         console.error("❌ Error al enviar evento emisor");
       }
     } catch (error) {
-      console.error(
-        "❌ Error al enviar evento emisor de asistencia propia:",
-        error
-      );
+      console.error("❌ Error al enviar evento emisor de asistencia propia:", error);
       // No lanzar error para no afectar el flujo principal del registro
     }
-  }, [isReady, globalSocket, modoRegistro]);
+  }, [socketDisponible, isReady, globalSocket, modoRegistro, Rol]);
 
   const verificarYSolicitarPermisos = async (): Promise<boolean> => {
     try {
@@ -371,17 +385,14 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
               });
             }
 
-            const estaDentroMockeado =
-              estaDentroDelColegioIE20935(puntoMockeado);
+            const estaDentroMockeado = estaDentroDelColegioIE20935(puntoMockeado);
             console.log("🔍 PRE-VERIFICACIÓN coordenadas mockeadas:", {
               coordenadas: puntoMockeado,
               estaDentroDelColegio: estaDentroMockeado,
             });
 
             if (!estaDentroMockeado) {
-              console.error(
-                "🚨 ERROR: Las coordenadas mockeadas NO están dentro del colegio!"
-              );
+              console.error("🚨 ERROR: Las coordenadas mockeadas NO están dentro del colegio!");
             }
 
             resolve(puntoMockeado);
@@ -426,13 +437,13 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
       setEstaProcessando(true);
 
       console.log("🔧 CONFIGURACIÓN ACTUAL:", {
-        entorno: `${ENTORNO} (${
-          Object.keys(Entorno)[Object.values(Entorno).indexOf(ENTORNO)]
-        })`,
+        entorno: `${ENTORNO} (${Object.keys(Entorno)[Object.values(Entorno).indexOf(ENTORNO)]})`,
         requiereValidacionGPS: REQUERIR_VALIDACION_GPS,
         usaCoordenadasMockeadas: USAR_COORDENADAS_MOCKEADAS,
         soloPermitirCelulares: SOLO_PERMITIR_CELULARES_PARA_ASISTENCIA,
         testingExplicito: TESTING_EXPLICITO,
+        socketDisponible: socketDisponible,
+        tiempoEsperaAgotado: tiempoEsperaSocketAgotado,
       });
 
       // PASO 1: Verificar tipo de dispositivo
@@ -448,9 +459,7 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
 
         console.log("✅ Dispositivo permitido: móvil");
       } else {
-        console.log(
-          "✅ Restricción de dispositivos deshabilitada - Permitiendo laptops"
-        );
+        console.log("✅ Restricción de dispositivos deshabilitada - Permitiendo laptops");
       }
 
       // PASO 2: Verificar si debe validar GPS
@@ -463,7 +472,7 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
 
         console.log("✅ Asistencia registrada exitosamente (sin GPS)");
 
-        // ✅ NUEVO: Enviar evento emisor después del registro exitoso
+        // ✅ TOLERANTE: Enviar evento emisor después del registro exitoso
         await enviarEventoEmisoreAsistenciaRegistrada();
 
         eliminateModal();
@@ -471,9 +480,7 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
         return;
       }
 
-      console.log(
-        "🔍 Validación GPS habilitada, procediendo con verificaciones..."
-      );
+      console.log("🔍 Validación GPS habilitada, procediendo con verificaciones...");
 
       // PASO 3: Verificar disponibilidad de GPS
       if (!USAR_COORDENADAS_MOCKEADAS) {
@@ -497,9 +504,7 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
 
         console.log("✅ Permisos GPS obtenidos");
       } else {
-        console.log(
-          "⏭️ Saltando verificación de GPS - Usando coordenadas mockeadas"
-        );
+        console.log("⏭️ Saltando verificación de GPS - Usando coordenadas mockeadas");
       }
 
       // PASO 4: Obtener ubicación
@@ -510,10 +515,7 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
 
         if (USAR_COORDENADAS_MOCKEADAS) {
           if (TESTING_EXPLICITO) {
-            console.log(
-              `🎭 Ubicación MOCKEADA obtenida (Entorno: ${ENTORNO}):`,
-              ubicacion
-            );
+            console.log(`🎭 Ubicación MOCKEADA obtenida (Entorno: ${ENTORNO}):`, ubicacion);
           } else {
             console.log("✅ Ubicación obtenida:", ubicacion);
           }
@@ -545,9 +547,7 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
 
       if (!estaDentroDelColegio) {
         if (USAR_COORDENADAS_MOCKEADAS) {
-          console.error(
-            "🚨 ERROR CRÍTICO: Coordenadas MOCKEADAS están fuera del área del colegio!"
-          );
+          console.error("🚨 ERROR CRÍTICO: Coordenadas MOCKEADAS están fuera del área del colegio!");
           console.log("🔍 DEBUGGING COMPLETO:", {
             coordenadasUsadas: ubicacion,
             coordenadasConfiguradas: {
@@ -555,40 +555,29 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
               LONGITUD_MOCKEADA,
             },
             coordenadasAlternativas: COORDENADAS_DEBUGGING,
-            sugerencia:
-              "Verificar la función estaDentroDelColegioIE20935 o cambiar coordenadas",
+            sugerencia: "Verificar la función estaDentroDelColegioIE20935 o cambiar coordenadas",
           });
 
           if (TESTING_EXPLICITO) {
-            console.log(
-              "💡 TIP: Cambia LATITUD_MOCKEADA y LONGITUD_MOCKEADA para testing"
-            );
-            console.log(
-              "🔧 O cambia TESTING_EXPLICITO a false para ocultar estos mensajes"
-            );
+            console.log("💡 TIP: Cambia LATITUD_MOCKEADA y LONGITUD_MOCKEADA para testing");
+            console.log("🔧 O cambia TESTING_EXPLICITO a false para ocultar estos mensajes");
           }
         } else {
           console.log("❌ Usuario fuera del área del colegio");
         }
         eliminateModal();
-        setMostrarModalUbicacionFueraDelColegioAlRegistrarAsistenciaPropia(
-          true
-        );
+        setMostrarModalUbicacionFueraDelColegioAlRegistrarAsistenciaPropia(true);
         return;
       }
 
       if (USAR_COORDENADAS_MOCKEADAS) {
         if (TESTING_EXPLICITO) {
-          console.log(
-            "✅ Coordenadas MOCKEADAS están dentro del área, marcando asistencia..."
-          );
+          console.log("✅ Coordenadas MOCKEADAS están dentro del área, marcando asistencia...");
         } else {
           console.log("✅ Ubicación verificada, marcando asistencia...");
         }
       } else {
-        console.log(
-          "✅ Usuario dentro del área del colegio, marcando asistencia..."
-        );
+        console.log("✅ Usuario dentro del área del colegio, marcando asistencia...");
       }
 
       // PASO FINAL: Marcar asistencia
@@ -596,12 +585,13 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
 
       console.log("✅ Asistencia registrada exitosamente");
 
-      // ✅ NUEVO: Enviar evento emisor después del registro exitoso
+      // ✅ TOLERANTE: Enviar evento emisor después del registro exitoso
       await enviarEventoEmisoreAsistenciaRegistrada();
 
       eliminateModal();
       setMostrarModalConfirmacioAsistenciaMarcada(true);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("❌ Error al marcar asistencia:", error);
 
@@ -632,7 +622,9 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
     setMostrarModalFalloConexionAInternet,
     setMostrarModalNoSePuedeUsarLaptop,
     setMostrarModalDispositivoSinGPS,
-    enviarEventoEmisoreAsistenciaRegistrada, // ✅ NUEVA DEPENDENCIA
+    enviarEventoEmisoreAsistenciaRegistrada,
+    socketDisponible,
+    tiempoEsperaSocketAgotado,
   ]);
 
   // Determinar texto y estilo según configuración
