@@ -469,7 +469,11 @@ export const ListaPersonal = ({
     );
 
     // ✅ ACTUALIZAR estado local (simulando respuesta exitosa)
-    const timestampActual = fechaHoraRedux.utilidades?.timestamp || Date.now();
+    const OFFSET_PERU_MS = 5 * 60 * 60 * 1000;
+    const timestampActual = fechaHoraRedux.utilidades?.timestamp
+      ? fechaHoraRedux.utilidades?.timestamp - OFFSET_PERU_MS
+      : Date.now();
+      
     const nuevoRegistro: AsistenciaDiariaResultado = {
       ID_o_DNI,
       AsistenciaMarcada: true,
