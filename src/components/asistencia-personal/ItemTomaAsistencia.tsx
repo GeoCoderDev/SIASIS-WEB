@@ -63,8 +63,8 @@ const ItemTomaAsistencia = ({
     }
 
     // 🔧 RESTAURAR: Aplicar offset de Perú (-5 horas = -5 * 60 * 60 * 1000 ms)
-    // const OFFSET_PERU_MS = 5 * 60 * 60 * 1000;
-    const timestampAsistenciaCorregido = detalles.Timestamp;
+    const OFFSET_PERU_MS = 5 * 60 * 60 * 1000;
+    const timestampAsistenciaCorregido = detalles.Timestamp + OFFSET_PERU_MS;
 
     // Calcular tiempo transcurrido en minutos
     const tiempoTranscurridoMs = timestampActual - timestampAsistenciaCorregido;
