@@ -98,10 +98,7 @@ const MisDatosDirectivo = ({
       try {
         const fetchCancelable = await fetchSiasisAPI({
           endpoint: "/api/mis-datos",
-          method: "GET",
-          queryParams: {
-            Rol: RolesSistema.Directivo,
-          },
+          method: "GET"
         });
 
         if (!fetchCancelable) throw new Error();
@@ -181,10 +178,7 @@ const MisDatosDirectivo = ({
           Apellidos: misDatosDirectivoModificados.Apellidos,
           Genero: misDatosDirectivoModificados.Genero,
           Celular: misDatosDirectivoModificados.Celular,
-        } as ActualizarMisDatosDirectivoRequestBody),
-        queryParams: {
-          Rol: RolesSistema.Directivo,
-        },
+        } as ActualizarMisDatosDirectivoRequestBody)
       });
 
       if (!fetchCancelable) throw new Error();

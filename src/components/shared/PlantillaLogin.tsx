@@ -1,4 +1,4 @@
-"use client";
+ "use client";
 import ContrasenaIcon from "../icons/ContrasenaIcon";
 import UsuarioIcon from "../icons/UsuarioIcon";
 import VolverIcon from "../icons/VolverIcon";
@@ -30,8 +30,8 @@ export type RolForLogin =
   | "DIRECTIVO"
   | "PROFESOR DE PRIMARIA"
   | "AUXILIAR"
-  | "PROFESOR/TUTOR(Secundaria)"
-  | "RESPONSABLE(Padre/Apoderado)"
+  | "PROFESOR/TUTOR (Secundaria)"
+  | "RESPONSABLE (Padre/Apoderado)"
   | "PERSONAL ADMINISTRATIVO";
 
 export const SE_MOSTRO_TOLTIP_TOMAR_ASISTENCIA_PERSONAL_KEY =
@@ -140,7 +140,7 @@ const PlantillaLogin = ({ rol, siasisAPI, endpoint }: PlantillaLoginProps) => {
       );
 
       // SIEMPRE EN CUANDO SE TRATE DE UN PERSONAL
-      if (rol !== "DIRECTIVO" && rol !== "RESPONSABLE(Padre/Apoderado)") {
+      if (rol !== "DIRECTIVO" && rol !== "RESPONSABLE (Padre/Apoderado)") {
         // GUARDANDO VARIABLE DE MUESTRA DE TOOLTIP
         sessionStorage.setItem(
           SE_MOSTRO_TOLTIP_TOMAR_ASISTENCIA_PERSONAL_KEY,
@@ -165,7 +165,7 @@ const PlantillaLogin = ({ rol, siasisAPI, endpoint }: PlantillaLoginProps) => {
 
   return (
     <>
-      <main className="w-full h-full min-h-screen bg-gris-claro max-sm:bg-blanco flex items-center justify-center max-sm:p-0">
+      <main className="w-full h-full min-h-[100dvh] bg-gris-claro max-sm:bg-blanco flex items-center justify-center max-sm:p-0">
         <div className="flex flex-row max-sm:flex-col bg-blanco rounded-[1rem] shadow-[0px_0px_23.5px_5px_rgba(0,0,0,0.25)] max-sm:shadow-none max-sm:rounded-none max-sm:w-full max-sm:h-full p-8 max-sm:p-2 w-full max-w-2xl">
           {/* Sección Izquierda: Formulario de Inicio de Sesión */}
           <div className="w-1/2 pr-4 max-sm:w-full max-sm:px-4 max-sm:py-2 max-sm:order-2">
@@ -176,10 +176,10 @@ const PlantillaLogin = ({ rol, siasisAPI, endpoint }: PlantillaLoginProps) => {
               </button>
             </Link>
 
-            <h2 className="text-[0.8rem] text-gris-oscuro mt-3">
+            <h2 className="text-[0.9rem] text-gris-oscuro mt-3">
               Inicio de Sesión
             </h2>
-            <h3 className="text-[1.5rem] font-bold text-gris-oscuro">{rol}</h3>
+            <h3 className="text-[1.5rem] font-bold text-gris-oscuro text-wrap -break-words">{rol}</h3>
 
             <form className="mt-4" onSubmit={handleSubmit}>
               <div className="mb-3 flex items-center border border-color-interfaz rounded-lg overflow-hidden">
@@ -203,6 +203,7 @@ const PlantillaLogin = ({ rol, siasisAPI, endpoint }: PlantillaLoginProps) => {
                 </div>
                 <input
                   type="password"
+                  min={8}
                   required
                   name="Contraseña"
                   onChange={handleChange}

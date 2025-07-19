@@ -19,7 +19,7 @@ const MyUserCard = ({
   Apellidos?: string;
 }) => {
   return (
-    <div className="flex flex-col max-w-[85%] items-center justify-center [box-shadow:0_0_12px_4px_#00000050] h-min p-[1.4rem] rounded-[1rem] gap-4 lg-only:p-[1.6rem] xl-only:p-[1.8rem] lg-only:gap-5 xl-only:gap-6">
+    <div className="flex flex-col max-w-[85%] items-center justify-center [box-shadow:0_0_12px_4px_#00000050] h-min p-[1.4rem] rounded-[1rem] gap-4 lg-only:p-[1.6rem] xl-only:p-[1.8rem] lg-only:gap-5 xl-only:gap-6 min-w-[min(80vw,16rem)]">
       <FotoPerfilSideServer
         className="aspect-auto sxs-only:w-[6.4rem] xs-only:w-[6.6rem] sm-only:w-[6.9rem] md-only:w-[7.4rem] lg-only:w-[8.3rem] xl-only:w-[11rem]"
         Google_Drive_Foto_ID={Google_Drive_Foto_ID}

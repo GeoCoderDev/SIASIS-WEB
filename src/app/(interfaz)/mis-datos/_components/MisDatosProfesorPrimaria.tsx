@@ -95,10 +95,7 @@ const MisDatosDeProfesorPrimaria = ({
       try {
         const fetchCancelable = await fetchSiasisAPI({
           endpoint: "/api/mis-datos",
-          method: "GET",
-          queryParams: {
-            Rol: RolesSistema.ProfesorPrimaria,
-          },
+          method: "GET"
         });
 
         if (!fetchCancelable) throw new Error();
@@ -179,10 +176,7 @@ const MisDatosDeProfesorPrimaria = ({
           Correo_Electronico:
             misDatosProfesorPrimariaModificados.Correo_Electronico,
           Celular: misDatosProfesorPrimariaModificados.Celular,
-        } as ActualizarMisDatosProfesorPrimariaRequestBody),
-        queryParams: {
-          Rol: RolesSistema.ProfesorPrimaria,
-        },
+        } as ActualizarMisDatosProfesorPrimariaRequestBody)
       });
 
       if (!fetchCancelable) throw new Error();
@@ -283,7 +277,7 @@ const MisDatosDeProfesorPrimaria = ({
         />
       )}
 
-      <div className="@container -border-2 border-blue-500 w-full lg:w-[85%] max-w-[75rem] h-full grid grid-cols-7 grid-rows-[min-content_1fr] gap-y-4 md:gap-0">
+      <div className="@container -border-2 border-blue-500 w-full lg:w-[85%] max-w-[75rem] h-full grid grid-cols-7 grid-rows-[min-content_1fr] gap-y-4 md:gap-0 p-[min(1rem,3vw)] py-1.5">
         {/* SECCION DE BOTONES */}
         <div className="flex col-span-full -border-2 flex-wrap py-2 justify-start items-center gap-x-6 gap-y-2">
           <h1
@@ -455,18 +449,21 @@ const MisDatosDeProfesorPrimaria = ({
               )}
 
               <FormSection titulo="Aula">
-                {misDatosProfesorPrimariaSaved.Aula && (
+               
                   <>
+  
+
                     <DatoFormularioConEtiqueta<T_Aulas>
                       isSomethingLoading={isSomethingLoading}
                       modoEdicion={modoEdicion}
                       etiqueta="Nivel"
                       nombreDato="Nivel"
+                      skeletonClassName={{ className: "" }}
                       onChange={handleChange}
                       savedValue={
                         NivelEducativoTextos[
-                          misDatosProfesorPrimariaSaved.Aula
-                            .Nivel as NivelEducativo
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                          (misDatosProfesorPrimariaSaved.Aula?.Nivel as any) as NivelEducativo
                         ]
                       }
                     />
@@ -476,7 +473,7 @@ const MisDatosDeProfesorPrimaria = ({
                       etiqueta="Grado"
                       nombreDato="Grado"
                       onChange={handleChange}
-                      savedValue={misDatosProfesorPrimariaSaved.Aula.Grado}
+                      savedValue={misDatosProfesorPrimariaSaved.Aula?.Grado}
                     />
                     <DatoFormularioConEtiqueta<T_Aulas>
                       isSomethingLoading={isSomethingLoading}
@@ -484,10 +481,10 @@ const MisDatosDeProfesorPrimaria = ({
                       etiqueta="Sección"
                       nombreDato="Seccion"
                       onChange={handleChange}
-                      savedValue={misDatosProfesorPrimariaSaved.Aula.Seccion}
+                      savedValue={misDatosProfesorPrimariaSaved.Aula?.Seccion}
                     />
                   </>
-                )}
+                
               </FormSection>
 
               <FormSection titulo="Informacion del Usuario">
