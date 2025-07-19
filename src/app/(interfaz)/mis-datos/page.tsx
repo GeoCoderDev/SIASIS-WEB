@@ -40,15 +40,43 @@ const MisDatos = async () => {
           />
         );
       case RolesSistema.Auxiliar:
-        return <MisDatosAuxiliar />;
+        return (
+          <MisDatosAuxiliar
+            nombresCookieValue={nombres}
+            apellidosCookieValue={apellidos}
+            googleDriveFotoIdCookieValue={googleDriveFotoId}
+            generoCookieValue={genero}
+          />
+        );
       case RolesSistema.ProfesorSecundaria:
-        return <MisDatosProfesorSecundaria />;
+        return (
+          <MisDatosProfesorSecundaria
+            nombresCookieValue={nombres}
+            apellidosCookieValue={apellidos}
+            googleDriveFotoIdCookieValue={googleDriveFotoId}
+            generoCookieValue={genero}
+          />
+        );
       case RolesSistema.Tutor:
-        return <MisDatosTutor />;
+        return (
+          <MisDatosTutor
+            nombresCookieValue={nombres}
+            apellidosCookieValue={apellidos}
+            googleDriveFotoIdCookieValue={googleDriveFotoId}
+            generoCookieValue={genero}
+          />
+        );
       case RolesSistema.Responsable:
         return <MisDatosResponsable />;
       case RolesSistema.PersonalAdministrativo:
-        return <MisDatosPersonalAdministrativo />;
+        return (
+          <MisDatosPersonalAdministrativo
+            nombresCookieValue={nombres}
+            apellidosCookieValue={apellidos}
+            googleDriveFotoIdCookieValue={googleDriveFotoId}
+            generoCookieValue={genero}
+          />
+        );
     }
   };
 
