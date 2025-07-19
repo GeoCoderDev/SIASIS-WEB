@@ -831,6 +831,16 @@ export const CLN01_Stores = {
         keyPath: "Fecha_Conclusion",
         options: { unique: false },
       },
+      {
+        name: "por_mes_año_inicio",
+        keyPath: "mes_año_inicio",
+        options: { unique: false },
+      },
+      {
+        name: "por_mes_año_conclusion",
+        keyPath: "mes_año_conclusion",
+        options: { unique: false },
+      },
     ],
   },
 

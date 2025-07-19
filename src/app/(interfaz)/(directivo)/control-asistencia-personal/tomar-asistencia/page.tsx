@@ -88,6 +88,7 @@ const TomarAsistenciaPersonal = () => {
     );
     const diaDatosAsistencia = fechaDatosAsistencia.getDate();
     const diaActual = fechaHoraActual.utilidades.diaMes;
+    
 
     // Verificar si estamos en fin de semana
     const esFinDeSemana = fechaHoraActual.utilidades.esFinDeSemana;

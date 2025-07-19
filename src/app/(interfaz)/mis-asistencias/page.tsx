@@ -20,7 +20,7 @@ import { Entorno } from "@/interfaces/shared/Entornos";
 import {
   EventosIDB,
   IEventoLocal,
-} from "@/lib/utils/local/db/models/EventosIDB";
+} from "@/lib/utils/local/db/models/eventos/EventosIDB";
 import { RegistroEntradaSalida } from "@/interfaces/shared/AsistenciaRequests";
 import { AsistenciaMensualPersonalLocal } from "@/lib/utils/local/db/models/AsistenciaDePersonal/AsistenciaDePersonalTypes";
 import userStorage from "@/lib/utils/local/db/models/UserStorage";

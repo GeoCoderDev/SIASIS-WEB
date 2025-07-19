@@ -140,7 +140,8 @@ export class DatosAsistenciaHoyIDB {
     if (!fecha) {
       return false; // Si no hay fecha, no es fin de semana para esta lógica
     }
-    const dayOfWeek = fecha.getUTCDay(); // 0 (Domingo) - 6 (Sábado)
+    // const dayOfWeek = fecha.getUTCDay(); // 0 (Domingo) - 6 (Sábado)
+    const dayOfWeek = fecha.getDay(); // 0 (Domingo) - 6 (Sábado)
     return dayOfWeek === 0 || dayOfWeek === 6;
   }
 
@@ -427,9 +428,18 @@ export class DatosAsistenciaHoyIDB {
         "readwrite"
       );
       const promises = [
-        this.deleteKey(store, DatosAsistenciaHoyIDB.ESTADO_TOMA_ASISTENCIA_PERSONAL_KEY),
-        this.deleteKey(store, DatosAsistenciaHoyIDB.ESTADO_TOMA_ASISTENCIA_SECUNDARIA_KEY),
-        this.deleteKey(store, DatosAsistenciaHoyIDB.ESTADO_TOMA_ASISTENCIA_PRIMARIA_KEY),
+        this.deleteKey(
+          store,
+          DatosAsistenciaHoyIDB.ESTADO_TOMA_ASISTENCIA_PERSONAL_KEY
+        ),
+        this.deleteKey(
+          store,
+          DatosAsistenciaHoyIDB.ESTADO_TOMA_ASISTENCIA_SECUNDARIA_KEY
+        ),
+        this.deleteKey(
+          store,
+          DatosAsistenciaHoyIDB.ESTADO_TOMA_ASISTENCIA_PRIMARIA_KEY
+        ),
       ];
 
       await Promise.all(promises);

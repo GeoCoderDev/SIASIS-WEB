@@ -10,7 +10,7 @@ import { Entorno } from "@/interfaces/shared/Entornos";
 import getRandomAPI03IntanceURL from "@/lib/helpers/functions/getRandomAPI03InstanceURL";
 
 const API03_ACTIVADO_SEGUN_ENTORNO: Record<Entorno, boolean> = {
-  [Entorno.LOCAL]: false,
+  [Entorno.LOCAL]: true,
   [Entorno.DESARROLLO]: true,
   [Entorno.CERTIFICACION]: true,
   [Entorno.PRODUCCION]: false,
