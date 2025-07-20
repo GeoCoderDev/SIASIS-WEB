@@ -125,6 +125,14 @@ export default async function RootLayout({
   return (
     <ViewTransitions>
       <html lang="es">
+        {ENTORNO === Entorno.PRODUCCION && (
+          <head>
+            <meta
+              name="google-site-verification"
+              content="ImVWtaIkP3rzCz2k2kdPCndjCBLdY4tMBLtCxmeTap4"
+            />
+          </head>
+        )}
         <body
           className={`${roboto.variable} font-roboto antialiased portrait:min-h-[100dvh] landscape:min-h-screen`}
         >
