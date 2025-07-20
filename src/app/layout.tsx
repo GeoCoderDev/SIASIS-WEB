@@ -23,10 +23,95 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-  title: "SIASIS | I.E. 20935",
+  title:
+    "SIASIS - Sistema de Asistencia I.E. 20935 Asunción 8 | Imperial, Cañete",
   description:
-    "Sistema de asistencia para la institucion educativa 20935 Asunción 8, Imperial, Cañete",
-  icons: "/images/svg/Logo.svg",
+    "Sistema digital de control de asistencia y gestión educativa para la Institución Educativa 20935 Asunción 8 de Imperial, Cañete. Plataforma integral para directivos, profesores, personal del colegio en general y padres de familia.",
+  keywords: [
+    "sistema de asistencia",
+    "I.E. 20935",
+    "Institución Educativa Asunción 8",
+    "Imperial Cañete",
+    "control de asistencia escolar",
+    "gestión educativa digital",
+    "colegio Imperial",
+    "SIASIS",
+    "asistencia estudiantil",
+    "plataforma educativa Perú",
+  ].join(", "),
+
+  // Open Graph para redes sociales
+  openGraph: {
+    title: "SIASIS - Sistema de Asistencia I.E. 20935 Asunción 8",
+    description:
+      "Plataforma digital de gestión educativa para la I.E. 20935 Asunción 8 de Imperial, Cañete",
+    url: "https://ie20935.siasis.org",
+    siteName: "SIASIS I.E. 20935",
+    images: [
+      {
+        url: "/meta/images/og-image.jpg", // Crear esta imagen
+        width: 1200,
+        height: 630,
+        alt: "SIASIS - Sistema de Asistencia I.E. 20935 Asunción 8",
+      },
+    ],
+    locale: "es_PE",
+    type: "website",
+  },
+
+  // Twitter Card
+  twitter: {
+    card: "summary_large_image",
+    title: "SIASIS - Sistema de Asistencia I.E. 20935 Asunción 8",
+    description: "Sistema digital de control de asistencia y gestión educativa",
+    images: ["/meta/images/twitter-image.jpg"],
+  },
+
+  // Información adicional
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+
+  // Canonical URL
+  alternates: {
+    canonical: "https://ie20935.siasis.org",
+  },
+
+  // Otros metadatos importantes
+  authors: [{ name: "I.E. 20935 Asunción 8" }],
+  publisher: "Institución Educativa 20935 Asunción 8",
+  category: "Education",
+
+  // Verificación de herramientas
+  verification: {
+    google: "tu-codigo-de-verificacion-google", // Agregar después de configurar Search Console
+    // yandex: "codigo-yandex",
+    // yahoo: "codigo-yahoo",
+  },
+
+  // Configuración de aplicación
+  applicationName: "SIASIS",
+  appleWebApp: {
+    capable: true,
+    title: "SIASIS I.E. 20935",
+    statusBarStyle: "default",
+  },
+
+  // Metadatos específicos del sitio
+  other: {
+    "geo.region": "PE-ICA",
+    "geo.placename": "Imperial, Cañete",
+    "geo.position": "-13.0594;-76.3503", // Coordenadas aproximadas de Imperial
+    ICBM: "-13.0594, -76.3503",
+  },
 };
 
 export default async function RootLayout({
