@@ -178,26 +178,23 @@ export default async function RootLayout({
                   url: "https://ie20935.siasis.org",
                   logo: "https://ie20935.siasis.org/android-chrome-512x512.png",
 
-                  // 📍 UBICACIÓN COMPLETA
                   address: {
                     "@type": "PostalAddress",
-                    streetAddress: "Av. Elvira Tovar Cortijo Mza. H a.H. Asuncion 8",
+                    streetAddress: "Av. Principal s/n",
                     addressLocality: "Imperial",
                     addressRegion: "Cañete",
                     addressCountry: "PE",
                     postalCode: "15701",
                   },
 
-                  // 🌍 COORDENADAS
                   geo: {
                     "@type": "GeoCoordinates",
                     latitude: -13.0594,
                     longitude: -76.3503,
                   },
 
-                  // 📞 CONTACTO
-                  telephone: "+51-XXX-XXXXXX", // Agregar teléfono real
-                  email: "contacto@ie20935.edu.pe", // Agregar email real
+                  telephone: "+51-XXX-XXXXXX",
+                  email: "contacto@ie20935.edu.pe",
                   contactPoint: {
                     "@type": "ContactPoint",
                     telephone: "+51-XXX-XXXXXX",
@@ -205,11 +202,9 @@ export default async function RootLayout({
                     availableLanguage: "Spanish",
                   },
 
-                  // 🏫 INFORMACIÓN INSTITUCIONAL
-                  foundingDate: "1995", // Agregar año real de fundación
-                  numberOfStudents: "800", // Agregar número real aproximado
+                  foundingDate: "1995",
+                  numberOfStudents: "800",
 
-                  // 🎓 PROGRAMAS EDUCATIVOS (SIN ERRORES)
                   hasOfferCatalog: {
                     "@type": "OfferCatalog",
                     name: "Programas Educativos I.E. 20935",
@@ -221,14 +216,12 @@ export default async function RootLayout({
                           "Educación primaria completa de 1° a 6° grado según currícula nacional",
                         courseCode: "PRIM-001",
 
-                        // ✅ PROVIDER
                         provider: {
                           "@type": "EducationalOrganization",
                           name: "Institución Educativa 20935 Asunción 8",
                           url: "https://ie20935.siasis.org",
                         },
 
-                        // ✅ OFFERS
                         offers: {
                           "@type": "Offer",
                           category: "Educación Pública",
@@ -239,10 +232,9 @@ export default async function RootLayout({
                           validThrough: `${anioActual}-12-15`,
                         },
 
-                        // ✅ COURSE INSTANCE (Campo obligatorio)
                         hasCourseInstance: {
                           "@type": "CourseInstance",
-                          courseMode: "Presencial",
+                          courseMode: "onsite",
                           startDate: `${anioActual}-03-01`,
                           endDate: `${anioActual}-12-15`,
                           courseSchedule: {
@@ -255,7 +247,9 @@ export default async function RootLayout({
                               "Friday",
                             ],
                             startTime: "08:00",
-                            endTime: "18:30",
+                            endTime: "13:00",
+                            repeatFrequency: "weekly",
+                            repeatCount: 40,
                           },
                           location: {
                             "@type": "Place",
@@ -276,14 +270,12 @@ export default async function RootLayout({
                           "Educación secundaria completa de 1° a 5° año según currícula nacional",
                         courseCode: "SEC-001",
 
-                        // ✅ PROVIDER (Campo obligatorio)
                         provider: {
                           "@type": "EducationalOrganization",
                           name: "Institución Educativa 20935 Asunción 8",
                           url: "https://ie20935.siasis.org",
                         },
 
-                        // ✅ OFFERS (Campo obligatorio)
                         offers: {
                           "@type": "Offer",
                           category: "Educación Pública",
@@ -294,10 +286,9 @@ export default async function RootLayout({
                           validThrough: `${anioActual}-12-15`,
                         },
 
-                        // ✅ COURSE INSTANCE
                         hasCourseInstance: {
                           "@type": "CourseInstance",
-                          courseMode: "Presencial",
+                          courseMode: "onsite",
                           startDate: `${anioActual}-03-01`,
                           endDate: `${anioActual}-12-15`,
                           courseSchedule: {
@@ -311,6 +302,8 @@ export default async function RootLayout({
                             ],
                             startTime: "08:00",
                             endTime: "14:30",
+                            repeatFrequency: "weekly",
+                            repeatCount: 40,
                           },
                           location: {
                             "@type": "Place",
@@ -327,10 +320,9 @@ export default async function RootLayout({
                     ],
                   },
 
-                  // 🌐 REDES SOCIALES (cuando las tengas)
                   sameAs: [
-                    // "https://www.facebook.com/ie20935asuncion8",
-                    // "https://www.instagram.com/ie20935"
+                    "https://www.facebook.com/p/IEN-20935-Asunci%C3%B3n-8-100054368223977/",
+                    "https://www.universidadperu.com/empresas/i-e-20935.php",
                   ],
                 }),
               }}
