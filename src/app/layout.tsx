@@ -20,54 +20,65 @@ const roboto = Roboto({
   subsets: ["latin"],
   variable: "--font-roboto",
   style: ["italic", "normal"],
+  display: "swap", // Mejora rendimiento
 });
 
 export const metadata: Metadata = {
-  title: "SIASIS | I.E. 20935",
+  // 🎯 TÍTULO OPTIMIZADO - Más directo y centrado en la institución
+  title: {
+    default: "I.E. 20935 Asunción 8 | Sistema SIASIS - Imperial, Cañete",
+    template: "%s | I.E. 20935 Asunción 8",
+  },
+
+  // 📝 DESCRIPCIÓN OPTIMIZADA - Más específica y atractiva
   description:
-    "Sistema digital de control de asistencia y gestión educativa para la Institución Educativa 20935 Asunción 8 de Imperial, Cañete. Plataforma integral para directivos, profesores, personal del colegio en general y padres de familia.",
-  icons: "/images/svg/Logo.svg",
+    "Institución Educativa 20935 Asunción 8 de Imperial, Cañete. Sistema digital SIASIS para control de asistencia, comunicación con padres y gestión educativa. Educación primaria y secundaria de calidad.",
+
+  // 🔍 KEYWORDS OPTIMIZADAS - Más específicas y locales
   keywords: [
-    "sistema de asistencia",
     "I.E. 20935",
-    "Institución Educativa Asunción 8",
-    "Imperial Cañete",
-    "control de asistencia escolar",
+    "Institución Educativa 20935 Asunción 8",
+    "colegio Imperial Cañete",
+    "SIASIS sistema asistencia",
+    "educación primaria Imperial",
+    "educación secundaria Cañete",
+    "colegio público Imperial",
+    "control asistencia escolar",
     "gestión educativa digital",
-    "colegio Imperial",
-    "SIASIS",
-    "asistencia estudiantil",
-    "plataforma educativa Perú",
+    "sistema educativo Cañete",
+    "matrícula I.E. 20935",
+    "colegio Asunción 8",
   ].join(", "),
 
-  // Open Graph para redes sociales
+  // 🌐 Open Graph MEJORADO
   openGraph: {
-    title: "SIASIS - Sistema de Asistencia I.E. 20935 Asunción 8",
+    title: "I.E. 20935 Asunción 8 - Sistema SIASIS | Imperial, Cañete",
     description:
-      "Plataforma digital de gestión educativa para la I.E. 20935 Asunción 8 de Imperial, Cañete",
+      "Institución Educativa 20935 Asunción 8 con sistema digital SIASIS. Educación de calidad en Imperial, Cañete. Información para padres, estudiantes y comunidad educativa.",
     url: "https://ie20935.siasis.org",
-    siteName: "SIASIS I.E. 20935",
+    siteName: "I.E. 20935 Asunción 8",
     images: [
       {
-        url: "/meta/images/og-image.jpg", // Crear esta imagen
+        url: "/meta/images/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "SIASIS - Sistema de Asistencia I.E. 20935 Asunción 8",
+        alt: "Institución Educativa 20935 Asunción 8 - Imperial, Cañete",
       },
     ],
     locale: "es_PE",
     type: "website",
   },
 
-  // Twitter Card
+  // 🐦 Twitter MEJORADO
   twitter: {
     card: "summary_large_image",
-    title: "SIASIS - Sistema de Asistencia I.E. 20935 Asunción 8",
-    description: "Sistema digital de control de asistencia y gestión educativa",
+    title: "I.E. 20935 Asunción 8 - Sistema SIASIS",
+    description:
+      "Institución Educativa con sistema digital de gestión. Imperial, Cañete.",
     images: ["/meta/images/twitter-image.jpg"],
   },
 
-  // Información adicional
+  // 🤖 ROBOTS optimizado
   robots: {
     index: true,
     follow: true,
@@ -80,37 +91,50 @@ export const metadata: Metadata = {
     },
   },
 
-  // Canonical URL
+  // 🔗 URL canónica
   alternates: {
     canonical: "https://ie20935.siasis.org",
   },
 
-  // Otros metadatos importantes
-  authors: [{ name: "I.E. 20935 Asunción 8" }],
-  publisher: "Institución Educativa 20935 Asunción 8",
+  // 👥 Autoría
+  authors: [
+    {
+      name: "Institución Educativa 20935 Asunción 8",
+      url: "https://ie20935.siasis.org",
+    },
+  ],
+  publisher: "I.E. 20935 Asunción 8 - Imperial, Cañete",
   category: "Education",
 
-  // Verificación de herramientas
+  // ✅ Verificación (ya tienes Google configurado)
   verification: {
-    google: "tu-codigo-de-verificacion-google", // Agregar después de configurar Search Console
-    // yandex: "codigo-yandex",
-    // yahoo: "codigo-yahoo",
+    google: "ImVWtaIkP3rzCz2k2kdPCndjCBLdY4tMBLtCxmeTap4", // ✅ Ya configurado
   },
 
-  // Configuración de aplicación
-  applicationName: "SIASIS",
+  // 📱 PWA
+  applicationName: "SIASIS I.E. 20935",
   appleWebApp: {
     capable: true,
-    title: "SIASIS I.E. 20935",
+    title: "I.E. 20935 Asunción 8",
     statusBarStyle: "default",
   },
 
-  // Metadatos específicos del sitio
+  // 📍 Geolocalización MEJORADA
   other: {
-    "geo.region": "PE-ICA",
-    "geo.placename": "Imperial, Cañete",
-    "geo.position": "-13.0594;-76.3503", // Coordenadas aproximadas de Imperial
+    "geo.region": "PE-LIM", // Lima, no ICA
+    "geo.placename": "Imperial, Provincia de Cañete, Lima",
+    "geo.position": "-13.0594;-76.3503",
     ICBM: "-13.0594, -76.3503",
+    language: "es-PE",
+    "revisit-after": "7 days",
+    // Datos estructurados básicos
+    "theme-color": "#dd3524",
+  },
+
+  // 🎨 ICONOS mejorados
+  icons: {
+    icon: [{ url: "/images/svg/Logo.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/meta/images/apple-touch-icon.png", sizes: "180x180" }],
   },
 };
 
@@ -124,27 +148,101 @@ export default async function RootLayout({
 
   return (
     <ViewTransitions>
-      <html lang="es">
+      <html lang="es-PE" dir="ltr">
         {ENTORNO === Entorno.PRODUCCION && (
           <head>
+            {/* ✅ Verificación de Google ya configurada */}
             <meta
               name="google-site-verification"
               content="ImVWtaIkP3rzCz2k2kdPCndjCBLdY4tMBLtCxmeTap4"
             />
+
+            {/* 📊 DATOS ESTRUCTURADOS para mejorar la apariencia en búsquedas */}
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{
+                __html: JSON.stringify({
+                  "@context": "https://schema.org",
+                  "@type": "EducationalOrganization",
+                  name: "Institución Educativa 20935 Asunción 8",
+                  alternateName: ["I.E. 20935", "SIASIS I.E. 20935"],
+                  description:
+                    "Institución educativa pública ubicada en Imperial, Cañete, que ofrece educación primaria y secundaria con sistema digital SIASIS",
+                  url: "https://ie20935.siasis.org",
+                  logo: "https://ie20935.siasis.org/images/svg/Logo.svg",
+                  address: {
+                    "@type": "PostalAddress",
+                    streetAddress:
+                      "Av. Elvira Tovar Cortijo Mza. H a.H. Asuncion 8",
+                    addressLocality: "Imperial",
+                    addressRegion: "Cañete",
+                    addressCountry: "PE",
+                  },
+                  geo: {
+                    "@type": "GeoCoordinates",
+                    latitude: -13.0594,
+                    longitude: -76.3503,
+                  },
+                  // telephone: "+51-XXX-XXXXXX", // Agregar teléfono real
+                  // email: "contacto@ie20935.edu.pe", // Agregar email real
+                  // foundingDate: "1995", // Agregar año real de fundación
+                  hasOfferCatalog: {
+                    "@type": "OfferCatalog",
+                    name: "Servicios Educativos",
+                    itemListElement: [
+                      {
+                        "@type": "Offer",
+                        itemOffered: {
+                          "@type": "Course",
+                          name: "Educación Primaria",
+                          description:
+                            "Educación primaria completa de 1° a 6° grado",
+                        },
+                      },
+                      {
+                        "@type": "Offer",
+                        itemOffered: {
+                          "@type": "Course",
+                          name: "Educación Secundaria",
+                          description:
+                            "Educación secundaria completa de 1° a 5° año",
+                        },
+                      },
+                    ],
+                  },
+                  sameAs: [
+                    // Agregar redes sociales cuando las tengas
+                  ],
+                }),
+              }}
+            />
+
+            {/* 🚀 PRELOAD de recursos críticos */}
+            <link rel="preconnect" href="https://fonts.googleapis.com" />
+            <link
+              rel="preconnect"
+              href="https://fonts.gstatic.com"
+              crossOrigin=""
+            />
           </head>
         )}
+
         <body
           className={`${roboto.variable} font-roboto antialiased portrait:min-h-[100dvh] landscape:min-h-screen`}
         >
           <style>
             {`
-            
               :root{
                 --color-interfaz: ${interfazColor};
               }
-
+              
+              /* Mejoras de rendimiento */
+              .font-roboto {
+                font-display: swap;
+              }
             `}
           </style>
+
           <NextTopLoader
             color={contrastColor}
             initialPosition={0.08}
@@ -158,6 +256,7 @@ export default async function RootLayout({
           />
 
           {ENTORNO !== Entorno.PRODUCCION && <WindowDimensionsLabel />}
+
           <ProviderStore>
             <PlantillaSegunRol>{children}</PlantillaSegunRol>
           </ProviderStore>
