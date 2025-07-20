@@ -23,11 +23,10 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-  title:
-    "SIASIS - Sistema de Asistencia I.E. 20935 Asunción 8 | Imperial, Cañete",
+  title: "SIASIS | I.E. 20935",
   description:
     "Sistema digital de control de asistencia y gestión educativa para la Institución Educativa 20935 Asunción 8 de Imperial, Cañete. Plataforma integral para directivos, profesores, personal del colegio en general y padres de familia.",
-    icons: "/images/svg/Logo.svg",
+  icons: "/images/svg/Logo.svg",
   keywords: [
     "sistema de asistencia",
     "I.E. 20935",
