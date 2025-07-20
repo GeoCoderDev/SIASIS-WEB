@@ -131,9 +131,12 @@ export const metadata: Metadata = {
     "theme-color": "#dd3524",
   },
 
-  // 🎨 ICONOS mejorados
+  // 🎨 ICONOS
   icons: {
-    icon: [{ url: "/images/svg/Logo.svg", type: "image/svg+xml" }],
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/images/svg/Logo.svg", type: "image/svg+xml" },
+    ],
     apple: [{ url: "/meta/images/apple-touch-icon.png", sizes: "180x180" }],
   },
 };
