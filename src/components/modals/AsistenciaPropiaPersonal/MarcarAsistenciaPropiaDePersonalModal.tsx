@@ -41,7 +41,7 @@ const TESTING_EXPLICITO = false;
 
 const REQUERIR_VALIDACION_GPS_SEGUN_ENTORNO: Record<Entorno, boolean> = {
   [Entorno.LOCAL]: true,
-  [Entorno.DESARROLLO]: false,
+  [Entorno.DESARROLLO]: true,
   [Entorno.CERTIFICACION]: true,
   [Entorno.PRODUCCION]: true,
   [Entorno.TEST]: true,
