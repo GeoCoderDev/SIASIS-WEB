@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHARED MEMORY SIASIS INSTANCES</title>
+</head>
+<body>
+    
+    
+
+    <script>
+    // Página puente en cada instancia
+    window.addEventListener('message', function(event) {
+        // Dominios permitidos - PERSONALIZA ESTA LISTA
+        const permitidos = [
+            'https://otrodominio.com',
+            'https://tuapp.com',
+            'https://tercerdominio.org',
+            'http://localhost:3000' // Para desarrollo
+        ];
+        
+        if (!permitidos.includes(event.origin)) {
+            return; // Ignorar mensajes de dominios no autorizados
+        }
+        
+        const { action, key, value, id } = event.data;
+        
+        try {
+            let response = { id, success: true };
+            
+            switch(action) {
+                case 'set':
+                    localStorage.setItem(key, JSON.stringify(value));
+                    response.message = 'Guardado correctamente';
+                    break;
+                    
+                case 'get':
+                    const data = localStorage.getItem(key);
+                    response.data = data ? JSON.parse(data) : null;
+                    break;
+                    
+                case 'remove':
+                    localStorage.removeItem(key);
+                    response.message = 'Eliminado correctamente';
+                    break;
+                    
+                case 'clear':
+                    localStorage.clear();
+                    response.message = 'Storage limpiado';
+                    break;
+            }
+            
+            event.source.postMessage(response, event.origin);
+            
+        } catch (error) {
+            event.source.postMessage({
+                id,
+                success: false,
+                error: error.message
+            }, event.origin);
+        }
+    });
+    
+    // Notificar que el bridge está listo
+    window.parent.postMessage({ ready: true }, '*');
+    </script>
+    
+    <div style="text-align: center; padding: 20px; color: #666;">
+        <h3>🔗 Storage Bridge Activo</h3>
+        <p>Esta página permite compartir datos entre diferentes dominios de forma segura.</p>
+        <small>siasi.org - Sistema de Asistencia</small>
+    </div>
+</body>
+</html>

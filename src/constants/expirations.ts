@@ -1,6 +1,6 @@
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 
-export const DIRECTIVO_SESSION_EXPIRATION_seg = 60 * 60 * 5; // 5 horas
+export const DIRECTIVO_SESSION_EXPIRATION_seg = 60 * 60 * 13; // 13 horas para no cerrar el sistema durante todo lo que dure la toma de asistencia de cierto dia
 export const PROFESOR_PRIMARIA_SESSION_EXPIRATION_seg = 60 * 60 * 5; // 5 horas
 export const AUXILIAR_SESSION_EXPIRATION_seg = 60 * 60 * 5; // 5 horas
 export const PROFESOR_SECUNDARIA_SESSION_EXPIRATION_seg = 60 * 60 * 5; // 5 horas
