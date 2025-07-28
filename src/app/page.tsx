@@ -22,7 +22,8 @@ const Home = async () => {
   const rol = cookieStore.get("Rol")!.value as RolesSistema;
   const nombres = cookieStore.get("Nombres")!.value;
   const apellidos = cookieStore.get("Apellidos")!.value;
-  const genero = cookieStore.get("Genero")!.value as Genero;
+  const genero =
+    (cookieStore.get("Genero")?.value as Genero) ?? Genero.Masculino;
 
   return (
     <>
