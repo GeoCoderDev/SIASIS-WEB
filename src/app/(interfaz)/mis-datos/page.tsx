@@ -14,7 +14,8 @@ const MisDatos = async () => {
   const cookieStore = await cookies();
   const rol = cookieStore.get("Rol")!.value as RolesSistema;
   const nombres = cookieStore.get("Nombres")!.value;
-  const genero = cookieStore.get("Genero")!.value as Genero;
+  const genero =
+    (cookieStore.get("Genero")?.value as Genero) ?? Genero.Masculino;
   const apellidos = cookieStore.get("Apellidos")!.value;
   const googleDriveFotoId =
     cookieStore.get("Google_Drive_Foto_ID")?.value || null;
