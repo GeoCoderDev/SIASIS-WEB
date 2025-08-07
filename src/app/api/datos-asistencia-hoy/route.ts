@@ -234,7 +234,7 @@ function filtrarDatosSegunRol(
     case RolesSistema.Tutor:
       // Profesores de secundaria y tutores reciben su propio horario y el de estudiantes de secundaria
       const profesorInfo = datos.ListaDeProfesoresSecundaria.find(
-        (p) => p.DNI_Profesor_Secundaria === idUsuario
+        (p) => p.Id_Profesor_Secundaria === idUsuario
       );
 
       return {
@@ -260,7 +260,7 @@ function filtrarDatosSegunRol(
     case RolesSistema.PersonalAdministrativo:
       // Personal administrativo recibe solo su propio horario
       const personalInfo = datos.ListaDePersonalesAdministrativos.find(
-        (p) => p.DNI_Personal_Administrativo == idUsuario
+        (p) => p.Id_Personal_Administrativo == idUsuario
       );
       return {
         ...datosBase,

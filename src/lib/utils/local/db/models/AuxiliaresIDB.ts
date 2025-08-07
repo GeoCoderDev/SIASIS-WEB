@@ -26,7 +26,7 @@ import { GetAuxiliaresSuccessResponse } from "@/interfaces/shared/apis/api01/aux
 export type IAuxiliarLocal = AuxiliarSinContraseña;
 
 export interface IAuxiliarFilter {
-  DNI_Auxiliar?: string;
+  Id_Auxiliar?: string;
   Nombres?: string;
   Apellidos?: string;
   Estado?: boolean;
@@ -229,7 +229,7 @@ export class AuxiliaresIDB {
             .result as IDBCursorWithValue;
           if (cursor) {
             // Añadir el DNI del auxiliar actual
-            dnis.push(cursor.value.DNI_Auxiliar);
+            dnis.push(cursor.value.Id_Auxiliar);
             cursor.continue();
           } else {
             // No hay más registros, resolvemos con el array de DNIs
@@ -298,7 +298,7 @@ export class AuxiliaresIDB {
 
       // 2. Crear conjunto de DNIs del servidor para búsqueda rápida
       const dnisServidor = new Set(
-        auxiliaresServidor.map((aux) => aux.DNI_Auxiliar)
+        auxiliaresServidor.map((aux) => aux.Id_Auxiliar)
       );
 
       // 3. Identificar DNIs que ya no existen en el servidor
@@ -326,7 +326,7 @@ export class AuxiliaresIDB {
           try {
             // Verificar si el auxiliar ya existe
             const existeAuxiliar = await this.getByDNI(
-              auxiliarServidor.DNI_Auxiliar
+              auxiliarServidor.Id_Auxiliar
             );
 
             // Obtener un store fresco para cada operación
@@ -351,7 +351,7 @@ export class AuxiliaresIDB {
               request.onerror = () => {
                 result.errors++;
                 console.error(
-                  `Error al guardar auxiliar ${auxiliarServidor.DNI_Auxiliar}:`,
+                  `Error al guardar auxiliar ${auxiliarServidor.Id_Auxiliar}:`,
                   request.error
                 );
                 reject(request.error);
@@ -360,7 +360,7 @@ export class AuxiliaresIDB {
           } catch (error) {
             result.errors++;
             console.error(
-              `Error al procesar auxiliar ${auxiliarServidor.DNI_Auxiliar}:`,
+              `Error al procesar auxiliar ${auxiliarServidor.Id_Auxiliar}:`,
               error
             );
           }

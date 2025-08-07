@@ -74,7 +74,7 @@ export enum SystemErrorTypes {
  * Errores relacionados a validaciones de datos
  */
 export enum ValidationErrorTypes {
-  INVALID_DNI = "INVALID_DNI",
+  INVALID_USER_IDENTIFIER = "INVALID_USER_IDENTIFIER",
   INVALID_GENDER = "INVALID_GENDER",
   INVALID_PHONE = "INVALID_PHONE",
   INVALID_EMAIL = "INVALID_EMAIL",
@@ -282,4 +282,3 @@ export const ErrorGroups = {
     RequestErrorTypes.MISSING_PARAMETERS,
   ],
 } as const;
-

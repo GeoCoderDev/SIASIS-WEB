@@ -9,7 +9,7 @@ import { useState } from "react";
 import { CANTIDAD_MINUTOS_MAXIMO_PARA_DESCARTAR_ASISTENCIA_DE_PERSONAL } from "@/constants/CANTIDAD_MINUTOS_MAXIMO_PARA_DESCARTE_ASISTENCIAS";
 
 export interface PersonalParaTomarAsistencia {
-  ID_o_DNI: string;
+  idUsuario: string;
   GoogleDriveFotoId: string | null;
   Nombres: string;
   Apellidos: string;

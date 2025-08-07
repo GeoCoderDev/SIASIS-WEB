@@ -40,7 +40,7 @@ const Auxiliares = () => {
 
       {!isSomethingLoading && auxiliares && auxiliares.length === 0 && (
         <span className="sxs-only:text-[12px] xs-only:text-[13px] sm-only:text-[14px] text-center w-full"> 
-          No se encontraron Auxiliares Regitrados en el Sistema
+          No se encontraron Auxiliares Registrados en el Sistema
         </span>
       )}
 
@@ -53,7 +53,7 @@ const Auxiliares = () => {
         {auxiliares && (
           <div className="flex flex-wrap justify-center w-full gap-y-6 sxs-only:gap-y-4 xs-only:gap-y-5 gap-x-4 sxs-only:gap-x-2 xs-only:gap-x-3">
             {auxiliares.map((auxiliar) => (
-              <AuxiliardCard key={auxiliar.DNI_Auxiliar} Auxiliar={auxiliar} />
+              <AuxiliardCard key={auxiliar.Id_Auxiliar} Auxiliar={auxiliar} />
             ))}
           </div>
         )}

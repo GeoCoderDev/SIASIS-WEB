@@ -37,7 +37,7 @@ export interface RegistroEntradaSalida {
 export interface AsistenciaMensualPersonalLocal {
   Id_Registro_Mensual: number;
   mes: Meses;
-  ID_o_DNI_Personal: string;
+  idUsuario_Personal: string;
   registros: Record<string, RegistroEntradaSalida>;
   // ✅ NUEVO CAMPO OBLIGATORIO para flujo inteligente
   ultima_fecha_actualizacion: number; // Timestamp peruano
@@ -47,7 +47,7 @@ export interface AsistenciaMensualPersonalLocal {
 export interface AsistenciaMensualPersonalRaw {
   Id_Registro_Mensual: number;
   Mes: number;
-  ID_o_DNI_Personal: string;
+  idUsuario_Personal: string;
   Entradas: string | null; // ✅ PERMITE NULL para 404s
   Salidas: string | null; // ✅ PERMITE NULL para 404s
   ultima_fecha_actualizacion: number; // ✅ OBLIGATORIO
@@ -187,7 +187,7 @@ export interface ParametrosMarcadoAsistencia {
 
 // Interface para parámetros de eliminación
 export interface ParametrosEliminacionAsistencia {
-  id_o_dni: string | number;
+  idUsuario: string | number;
   rol: RolesSistema;
   modoRegistro: ModoRegistro;
   dia?: number;
@@ -198,7 +198,7 @@ export interface ParametrosEliminacionAsistencia {
 // ✅ INTERFAZ ACTUALIZADA: Consulta con opciones de optimización
 export interface ParametrosConsultaAsistencia {
   rol: RolesSistema;
-  id_o_dni: string | number;
+  idUsuario: string | number;
   mes: number;
   // ✅ NUEVOS PARÁMETROS OPCIONALES para flujo inteligente
   forzarActualizacion?: boolean;
@@ -218,7 +218,7 @@ export function esAsistenciaMensualPersonal(
     obj &&
     typeof obj.Id_Registro_Mensual === "number" &&
     typeof obj.mes === "number" &&
-    typeof obj.ID_o_DNI_Personal === "string" && // ✅ CORREGIDO: Era Dni_Personal
+    typeof obj.idUsuario_Personal === "string" && // ✅ CORREGIDO: Era Dni_Personal
     typeof obj.registros === "object" &&
     typeof obj.ultima_fecha_actualizacion === "number" // ✅ NUEVO campo obligatorio
   );
@@ -232,7 +232,7 @@ export function esAsistenciaMensualPersonalRaw(
     obj &&
     typeof obj.Id_Registro_Mensual === "number" &&
     typeof obj.Mes === "number" &&
-    typeof obj.ID_o_DNI_Personal === "string" &&
+    typeof obj.idUsuario_Personal === "string" &&
     (typeof obj.Entradas === "string" || obj.Entradas === null) &&
     (typeof obj.Salidas === "string" || obj.Salidas === null) &&
     typeof obj.ultima_fecha_actualizacion === "number"

@@ -1,6 +1,5 @@
 "use client";
 import React, { useState } from "react";
-import Link from "next/link";
 import BotonConIcono from "@/components/buttons/BotonConIcono";
 import LapizIcon from "@/components/icons/LapizIcon";
 import ModificarRegistroAsistencia from "@/components/modals/programacion/gestion-horarios-laborales/ModificarRegistroAsistencia";
@@ -10,6 +9,7 @@ import ModificarHorarioAuxiliar from "@/components/modals/programacion/gestion-h
 import ModificarPersonalVacaciones from "@/components/modals/programacion/gestion-horarios-laborales/ModificarPersonalVacaciones";
 import ModificarPersonalSemanaGestion from "@/components/modals/programacion/gestion-horarios-laborales/ModificarPersonalSemanaGestion";
 import VolverIcon from "@/components/icons/VolverIcon";
+import { Link } from "next-view-transitions";
 
 const GestionHorariosLaborales = () => {
   const horarioGestion = [{ inicio: "7:45am", fin: "8:30am" }];
@@ -90,7 +90,7 @@ const GestionHorariosLaborales = () => {
         {/* Título con botón volver */}
         <div className="flex-shrink-0 px-6 sxs-only:px-4 xs-only:px-4 sm-only:px-5 md-only:px-5 lg-only:px-4 xl-only:px-5 pt-8 sxs-only:pt-6 xs-only:pt-6 sm-only:pt-7 md-only:pt-7 lg-only:pt-6 xl-only:pt-7 pb-6 sxs-only:pb-4 xs-only:pb-5 sm-only:pb-5 md-only:pb-5 lg-only:pb-4 xl-only:pb-5">
           <div className="flex flex-wrap justify-between items-center gap-4 sxs-only:gap-3 xs-only:gap-3 sm-only:gap-3 md-only:gap-3 lg-only:gap-3 xl-only:gap-3">
-            <h1 className="text-4xl sxs-only:text-xl xs-only:text-2xl sm-only:text-3xl md-only:text-3xl lg-only:text-2xl xl-only:text-3xl text-negro font-bold">
+            <h1 style={{viewTransitionName:"gestion-horarios-laborales-title"}} className="text-4xl sxs-only:text-xl xs-only:text-2xl sm-only:text-3xl md-only:text-3xl lg-only:text-2xl xl-only:text-3xl text-negro font-bold">
               Gestión de Horarios Laborales
             </h1>
             <Link href="/programacion">

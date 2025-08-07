@@ -183,7 +183,7 @@ const MisAsistencias = () => {
           Nombres: nombres,
           Apellidos: apellidos,
           Rol: rol,
-          ID_O_DNI_Usuario: miDNI,
+          ID_Usuario: miDNI,
           Google_Drive_Foto_ID: userData?.Google_Drive_Foto_ID || null,
         };
 
@@ -894,7 +894,7 @@ const MisAsistencias = () => {
       });
 
       const dniValueCell = worksheet.getCell(`I${filaActual}`);
-      dniValueCell.value = misDatos.ID_O_DNI_Usuario;
+      dniValueCell.value = misDatos.ID_Usuario;
       dniValueCell.style = {
         font: { size: 10 },
         alignment: { horizontal: "left", vertical: "middle", indent: 1 },
@@ -1578,8 +1578,8 @@ const MisAsistencias = () => {
     ? ({
         Nombres: misDatos.Nombres,
         Apellidos: misDatos.Apellidos,
-        DNI_Directivo: misDatos.ID_O_DNI_Usuario,
-        ID_O_DNI_Usuario: misDatos.ID_O_DNI_Usuario || "N/A",
+        Identificador_Nacional_Directivo: misDatos.Identificador_Nacional_Directivo,
+        ID_Usuario: misDatos.ID_Usuario || "N/A",
         Google_Drive_Foto_ID: misDatos.Google_Drive_Foto_ID,
       } as GenericUser)
     : null;

@@ -160,7 +160,7 @@ export async function DELETE(req: NextRequest) {
     const body = (await req.json()) as EliminarAsistenciaRequestBody;
 
     const {
-      ID_o_DNI,
+      idUsuario,
       Actor,
       ModoRegistro,
       TipoAsistencia: tipoAsistencia,
@@ -171,7 +171,7 @@ export async function DELETE(req: NextRequest) {
     } = body;
 
     // Validar DNI
-    const dniValidation = validateDNI(ID_o_DNI, true);
+    const dniValidation = validateDNI(idUsuario, true);
     //El directivo tendra ID
     if (!dniValidation.isValid && Actor !== ActoresSistema.Directivo) {
       return NextResponse.json(
@@ -278,7 +278,7 @@ export async function DELETE(req: NextRequest) {
           fechaEliminacion,
           ModoRegistro,
           Actor,
-          ID_o_DNI,
+          idUsuario,
           NivelEducativo,
           Grado,
           Seccion
@@ -290,7 +290,7 @@ export async function DELETE(req: NextRequest) {
           fechaEliminacion,
           ModoRegistro,
           Actor,
-          ID_o_DNI
+          idUsuario
         );
       }
     } else {
@@ -299,7 +299,7 @@ export async function DELETE(req: NextRequest) {
         fechaEliminacion,
         ModoRegistro,
         Actor,
-        ID_o_DNI
+        idUsuario
       );
     }
 

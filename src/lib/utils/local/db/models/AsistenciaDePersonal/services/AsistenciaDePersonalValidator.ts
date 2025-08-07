@@ -138,7 +138,7 @@ export class AsistenciaDePersonalValidator {
     registroEntrada: AsistenciaMensualPersonalLocal | null,
     registroSalida: AsistenciaMensualPersonalLocal | null,
     mes: number,
-    id_o_dni: string | number
+    idUsuario: string | number
   ): Promise<{
     esConsistente: boolean;
     diferencia: number;
@@ -178,7 +178,7 @@ export class AsistenciaDePersonalValidator {
       // Log detallado para debugging
       if (!esConsistente) {
         console.warn(
-          `⚠️ Inconsistencia detectada para ${id_o_dni} - mes ${mes}: ${razon}`
+          `⚠️ Inconsistencia detectada para ${idUsuario} - mes ${mes}: ${razon}`
         );
 
         // Mostrar detalles de los días registrados
@@ -342,8 +342,8 @@ export class AsistenciaDePersonalValidator {
     }
 
     if (
-      typeof registro.ID_o_DNI_Personal !== "string" ||
-      registro.ID_o_DNI_Personal.length !== 8
+      typeof registro.idUsuario_Personal !== "string" ||
+      registro.idUsuario_Personal.length !== 8
     ) {
       errores.push("Dni_Personal debe ser un string de 8 caracteres");
     }

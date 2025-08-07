@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 
 const cards = [
   {
@@ -7,20 +7,23 @@ const cards = [
       "Administra las fechas clave del calendario escolar, incluyendo el inicio de clases y periodos de vacaciones.",
     icon: "/images/svg/GestiónDeFechasEscolares.svg",
     href: "programacion/gestion-fechas-escolares",
+    viewTransitionName: "gestion-fechas-escolares-title"
   },
   {
-    title: "Gestión de Horarios de Asistencia Escolares",
+    title: "Gestión de Horarios de Asistencia Escolar",
     description:
       "Configura y edita los horarios de registro de asistencia para los niveles de primaria y secundaria.",
     icon: "/images/svg/AsistenciaEscolares.svg",
-    href: "programacion/gestion-horarios-asistencia",
+    href: "programacion/gestion-horarios-asistencia-escolar",
+    viewTransitionName: "gestion-horarios-asistencia-escolar-title"
   },
   {
     title: "Gestión de Horarios Laborales",
     description:
-      "Administra y ajusta los horarios laborales de los profesores de primaria, secundaria y auxiliares.",
+      "Administra y ajusta los horarios laborales del personal del colegio (profesores de primaria, secundaria, auxiliares, etc).",
     icon: "/images/svg/HorarioLaboral.svg",
     href: "programacion/gestion-horarios-laborales",
+    viewTransitionName: "gestion-horarios-laborales-title"
   },
 ];
 
@@ -49,7 +52,8 @@ const Programacion = () => {
                 {/* Card content */}
                 <div className="p-5 sxs-only:p-4 xs-only:p-4 sm-only:p-4 md-only:p-5 lg-only:p-5 xl-only:p-8 h-full flex flex-col items-center justify-center text-center min-h-[280px] sxs-only:min-h-[240px] xs-only:min-h-[260px] sm-only:min-h-[270px] md-only:min-h-[280px] lg-only:min-h-[290px] xl-only:min-h-[400px]">
                   {/* Título */}
-                  <h3 className="text-lg sxs-only:text-base xs-only:text-lg sm-only:text-lg md-only:text-lg lg-only:text-xl xl-only:text-2xl font-bold text-negro mb-5 sxs-only:mb-4 xs-only:mb-4 sm-only:mb-4 md-only:mb-5 lg-only:mb-6 xl-only:mb-8 leading-tight">
+                  <h3 style={{viewTransitionName: card.viewTransitionName
+                  }} className="text-lg sxs-only:text-base xs-only:text-lg sm-only:text-lg md-only:text-lg lg-only:text-xl xl-only:text-2xl font-bold text-negro mb-5 sxs-only:mb-4 xs-only:mb-4 sm-only:mb-4 md-only:mb-5 lg-only:mb-6 xl-only:mb-8 leading-tight">
                     {card.title}
                   </h3>
 

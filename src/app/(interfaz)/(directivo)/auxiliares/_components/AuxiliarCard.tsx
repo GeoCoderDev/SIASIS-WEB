@@ -10,7 +10,7 @@ const AuxiliarCard = ({
     Apellidos,
     Celular,
     Correo_Electronico,
-    DNI_Auxiliar,
+    Id_Auxiliar,
     Estado,
     Nombres,
     Nombre_Usuario,
@@ -35,9 +35,9 @@ const AuxiliarCard = ({
 
       <span
         className="text-[17px] sxs-only:text-[15px] xs-only:text-[16px] font-medium text-azul-principal text-center"
-        title={DNI_Auxiliar}
+        title={Id_Auxiliar}
       >
-        {DNI_Auxiliar}
+        {Id_Auxiliar}
       </span>
 
       <span
@@ -66,7 +66,7 @@ const AuxiliarCard = ({
         Estado: {Estado ? "Activo" : "Inactivo"}
       </span>
 
-      <Link href={`/auxiliares/${DNI_Auxiliar}`} className="mt-2">
+      <Link href={`/auxiliares/${Id_Auxiliar}`} className="mt-2">
         <BotonConIcono
           className="bg-amarillo-ediciones text-negro font-medium flex gap-1 items-center px-2.5 py-1.5 sxs-only:px-2 sxs-only:py-1 rounded text-[15px] sxs-only:text-[13px]"
           texto="Ver/Editar"

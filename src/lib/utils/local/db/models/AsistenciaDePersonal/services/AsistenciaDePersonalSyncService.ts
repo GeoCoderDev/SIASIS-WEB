@@ -70,7 +70,7 @@ export class AsistenciaPersonalSyncService {
    */
   public async forzarSincronizacionCompleta(
     rol: RolesSistema,
-    id_o_dni: string | number,
+    idUsuario: string | number,
     mes: number
   ): Promise<{
     entrada?: AsistenciaMensualPersonalLocal;
@@ -82,7 +82,7 @@ export class AsistenciaPersonalSyncService {
       const tipoPersonal = this.mapper.obtenerTipoPersonalDesdeRolOActor(rol);
 
       console.log(
-        `🔄 FORZANDO SINCRONIZACIÓN COMPLETA para ${id_o_dni} - mes ${mes}`
+        `🔄 FORZANDO SINCRONIZACIÓN COMPLETA para ${idUsuario} - mes ${mes}`
       );
 
       // PASO 1: Eliminar ambos registros locales (entrada y salida)
@@ -91,13 +91,13 @@ export class AsistenciaPersonalSyncService {
         this.repository.eliminarRegistroMensual(
           tipoPersonal,
           ModoRegistro.Entrada,
-          id_o_dni,
+          idUsuario,
           mes
         ),
         this.repository.eliminarRegistroMensual(
           tipoPersonal,
           ModoRegistro.Salida,
-          id_o_dni,
+          idUsuario,
           mes
         ),
       ]);
@@ -107,7 +107,7 @@ export class AsistenciaPersonalSyncService {
       const asistenciaAPI =
         await this.apiClient.consultarAsistenciasConReintentos(
           rol,
-          id_o_dni,
+          idUsuario,
           mes
         );
 
@@ -131,14 +131,14 @@ export class AsistenciaPersonalSyncService {
         this.repository.obtenerRegistroMensual(
           tipoPersonal,
           ModoRegistro.Entrada,
-          id_o_dni,
+          idUsuario,
           mes,
           asistenciaAPI.Id_Registro_Mensual_Entrada
         ),
         this.repository.obtenerRegistroMensual(
           tipoPersonal,
           ModoRegistro.Salida,
-          id_o_dni,
+          idUsuario,
           mes,
           asistenciaAPI.Id_Registro_Mensual_Salida
         ),
@@ -220,7 +220,7 @@ export class AsistenciaPersonalSyncService {
             await this.consultarCacheTemporalParaIntegracion(
               actor,
               modoRegistro,
-              asistenciaAPI.ID_O_DNI_Usuario,
+              asistenciaAPI.ID_Usuario,
               fechaHoy
             );
 
@@ -235,7 +235,7 @@ export class AsistenciaPersonalSyncService {
               await this.repository.obtenerRegistroMensual(
                 tipoPersonal,
                 modoRegistro,
-                asistenciaAPI.ID_O_DNI_Usuario,
+                asistenciaAPI.ID_Usuario,
                 asistenciaAPI.Mes,
                 idReal
               );
@@ -254,7 +254,7 @@ export class AsistenciaPersonalSyncService {
               await this.repository.actualizarRegistroExistente(
                 tipoPersonal,
                 modoRegistro,
-                asistenciaAPI.ID_O_DNI_Usuario,
+                asistenciaAPI.ID_Usuario,
                 asistenciaAPI.Mes,
                 diaActual,
                 registroDia,
@@ -265,7 +265,7 @@ export class AsistenciaPersonalSyncService {
               await this.limpiarAsistenciaHuerfanaDelCache(
                 actor,
                 modoRegistro,
-                asistenciaAPI.ID_O_DNI_Usuario,
+                asistenciaAPI.ID_Usuario,
                 fechaHoy
               );
 
@@ -296,7 +296,7 @@ export class AsistenciaPersonalSyncService {
   private async consultarCacheTemporalParaIntegracion(
     actor: ActoresSistema,
     modoRegistro: ModoRegistro,
-    id_o_dni: string | number,
+    idUsuario: string | number,
     fecha: string
   ): Promise<any> {
     try {
@@ -307,7 +307,7 @@ export class AsistenciaPersonalSyncService {
       const cacheAsistenciasHoy = new AsistenciasTomadasHoyIDB(this.dateHelper);
 
       return await cacheAsistenciasHoy.consultarAsistencia({
-        id_o_dni,
+        idUsuario,
         actor,
         modoRegistro,
         tipoAsistencia: TipoAsistencia.ParaPersonal,
@@ -390,7 +390,7 @@ export class AsistenciaPersonalSyncService {
           const registroParaGuardar: AsistenciaMensualPersonalLocal = {
             Id_Registro_Mensual: idReal,
             mes: asistenciaAPI.Mes,
-            ID_o_DNI_Personal: asistenciaAPI.ID_O_DNI_Usuario,
+            idUsuario_Personal: asistenciaAPI.ID_Usuario,
             registros: registrosProcesados,
             ultima_fecha_actualizacion: timestampPeruanoActual, // ✅ TIMESTAMP GARANTIZADO
           };
@@ -455,13 +455,13 @@ export class AsistenciaPersonalSyncService {
    */
   private async autoCorregirDatosLocalesInconsistentes(
     rol: RolesSistema,
-    id_o_dni: string | number,
+    idUsuario: string | number,
     mes: number,
     razonInconsistencia: string
   ): Promise<ConsultaAsistenciaResult> {
     try {
       console.log(
-        `🔧 Iniciando auto-corrección para ${id_o_dni} - mes ${mes}: ${razonInconsistencia}`
+        `🔧 Iniciando auto-corrección para ${idUsuario} - mes ${mes}: ${razonInconsistencia}`
       );
 
       const tipoPersonal = this.mapper.obtenerTipoPersonalDesdeRolOActor(rol);
@@ -471,13 +471,13 @@ export class AsistenciaPersonalSyncService {
         this.repository.eliminarRegistroMensual(
           tipoPersonal,
           ModoRegistro.Entrada,
-          id_o_dni,
+          idUsuario,
           mes
         ),
         this.repository.eliminarRegistroMensual(
           tipoPersonal,
           ModoRegistro.Salida,
-          id_o_dni,
+          idUsuario,
           mes
         ),
       ]);
@@ -487,7 +487,7 @@ export class AsistenciaPersonalSyncService {
       // Obtener datos frescos de la API
       return await this.consultarAPIYGuardar(
         rol,
-        id_o_dni,
+        idUsuario,
         mes,
         `Auto-corrección: ${razonInconsistencia}`
       );
@@ -551,7 +551,7 @@ export class AsistenciaPersonalSyncService {
    */
   public async obtenerAsistenciaMensualConAPI(
     rol: RolesSistema,
-    id_o_dni: string | number,
+    idUsuario: string | number,
     mes: number
   ): Promise<ConsultaAsistenciaResult> {
     try {
@@ -567,7 +567,7 @@ export class AsistenciaPersonalSyncService {
 
       const tipoPersonal = this.mapper.obtenerTipoPersonalDesdeRolOActor(rol);
       console.log(
-        `🎯 Flujo corregido iniciado: ${rol} ${id_o_dni} - ${estadoTemporal.descripcion}`
+        `🎯 Flujo corregido iniciado: ${rol} ${idUsuario} - ${estadoTemporal.descripcion}`
       );
 
       // 📅 RAMA: MES ANTERIOR
@@ -575,7 +575,7 @@ export class AsistenciaPersonalSyncService {
         return await this.procesarConsultaMesAnteriorCorregido(
           tipoPersonal,
           rol,
-          id_o_dni,
+          idUsuario,
           mes
         );
       }
@@ -584,7 +584,7 @@ export class AsistenciaPersonalSyncService {
       return await this.procesarConsultaMesActualCorregido(
         tipoPersonal,
         rol,
-        id_o_dni,
+        idUsuario,
         mes
       );
     } catch (error) {
@@ -605,7 +605,7 @@ export class AsistenciaPersonalSyncService {
   private async procesarConsultaMesAnteriorCorregido(
     tipoPersonal: TipoPersonal,
     rol: RolesSistema,
-    id_o_dni: string | number,
+    idUsuario: string | number,
     mes: number
   ): Promise<ConsultaAsistenciaResult> {
     console.log(`📅 Procesando mes anterior con control de 45min: ${mes}`);
@@ -615,13 +615,13 @@ export class AsistenciaPersonalSyncService {
       this.repository.obtenerRegistroMensual(
         tipoPersonal,
         ModoRegistro.Entrada,
-        id_o_dni,
+        idUsuario,
         mes
       ),
       this.repository.obtenerRegistroMensual(
         tipoPersonal,
         ModoRegistro.Salida,
-        id_o_dni,
+        idUsuario,
         mes
       ),
     ]);
@@ -633,12 +633,12 @@ export class AsistenciaPersonalSyncService {
           registroEntrada,
           registroSalida,
           mes,
-          id_o_dni
+          idUsuario
         );
 
       if (validacionConsistencia.requiereCorreccion) {
         console.warn(
-          `⚠️ Datos inconsistentes detectados para ${id_o_dni} - mes ${mes}: ${validacionConsistencia.razon}`
+          `⚠️ Datos inconsistentes detectados para ${idUsuario} - mes ${mes}: ${validacionConsistencia.razon}`
         );
         console.log(
           "🗑️ Eliminando registros inconsistentes y consultando API..."
@@ -649,13 +649,13 @@ export class AsistenciaPersonalSyncService {
           this.repository.eliminarRegistroMensual(
             tipoPersonal,
             ModoRegistro.Entrada,
-            id_o_dni,
+            idUsuario,
             mes
           ),
           this.repository.eliminarRegistroMensual(
             tipoPersonal,
             ModoRegistro.Salida,
-            id_o_dni,
+            idUsuario,
             mes
           ),
         ]);
@@ -663,7 +663,7 @@ export class AsistenciaPersonalSyncService {
         // Forzar consulta a API
         return await this.consultarAPIYGuardar(
           rol,
-          id_o_dni,
+          idUsuario,
           mes,
           `Corrección por inconsistencia: ${validacionConsistencia.razon}`
         );
@@ -677,7 +677,7 @@ export class AsistenciaPersonalSyncService {
       console.log("📡 No existe en IndexedDB - Consultando API");
       return await this.consultarAPIYGuardar(
         rol,
-        id_o_dni,
+        idUsuario,
         mes,
         "Primera consulta para mes anterior"
       );
@@ -712,7 +712,7 @@ export class AsistenciaPersonalSyncService {
       console.log(`🔄 Control 45min pasó + mismo mes ${mes} - Consultar API`);
       return await this.consultarAPIYGuardar(
         rol,
-        id_o_dni,
+        idUsuario,
         mes,
         `Actualización mes anterior - ${controlRango.razon}`
       );
@@ -734,7 +734,7 @@ export class AsistenciaPersonalSyncService {
       );
       return await this.consultarAPIYGuardar(
         rol,
-        id_o_dni,
+        idUsuario,
         mes,
         `Datos incompletos - ${controlRango.razon}`
       );
@@ -747,7 +747,7 @@ export class AsistenciaPersonalSyncService {
   private async procesarConsultaMesActualCorregido(
     tipoPersonal: TipoPersonal,
     rol: RolesSistema,
-    id_o_dni: string | number,
+    idUsuario: string | number,
     mes: number
   ): Promise<ConsultaAsistenciaResult> {
     console.log(`📅 Procesando mes actual corregido: ${mes}`);
@@ -761,7 +761,7 @@ export class AsistenciaPersonalSyncService {
       return await this.procesarDiaEscolarCorregido(
         tipoPersonal,
         rol,
-        id_o_dni,
+        idUsuario,
         mes,
         diaActual
       );
@@ -770,7 +770,7 @@ export class AsistenciaPersonalSyncService {
       return await this.procesarFinDeSemanaCorregido(
         tipoPersonal,
         rol,
-        id_o_dni,
+        idUsuario,
         mes,
         diaActual
       );
@@ -783,7 +783,7 @@ export class AsistenciaPersonalSyncService {
   private async procesarFinDeSemanaCorregido(
     tipoPersonal: TipoPersonal,
     rol: RolesSistema,
-    id_o_dni: string | number,
+    idUsuario: string | number,
     mes: number,
     diaActual: number
   ): Promise<ConsultaAsistenciaResult> {
@@ -794,13 +794,13 @@ export class AsistenciaPersonalSyncService {
       this.repository.obtenerRegistroMensual(
         tipoPersonal,
         ModoRegistro.Entrada,
-        id_o_dni,
+        idUsuario,
         mes
       ),
       this.repository.obtenerRegistroMensual(
         tipoPersonal,
         ModoRegistro.Salida,
-        id_o_dni,
+        idUsuario,
         mes
       ),
     ]);
@@ -811,12 +811,12 @@ export class AsistenciaPersonalSyncService {
           registroEntrada,
           registroSalida,
           mes,
-          id_o_dni
+          idUsuario
         );
 
       if (validacionConsistencia.requiereCorreccion) {
         console.warn(
-          `⚠️ Datos inconsistentes detectados para ${id_o_dni} - mes ${mes}
+          `⚠️ Datos inconsistentes detectados para ${idUsuario} - mes ${mes}
           }: ${validacionConsistencia.razon}`
         );
 
@@ -824,20 +824,20 @@ export class AsistenciaPersonalSyncService {
           this.repository.eliminarRegistroMensual(
             tipoPersonal,
             ModoRegistro.Entrada,
-            id_o_dni,
+            idUsuario,
             mes
           ),
           this.repository.eliminarRegistroMensual(
             tipoPersonal,
             ModoRegistro.Salida,
-            id_o_dni,
+            idUsuario,
             mes
           ),
         ]);
 
         return await this.consultarAPIYGuardar(
           rol,
-          id_o_dni,
+          idUsuario,
           mes,
           `Corrección por inconsistencia: ${validacionConsistencia.razon}`
         );
@@ -849,7 +849,7 @@ export class AsistenciaPersonalSyncService {
       console.log("📡 Fin de semana SIN datos - Consultar API obligatorio");
       return await this.consultarAPIYGuardar(
         rol,
-        id_o_dni,
+        idUsuario,
         mes,
         "Fin de semana sin datos - consulta API obligatoria"
       );
@@ -868,7 +868,7 @@ export class AsistenciaPersonalSyncService {
         registroEntrada,
         registroSalida,
         rol,
-        id_o_dni,
+        idUsuario,
         true,
         diaActual,
         `Fin de semana - ${controlRango.razon}`
@@ -883,7 +883,7 @@ export class AsistenciaPersonalSyncService {
         ? await this.repository.verificarDatosEnUltimosDiasEscolares(
             tipoPersonal,
             ModoRegistro.Entrada,
-            id_o_dni,
+            idUsuario,
             mes,
             ultimosDiasEscolares
           )
@@ -893,7 +893,7 @@ export class AsistenciaPersonalSyncService {
         ? await this.repository.verificarDatosEnUltimosDiasEscolares(
             tipoPersonal,
             ModoRegistro.Salida,
-            id_o_dni,
+            idUsuario,
             mes,
             ultimosDiasEscolares
           )
@@ -911,7 +911,7 @@ export class AsistenciaPersonalSyncService {
           registroEntrada,
           registroSalida,
           rol,
-          id_o_dni,
+          idUsuario,
           true,
           diaActual,
           "Fin de semana - cobertura suficiente en últimos 5 días escolares"
@@ -932,7 +932,7 @@ export class AsistenciaPersonalSyncService {
         registroEntrada,
         registroSalida,
         rol,
-        id_o_dni,
+        idUsuario,
         true,
         diaActual,
         "Fin de semana - datos del viernes completos (actualizado después de 20:00)"
@@ -943,7 +943,7 @@ export class AsistenciaPersonalSyncService {
       );
       return await this.consultarAPIYGuardar(
         rol,
-        id_o_dni,
+        idUsuario,
         mes,
         "Fin de semana - datos incompletos o sin cobertura suficiente"
       );
@@ -956,7 +956,7 @@ export class AsistenciaPersonalSyncService {
   private async procesarDiaEscolarCorregido(
     tipoPersonal: TipoPersonal,
     rol: RolesSistema,
-    id_o_dni: string | number,
+    idUsuario: string | number,
     mes: number,
     diaActual: number
   ): Promise<ConsultaAsistenciaResult> {
@@ -969,7 +969,7 @@ export class AsistenciaPersonalSyncService {
       return await this.procesarMadrugadaConDatosHistoricos(
         tipoPersonal,
         rol,
-        id_o_dni,
+        idUsuario,
         mes,
         diaActual
       );
@@ -980,7 +980,7 @@ export class AsistenciaPersonalSyncService {
       console.log("🌃 Datos consolidados - Consultar API");
       return await this.consultarAPIYGuardar(
         rol,
-        id_o_dni,
+        idUsuario,
         mes,
         "Después de 22:00 - datos consolidados en PostgreSQL"
       );
@@ -991,7 +991,7 @@ export class AsistenciaPersonalSyncService {
     return await this.procesarHorarioEscolarConVerificacion(
       tipoPersonal,
       rol,
-      id_o_dni,
+      idUsuario,
       mes,
       diaActual,
       horaActual
@@ -1004,7 +1004,7 @@ export class AsistenciaPersonalSyncService {
   private async procesarHorarioEscolarConVerificacion(
     tipoPersonal: TipoPersonal,
     rol: RolesSistema,
-    id_o_dni: string | number,
+    idUsuario: string | number,
     mes: number,
     diaActual: number,
     horaActual: number
@@ -1013,7 +1013,7 @@ export class AsistenciaPersonalSyncService {
     return await this.verificarDatosHistoricosYProceder(
       tipoPersonal,
       rol,
-      id_o_dni,
+      idUsuario,
       mes,
       diaActual,
       {
@@ -1029,7 +1029,7 @@ export class AsistenciaPersonalSyncService {
   private async procesarMadrugadaConDatosHistoricos(
     tipoPersonal: TipoPersonal,
     rol: RolesSistema,
-    id_o_dni: string | number,
+    idUsuario: string | number,
     mes: number,
     diaActual: number
   ): Promise<ConsultaAsistenciaResult> {
@@ -1040,13 +1040,13 @@ export class AsistenciaPersonalSyncService {
       this.repository.obtenerRegistroMensual(
         tipoPersonal,
         ModoRegistro.Entrada,
-        id_o_dni,
+        idUsuario,
         mes
       ),
       this.repository.obtenerRegistroMensual(
         tipoPersonal,
         ModoRegistro.Salida,
-        id_o_dni,
+        idUsuario,
         mes
       ),
     ]);
@@ -1058,7 +1058,7 @@ export class AsistenciaPersonalSyncService {
       );
       return await this.consultarAPIYGuardar(
         rol,
-        id_o_dni,
+        idUsuario,
         mes,
         "Madrugada sin datos históricos - consulta API obligatoria"
       );
@@ -1075,7 +1075,7 @@ export class AsistenciaPersonalSyncService {
         registroEntrada,
         registroSalida,
         rol,
-        id_o_dni,
+        idUsuario,
         false, // No es mes actual para efectos de cache
         diaActual,
         "Madrugada con datos históricos existentes (sin verificación días escolares)"
@@ -1087,7 +1087,7 @@ export class AsistenciaPersonalSyncService {
       ? await this.repository.verificarDatosEnUltimosDiasEscolares(
           tipoPersonal,
           ModoRegistro.Entrada,
-          id_o_dni,
+          idUsuario,
           mes,
           ultimosDiasEscolares
         )
@@ -1097,7 +1097,7 @@ export class AsistenciaPersonalSyncService {
       ? await this.repository.verificarDatosEnUltimosDiasEscolares(
           tipoPersonal,
           ModoRegistro.Salida,
-          id_o_dni,
+          idUsuario,
           mes,
           ultimosDiasEscolares
         )
@@ -1113,7 +1113,7 @@ export class AsistenciaPersonalSyncService {
       );
       return await this.consultarAPIYGuardar(
         rol,
-        id_o_dni,
+        idUsuario,
         mes,
         "Madrugada - datos insuficientes en últimos 5 días escolares"
       );
@@ -1125,7 +1125,7 @@ export class AsistenciaPersonalSyncService {
       registroEntrada,
       registroSalida,
       rol,
-      id_o_dni,
+      idUsuario,
       false,
       diaActual,
       "Madrugada con datos históricos suficientes"
@@ -1138,7 +1138,7 @@ export class AsistenciaPersonalSyncService {
   private async procesarConsultaMesAnteriorInteligente(
     tipoPersonal: TipoPersonal,
     rol: RolesSistema,
-    id_o_dni: string | number,
+    idUsuario: string | number,
     mes: number
   ): Promise<ConsultaAsistenciaResult> {
     console.log(`📅 Procesando mes anterior inteligente: ${mes}`);
@@ -1148,13 +1148,13 @@ export class AsistenciaPersonalSyncService {
       this.repository.obtenerRegistroMensual(
         tipoPersonal,
         ModoRegistro.Entrada,
-        id_o_dni,
+        idUsuario,
         mes
       ),
       this.repository.obtenerRegistroMensual(
         tipoPersonal,
         ModoRegistro.Salida,
-        id_o_dni,
+        idUsuario,
         mes
       ),
     ]);
@@ -1166,7 +1166,7 @@ export class AsistenciaPersonalSyncService {
       );
       return await this.consultarAPIYGuardar(
         rol,
-        id_o_dni,
+        idUsuario,
         mes,
         "Primera consulta para mes anterior"
       );
@@ -1202,7 +1202,7 @@ export class AsistenciaPersonalSyncService {
       console.log(`🔄 Consulta necesaria - ${evaluacion.razon}`);
       return await this.consultarAPIYGuardar(
         rol,
-        id_o_dni,
+        idUsuario,
         mes,
         `Actualización: ${evaluacion.razon}`
       );
@@ -1229,7 +1229,7 @@ export class AsistenciaPersonalSyncService {
   private async procesarConsultaMesActualInteligente(
     tipoPersonal: TipoPersonal,
     rol: RolesSistema,
-    id_o_dni: string | number,
+    idUsuario: string | number,
     mes: number
   ): Promise<ConsultaAsistenciaResult> {
     console.log(`📅 Procesando mes actual inteligente: ${mes}`);
@@ -1239,13 +1239,13 @@ export class AsistenciaPersonalSyncService {
       this.repository.obtenerRegistroMensual(
         tipoPersonal,
         ModoRegistro.Entrada,
-        id_o_dni,
+        idUsuario,
         mes
       ),
       this.repository.obtenerRegistroMensual(
         tipoPersonal,
         ModoRegistro.Salida,
-        id_o_dni,
+        idUsuario,
         mes
       ),
     ]);
@@ -1255,7 +1255,7 @@ export class AsistenciaPersonalSyncService {
     // Si no hay registros → Aplicar lógica de horarios
     if (!registro) {
       console.log("📭 Sin registros existentes - Aplicar lógica de horarios");
-      return await this.aplicarLogicaHorarios(tipoPersonal, rol, id_o_dni, mes);
+      return await this.aplicarLogicaHorarios(tipoPersonal, rol, idUsuario, mes);
     }
 
     // ✅ CORREGIDO: Si hay registros → SIEMPRE aplicar lógica de horarios para mes actual
@@ -1263,7 +1263,7 @@ export class AsistenciaPersonalSyncService {
     console.log(
       `📊 Registros históricos encontrados - Aplicar lógica de horarios para obtener datos del día actual`
     );
-    return await this.aplicarLogicaHorarios(tipoPersonal, rol, id_o_dni, mes);
+    return await this.aplicarLogicaHorarios(tipoPersonal, rol, idUsuario, mes);
   }
 
   /**
@@ -1272,7 +1272,7 @@ export class AsistenciaPersonalSyncService {
   private async aplicarLogicaHorarios(
     tipoPersonal: TipoPersonal,
     rol: RolesSistema,
-    id_o_dni: string | number,
+    idUsuario: string | number,
     mes: number
   ): Promise<ConsultaAsistenciaResult> {
     const estrategia = this.dateHelper.determinarEstrategiaSegunHorario();
@@ -1287,7 +1287,7 @@ export class AsistenciaPersonalSyncService {
         return await this.obtenerDatosHistoricosSinConsulta(
           tipoPersonal,
           rol,
-          id_o_dni,
+          idUsuario,
           mes,
           diaActual,
           estrategia.razon
@@ -1296,7 +1296,7 @@ export class AsistenciaPersonalSyncService {
       case "API_CONSOLIDADO":
         return await this.consultarAPIYGuardar(
           rol,
-          id_o_dni,
+          idUsuario,
           mes,
           estrategia.razon
         );
@@ -1307,7 +1307,7 @@ export class AsistenciaPersonalSyncService {
         return await this.verificarDatosHistoricosYProceder(
           tipoPersonal,
           rol,
-          id_o_dni,
+          idUsuario,
           mes,
           diaActual,
           estrategia
@@ -1317,7 +1317,7 @@ export class AsistenciaPersonalSyncService {
         console.warn(`⚠️ Estrategia no reconocida: ${estrategia.estrategia}`);
         return await this.consultarAPIYGuardar(
           rol,
-          id_o_dni,
+          idUsuario,
           mes,
           "Estrategia fallback"
         );
@@ -1330,7 +1330,7 @@ export class AsistenciaPersonalSyncService {
   private async verificarDatosHistoricosYProceder(
     tipoPersonal: TipoPersonal,
     rol: RolesSistema,
-    id_o_dni: string | number,
+    idUsuario: string | number,
     mes: number,
     diaActual: number,
     estrategia: any
@@ -1344,13 +1344,13 @@ export class AsistenciaPersonalSyncService {
       this.repository.obtenerRegistroMensual(
         tipoPersonal,
         ModoRegistro.Entrada,
-        id_o_dni,
+        idUsuario,
         mes
       ),
       this.repository.obtenerRegistroMensual(
         tipoPersonal,
         ModoRegistro.Salida,
-        id_o_dni,
+        idUsuario,
         mes
       ),
     ]);
@@ -1362,7 +1362,7 @@ export class AsistenciaPersonalSyncService {
           registroEntrada,
           registroSalida,
           mes,
-          id_o_dni
+          idUsuario
         );
 
       if (validacionConsistencia.requiereCorreccion) {
@@ -1378,13 +1378,13 @@ export class AsistenciaPersonalSyncService {
           this.repository.eliminarRegistroMensual(
             tipoPersonal,
             ModoRegistro.Entrada,
-            id_o_dni,
+            idUsuario,
             mes
           ),
           this.repository.eliminarRegistroMensual(
             tipoPersonal,
             ModoRegistro.Salida,
-            id_o_dni,
+            idUsuario,
             mes
           ),
         ]);
@@ -1393,7 +1393,7 @@ export class AsistenciaPersonalSyncService {
         console.log("📡 Forzando consulta API por inconsistencia...");
         return await this.consultarAPIYGuardar(
           rol,
-          id_o_dni,
+          idUsuario,
           mes,
           `Corrección por inconsistencia: ${validacionConsistencia.razon}`
         );
@@ -1405,7 +1405,7 @@ export class AsistenciaPersonalSyncService {
     // PASO 2: Si NO hay registros mensuales → API + Redis
     if (!registroEntrada && !registroSalida) {
       console.log(`📭 Sin registros mensuales → API + Redis`);
-      return await this.consultarAPILuegoRedis(rol, id_o_dni, mes, estrategia);
+      return await this.consultarAPILuegoRedis(rol, idUsuario, mes, estrategia);
     }
 
     // PASO 3: Si hay registros → Verificar últimos 5 días escolares
@@ -1418,7 +1418,7 @@ export class AsistenciaPersonalSyncService {
       return await this.consultarSoloRedis(
         tipoPersonal,
         rol,
-        id_o_dni,
+        idUsuario,
         mes,
         diaActual,
         estrategia
@@ -1430,7 +1430,7 @@ export class AsistenciaPersonalSyncService {
       ? await this.repository.verificarDatosEnUltimosDiasEscolares(
           tipoPersonal,
           ModoRegistro.Entrada,
-          id_o_dni,
+          idUsuario,
           mes,
           ultimosDiasEscolares
         )
@@ -1440,7 +1440,7 @@ export class AsistenciaPersonalSyncService {
       ? await this.repository.verificarDatosEnUltimosDiasEscolares(
           tipoPersonal,
           ModoRegistro.Salida,
-          id_o_dni,
+          idUsuario,
           mes,
           ultimosDiasEscolares
         )
@@ -1453,7 +1453,7 @@ export class AsistenciaPersonalSyncService {
 
     if (!tieneDatosSuficientes) {
       console.log(`⚠️ Sin datos en últimos 5 días escolares → API + Redis`);
-      return await this.consultarAPILuegoRedis(rol, id_o_dni, mes, estrategia);
+      return await this.consultarAPILuegoRedis(rol, idUsuario, mes, estrategia);
     }
 
     // PASO 6: Datos suficientes → Solo Redis
@@ -1461,7 +1461,7 @@ export class AsistenciaPersonalSyncService {
     return await this.consultarSoloRedis(
       tipoPersonal,
       rol,
-      id_o_dni,
+      idUsuario,
       mes,
       diaActual,
       estrategia
@@ -1473,7 +1473,7 @@ export class AsistenciaPersonalSyncService {
    */
   private async consultarAPILuegoRedis(
     rol: RolesSistema,
-    id_o_dni: string | number,
+    idUsuario: string | number,
     mes: number,
     estrategia: any
   ): Promise<ConsultaAsistenciaResult> {
@@ -1481,7 +1481,7 @@ export class AsistenciaPersonalSyncService {
     console.log(`📡 PASO 1: Consultando API para datos históricos...`);
     const resultadoAPI = await this.consultarAPIYGuardar(
       rol,
-      id_o_dni,
+      idUsuario,
       mes,
       `${estrategia.razon} + Sin datos históricos suficientes`
     );
@@ -1499,7 +1499,7 @@ export class AsistenciaPersonalSyncService {
     return await this.consultarSoloRedis(
       tipoPersonal,
       rol,
-      id_o_dni,
+      idUsuario,
       mes,
       diaActual,
       {
@@ -1515,14 +1515,14 @@ export class AsistenciaPersonalSyncService {
   private async consultarSoloRedis(
     tipoPersonal: TipoPersonal,
     rol: RolesSistema,
-    id_o_dni: string | number,
+    idUsuario: string | number,
     mes: number,
     diaActual: number,
     estrategia: any
   ): Promise<ConsultaAsistenciaResult> {
     // ✅ CONTROL GLOBAL CENTRALIZADO
     const controlGlobal = this.cacheManager.yaSeConsultoRedisEnRango(
-      id_o_dni,
+      idUsuario,
       estrategia.estrategia
     );
 
@@ -1536,13 +1536,13 @@ export class AsistenciaPersonalSyncService {
         this.repository.obtenerRegistroMensual(
           tipoPersonal,
           ModoRegistro.Entrada,
-          id_o_dni,
+          idUsuario,
           mes
         ),
         this.repository.obtenerRegistroMensual(
           tipoPersonal,
           ModoRegistro.Salida,
-          id_o_dni,
+          idUsuario,
           mes
         ),
       ]);
@@ -1551,7 +1551,7 @@ export class AsistenciaPersonalSyncService {
         registroEntrada,
         registroSalida,
         rol,
-        id_o_dni,
+        idUsuario,
         true,
         diaActual,
         `${estrategia.razon} + ${controlGlobal.razon}`
@@ -1567,13 +1567,13 @@ export class AsistenciaPersonalSyncService {
       this.repository.obtenerRegistroMensual(
         tipoPersonal,
         ModoRegistro.Entrada,
-        id_o_dni,
+        idUsuario,
         mes
       ),
       this.repository.obtenerRegistroMensual(
         tipoPersonal,
         ModoRegistro.Salida,
-        id_o_dni,
+        idUsuario,
         mes
       ),
     ]);
@@ -1590,13 +1590,13 @@ export class AsistenciaPersonalSyncService {
         this.cacheManager.consultarCacheAsistenciaHoyDirecto(
           actor,
           ModoRegistro.Entrada,
-          id_o_dni,
+          idUsuario,
           fechaHoy
         ),
         this.cacheManager.consultarCacheAsistenciaHoyDirecto(
           actor,
           ModoRegistro.Salida,
-          id_o_dni,
+          idUsuario,
           fechaHoy
         ),
       ]);
@@ -1609,12 +1609,12 @@ export class AsistenciaPersonalSyncService {
         console.log(
           "✅ Ya tengo entrada local completa - marcando como consultado y saltando Redis"
         );
-        this.cacheManager.marcarConsultaRedisRealizada(id_o_dni);
+        this.cacheManager.marcarConsultaRedisRealizada(idUsuario);
         return await this.cacheManager.combinarDatosHistoricosYActuales(
           registroEntrada,
           registroSalida,
           rol,
-          id_o_dni,
+          idUsuario,
           true,
           diaActual,
           "Datos de entrada completos en cache local"
@@ -1629,12 +1629,12 @@ export class AsistenciaPersonalSyncService {
         console.log(
           "✅ Ya tengo entrada y salida local completas - marcando como consultado y saltando Redis"
         );
-        this.cacheManager.marcarConsultaRedisRealizada(id_o_dni);
+        this.cacheManager.marcarConsultaRedisRealizada(idUsuario);
         return await this.cacheManager.combinarDatosHistoricosYActuales(
           registroEntrada,
           registroSalida,
           rol,
-          id_o_dni,
+          idUsuario,
           true,
           diaActual,
           "Datos completos en cache local"
@@ -1659,12 +1659,12 @@ export class AsistenciaPersonalSyncService {
         const datosRedis =
           await this.apiClient.consultarRedisCompletoPorPersona(
             rol,
-            id_o_dni,
+            idUsuario,
             necesitaSalidas
           );
 
         // ✅ MARCAR CONSULTA REALIZADA INMEDIATAMENTE
-        this.cacheManager.marcarConsultaRedisRealizada(id_o_dni);
+        this.cacheManager.marcarConsultaRedisRealizada(idUsuario);
 
         if (datosRedis.encontradoEntrada || datosRedis.encontradoSalida) {
           const integracion =
@@ -1673,7 +1673,7 @@ export class AsistenciaPersonalSyncService {
               registroSalida,
               datosRedis,
               rol,
-              id_o_dni,
+              idUsuario,
               diaActual
             );
 
@@ -1693,7 +1693,7 @@ export class AsistenciaPersonalSyncService {
       } catch (error) {
         console.error(`❌ Error al consultar Redis API:`, error);
         // Marcar como consultado incluso si hay error para evitar reintentos inmediatos
-        this.cacheManager.marcarConsultaRedisRealizada(id_o_dni);
+        this.cacheManager.marcarConsultaRedisRealizada(idUsuario);
         mensajeConsulta = "Error al consultar Redis API";
       }
     }
@@ -1702,7 +1702,7 @@ export class AsistenciaPersonalSyncService {
       registroEntrada,
       registroSalida,
       rol,
-      id_o_dni,
+      idUsuario,
       true,
       diaActual,
       `${estrategia.razon} + ${mensajeConsulta}`
@@ -1715,7 +1715,7 @@ export class AsistenciaPersonalSyncService {
   private async procesarConsultaMesAnterior(
     tipoPersonal: TipoPersonal,
     rol: RolesSistema,
-    id_o_dni: string | number,
+    idUsuario: string | number,
     mes: number
   ): Promise<ConsultaAsistenciaResult> {
     console.log(`📅 Procesando mes anterior: ${mes}`);
@@ -1725,13 +1725,13 @@ export class AsistenciaPersonalSyncService {
       this.repository.obtenerRegistroMensual(
         tipoPersonal,
         ModoRegistro.Entrada,
-        id_o_dni,
+        idUsuario,
         mes
       ),
       this.repository.obtenerRegistroMensual(
         tipoPersonal,
         ModoRegistro.Salida,
-        id_o_dni,
+        idUsuario,
         mes
       ),
     ]);
@@ -1743,7 +1743,7 @@ export class AsistenciaPersonalSyncService {
       );
       return await this.consultarAPIYGuardar(
         rol,
-        id_o_dni,
+        idUsuario,
         mes,
         "Primera consulta para mes anterior"
       );
@@ -1780,7 +1780,7 @@ export class AsistenciaPersonalSyncService {
       console.log(`🔄 Actualizando datos - ${evaluacion.razon}`);
       return await this.consultarAPIYGuardar(
         rol,
-        id_o_dni,
+        idUsuario,
         mes,
         `Actualización: ${evaluacion.razon}`
       );
@@ -1803,7 +1803,7 @@ export class AsistenciaPersonalSyncService {
   private async procesarConsultaMesActual(
     tipoPersonal: TipoPersonal,
     rol: RolesSistema,
-    id_o_dni: string | number,
+    idUsuario: string | number,
     mes: number
   ): Promise<ConsultaAsistenciaResult> {
     console.log(`📅 Procesando mes actual: ${mes}`);
@@ -1820,7 +1820,7 @@ export class AsistenciaPersonalSyncService {
       return await this.procesarFinDeSemana(
         tipoPersonal,
         rol,
-        id_o_dni,
+        idUsuario,
         mes,
         diaActual
       );
@@ -1830,7 +1830,7 @@ export class AsistenciaPersonalSyncService {
     return await this.procesarDiaEscolar(
       tipoPersonal,
       rol,
-      id_o_dni,
+      idUsuario,
       mes,
       diaActual
     );
@@ -1842,7 +1842,7 @@ export class AsistenciaPersonalSyncService {
   private async procesarFinDeSemana(
     tipoPersonal: TipoPersonal,
     rol: RolesSistema,
-    id_o_dni: string | number,
+    idUsuario: string | number,
     mes: number,
     diaActual: number
   ): Promise<ConsultaAsistenciaResult> {
@@ -1853,13 +1853,13 @@ export class AsistenciaPersonalSyncService {
       this.repository.obtenerRegistroMensual(
         tipoPersonal,
         ModoRegistro.Entrada,
-        id_o_dni,
+        idUsuario,
         mes
       ),
       this.repository.obtenerRegistroMensual(
         tipoPersonal,
         ModoRegistro.Salida,
-        id_o_dni,
+        idUsuario,
         mes
       ),
     ]);
@@ -1870,7 +1870,7 @@ export class AsistenciaPersonalSyncService {
     if (!registro) {
       return await this.consultarAPIYGuardar(
         rol,
-        id_o_dni,
+        idUsuario,
         mes,
         "Primera consulta en fin de semana"
       );
@@ -1887,7 +1887,7 @@ export class AsistenciaPersonalSyncService {
         registroEntrada,
         registroSalida,
         rol,
-        id_o_dni,
+        idUsuario,
         true,
         diaActual,
         "Datos completos del viernes (actualizado después de 20:00)"
@@ -1896,7 +1896,7 @@ export class AsistenciaPersonalSyncService {
       console.log("🔄 Datos del viernes incompletos - Consultar API");
       return await this.consultarAPIYGuardar(
         rol,
-        id_o_dni,
+        idUsuario,
         mes,
         "Actualización fin de semana - datos del viernes incompletos"
       );
@@ -1909,7 +1909,7 @@ export class AsistenciaPersonalSyncService {
   private async procesarDiaEscolar(
     tipoPersonal: TipoPersonal,
     rol: RolesSistema,
-    id_o_dni: string | number,
+    idUsuario: string | number,
     mes: number,
     diaActual: number
   ): Promise<ConsultaAsistenciaResult> {
@@ -1925,7 +1925,7 @@ export class AsistenciaPersonalSyncService {
         return await this.obtenerDatosHistoricosSinConsulta(
           tipoPersonal,
           rol,
-          id_o_dni,
+          idUsuario,
           mes,
           diaActual,
           estrategia.razon
@@ -1934,7 +1934,7 @@ export class AsistenciaPersonalSyncService {
       case "API_CONSOLIDADO":
         return await this.consultarAPIYGuardar(
           rol,
-          id_o_dni,
+          idUsuario,
           mes,
           estrategia.razon
         );
@@ -1944,7 +1944,7 @@ export class AsistenciaPersonalSyncService {
         return await this.consultarRedisYCombinar(
           tipoPersonal,
           rol,
-          id_o_dni,
+          idUsuario,
           mes,
           diaActual,
           estrategia
@@ -1961,7 +1961,7 @@ export class AsistenciaPersonalSyncService {
   private async obtenerDatosHistoricosSinConsulta(
     tipoPersonal: TipoPersonal,
     rol: RolesSistema,
-    id_o_dni: string | number,
+    idUsuario: string | number,
     mes: number,
     diaActual: number,
     razon: string
@@ -1970,13 +1970,13 @@ export class AsistenciaPersonalSyncService {
       this.repository.obtenerRegistroMensual(
         tipoPersonal,
         ModoRegistro.Entrada,
-        id_o_dni,
+        idUsuario,
         mes
       ),
       this.repository.obtenerRegistroMensual(
         tipoPersonal,
         ModoRegistro.Salida,
-        id_o_dni,
+        idUsuario,
         mes
       ),
     ]);
@@ -1985,7 +1985,7 @@ export class AsistenciaPersonalSyncService {
       registroEntrada,
       registroSalida,
       rol,
-      id_o_dni,
+      idUsuario,
       true,
       diaActual,
       `Datos históricos sin consulta: ${razon}`
@@ -1998,7 +1998,7 @@ export class AsistenciaPersonalSyncService {
   private async consultarRedisYCombinar(
     tipoPersonal: TipoPersonal,
     rol: RolesSistema,
-    id_o_dni: string | number,
+    idUsuario: string | number,
     mes: number,
     diaActual: number,
     estrategia: any
@@ -2009,7 +2009,7 @@ export class AsistenciaPersonalSyncService {
 
     // ✅ AGREGAR: Log de información del contexto
     console.log(
-      `%c📋 Contexto consulta Redis: mes=${mes}, día=${diaActual}, usuario=${id_o_dni}`,
+      `%c📋 Contexto consulta Redis: mes=${mes}, día=${diaActual}, usuario=${idUsuario}`,
       "color:cyan;"
     );
 
@@ -2018,13 +2018,13 @@ export class AsistenciaPersonalSyncService {
       this.repository.obtenerRegistroMensual(
         tipoPersonal,
         ModoRegistro.Entrada,
-        id_o_dni,
+        idUsuario,
         mes
       ),
       this.repository.obtenerRegistroMensual(
         tipoPersonal,
         ModoRegistro.Salida,
-        id_o_dni,
+        idUsuario,
         mes
       ),
     ]);
@@ -2041,13 +2041,13 @@ export class AsistenciaPersonalSyncService {
         this.cacheManager.consultarCacheAsistenciaHoyDirecto(
           actor,
           ModoRegistro.Entrada,
-          id_o_dni,
+          idUsuario,
           fechaHoy
         ),
         this.cacheManager.consultarCacheAsistenciaHoyDirecto(
           actor,
           ModoRegistro.Salida,
-          id_o_dni,
+          idUsuario,
           fechaHoy
         ),
       ]);
@@ -2062,7 +2062,7 @@ export class AsistenciaPersonalSyncService {
           registroEntrada,
           registroSalida,
           rol,
-          id_o_dni,
+          idUsuario,
           true,
           diaActual,
           "Datos de entrada completos en cache local"
@@ -2081,7 +2081,7 @@ export class AsistenciaPersonalSyncService {
           registroEntrada,
           registroSalida,
           rol,
-          id_o_dni,
+          idUsuario,
           true,
           diaActual,
           "Datos completos en cache local"
@@ -2131,7 +2131,7 @@ export class AsistenciaPersonalSyncService {
           const datosRedis =
             await this.apiClient.consultarRedisCompletoPorPersona(
               rol,
-              id_o_dni,
+              idUsuario,
               necesitaSalidas
             );
 
@@ -2143,7 +2143,7 @@ export class AsistenciaPersonalSyncService {
                 registroSalida,
                 datosRedis,
                 rol,
-                id_o_dni,
+                idUsuario,
                 diaActual
               );
 
@@ -2180,7 +2180,7 @@ export class AsistenciaPersonalSyncService {
       registroEntrada,
       registroSalida,
       rol,
-      id_o_dni,
+      idUsuario,
       true,
       diaActual,
       `${estrategia.razon} + ${mensajeConsulta}`
@@ -2191,7 +2191,7 @@ export class AsistenciaPersonalSyncService {
       console.log(`🔄 Sin datos locales ni Redis - fallback a API`);
       return await this.consultarAPIYGuardar(
         rol,
-        id_o_dni,
+        idUsuario,
         mes,
         "Fallback sin datos locales"
       );
@@ -2205,14 +2205,14 @@ export class AsistenciaPersonalSyncService {
    */
   private async consultarAPIYGuardar(
     rol: RolesSistema,
-    id_o_dni: string | number,
+    idUsuario: string | number,
     mes: number,
     razon: string
   ): Promise<ConsultaAsistenciaResult> {
     const asistenciaAPI =
       await this.apiClient.consultarAsistenciasConReintentos(
         rol,
-        id_o_dni,
+        idUsuario,
         mes
       );
 
@@ -2224,14 +2224,14 @@ export class AsistenciaPersonalSyncService {
         this.repository.obtenerRegistroMensual(
           tipoPersonal,
           ModoRegistro.Entrada,
-          id_o_dni,
+          idUsuario,
           mes,
           asistenciaAPI.Id_Registro_Mensual_Entrada
         ),
         this.repository.obtenerRegistroMensual(
           tipoPersonal,
           ModoRegistro.Salida,
-          id_o_dni,
+          idUsuario,
           mes,
           asistenciaAPI.Id_Registro_Mensual_Salida
         ),
@@ -2260,7 +2260,7 @@ export class AsistenciaPersonalSyncService {
             const resultadoConRedis = await this.consultarSoloRedis(
               tipoPersonal,
               rol,
-              id_o_dni,
+              idUsuario,
               mes,
               diaActual,
               {
@@ -2299,7 +2299,7 @@ export class AsistenciaPersonalSyncService {
         nuevaEntrada,
         nuevaSalida,
         rol,
-        id_o_dni,
+        idUsuario,
         esConsultaMesActual,
         diaActual,
         `Datos obtenidos de API: ${razon}`
@@ -2307,7 +2307,7 @@ export class AsistenciaPersonalSyncService {
     } else {
       // API devuelve 404 - Guardar registro vacío
       console.log("📭 API devuelve 404 - Guardando registro vacío");
-      await this.guardarRegistroVacio(rol, id_o_dni, mes);
+      await this.guardarRegistroVacio(rol, idUsuario, mes);
 
       return {
         encontrado: false,
@@ -2322,7 +2322,7 @@ export class AsistenciaPersonalSyncService {
    */
   private async guardarRegistroVacio(
     rol: RolesSistema,
-    id_o_dni: string | number,
+    idUsuario: string | number,
     mes: number
   ): Promise<void> {
     try {
@@ -2332,7 +2332,7 @@ export class AsistenciaPersonalSyncService {
       const registroVacio: AsistenciaMensualPersonalLocal = {
         Id_Registro_Mensual: 0, // ID temporal para 404
         mes: mes as Meses,
-        ID_o_DNI_Personal: String(id_o_dni),
+        idUsuario_Personal: String(idUsuario),
         registros: {}, // Objeto vacío
         ultima_fecha_actualizacion: timestampActual,
       };
@@ -2352,7 +2352,7 @@ export class AsistenciaPersonalSyncService {
       ]);
 
       console.log(
-        `📭 Registro vacío guardado para ${id_o_dni} - mes ${mes} con timestamp ${timestampActual}`
+        `📭 Registro vacío guardado para ${idUsuario} - mes ${mes} con timestamp ${timestampActual}`
       );
     } catch (error) {
       console.error("Error al guardar registro vacío:", error);
@@ -2583,7 +2583,7 @@ export class AsistenciaPersonalSyncService {
             await this.repository.verificarSiExisteRegistroDiario(
               tipoPersonal,
               datosRedis.ModoRegistro,
-              resultado.ID_o_DNI,
+              resultado.idUsuario,
               mesActual,
               diaActual
             );
@@ -2598,13 +2598,13 @@ export class AsistenciaPersonalSyncService {
           // El repository.guardarRegistroMensual ya maneja el timestamp automáticamente
 
           console.log(
-            `🔄 Sincronizando registro: ${resultado.ID_o_DNI} - ${datosRedis.ModoRegistro} con timestamp ${timestampSincronizacion}`
+            `🔄 Sincronizando registro: ${resultado.idUsuario} - ${datosRedis.ModoRegistro} con timestamp ${timestampSincronizacion}`
           );
 
           stats.registrosNuevos++;
         } catch (error) {
           console.error(
-            `Error al sincronizar registro para DNI ${resultado.ID_o_DNI}:`,
+            `Error al sincronizar registro para DNI ${resultado.idUsuario}:`,
             error
           );
           stats.errores++;
@@ -2799,7 +2799,7 @@ export class AsistenciaPersonalSyncService {
           // Similar a la implementada arriba
           registrosSincronizados++;
         } catch (error) {
-          console.error(`Error sincronizando ${resultado.ID_o_DNI}:`, error);
+          console.error(`Error sincronizando ${resultado.idUsuario}:`, error);
         }
       }
 

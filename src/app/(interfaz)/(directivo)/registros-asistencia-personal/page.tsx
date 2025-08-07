@@ -30,6 +30,8 @@ import MensajesEstadoAsistencia from "@/components/asistencia-personal/registros
 import TablaRegistrosAsistencia from "@/components/asistencia-personal/registros-asistencia-personal/TablaRegistrosAsistencias";
 import LeyendaEstadosAsistencia from "@/components/asistencia-personal/registros-asistencia-personal/LeyendaEstadosAsistencia";
 import { IEventoLocal } from "@/lib/utils/local/db/models/eventos/EventosIDBTypes";
+import { TiposIdentificadoresTextos } from "@/interfaces/shared/TiposIdentificadores";
+import { extraerTipoDeIdentificador } from "@/lib/helpers/extractors/extraerTipoDeIdentificador";
 
 // 🔧 CONSTANTE DE CONFIGURACIÓN PARA DESARROLLO
 const CONSIDERAR_DIAS_NO_ESCOLARES = false; // false = solo días laborales, true = incluir sábados y domingos
@@ -143,7 +145,7 @@ const RegistrosAsistenciaDePersonal = () => {
     if (data || registros.length > 0) {
       limpiarResultados();
     }
-  }, [usuarioSeleccionado?.ID_O_DNI_Usuario]);
+  }, [usuarioSeleccionado?.ID_Usuario]);
 
   // Función para obtener meses disponibles (hasta mayo o mes actual)
   const getMesesDisponibles = () => {
@@ -281,7 +283,7 @@ const RegistrosAsistenciaDePersonal = () => {
   // Función para obtener asistencias combinadas de entrada y salida
   const obtenerAsistenciasCombinadas = async (
     rol: RolesSistema,
-    id_o_dni: string | number,
+    idUsuario: string | number,
     mes: number
   ): Promise<Record<
     string,
@@ -290,7 +292,7 @@ const RegistrosAsistenciaDePersonal = () => {
     try {
       const resultado =
         await asistenciaPersonalIDB.obtenerAsistenciaMensualConAPI({
-          id_o_dni,
+          idUsuario,
           mes,
           rol,
         });
@@ -357,14 +359,14 @@ const RegistrosAsistenciaDePersonal = () => {
   // 🆕 FUNCIÓN MODIFICADA: Procesar datos con eventos prioritarios
   const procesarDatos = async (
     rol: RolesSistema,
-    id_o_dni: string | number,
+    idUsuario: string | number,
     mes: number,
     eventosDelMes: IEventoLocal[]
   ) => {
     try {
       const registrosCombinados = await obtenerAsistenciasCombinadas(
         rol,
-        id_o_dni,
+        idUsuario,
         mes
       );
       const año = new Date().getFullYear();
@@ -374,7 +376,7 @@ const RegistrosAsistenciaDePersonal = () => {
       );
 
       console.log(
-        `📊 Procesando ${fechasFiltradas.length} fechas para ${id_o_dni} - mes ${mes}`
+        `📊 Procesando ${fechasFiltradas.length} fechas para ${idUsuario} - mes ${mes}`
       );
       console.log(
         `🎯 Eventos recibidos para procesamiento: ${eventosDelMes.length}`
@@ -560,7 +562,7 @@ const RegistrosAsistenciaDePersonal = () => {
     if (
       !selectedRol ||
       !selectedMes ||
-      !usuarioSeleccionado?.ID_O_DNI_Usuario
+      !usuarioSeleccionado?.ID_Usuario
     ) {
       setError({
         success: false,
@@ -587,7 +589,7 @@ const RegistrosAsistenciaDePersonal = () => {
       const resultado =
         await asistenciaPersonalIDB.obtenerAsistenciaMensualConAPI({
           rol: selectedRol as RolesSistema,
-          id_o_dni: usuarioSeleccionado.ID_O_DNI_Usuario,
+          idUsuario: usuarioSeleccionado.ID_Usuario,
           mes: parseInt(selectedMes),
         });
 
@@ -611,7 +613,7 @@ const RegistrosAsistenciaDePersonal = () => {
         // ✅ Procesar datos pasando directamente los eventos obtenidos
         await procesarDatos(
           selectedRol,
-          usuarioSeleccionado.ID_O_DNI_Usuario,
+          usuarioSeleccionado.ID_Usuario,
           parseInt(selectedMes),
           eventosDelMes
         );
@@ -757,7 +759,7 @@ const RegistrosAsistenciaDePersonal = () => {
       // Información del usuario en formato tabla
       let filaActual = 4;
 
-      // Fila 1: NOMBRE COMPLETO y DNI
+      // Fila 1: NOMBRE COMPLETO e IDENTIFICADOR
       // Combinar celdas primero
       worksheet.mergeCells(`A${filaActual}:C${filaActual}`);
       worksheet.mergeCells(`D${filaActual}:F${filaActual}`);
@@ -795,8 +797,8 @@ const RegistrosAsistenciaDePersonal = () => {
         },
       });
 
-      const dniLabelCell = worksheet.getCell(`G${filaActual}`);
-      dniLabelCell.value = "DNI:";
+      const identificadorLabelCell = worksheet.getCell(`G${filaActual}`);
+      identificadorLabelCell.value =`${TiposIdentificadoresTextos[extraerTipoDeIdentificador(usuarioSeleccionado.Identificador_Nacional_Directivo ?? usuarioSeleccionado.ID_Usuario)]}:`;
       aplicarBordesACeldasCombinadas(`G${filaActual}:H${filaActual}`, {
         font: { bold: true, size: 10 },
         fill: {
@@ -813,11 +815,11 @@ const RegistrosAsistenciaDePersonal = () => {
         },
       });
 
-      const dniValueCell = worksheet.getCell(`I${filaActual}`);
-      dniValueCell.value =
-        usuarioSeleccionado?.DNI_Directivo ??
-        usuarioSeleccionado?.ID_O_DNI_Usuario;
-      dniValueCell.style = {
+      const identificadorValueCell = worksheet.getCell(`I${filaActual}`);
+      identificadorValueCell.value =
+        usuarioSeleccionado?.Identificador_Nacional_Directivo ??
+        usuarioSeleccionado?.ID_Usuario;
+      identificadorValueCell.style = {
         font: { size: 10 },
         alignment: { horizontal: "left", vertical: "middle", indent: 1 },
         border: {
@@ -1501,7 +1503,7 @@ const RegistrosAsistenciaDePersonal = () => {
 
   // ✅ Estados de validación
   const rolEstaSeleccionado = !!selectedRol;
-  const usuarioEstaSeleccionado = !!usuarioSeleccionado?.ID_O_DNI_Usuario;
+  const usuarioEstaSeleccionado = !!usuarioSeleccionado?.ID_Usuario;
   const mesEstaSeleccionado = !!selectedMes;
   const todosLosCamposCompletos =
     rolEstaSeleccionado && usuarioEstaSeleccionado && mesEstaSeleccionado;

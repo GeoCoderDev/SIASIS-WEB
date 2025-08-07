@@ -43,7 +43,7 @@ export type AsistenciaHoy = AsistenciaPersonalHoy | AsistenciaEstudianteHoy;
 
 // ✅ INTERFAZ: Para consultas específicas
 export interface ConsultaAsistenciaHoy {
-  id_o_dni: string | number;
+  idUsuario: string | number;
   actor: ActoresSistema;
   modoRegistro: ModoRegistro;
   tipoAsistencia: TipoAsistencia;
@@ -88,7 +88,7 @@ export class AsistenciasTomadasHoyIDB {
       consulta.fecha ||
       this.dateHelper.obtenerFechaStringActual() ||
       this.obtenerFechaHoyFallback();
-    const base = `${fecha}:${consulta.modoRegistro}:${consulta.actor}:${consulta.id_o_dni}`;
+    const base = `${fecha}:${consulta.modoRegistro}:${consulta.actor}:${consulta.idUsuario}`;
 
     // ✅ FORMATO ESTUDIANTE: Siempre incluir nivel, grado y sección
     if (consulta.actor === ActoresSistema.Estudiante) {

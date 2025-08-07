@@ -189,7 +189,7 @@ export const ListaPersonal = ({
 
   const marcarAsistenciaEnElRestoDeSesionesPorSS01 = useCallback(
     async (
-      id_o_dni: string | number,
+      idUsuario: string | number,
       nombres: string,
       apellidos: string,
       genero: Genero
@@ -203,7 +203,7 @@ export const ListaPersonal = ({
 
       const asistenciaRecienRegistrada =
         await asistenciaDePersonalIDB.consultarAsistenciaDeHoyDePersonal(
-          id_o_dni,
+          idUsuario,
           modoRegistro,
           rol
         );
@@ -213,7 +213,7 @@ export const ListaPersonal = ({
         new TomaAsistenciaPersonalSIU01Events.MARQUE_LA_ASISTENCIA_DE_ESTE_PERSONAL_EMITTER(
           {
             Mi_Socket_Id: globalSocket?.id,
-            id_o_dni,
+            idUsuario,
             genero,
             nombres,
             apellidos,
@@ -242,7 +242,7 @@ export const ListaPersonal = ({
 
   const eliminarAsistenciaEnElRestoDeSesionesPorSS01 = useCallback(
     async (
-      id_o_dni: string | number,
+      idUsuario: string | number,
       nombres: string,
       apellidos: string,
       genero: Genero
@@ -259,7 +259,7 @@ export const ListaPersonal = ({
         new TomaAsistenciaPersonalSIU01Events.ELIMINE_LA_ASISTENCIA_DE_ESTE_PERSONAL_EMITTER(
           {
             Mi_Socket_Id: globalSocket.id,
-            id_o_dni,
+            idUsuario,
             genero,
             nombres,
             apellidos,
@@ -365,8 +365,8 @@ export const ListaPersonal = ({
 
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           resultados.forEach((resultado: any) => {
-            if (resultado && resultado.ID_o_DNI) {
-              mapaAsistencias.set(resultado.ID_o_DNI, resultado);
+            if (resultado && resultado.idUsuario) {
+              mapaAsistencias.set(resultado.idUsuario, resultado);
             }
           });
 
@@ -406,14 +406,14 @@ export const ListaPersonal = ({
   ) => {
     if (procesando !== null) return;
 
-    setProcesando(personal.ID_o_DNI);
+    setProcesando(personal.idUsuario);
 
     try {
       // Obtener la hora esperada
       const horaEsperadaISO =
         handlerDatosAsistenciaHoyDirectivo.obtenerHorarioPersonalISO(
           rol!,
-          personal.ID_o_DNI,
+          personal.idUsuario,
           modoRegistro
         );
 
@@ -422,7 +422,7 @@ export const ListaPersonal = ({
         {
           datos: {
             ModoRegistro: modoRegistro,
-            DNI: personal.ID_o_DNI,
+            DNI: personal.idUsuario,
             Rol: rol!,
             Dia: fechaHoraActual.utilidades!.diaMes,
           },
@@ -431,7 +431,7 @@ export const ListaPersonal = ({
       );
 
       marcarAsistenciaEnElRestoDeSesionesPorSS01(
-        personal.ID_o_DNI,
+        personal.idUsuario,
         personal.Nombres,
         personal.Apellidos,
         personal.Genero
@@ -440,7 +440,7 @@ export const ListaPersonal = ({
       actualizarInterfazPorNuevaMarcacion(
         personal.Nombres,
         personal.Apellidos,
-        personal.ID_o_DNI
+        personal.idUsuario
       );
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -458,7 +458,7 @@ export const ListaPersonal = ({
   const actualizarInterfazPorNuevaMarcacion = (
     Nombres: string,
     Apellidos: string,
-    ID_o_DNI: string
+    idUsuario: string
   ) => {
     // Feedback por voz
     const speaker = Speaker.getInstance();
@@ -475,7 +475,7 @@ export const ListaPersonal = ({
       : Date.now();
       
     const nuevoRegistro: AsistenciaDiariaResultado = {
-      ID_o_DNI,
+      idUsuario,
       AsistenciaMarcada: true,
       Detalles: {
         Timestamp: timestampActual,
@@ -485,7 +485,7 @@ export const ListaPersonal = ({
 
     setAsistenciasRegistradas((prev) => {
       const nuevo = new Map(prev);
-      nuevo.set(ID_o_DNI, nuevoRegistro);
+      nuevo.set(idUsuario, nuevoRegistro);
       return nuevo;
     });
   };
@@ -519,7 +519,7 @@ export const ListaPersonal = ({
     seAcabaDeMarcarLaAsistenciaDeEstePersonalHandlerRef.current =
       new TomaAsistenciaPersonalSIU01Events.SE_ACABA_DE_MARCAR_LA_ASISTENCIA_DE_ESTE_PERSONAL_HANDLER(
         async ({
-          id_o_dni,
+          idUsuario,
           nombres,
           apellidos,
           modoRegistro,
@@ -530,7 +530,7 @@ export const ListaPersonal = ({
           if (globalSocket.id == Mi_Socket_Id) return;
 
           await asistenciaDePersonalIDB.marcarAsistenciaEnLocal(
-            id_o_dni,
+            idUsuario,
             rol,
             modoRegistro,
             RegistroEntradaSalida
@@ -539,7 +539,7 @@ export const ListaPersonal = ({
           actualizarInterfazPorNuevaMarcacion(
             nombres,
             apellidos,
-            String(id_o_dni)
+            String(idUsuario)
           );
         }
       );
@@ -551,7 +551,7 @@ export const ListaPersonal = ({
       new TomaAsistenciaPersonalSIU01Events.SE_ACABA_DE_ELIMINAR_LA_ASISTENCIA_DE_ESTE_PERSONAL_HANDLER(
         async ({
           Mi_Socket_Id,
-          id_o_dni,
+          idUsuario,
           nombres,
           apellidos,
           modoRegistro,
@@ -561,13 +561,13 @@ export const ListaPersonal = ({
           if (globalSocket.id == Mi_Socket_Id) return;
 
           await asistenciaDePersonalIDB.eliminarAsistenciaEnLocal(
-            id_o_dni,
+            idUsuario,
             rol,
             modoRegistro
           );
 
           actualizarInterfazPorEliminacionDeAsistencia({
-            ID_o_DNI: String(id_o_dni),
+            idUsuario: String(idUsuario),
             Nombres: nombres,
             Apellidos: apellidos,
             Genero: genero,
@@ -596,7 +596,7 @@ export const ListaPersonal = ({
     // ✅ Actualizar el mapa de asistencias registradas (eliminar la entrada)
     setAsistenciasRegistradas((prev) => {
       const nuevo = new Map(prev);
-      nuevo.delete(personal.ID_o_DNI);
+      nuevo.delete(personal.idUsuario);
       return nuevo;
     });
 
@@ -620,15 +620,15 @@ export const ListaPersonal = ({
     if (eliminandoAsistencia !== null) return;
 
     try {
-      setEliminandoAsistencia(personal.ID_o_DNI);
+      setEliminandoAsistencia(personal.idUsuario);
 
       console.log(
-        `🗑️ Iniciando eliminación de asistencia para: ${personal.ID_o_DNI}`
+        `🗑️ Iniciando eliminación de asistencia para: ${personal.idUsuario}`
       );
 
       // Eliminar usando el modelo de IndexedDB
       const resultado = await asistenciaDePersonalIDB.eliminarAsistencia({
-        id_o_dni: personal.ID_o_DNI,
+        idUsuario: personal.idUsuario,
         rol: rol,
         modoRegistro: modoRegistro,
       });
@@ -637,7 +637,7 @@ export const ListaPersonal = ({
         actualizarInterfazPorEliminacionDeAsistencia(personal);
 
         eliminarAsistenciaEnElRestoDeSesionesPorSS01(
-          personal.ID_o_DNI,
+          personal.idUsuario,
           personal.Nombres,
           personal.Apellidos,
           personal.Genero
@@ -788,7 +788,7 @@ export const ListaPersonal = ({
             {personal.map((persona, index) => {
               // ✅ NUEVO: Obtener la asistencia registrada para esta persona
               const asistenciaPersona = asistenciasRegistradas.get(
-                persona.ID_o_DNI
+                persona.idUsuario
               );
 
               return (
@@ -799,8 +799,8 @@ export const ListaPersonal = ({
                   handleEliminarAsistencia={handleEliminarAsistencia} // ← NUEVO: Pasar función de eliminación
                   asistenciaRegistrada={asistenciaPersona} // ← NUEVO: Pasar los datos de asistencia
                   timestampActual={timestampActual} // ← NUEVO: Pasar timestamp de Redux
-                  loading={procesando === persona.ID_o_DNI}
-                  eliminando={eliminandoAsistencia === persona.ID_o_DNI} // ← NUEVO: Estado de eliminación
+                  loading={procesando === persona.idUsuario}
+                  eliminando={eliminandoAsistencia === persona.idUsuario} // ← NUEVO: Estado de eliminación
                   globalLoading={cargandoAsistencias || isLoading}
                 />
               );

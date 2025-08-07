@@ -26,7 +26,7 @@ import { GetPersonalAdministrativoSuccessResponse } from "@/interfaces/shared/ap
 export type IPersonalAdministrativoLocal = PersonalAdministrativoSinContraseña;
 
 export interface IPersonalAdministrativoFilter {
-  DNI_Personal_Administrativo?: string;
+  Id_Personal_Administrativo?: string;
   Nombres?: string;
   Apellidos?: string;
   Estado?: boolean;
@@ -251,7 +251,7 @@ export class PersonalAdministrativoIDB {
             .result as IDBCursorWithValue;
           if (cursor) {
             // Añadir el DNI del personal administrativo actual
-            dnis.push(cursor.value.DNI_Personal_Administrativo);
+            dnis.push(cursor.value.Id_Personal_Administrativo);
             cursor.continue();
           } else {
             // No hay más registros, resolvemos con el array de DNIs
@@ -327,7 +327,7 @@ export class PersonalAdministrativoIDB {
       // 2. Crear conjunto de DNIs del servidor para búsqueda rápida
       const dnisServidor = new Set(
         personalAdministrativoServidor.map(
-          (personal) => personal.DNI_Personal_Administrativo
+          (personal) => personal.Id_Personal_Administrativo
         )
       );
 
@@ -363,7 +363,7 @@ export class PersonalAdministrativoIDB {
           try {
             // Verificar si ya existe el personal administrativo
             const existePersonal = await this.getByDNI(
-              personalServidor.DNI_Personal_Administrativo
+              personalServidor.Id_Personal_Administrativo
             );
 
             // Obtener un store fresco para cada operación
@@ -388,7 +388,7 @@ export class PersonalAdministrativoIDB {
               request.onerror = () => {
                 result.errors++;
                 console.error(
-                  `Error al guardar personal administrativo ${personalServidor.DNI_Personal_Administrativo}:`,
+                  `Error al guardar personal administrativo ${personalServidor.Id_Personal_Administrativo}:`,
                   request.error
                 );
                 reject(request.error);
@@ -397,7 +397,7 @@ export class PersonalAdministrativoIDB {
           } catch (error) {
             result.errors++;
             console.error(
-              `Error al procesar personal administrativo ${personalServidor.DNI_Personal_Administrativo}:`,
+              `Error al procesar personal administrativo ${personalServidor.Id_Personal_Administrativo}:`,
               error
             );
           }

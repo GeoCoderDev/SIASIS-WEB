@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
+
 import CreacionVacacionInterEscolar from "@/components/modals/programacion/gestion-fechas-escolares/CreacionVacacionInterEscolar";
 import ModificarVacacionesInterescolares from "@/components/modals/programacion/gestion-fechas-escolares/ModificarVacacionesInterescolares";
 import EliminarVacacionesInterescolares from "@/components/modals/programacion/gestion-fechas-escolares/EliminarVacacionesInterescolares";
@@ -12,6 +12,7 @@ import BasureroIcon from "@/components/icons/BasureroIcon";
 import LapizIcon from "@/components/icons/LapizIcon";
 import AgregarIcon from "@/components/icons/AgregarIcon";
 import VolverIcon from "@/components/icons/VolverIcon";
+import { Link } from "next-view-transitions";
 
 const GestionFechasEscolares = () => {
   const [
@@ -94,7 +95,7 @@ const GestionFechasEscolares = () => {
         {/* Título con botón volver */}
         <div className="flex-shrink-0 px-6 sxs-only:px-4 xs-only:px-4 sm-only:px-5 md-only:px-5 lg-only:px-4 xl-only:px-5 pt-8 sxs-only:pt-6 xs-only:pt-6 sm-only:pt-7 md-only:pt-7 lg-only:pt-6 xl-only:pt-7 pb-6 sxs-only:pb-4 xs-only:pb-5 sm-only:pb-5 md-only:pb-5 lg-only:pb-4 xl-only:pb-5">
           <div className="flex flex-wrap justify-between items-center gap-4 sxs-only:gap-3 xs-only:gap-3 sm-only:gap-3 md-only:gap-3 lg-only:gap-3 xl-only:gap-3">
-            <h1 className="text-4xl sxs-only:text-xl xs-only:text-2xl sm-only:text-3xl md-only:text-3xl lg-only:text-2xl xl-only:text-3xl text-negro font-bold">
+            <h1 style={{viewTransitionName:"gestion-fechas-escolares-title"}} className="text-4xl sxs-only:text-xl xs-only:text-2xl sm-only:text-3xl md-only:text-3xl lg-only:text-2xl xl-only:text-3xl text-negro font-bold">
               Gestión de Fechas Escolares
             </h1>
             <Link href="/programacion">

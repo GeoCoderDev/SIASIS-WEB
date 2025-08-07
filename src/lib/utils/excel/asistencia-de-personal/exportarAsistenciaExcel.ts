@@ -210,7 +210,7 @@ export const exportarAsistenciaPersonalAExcel = async (
       );
 
       worksheet.getCell(`I${filaActual}`).value =
-        datos.usuario.DNI_Directivo ?? datos.usuario.ID_O_DNI_Usuario;
+        datos.usuario.DNI_Directivo ?? datos.usuario.idUsuario_Usuario;
       worksheet.getCell(`I${filaActual}`).style = estiloValor;
 
       filaActual++;

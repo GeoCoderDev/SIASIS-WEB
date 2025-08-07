@@ -317,7 +317,7 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
         new TomaAsistenciaPersonalSIU01Events.MARQUE_LA_ASISTENCIA_DE_ESTE_PERSONAL_EMITTER(
           {
             Mi_Socket_Id: globalSocket.id,
-            id_o_dni: miDNI,
+            idUsuario: miDNI,
             genero: miGenero!,
             nombres: miNombres!,
             apellidos: miApellidos!,

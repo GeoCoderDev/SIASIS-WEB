@@ -5,41 +5,10 @@ import { ActoresSistema } from "./ActoresSistema";
 import { EstadosAsistenciaPersonal } from "./EstadosAsistenciaPersonal";
 import { EstadosAsistencia } from "./EstadosAsistenciaEstudiantes";
 
-export interface RegistroAsistenciaUnitariaPersonal {
-  ModoRegistro: ModoRegistro;
-  DNI: string;
-  Rol: RolesSistema | ActoresSistema;
-  Dia: number;
-  Detalles:
-    | DetallesAsistenciaUnitariaPersonal
-    | DetallesAsistenciaUnitariaEstudiantes
-    | null;
-  esNuevoRegistro: boolean;
-}
 
-export interface DetallesAsistenciaUnitariaEstudiantes {
-  Estado: EstadosAsistencia;
-}
 
-export type RegistroAsistenciaMensualPersonal = Pick<
-  RegistroAsistenciaUnitariaPersonal,
-  "DNI" | "Rol" | "ModoRegistro"
-> & {
-  Mes: Meses;
-  RegistrosDelMes: Record<number, DetallesAsistenciaUnitariaPersonal | null>;
-};
-
-export interface DetallesAsistenciaUnitariaPersonal {
-  Timestamp: number;
-  DesfaseSegundos: number;
-}
-
-/**
- * ✅ ACTUALIZADO: Resultado individual de asistencia diaria
- * Ahora usa ID_o_DNI para soportar tanto IDs de directivos como DNIs de otros roles
- */
 export interface AsistenciaDiariaResultado {
-  ID_o_DNI: string; // ✅ ACTUALIZADO: Era "DNI", ahora soporta ID (directivos) o DNI (otros)
+  idUsuario: string; // ✅ ACTUALIZADO: Era "DNI", ahora soporta ID (directivos) o DNI (otros)
   AsistenciaMarcada: boolean;
   Detalles: {
     // Para estudiantes
@@ -49,6 +18,71 @@ export interface AsistenciaDiariaResultado {
     DesfaseSegundos?: number;
   };
 }
+
+export interface DetallesAsistenciaUnitariaEstudiantes {
+  Estado: EstadosAsistencia;
+}
+
+
+export interface RegistroAsistenciaUnitariaPersonal {
+  ModoRegistro: ModoRegistro;
+  Id_Usuario: string;
+  Rol: RolesSistema | ActoresSistema;
+  Dia: number;
+  Detalles:
+    | DetallesAsistenciaUnitariaPersonal
+    | DetallesAsistenciaUnitariaEstudiantes
+    | null;
+  esNuevoRegistro: boolean;
+}
+
+export type RegistroAsistenciaMensualPersonal = Pick<
+  RegistroAsistenciaUnitariaPersonal,
+  "Id_Usuario" | "Rol" | "ModoRegistro"
+> & {
+  Mes: Meses;
+  RegistrosDelMes: Record<number, DetallesAsistenciaUnitariaPersonal | null>;
+};
+
+
+export interface DetallesAsistenciaUnitariaPersonal {
+  Timestamp: number;
+  DesfaseSegundos: number;
+}
+
+
+export interface ConsultarAsistenciasDiariasPorActorEnRedisResponseBody {
+  Actor: ActoresSistema;
+  ModoRegistro: ModoRegistro;
+  Resultados: AsistenciaDiariaResultado[];
+  Mes: Meses;
+  Dia: number;
+}
+
+export enum TipoAsistencia {
+  ParaPersonal = "personal",
+  ParaEstudiantesSecundaria = "secundaria",
+  ParaEstudiantesPrimaria = "primaria",
+}
+
+export interface EstadoTomaAsistenciaResponseBody {
+  TipoAsistencia: TipoAsistencia;
+  Dia: number;
+  Mes: Meses;
+  Anio: number;
+  AsistenciaIniciada: boolean;
+}
+
+export interface IniciarTomaAsistenciaRequestBody {
+  TipoAsistencia: TipoAsistencia;
+}
+
+
+export interface DetallesAsistenciaUnitariaPersonal {
+  Timestamp: number;
+  DesfaseSegundos: number;
+}
+
 
 /**
  * ✅ ACTUALIZADO: Respuesta del endpoint de consulta de asistencias diarias
@@ -76,7 +110,7 @@ export interface ConsultaAsistenciaPropia {
 export interface ConsultaAsistenciaPersonal extends ConsultaAsistenciaPropia {
   Actor: Exclude<ActoresSistema, ActoresSistema.Estudiante>;
   TipoAsistencia: TipoAsistencia.ParaPersonal;
-  ID_o_DNI: string; // ID para directivos, DNI para otros
+  idUsuario: string; // ID para directivos, DNI para otros
 }
 
 // Para consulta de estudiantes específicos
@@ -85,17 +119,12 @@ export interface ConsultaAsistenciaEstudiante extends ConsultaAsistenciaPropia {
   TipoAsistencia:
     | TipoAsistencia.ParaEstudiantesPrimaria
     | TipoAsistencia.ParaEstudiantesSecundaria;
-  ID_o_DNI?: string; // Opcional para consulta individual
+  idUsuario?: string; // Opcional para consulta individual
   NivelEducativo?: string; // Requerido para consultas grupales o individuales
   Grado?: string; // Requerido para consultas grupales o individuales
   Seccion?: string; // Requerido para consultas grupales o individuales
 }
 
-export enum TipoAsistencia {
-  ParaPersonal = "personal",
-  ParaEstudiantesSecundaria = "secundaria",
-  ParaEstudiantesPrimaria = "primaria",
-}
 
 export interface EstadoTomaAsistenciaResponseBody {
   TipoAsistencia: TipoAsistencia;
@@ -113,7 +142,7 @@ export interface IniciarTomaAsistenciaRequestBody {
 export interface AsistenciaMensualPersonal {
   Id_Registro_Mensual: number;
   mes: Meses;
-  ID_o_Dni_Personal: string;
+  idUsuario_Personal: string;
   registros: Record<string, RegistroEntradaSalida>;
 }
 
@@ -132,7 +161,7 @@ export interface RegistroEntradaSalidaPersonal {
 
 // Interface para el request body
 export interface EliminarAsistenciaRequestBody {
-  ID_o_DNI: string;
+  idUsuario: string;
   Actor: ActoresSistema;
   ModoRegistro: ModoRegistro;
   TipoAsistencia: TipoAsistencia;

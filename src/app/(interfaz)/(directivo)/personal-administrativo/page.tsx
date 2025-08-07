@@ -58,7 +58,7 @@ const PersonalAdministrativo = () => {
         {personalAdministrivo &&
           personalAdministrivo.map((unPersonal) => (
             <PersonalAdministrativoCard
-              key={unPersonal.DNI_Personal_Administrativo}
+              key={unPersonal.Id_Personal_Administrativo}
               PersonalAdministrativo={unPersonal}
             />
           ))}

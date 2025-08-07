@@ -265,7 +265,7 @@ export async function POST(req: NextRequest) {
 
     if (error && !rol && !decodedToken) return error;
 
-    const MI_ID_O_DNI = decodedToken.ID_Usuario; // ✅ Para directivos: ID, para otros: DNI
+    const MI_idUsuario = decodedToken.ID_Usuario; // ✅ Para directivos: ID, para otros: DNI
 
     // Parsear el cuerpo de la solicitud como JSON
     const body =
@@ -273,7 +273,7 @@ export async function POST(req: NextRequest) {
 
     const {
       Actor,
-      ID_o_DNI,
+      idUsuario,
       FechaHoraEsperadaISO,
       ModoRegistro,
       TipoAsistencia: tipoAsistenciaParam,
@@ -285,8 +285,8 @@ export async function POST(req: NextRequest) {
     console.log("HORA ESPERADA ISO", FechaHoraEsperadaISO);
 
     // ✅ NUEVA LÓGICA: Detectar si es registro propio
-    // Si no se envía Actor, ID_o_DNI, ni TipoAsistencia = registro propio
-    const esRegistroPropio = !Actor && !ID_o_DNI && !tipoAsistenciaParam;
+    // Si no se envía Actor, idUsuario, ni TipoAsistencia = registro propio
+    const esRegistroPropio = !Actor && !idUsuario && !tipoAsistenciaParam;
 
     let actorFinal: ActoresSistema;
     let idODniFinal: string;
@@ -310,19 +310,19 @@ export async function POST(req: NextRequest) {
       }
 
       actorFinal = actorMapeado;
-      idODniFinal = MI_ID_O_DNI; // ✅ Usar ID/DNI del token
+      idODniFinal = MI_idUsuario; // ✅ Usar ID/DNI del token
       tipoAsistenciaFinal = TipoAsistencia.ParaPersonal; // ✅ Siempre Personal para registro propio
     } else {
       // ✅ REGISTRO DE OTROS: Requiere todos los campos
       console.log(`🔍 Registro de otros detectado para rol: ${rol}`);
 
       // Validar que se proporcionaron todos los campos necesarios
-      if (!Actor || !ID_o_DNI || !tipoAsistenciaParam) {
+      if (!Actor || !idUsuario || !tipoAsistenciaParam) {
         return NextResponse.json(
           {
             success: false,
             message:
-              "Para registrar asistencia de otros se requieren Actor, ID_o_DNI y TipoAsistencia",
+              "Para registrar asistencia de otros se requieren Actor, idUsuario y TipoAsistencia",
             errorType: RequestErrorTypes.INVALID_PARAMETERS,
           },
           { status: 400 }
@@ -341,16 +341,16 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // ✅ NUEVA VALIDACIÓN: ID_o_DNI puede ser ID (directivos) o DNI (otros)
+      // ✅ NUEVA VALIDACIÓN: idUsuario puede ser ID (directivos) o DNI (otros)
       if (
-        !ID_o_DNI ||
-        typeof ID_o_DNI !== "string" ||
-        ID_o_DNI.trim().length === 0
+        !idUsuario ||
+        typeof idUsuario !== "string" ||
+        idUsuario.trim().length === 0
       ) {
         return NextResponse.json(
           {
             success: false,
-            message: "ID_o_DNI es requerido y debe ser válido",
+            message: "idUsuario es requerido y debe ser válido",
             errorType: RequestErrorTypes.INVALID_PARAMETERS,
           },
           { status: 400 }
@@ -359,12 +359,12 @@ export async function POST(req: NextRequest) {
 
       // Para estudiantes y personal no-directivo, validar que sea DNI de 8 dígitos
       if (Actor !== ActoresSistema.Directivo) {
-        const dniValidation = validateDNI(ID_o_DNI, true);
+        const dniValidation = validateDNI(idUsuario, true);
         if (!dniValidation.isValid) {
           return NextResponse.json(
             {
               success: false,
-              message: `ID_o_DNI inválido para ${Actor}: ${dniValidation.errorMessage}`,
+              message: `idUsuario inválido para ${Actor}: ${dniValidation.errorMessage}`,
               errorType: dniValidation.errorType,
             },
             { status: 400 }
@@ -386,7 +386,7 @@ export async function POST(req: NextRequest) {
       }
 
       actorFinal = Actor as ActoresSistema;
-      idODniFinal = ID_o_DNI;
+      idODniFinal = idUsuario;
       tipoAsistenciaFinal = tipoAsistenciaParam;
     }
 
@@ -473,7 +473,7 @@ export async function POST(req: NextRequest) {
       actorFinal,
       tipoAsistenciaFinal,
       idODniFinal,
-      MI_ID_O_DNI,
+      MI_idUsuario,
       esRegistroPropio,
       Grado,
       Seccion,
@@ -557,7 +557,7 @@ export async function POST(req: NextRequest) {
           timestamp: timestampActual,
           desfaseSegundos,
           esNuevoRegistro,
-          esRegistroPropio: MI_ID_O_DNI === ID_o_DNI,
+          esRegistroPropio: MI_idUsuario === idUsuario,
           actorRegistrado: actorFinal, // ✅ Esto enviará la abreviación (D, A, PP, PS, T, R, PA, E)
           tipoAsistencia: tipoAsistenciaFinal,
         },

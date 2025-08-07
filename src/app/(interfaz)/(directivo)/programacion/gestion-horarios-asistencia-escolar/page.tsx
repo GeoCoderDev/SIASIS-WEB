@@ -1,11 +1,11 @@
 "use client";
 import React, { useState } from "react";
-import Link from "next/link";
 import BotonConIcono from "@/components/buttons/BotonConIcono";
 import LapizIcon from "@/components/icons/LapizIcon";
 import ModificarRegistroPrimaria from "@/components/modals/programacion/gestion-horarios-asistencia/ModificarRegistroPrimaria";
 import ModificarRegistroSecundaria from "@/components/modals/programacion/gestion-horarios-asistencia/ModificarRegistroSecundaria";
 import VolverIcon from "@/components/icons/VolverIcon";
+import { Link } from "next-view-transitions";
 
 const GestionHorariosAsistenciaEscolares = () => {
   const horarioGestion = [{ inicio: "7:45am", fin: "8:30am" }];
@@ -38,8 +38,8 @@ const GestionHorariosAsistenciaEscolares = () => {
         {/* Título con botón volver */}
         <div className="flex-shrink-0 px-6 sxs-only:px-4 xs-only:px-4 sm-only:px-5 md-only:px-5 lg-only:px-4 xl-only:px-5 pt-8 sxs-only:pt-6 xs-only:pt-6 sm-only:pt-7 md-only:pt-7 lg-only:pt-6 xl-only:pt-7 pb-6 sxs-only:pb-4 xs-only:pb-5 sm-only:pb-5 md-only:pb-5 lg-only:pb-4 xl-only:pb-5">
           <div className="flex flex-wrap justify-between items-center gap-4 sxs-only:gap-3 xs-only:gap-3 sm-only:gap-3 md-only:gap-3 lg-only:gap-3 xl-only:gap-3">
-            <h1 className="text-4xl sxs-only:text-xl xs-only:text-2xl sm-only:text-3xl md-only:text-3xl lg-only:text-2xl xl-only:text-3xl text-negro font-bold">
-              Gestión de Horarios de Asistencia
+            <h1 style={{viewTransitionName:"gestion-horarios-asistencia-escolar-title"}} className="text-4xl sxs-only:text-xl xs-only:text-2xl sm-only:text-3xl md-only:text-3xl lg-only:text-2xl xl-only:text-3xl text-negro font-bold">
+              Gestión de Horarios de Asistencia Escolar
             </h1>
             <Link href="/programacion">
               <button className="bg-negro text-white px-5 sxs-only:px-4 xs-only:px-4 sm-only:px-4 md-only:px-4 lg-only:px-3 xl-only:px-4 py-2.5 sxs-only:py-2 xs-only:py-2 sm-only:py-2 md-only:py-2 lg-only:py-1.5 xl-only:py-2 rounded-md flex items-center hover:opacity-90 transition text-base sxs-only:text-sm xs-only:text-sm sm-only:text-sm md-only:text-sm lg-only:text-xs xl-only:text-sm font-medium gap-2">

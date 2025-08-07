@@ -100,7 +100,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
   ): PersonalAdministrativoParaTomaDeAsistencia | null {
     return (
       this.getPersonalAdministrativo().find(
-        (personal) => personal.DNI_Personal_Administrativo === dni
+        (personal) => personal.Id_Personal_Administrativo === dni
       ) || null
     );
   }
@@ -126,7 +126,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
   ): ProfesoresPrimariaParaTomaDeAsistencia | null {
     return (
       this.getProfesoresPrimaria().find(
-        (profesor) => profesor.DNI_Profesor_Primaria === dni
+        (profesor) => profesor.Id_Profesor_Primaria === dni
       ) || null
     );
   }
@@ -140,7 +140,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
   ): ProfesorTutorSecundariaParaTomaDeAsistencia | null {
     return (
       this.getProfesoresSecundaria().find(
-        (profesor) => profesor.DNI_Profesor_Secundaria === dni
+        (profesor) => profesor.Id_Profesor_Secundaria === dni
       ) || null
     );
   }
@@ -245,7 +245,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
       // 🆕 NUEVO CASO PARA DIRECTIVOS
       case ActoresSistema.Directivo:
         return this.getDirectivos().map((directivo) => ({
-          ID_o_DNI: String(directivo.Id_Directivo), // Para directivos usamos DNI como identificador principal
+          idUsuario: String(directivo.Id_Directivo), // Para directivos usamos DNI como identificador principal
           GoogleDriveFotoId: directivo.Google_Drive_Foto_ID,
           Nombres: directivo.Nombres,
           Apellidos: directivo.Apellidos,
@@ -256,7 +256,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
 
       case ActoresSistema.ProfesorPrimaria:
         return this.getProfesoresPrimaria().map((profesor) => ({
-          ID_o_DNI: profesor.DNI_Profesor_Primaria,
+          idUsuario: profesor.Id_Profesor_Primaria,
           GoogleDriveFotoId: profesor.Google_Drive_Foto_ID,
           Nombres: profesor.Nombres,
           Apellidos: profesor.Apellidos,
@@ -266,7 +266,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
       case ActoresSistema.ProfesorSecundaria:
       case ActoresSistema.Tutor:
         return this.getProfesoresSecundaria().map((profesor) => ({
-          ID_o_DNI: profesor.DNI_Profesor_Secundaria,
+          idUsuario: profesor.Id_Profesor_Secundaria,
           GoogleDriveFotoId: profesor.Google_Drive_Foto_ID,
           Nombres: profesor.Nombres,
           Apellidos: profesor.Apellidos,
@@ -275,7 +275,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
 
       case ActoresSistema.Auxiliar:
         return this.getAuxliares().map((auxiliar) => ({
-          ID_o_DNI: auxiliar.DNI_Auxiliar,
+          idUsuario: auxiliar.Id_Auxiliar,
           GoogleDriveFotoId: auxiliar.Google_Drive_Foto_ID,
           Nombres: auxiliar.Nombres,
           Apellidos: auxiliar.Apellidos,
@@ -284,7 +284,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
 
       case ActoresSistema.PersonalAdministrativo:
         return this.getPersonalAdministrativo().map((personal) => ({
-          ID_o_DNI: personal.DNI_Personal_Administrativo,
+          idUsuario: personal.Id_Personal_Administrativo,
           GoogleDriveFotoId: personal.Google_Drive_Foto_ID,
           Nombres: personal.Nombres,
           Apellidos: personal.Apellidos,
@@ -306,7 +306,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
    */
   public obtenerHorarioPersonalISO(
     rol: ActoresSistema | RolesSistema,
-    id_o_dni: string | number,
+    idUsuario: string | number,
     modoRegistro: ModoRegistro
   ): string {
     try {
@@ -327,7 +327,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
       switch (rol) {
         // 🆕 NUEVO CASO PARA DIRECTIVOS
         case ActoresSistema.Directivo:
-          const directivo = this.buscarDirectivoPorId(id_o_dni as number);
+          const directivo = this.buscarDirectivoPorId(idUsuario as number);
 
           if (directivo) {
             if (
@@ -366,7 +366,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
         case ActoresSistema.ProfesorSecundaria:
         case ActoresSistema.Tutor:
           const profesorSecundaria = this.buscarProfesorSecundariaPorDNI(
-            id_o_dni as string
+            idUsuario as string
           );
 
           if (profesorSecundaria) {
@@ -411,7 +411,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
 
         case ActoresSistema.PersonalAdministrativo:
           const personal = this.buscarPersonalAdministrativoPorDNI(
-            id_o_dni as string
+            idUsuario as string
           );
 
           if (personal) {

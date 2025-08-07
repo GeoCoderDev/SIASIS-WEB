@@ -10,7 +10,7 @@ const PersonalAdministrativoCard = ({
     Apellidos,
     Celular,
     Cargo,
-    DNI_Personal_Administrativo,
+    Id_Personal_Administrativo,
     Estado,
     Nombres,
     Nombre_Usuario,
@@ -40,9 +40,9 @@ const PersonalAdministrativoCard = ({
 
       <div
         className="text-[17px] sxs-only:text-[15px] xs-only:text-[16px] font-medium text-azul-principal text-center leading-tight py-0 "
-        title={DNI_Personal_Administrativo}
+        title={Id_Personal_Administrativo}
       >
-        {DNI_Personal_Administrativo}
+        {Id_Personal_Administrativo}
       </div>
 
       <span
@@ -74,7 +74,7 @@ const PersonalAdministrativoCard = ({
       </span>
 
       <Link
-        href={`/personal-administrativo/${DNI_Personal_Administrativo}`}
+        href={`/personal-administrativo/${Id_Personal_Administrativo}`}
         className="mt-2"
       >
         <BotonConIcono

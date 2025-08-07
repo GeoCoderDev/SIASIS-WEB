@@ -342,12 +342,12 @@ export class AsistenciaDePersonalDateHelper {
    * ✅ NUEVO: Genera clave para control de consultas por rango
    */
   public generarClaveControlConsulta(
-    id_o_dni: string | number,
+    idUsuario: string | number,
     mes: number,
     rango: string
   ): string {
     const fecha = this.obtenerFechaStringActual() || "unknown";
-    return `consulta:${fecha}:${mes}:${id_o_dni}:${rango}`;
+    return `consulta:${fecha}:${mes}:${idUsuario}:${rango}`;
   }
 
   /**

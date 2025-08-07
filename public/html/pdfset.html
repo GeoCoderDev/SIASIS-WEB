@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF + Web Share API Demo</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            min-height: calc(100vh - 40px);
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            height: fit-content;
+        }
+
+        .pdf-viewer-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .form-section h3 {
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-share {
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+        }
+
+        .btn-share:hover {
+            box-shadow: 0 10px 25px rgba(37, 211, 102, 0.3);
+        }
+
+        .btn-download {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .btn-download:hover {
+            box-shadow: 0 10px 25px rgba(240, 147, 251, 0.3);
+        }
+
+        .status {
+            text-align: center;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .preview {
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .feature-list {
+            background: #e8f5e8;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .feature-list h4 {
+            color: #2d5a2d;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feature-list ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            color: #2d5a2d;
+            padding: 5px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .feature-list li::before {
+            content: "✓";
+            background: #28a745;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* Estilos del Visualizador PDF */
+        .pdf-viewer {
+            width: 100%;
+            height: 600px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 1.1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pdf-viewer-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e1e5e9;
+        }
+
+        .pdf-viewer-header h3 {
+            color: #333;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pdf-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .pdf-control-btn {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .pdf-control-btn:hover {
+            background: #e9ecef;
+        }
+
+        .pdf-control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+        }
+
+        .pdf-placeholder {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .pdf-placeholder .placeholder-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .pdf-placeholder h4 {
+            color: #666;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .pdf-placeholder p {
+            color: #999;
+            line-height: 1.5;
+        }
+
+        #pdfCanvas {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        @media (max-width: 1200px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .pdf-viewer {
+                height: 400px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container, .pdf-viewer-container {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .pdf-viewer {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Panel de Control -->
+        <div class="container">
+            <div class="header">
+                <h1>📄 PDF + Web Share</h1>
+                <p>Genera un PDF dinámico y compártelo usando la Web Share API</p>
+            </div>
+
+            <div class="feature-list">
+                <h4>🚀 Características del Demo</h4>
+                <ul>
+                    <li>Generación de PDF dinámico con jsPDF</li>
+                    <li>Visualizador integrado con controles de zoom</li>
+                    <li>Web Share API nativa del navegador</li>
+                    <li>Descarga directa siempre disponible</li>
+                    <li>Formulario interactivo personalizable</li>
+                    <li>Compatible con dispositivos móviles</li>
+                </ul>
+            </div>
+
+            <div class="form-section">
+                <h3>📝 Información del Documento</h3>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="docType">Tipo de Documento:</label>
+                        <select id="docType">
+                            <option value="factura">Factura</option>
+                            <option value="cotizacion">Cotización</option>
+                            <option value="reporte">Reporte</option>
+                            <option value="certificado">Certificado</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="docNumber">Número:</label>
+                        <input type="text" id="docNumber" placeholder="001-2024" value="001-2024">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="clientName">Cliente:</label>
+                        <input type="text" id="clientName" placeholder="Juan Pérez" value="Juan Pérez">
+                    </div>
+                    <div class="form-group">
+                        <label for="amount">Monto:</label>
+                        <input type="text" id="amount" placeholder="S/ 1,500.00" value="S/ 1,500.00">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Descripción:</label>
+                    <textarea id="description" placeholder="Detalle del documento...">Desarrollo de Sistema de Control de Asistencia para I.E. 20935 Asunción 8
+- Módulo de registro de asistencia
+- Generación de reportes
+- Sistema de notificaciones</textarea>
+                </div>
+            </div>
+
+            <div id="status"></div>
+
+            <button class="btn" onclick="generatePDF()">
+                <span id="generateIcon">📄</span>
+                <span id="generateText">Generar PDF</span>
+            </button>
+
+            <button class="btn btn-share" onclick="shareViaWebShareAPI()" disabled id="shareBtn">
+                <span>📤</span>
+                <span>Compartir (Web Share API)</span>
+            </button>
+
+            <button class="btn btn-download" onclick="downloadPDF()" disabled id="downloadBtn">
+                <span>💾</span>
+                <span>Descargar PDF</span>
+            </button>
+
+            <div class="preview" id="preview" style="display: none;">
+                <p>📄 PDF generado exitosamente</p>
+                <p><strong id="fileName"></strong></p>
+                <p><small>Tamaño: <span id="fileSize"></span></small></p>
+            </div>
+        </div>
+
+        <!-- Visualizador de PDF -->
+        <div class="pdf-viewer-container">
+            <div class="pdf-viewer-header">
+                <h3>🔍 Vista Previa del PDF</h3>
+                <div class="pdf-controls">
+                    <div class="zoom-controls">
+                        <button class="pdf-control-btn" onclick="zoomOut()" disabled id="zoomOutBtn">−</button>
+                        <span id="zoomLevel">100%</span>
+                        <button class="pdf-control-btn" onclick="zoomIn()" disabled id="zoomInBtn">+</button>
+                    </div>
+                    <button class="pdf-control-btn" onclick="toggleFullscreen()" disabled id="fullscreenBtn">⛶</button>
+                </div>
+            </div>
+            
+            <div class="pdf-viewer" id="pdfViewer">
+                <div class="pdf-placeholder">
+                    <div class="placeholder-icon">📄</div>
+                    <h4>No hay PDF para mostrar</h4>
+                    <p>Genera un PDF usando el formulario de la izquierda<br>para ver la vista previa aquí</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let generatedPDFFile = null;
+        let currentPdfBlob = null;
+        let currentZoom = 1.0;
+        let pdfDoc = null;
+        let pageNum = 1;
+        let pageRendering = false;
+        let pageNumPending = null;
+
+        // Configurar PDF.js
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.style.display = 'block';
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+        async function renderPdfPreview(pdfBlob) {
+            if (typeof pdfjsLib === 'undefined') {
+                document.getElementById('pdfViewer').innerHTML = `
+                    <div class="pdf-placeholder">
+                        <div class="placeholder-icon">❌</div>
+                        <h4>Error al cargar PDF.js</h4>
+                        <p>No se pudo cargar la librería de visualización</p>
+                    </div>
+                `;
+                return;
+            }
+
+            try {
+                const arrayBuffer = await pdfBlob.arrayBuffer();
+                pdfDoc = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+                
+                // Limpiar el visor y crear canvas
+                const viewer = document.getElementById('pdfViewer');
+                viewer.innerHTML = '<canvas id="pdfCanvas"></canvas>';
+                
+                // Habilitar controles
+                document.getElementById('zoomInBtn').disabled = false;
+                document.getElementById('zoomOutBtn').disabled = false;
+                document.getElementById('fullscreenBtn').disabled = false;
+                
+                // Renderizar primera página
+                await renderPage(1);
+                
+            } catch (error) {
+                console.error('Error renderizando PDF:', error);
+                document.getElementById('pdfViewer').innerHTML = `
+                    <div class="pdf-placeholder">
+                        <div class="placeholder-icon">❌</div>
+                        <h4>Error al renderizar PDF</h4>
+                        <p>No se pudo mostrar la vista previa</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function renderPage(num) {
+            if (pageRendering) {
+                pageNumPending = num;
+                return;
+            }
+            pageRendering = true;
+
+            try {
+                const page = await pdfDoc.getPage(num);
+                const canvas = document.getElementById('pdfCanvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Calcular escala basada en el ancho del contenedor
+                const container = document.getElementById('pdfViewer');
+                const containerWidth = container.clientWidth - 40; // padding
+                const viewport = page.getViewport({scale: 1.0});
+                const scale = (containerWidth / viewport.width) * currentZoom;
+                
+                const scaledViewport = page.getViewport({scale: scale});
+                
+                canvas.height = scaledViewport.height;
+                canvas.width = scaledViewport.width;
+                
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: scaledViewport
+                };
+                
+                await page.render(renderContext).promise;
+                pageRendering = false;
+                
+                if (pageNumPending !== null) {
+                    renderPage(pageNumPending);
+                    pageNumPending = null;
+                }
+                
+            } catch (error) {
+                console.error('Error renderizando página:', error);
+                pageRendering = false;
+            }
+        }
+
+        function zoomIn() {
+            currentZoom = Math.min(currentZoom + 0.25, 3.0);
+            updateZoomDisplay();
+            if (pdfDoc) renderPage(pageNum);
+        }
+
+        function zoomOut() {
+            currentZoom = Math.max(currentZoom - 0.25, 0.5);
+            updateZoomDisplay();
+            if (pdfDoc) renderPage(pageNum);
+        }
+
+        function updateZoomDisplay() {
+            document.getElementById('zoomLevel').textContent = Math.round(currentZoom * 100) + '%';
+        }
+
+        function toggleFullscreen() {
+            const viewer = document.getElementById('pdfViewer');
+            if (!document.fullscreenElement) {
+                viewer.requestFullscreen().catch(err => {
+                    console.log('Error activando fullscreen:', err);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        async function generatePDF() {
+            const generateBtn = document.querySelector('.btn');
+            const generateIcon = document.getElementById('generateIcon');
+            const generateText = document.getElementById('generateText');
+            
+            // Mostrar loading
+            generateBtn.disabled = true;
+            generateIcon.innerHTML = '<div class="loading"></div>';
+            generateText.textContent = 'Generando PDF...';
+            
+            try {
+                // Obtener datos del formulario
+                const docType = document.getElementById('docType').value;
+                const docNumber = document.getElementById('docNumber').value;
+                const clientName = document.getElementById('clientName').value;
+                const amount = document.getElementById('amount').value;
+                const description = document.getElementById('description').value;
+                
+                // Crear PDF con jsPDF
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                // Configurar fuente
+                doc.setFont('helvetica');
+                
+                // Header
+                doc.setFontSize(24);
+                doc.setTextColor(40, 40, 40);
+                doc.text(docType.toUpperCase(), 20, 30);
+                
+                doc.setFontSize(16);
+                doc.setTextColor(100, 100, 100);
+                doc.text(`Nº ${docNumber}`, 20, 40);
+                
+                // Línea separadora
+                doc.setDrawColor(200, 200, 200);
+                doc.line(20, 45, 190, 45);
+                
+                // Información del cliente
+                doc.setFontSize(14);
+                doc.setTextColor(40, 40, 40);
+                doc.text('CLIENTE:', 20, 60);
+                doc.setFontSize(12);
+                doc.setTextColor(60, 60, 60);
+                doc.text(clientName, 20, 70);
+                
+                // Fecha
+                doc.setFontSize(14);
+                doc.setTextColor(40, 40, 40);
+                doc.text('FECHA:', 120, 60);
+                doc.setFontSize(12);
+                doc.setTextColor(60, 60, 60);
+                doc.text(new Date().toLocaleDateString('es-PE'), 120, 70);
+                
+                // Descripción
+                doc.setFontSize(14);
+                doc.setTextColor(40, 40, 40);
+                doc.text('DESCRIPCIÓN:', 20, 90);
+                
+                doc.setFontSize(11);
+                doc.setTextColor(60, 60, 60);
+                const splitDescription = doc.splitTextToSize(description, 170);
+                doc.text(splitDescription, 20, 100);
+                
+                // Monto (si aplica)
+                if (amount) {
+                    const yPosition = 100 + (splitDescription.length * 6) + 20;
+                    doc.setFontSize(16);
+                    doc.setTextColor(40, 40, 40);
+                    doc.text('TOTAL:', 120, yPosition);
+                    doc.setFontSize(18);
+                    doc.setTextColor(0, 120, 0);
+                    doc.text(amount, 120, yPosition + 10);
+                }
+                
+                // Footer
+                doc.setFontSize(10);
+                doc.setTextColor(120, 120, 120);
+                doc.text('Generado automáticamente', 20, 280);
+                doc.text(`${new Date().toLocaleString('es-PE')}`, 120, 280);
+                
+                // Convertir a blob
+                const pdfBlob = doc.output('blob');
+                currentPdfBlob = pdfBlob;
+                
+                // Crear archivo
+                const fileName = `${docType}_${docNumber.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+                generatedPDFFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
+                
+                // Mostrar preview
+                document.getElementById('fileName').textContent = fileName;
+                document.getElementById('fileSize').textContent = formatBytes(pdfBlob.size);
+                document.getElementById('preview').style.display = 'block';
+                
+                // Renderizar vista previa
+                await renderPdfPreview(pdfBlob);
+                
+                // Habilitar botones
+                document.getElementById('shareBtn').disabled = false;
+                document.getElementById('downloadBtn').disabled = false;
+                
+                showStatus('✅ PDF generado exitosamente', 'success');
+                
+            } catch (error) {
+                console.error('Error generando PDF:', error);
+                showStatus('❌ Error al generar el PDF: ' + error.message, 'error');
+            } finally {
+                // Restaurar botón
+                generateBtn.disabled = false;
+                generateIcon.innerHTML = '📄';
+                generateText.textContent = 'Generar PDF';
+            }
+        }
+
+        async function shareViaWebShareAPI() {
+            if (!generatedPDFFile) {
+                showStatus('❌ Primero debes generar un PDF', 'error');
+                return;
+            }
+
+            try {
+                // Verificar soporte para Web Share API
+                if (!navigator.share) {
+                    showStatus('❌ Tu navegador no soporta Web Share API. Usa el botón de descarga para obtener el archivo.', 'warning');
+                    return;
+                }
+
+                // Verificar si puede compartir archivos
+                const shareData = {
+                    files: [generatedPDFFile],
+                    title: 'Documento PDF',
+                    text: 'Te comparto este documento en PDF'
+                };
+
+                if (!navigator.canShare || !navigator.canShare(shareData)) {
+                    showStatus('❌ Tu navegador no puede compartir archivos. Usa el botón de descarga para obtener el archivo.', 'warning');
+                    return;
+                }
+
+                // Compartir usando Web Share API
+                await navigator.share(shareData);
+                showStatus('✅ PDF compartido exitosamente', 'success');
+
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    showStatus('ℹ️ Compartir cancelado por el usuario', 'info');
+                } else {
+                    console.error('Error compartiendo:', error);
+                    showStatus('❌ Error al compartir: ' + error.message + '. Usa el botón de descarga como alternativa.', 'warning');
+                }
+            }
+        }
+
+        function downloadPDF() {
+            if (!generatedPDFFile) {
+                showStatus('❌ Primero debes generar un PDF', 'error');
+                return;
+            }
+
+            try {
+                // Crear URL del blob
+                const url = URL.createObjectURL(generatedPDFFile);
+                
+                // Crear enlace de descarga
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = generatedPDFFile.name;
+                
+                // Trigger download
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Limpiar URL
+                URL.revokeObjectURL(url);
+                
+                showStatus('✅ PDF descargado exitosamente', 'success');
+                
+            } catch (error) {
+                console.error('Error descargando:', error);
+                showStatus('❌ Error al descargar: ' + error.message, 'error');
+            }
+        }
+
+        // Verificar compatibilidad al cargar
+        window.addEventListener('load', function() {
+            const isHttps = location.protocol === 'https:' || location.hostname === 'localhost';
+            
+            if (!isHttps) {
+                showStatus('⚠️ HTTPS requerido para Web Share API. Solo estará disponible la descarga directa.', 'warning');
+            } else if (!navigator.share) {
+                showStatus('ℹ️ Web Share API no disponible en este navegador. Solo estará disponible la descarga directa.', 'info');
+            } else if (!navigator.canShare || !navigator.canShare({files: []})) {
+                showStatus('ℹ️ Compartir archivos no soportado en este navegador. Solo estará disponible la descarga directa.', 'info');
+            } else {
+                showStatus('✅ Todo listo para generar y compartir PDFs usando Web Share API', 'success');
+            }
+        });
+    </script>
+</body>
+</html>

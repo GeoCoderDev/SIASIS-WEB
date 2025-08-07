@@ -17,6 +17,8 @@ import Loader from "../shared/loaders/Loader";
 import { Search, Users, AlertCircle, ChevronDown, Clock } from "lucide-react";
 import FotoPerfilClientSide from "../utils/photos/FotoPerfilClientSide";
 import { UsuariosGenericosIDB } from "@/lib/utils/local/db/models/UsuariosGenericosIDB";
+import { extraerTipoDeIdentificador } from "@/lib/helpers/extractors/extraerTipoDeIdentificador";
+import { TiposIdentificadoresTextos } from "@/interfaces/shared/TiposIdentificadores";
 
 interface SiasisUserSelectorProps {
   rolUsuariosABuscar?: RolesSistema;
@@ -34,6 +36,9 @@ const UsuarioGenericoEncontrado = ({
   usuarioGenerico: GenericUser;
   handleUsuarioSeleccionado: (usuarioSeleccionado: GenericUser) => void;
 }) => {
+
+  const TipoIdentificacion = TiposIdentificadoresTextos[extraerTipoDeIdentificador(usuarioGenerico.Identificador_Nacional_Directivo??usuarioGenerico.ID_Usuario)];
+
   return (
     <li
       className="px-3 py-2.5 text-sm text-gray-700 select-none cursor-pointer transition-all duration-200 
@@ -55,10 +60,8 @@ const UsuarioGenericoEncontrado = ({
               {usuarioGenerico.Nombres} {usuarioGenerico.Apellidos}
             </span>
             <span className="text-xs text-gray-500 group-hover:text-blue-500">
-              DNI:{" "}
-              {usuarioGenerico.ID_O_DNI_Usuario.length === 8
-                ? usuarioGenerico.ID_O_DNI_Usuario
-                : usuarioGenerico.DNI_Directivo}
+              {TipoIdentificacion}:{" "}
+              {usuarioGenerico.Identificador_Nacional_Directivo ?? usuarioGenerico.ID_Usuario}
             </span>
           </div>
         </div>
@@ -327,9 +330,9 @@ const SiasisUserSelector = ({
                     {usuarioSeleccionado.Apellidos}
                   </span>
                   <span className="text-xs text-gray-500 block truncate">
-                    DNI:{" "}
-                    {usuarioSeleccionado.DNI_Directivo ??
-                      usuarioSeleccionado.ID_O_DNI_Usuario}
+                    {TiposIdentificadoresTextos[extraerTipoDeIdentificador(usuarioSeleccionado.ID_Usuario) ]}:{" "}
+                    {usuarioSeleccionado.Identificador_Nacional_Directivo ??
+                      usuarioSeleccionado.ID_Usuario}
                   </span>
                 </div>
               </div>
@@ -425,7 +428,7 @@ const SiasisUserSelector = ({
                             handleUsuarioSeleccionado={
                               handleUsuarioSeleccionado
                             }
-                            key={usuarioGenerico.ID_O_DNI_Usuario}
+                            key={usuarioGenerico.ID_Usuario}
                             usuarioGenerico={usuarioGenerico}
                           />
                         )

@@ -7,11 +7,3 @@ export enum RolesSistema {
     Responsable = 'R',
     PersonalAdministrativo = 'PA',
 }
-
-export type PersonalDelColegio =
-  | RolesSistema.Directivo
-  | RolesSistema.Auxiliar
-  | RolesSistema.ProfesorPrimaria
-  | RolesSistema.ProfesorSecundaria
-  | RolesSistema.Tutor
-  | RolesSistema.PersonalAdministrativo;

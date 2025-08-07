@@ -342,9 +342,9 @@ const MisDatosDeProfesorPrimaria = ({
                   isSomethingLoading={isSomethingLoading}
                   modoEdicion={modoEdicion}
                   etiqueta="DNI"
-                  nombreDato="DNI_Profesor_Primaria"
+                  nombreDato="Id_Profesor_Primaria"
                   savedValue={
-                    misDatosProfesorPrimariaSaved.DNI_Profesor_Primaria
+                    misDatosProfesorPrimariaSaved.Id_Profesor_Primaria
                   }
                   onChange={handleChange}
                   className="sxs-only:text-[1.105rem] xs-only:text-[1.17rem] sm-only:text-[1.235rem] md-only:text-[1.3rem] lg-only:text-[1.365rem] xl-only:text-[1.43rem]"

@@ -74,7 +74,7 @@ const InfoUsuarioAsistencia: React.FC<InfoUsuarioAsistenciaProps> = ({
                 DNI:
               </span>
               <span className="font-medium text-gray-900">
-                {usuario.DNI_Directivo ?? usuario.ID_O_DNI_Usuario}
+                {usuario.DNI_Directivo ?? usuario.idUsuario_Usuario}
               </span>
             </div>
             <div className="flex items-center space-x-1.5">

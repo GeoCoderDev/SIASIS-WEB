@@ -145,10 +145,10 @@ export class AsistenciaDePersonalMapper {
   public getIdFieldName(tipoPersonal: TipoPersonal): string {
     const fieldNames = {
       [TipoPersonal.DIRECTIVO]: "Id_Directivo", // ✅ DIFERENTE: ID en lugar de DNI
-      [TipoPersonal.PROFESOR_PRIMARIA]: "DNI_Profesor_Primaria",
-      [TipoPersonal.PROFESOR_SECUNDARIA]: "DNI_Profesor_Secundaria",
-      [TipoPersonal.AUXILIAR]: "DNI_Auxiliar",
-      [TipoPersonal.PERSONAL_ADMINISTRATIVO]: "DNI_Personal_Administrativo",
+      [TipoPersonal.PROFESOR_PRIMARIA]: "Id_Profesor_Primaria",
+      [TipoPersonal.PROFESOR_SECUNDARIA]: "Id_Profesor_Secundaria",
+      [TipoPersonal.AUXILIAR]: "Id_Auxiliar",
+      [TipoPersonal.PERSONAL_ADMINISTRATIVO]: "Id_Personal_Administrativo",
     };
 
     return fieldNames[tipoPersonal];
@@ -276,22 +276,22 @@ export class AsistenciaDePersonalMapper {
 
       case TipoPersonal.PROFESOR_PRIMARIA:
         return (
-          tokenDecodificado.DNI_Profesor_Primaria || tokenDecodificado.dni || ""
+          tokenDecodificado.Id_Profesor_Primaria || tokenDecodificado.dni || ""
         );
 
       case TipoPersonal.PROFESOR_SECUNDARIA:
         return (
-          tokenDecodificado.DNI_Profesor_Secundaria ||
+          tokenDecodificado.Id_Profesor_Secundaria ||
           tokenDecodificado.dni ||
           ""
         );
 
       case TipoPersonal.AUXILIAR:
-        return tokenDecodificado.DNI_Auxiliar || tokenDecodificado.dni || "";
+        return tokenDecodificado.Id_Auxiliar || tokenDecodificado.dni || "";
 
       case TipoPersonal.PERSONAL_ADMINISTRATIVO:
         return (
-          tokenDecodificado.DNI_Personal_Administrativo ||
+          tokenDecodificado.Id_Personal_Administrativo ||
           tokenDecodificado.dni ||
           ""
         );
@@ -463,10 +463,10 @@ export class AsistenciaDePersonalMapper {
   public generarClaveCache(
     actor: ActoresSistema,
     modoRegistro: ModoRegistro,
-    id_o_dni: string | number,
+    idUsuario: string | number,
     fecha: string
   ): string {
-    return `${fecha}:${modoRegistro}:${actor}:${id_o_dni}`;
+    return `${fecha}:${modoRegistro}:${actor}:${idUsuario}`;
   }
 
   // ========================================================================================
@@ -520,7 +520,7 @@ export class AsistenciaDePersonalMapper {
       const registroBase = {
         Id_Registro_Mensual: datosAPI.Id_Registro_Mensual_Entrada || Date.now(),
         Mes: datosAPI.Mes,
-        ID_o_DNI_Personal: datosAPI.ID_O_DNI_Usuario,
+        idUsuario_Personal: datosAPI.idUsuario_Usuario,
         ultima_fecha_actualizacion: ultimaFechaActualizacion, // ✅ OBLIGATORIO
       };
 
@@ -565,7 +565,7 @@ export class AsistenciaDePersonalMapper {
 
     // Validar que ambos registros tengan el mismo usuario
     if (datosEntrada && datosSalida) {
-      if (datosEntrada.ID_o_DNI_Personal !== datosSalida.ID_o_DNI_Personal) {
+      if (datosEntrada.idUsuario_Personal !== datosSalida.idUsuario_Personal) {
         errores.push("El ID/DNI no coincide entre entrada y salida");
       }
 
@@ -601,7 +601,7 @@ export class AsistenciaDePersonalMapper {
       if (datos) {
         const tipo = index === 0 ? "entrada" : "salida";
 
-        if (!datos.ID_o_DNI_Personal) {
+        if (!datos.idUsuario_Personal) {
           errores.push(`Falta ID/DNI en datos de ${tipo}`);
         }
 

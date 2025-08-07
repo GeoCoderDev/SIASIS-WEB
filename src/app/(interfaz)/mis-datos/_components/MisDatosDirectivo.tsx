@@ -34,6 +34,8 @@ import CambiarFotoModal from "@/components/modals/CambiarFotoModal";
 import deepEqualsObjects from "@/lib/helpers/compares/deepEqualsObjects";
 import Loader from "@/components/shared/loaders/Loader";
 import SuccessMessage from "@/components/shared/successes/SuccessMessage";
+import { extraerTipoDeIdentificador } from "@/lib/helpers/extractors/extraerTipoDeIdentificador";
+import { TiposIdentificadoresTextos } from "@/interfaces/shared/TiposIdentificadores";
 
 const MisDatosDirectivo = ({
   googleDriveFotoIdCookieValue,
@@ -173,7 +175,7 @@ const MisDatosDirectivo = ({
         endpoint: "/api/mis-datos",
         method: "PUT",
         body: JSON.stringify({
-          DNI: misDatosDirectivoModificados.DNI,
+          Identificador_Nacional: misDatosDirectivoModificados.Identificador_Nacional,
           Nombres: misDatosDirectivoModificados.Nombres,
           Apellidos: misDatosDirectivoModificados.Apellidos,
           Genero: misDatosDirectivoModificados.Genero,
@@ -351,11 +353,11 @@ const MisDatosDirectivo = ({
                   }}
                   isSomethingLoading={isSomethingLoading}
                   modoEdicion={modoEdicion}
-                  etiqueta="DNI"
-                  nombreDato="DNI"
+                  etiqueta={isSomethingLoading?"Identificador":TiposIdentificadoresTextos[extraerTipoDeIdentificador(misDatosDirectivoModificados.Identificador_Nacional!)]}
+                  nombreDato="Identificador_Nacional"
                   modificable
-                  modificatedValue={misDatosDirectivoModificados.DNI}
-                  savedValue={misDatosDirectivoSaved.DNI}
+                  modificatedValue={misDatosDirectivoModificados.Identificador_Nacional}
+                  savedValue={misDatosDirectivoSaved.Identificador_Nacional}
                   onChange={handleChange}
                   className="sxs-only:text-[1.105rem] xs-only:text-[1.17rem] sm-only:text-[1.235rem] md-only:text-[1.3rem] lg-only:text-[1.365rem] xl-only:text-[1.43rem]"
                   fullWidth

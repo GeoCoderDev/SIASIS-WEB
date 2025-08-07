@@ -90,9 +90,9 @@ const validarPermisos = (
           };
         }
       } else {
-        // Para asistencia personal: si es consulta propia, permitir sin ID_o_DNI
+        // Para asistencia personal: si es consulta propia, permitir sin idUsuario
         if (esConsultaPropia) return { esValido: true };
-        // Para consulta de otros, verificar que sea su propio ID_o_DNI
+        // Para consulta de otros, verificar que sea su propio idUsuario
         if (!idODniConsulta || idODniConsulta !== miIdODni) {
           return {
             esValido: false,
@@ -130,9 +130,9 @@ const validarPermisos = (
           };
         }
       } else {
-        // Para asistencia personal: si es consulta propia, permitir sin ID_o_DNI
+        // Para asistencia personal: si es consulta propia, permitir sin idUsuario
         if (esConsultaPropia) return { esValido: true };
-        // Para consulta de otros, verificar que sea su propio ID_o_DNI
+        // Para consulta de otros, verificar que sea su propio idUsuario
         if (!idODniConsulta || idODniConsulta !== miIdODni) {
           return {
             esValido: false,
@@ -159,9 +159,9 @@ const validarPermisos = (
             "Los profesores de secundaria no pueden consultar asistencias de estudiantes",
         };
       } else {
-        // Para asistencia personal: si es consulta propia, permitir sin ID_o_DNI
+        // Para asistencia personal: si es consulta propia, permitir sin idUsuario
         if (esConsultaPropia) return { esValido: true };
-        // Para consulta de otros, verificar que sea su propio ID_o_DNI
+        // Para consulta de otros, verificar que sea su propio idUsuario
         if (!idODniConsulta || idODniConsulta !== miIdODni) {
           return {
             esValido: false,
@@ -199,9 +199,9 @@ const validarPermisos = (
           };
         }
       } else {
-        // Para asistencia personal: si es consulta propia, permitir sin ID_o_DNI
+        // Para asistencia personal: si es consulta propia, permitir sin idUsuario
         if (esConsultaPropia) return { esValido: true };
-        // Para consulta de otros, verificar que sea su propio ID_o_DNI
+        // Para consulta de otros, verificar que sea su propio idUsuario
         if (!idODniConsulta || idODniConsulta !== miIdODni) {
           return {
             esValido: false,
@@ -228,9 +228,9 @@ const validarPermisos = (
             "El personal administrativo no puede consultar asistencias de estudiantes",
         };
       } else {
-        // Para asistencia personal: si es consulta propia, permitir sin ID_o_DNI
+        // Para asistencia personal: si es consulta propia, permitir sin idUsuario
         if (esConsultaPropia) return { esValido: true };
-        // Para consulta de otros, verificar que sea su propio ID_o_DNI
+        // Para consulta de otros, verificar que sea su propio idUsuario
         if (!idODniConsulta || idODniConsulta !== miIdODni) {
           return {
             esValido: false,
@@ -265,12 +265,12 @@ const validarPermisos = (
             "Los responsables solo pueden consultar asistencias de estudiantes",
         };
       }
-      // Solo consultas unitarias (ID_o_DNI obligatorio)
+      // Solo consultas unitarias (idUsuario obligatorio)
       if (!idODniConsulta) {
         return {
           esValido: false,
           mensaje:
-            "Los responsables deben especificar el ID_o_DNI del estudiante a consultar",
+            "Los responsables deben especificar el idUsuario del estudiante a consultar",
         };
       }
       return { esValido: true };
@@ -295,7 +295,7 @@ export async function GET(req: NextRequest) {
 
     if (error && !rol && !decodedToken) return error;
 
-    const MI_ID_O_DNI = decodedToken.ID_Usuario; // ✅ ACTUALIZADO: Para directivos: ID, para otros: DNI
+    const MI_idUsuario = decodedToken.ID_Usuario; // ✅ ACTUALIZADO: Para directivos: ID, para otros: DNI
 
     // Obtener parámetros de la consulta
     const searchParams = req.nextUrl.searchParams;
@@ -304,7 +304,7 @@ export async function GET(req: NextRequest) {
     const tipoAsistenciaParam = searchParams.get(
       "TipoAsistencia"
     ) as TipoAsistencia;
-    const idODniParam = searchParams.get("ID_o_DNI"); // ✅ ACTUALIZADO: Era "DNI"
+    const idODniParam = searchParams.get("idUsuario"); // ✅ ACTUALIZADO: Era "DNI"
     const gradoParam = searchParams.get("Grado"); // Opcional
     const seccionParam = searchParams.get("Seccion"); // Opcional
     const nivelEducativoParam = searchParams.get("NivelEducativo"); // Opcional
@@ -401,7 +401,7 @@ export async function GET(req: NextRequest) {
       actor,
       tipoAsistenciaFinal,
       idODniParam,
-      MI_ID_O_DNI,
+      MI_idUsuario,
       esConsultaPropia,
       gradoParam,
       seccionParam,
@@ -423,10 +423,10 @@ export async function GET(req: NextRequest) {
 
     // ✅ CREAR PATRÓN DE BÚSQUEDA con lógica mejorada
     let patronBusqueda: string;
-    const idODniParaBusqueda = esConsultaPropia ? MI_ID_O_DNI : idODniParam;
+    const idODniParaBusqueda = esConsultaPropia ? MI_idUsuario : idODniParam;
 
     if (idODniParaBusqueda) {
-      // Consulta unitaria por ID_o_DNI específico (propio o de otro)
+      // Consulta unitaria por idUsuario específico (propio o de otro)
       if (
         actor === ActoresSistema.Estudiante &&
         nivelEducativoParam &&
@@ -492,7 +492,7 @@ export async function GET(req: NextRequest) {
               )
             ) {
               resultados.push({
-                ID_o_DNI: idODni, // ✅ ACTUALIZADO: Era "DNI"
+                idUsuario: idODni, // ✅ ACTUALIZADO: Era "DNI"
                 AsistenciaMarcada: true,
                 Detalles: {
                   Estado: valor as EstadosAsistencia,
@@ -506,7 +506,7 @@ export async function GET(req: NextRequest) {
               const desfaseSegundos = parseInt(valor[1] as string);
 
               resultados.push({
-                ID_o_DNI: idODni, // ✅ ACTUALIZADO: Era "DNI"
+                idUsuario: idODni, // ✅ ACTUALIZADO: Era "DNI"
                 AsistenciaMarcada: true,
                 Detalles: {
                   Timestamp: timestamp,
