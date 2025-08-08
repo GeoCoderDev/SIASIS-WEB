@@ -1,13 +1,28 @@
 "use client";
-import React, { useState } from 'react';
-import { Calendar, ChevronDown, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Calendar, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import CreacionEvento from "@/components/modals/Eventos/CreacionEvento";
+import EditarEvento from "@/components/modals/Eventos/EditarEvento";
+import ElimiarEvento from "@/components/modals/Eventos/EliminarEvento";
+import BotonConIcono from "@/components/buttons/BotonConIcono";
+import AgregarIcon from "@/components/icons/AgregarIcon"
+import LapizIcon from "@/components/icons/LapizIcon";
+import BasureroIcon from "@/components/icons/BasureroIcon";
 
 const EventosInterface = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [fromDate, setFromDate] = useState('06/09/2024');
-  const [toDate, setToDate] = useState('09/09/2024');
+  const hoy = new Date();
+  const [fechaDesde, setFechaDesde] = useState(hoy);
+  const [fechaHasta, setFechaHasta] = useState(hoy);
   const [selectedState, setSelectedState] = useState('Todos');
-  const [currentPage, setCurrentPage] = useState(1);
+
+  // Referencias a los inputs para controlar el calendario
+  const inputDesdeRef = useRef<HTMLInputElement>(null);
+  const inputHastaRef = useRef<HTMLInputElement>(null);
+
+  const [showCreacionEvento, setShowCreacionEvento] = useState(false);
+  const [showEditarEvento, setShowEditarEvento] = useState(false);
+  const [showEliminarEvento, setShowEliminarEvento] = useState(false);
 
   const eventos = [
     {
@@ -47,6 +62,21 @@ const EventosInterface = () => {
     }
   ];
 
+  const convertirFechaParaInput = (fecha: Date) =>
+    `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}-${String(
+      fecha.getDate()
+    ).padStart(2, "0")}`;
+
+  const manejarCambioFechaDesde = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const nuevaFecha = new Date(e.target.value + "T00:00:00");
+    setFechaDesde(nuevaFecha);
+  };
+
+  const manejarCambioFechaHasta = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const nuevaFecha = new Date(e.target.value + "T00:00:00");
+    setFechaHasta(nuevaFecha);
+  };
+
   const getEstadoColor = (estado) => {
     switch (estado) {
       case 'Pasado':
@@ -67,31 +97,109 @@ const EventosInterface = () => {
     
     if (evento.estado === 'Activo') {
       return (
-        <button className="bg-yellow-400 text-black px-2 py-1 rounded text-xs font-medium hover:opacity-80 transition-opacity flex items-center gap-1 whitespace-nowrap">
-          <Edit size={12} />
-          <span>Editar</span>
-        </button>
+        <BotonConIcono
+          texto="Editar"
+          IconTSX={
+            <LapizIcon className="w-4 sxs-only:w-3 xs-only:w-3 sm-only:w-3 md-only:w-3 lg-only:w-3 xl-only:w-3 ml-2" />
+          }
+          className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold px-4 sxs-only:px-3 xs-only:px-3 sm-only:px-3 md-only:px-3 lg-only:px-2 xl-only:px-3 py-2 sxs-only:py-1.5 xs-only:py-1.5 sm-only:py-1.5 md-only:py-1.5 lg-only:py-1 xl-only:py-1.5 rounded-md flex items-center text-base sxs-only:text-sm xs-only:text-sm sm-only:text-sm md-only:text-sm lg-only:text-xs xl-only:text-sm transition"
+          onClick={() => {
+            setShowEditarEvento(true);
+          }}
+        />
       );
     }
     
     if (evento.estado === 'Pendiente') {
       return (
         <div className="flex gap-1">
-          <button className="bg-yellow-400 text-black px-2 py-1 rounded text-xs font-medium hover:opacity-80 transition-opacity flex items-center gap-1 whitespace-nowrap">
-            <Edit size={12} />
-            <span>Editar</span>
-          </button>
-          <button className="bg-red-600 text-white px-2 py-1 rounded text-xs font-medium hover:opacity-80 transition-opacity flex items-center gap-1 whitespace-nowrap">
-            <Trash2 size={12} />
-            <span>Eliminar</span>
-          </button>
+          <BotonConIcono
+            texto="Editar"
+            IconTSX={
+              <LapizIcon className="w-4 sxs-only:w-3 xs-only:w-3 sm-only:w-3 md-only:w-3 lg-only:w-3 xl-only:w-3 ml-2" />
+            }
+            className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold px-4 sxs-only:px-3 xs-only:px-3 sm-only:px-3 md-only:px-3 lg-only:px-2 xl-only:px-3 py-2 sxs-only:py-1.5 xs-only:py-1.5 sm-only:py-1.5 md-only:py-1.5 lg-only:py-1 xl-only:py-1.5 rounded-md flex items-center text-base sxs-only:text-sm xs-only:text-sm sm-only:text-sm md-only:text-sm lg-only:text-xs xl-only:text-sm transition"
+            onClick={() => {
+              setShowEditarEvento(true);
+            }}
+          />
+          <BotonConIcono
+              texto="Eliminar"
+              IconTSX={
+            <BasureroIcon className="w-4 sxs-only:w-3 xs-only:w-3 sm-only:w-3 md-only:w-3 lg-only:w-3 xl-only:w-3 ml-2" />
+              }
+              className="bg-red-600 hover:bg-red-700 text-white font-bold px-4 sxs-only:px-3 xs-only:px-3 sm-only:px-3 md-only:px-3 lg-only:px-2 xl-only:px-3 py-2 sxs-only:py-1.5 xs-only:py-1.5 sm-only:py-1.5 md-only:py-1.5 lg-only:py-1 xl-only:py-1.5 rounded-md text-base sxs-only:text-sm xs-only:text-sm sm-only:text-sm md-only:text-sm lg-only:text-xs xl-only:text-sm transition"
+              onClick={() => {
+              setShowEliminarEvento(true);
+            }}
+          />
         </div>
       );
     }
   };
 
   return (
-    <div className="w-full max-w-full overflow-hidden">
+    <>
+      {/* Estilos globales para ocultar el ícono del date picker */}
+      <style jsx global>{`
+        .date-input-custom::-webkit-calendar-picker-indicator {
+          opacity: 0;
+          position: absolute;
+          right: 0;
+          width: 100%;
+          height: 100%;
+          cursor: pointer;
+          z-index: 1;
+        }
+        
+        .date-input-custom::-webkit-inner-spin-button,
+        .date-input-custom::-webkit-outer-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+          display: none;
+        }
+        
+        .date-input-custom::-webkit-clear-button {
+          display: none;
+        }
+        
+        .date-input-custom {
+          -webkit-appearance: none;
+          -moz-appearance: textfield;
+          appearance: none;
+        }
+        
+        .date-input-custom:focus {
+          outline: none;
+          box-shadow: none;
+        }
+      `}</style>
+
+      {showCreacionEvento && (
+        <CreacionEvento
+          eliminateModal={() => {
+            setShowCreacionEvento(false);
+          }}
+        />
+      )}
+
+      {showEditarEvento && (
+        <EditarEvento
+          eliminateModal={() => {
+            setShowEditarEvento(false);
+          }}
+        />
+      )}
+
+      {showEliminarEvento && (
+        <ElimiarEvento
+          eliminateModal={() => {
+            setShowEliminarEvento(false);
+          }}
+        />
+      )}
+
+      <div className="w-full max-w-full overflow-hidden">
       <div className="px-3 py-4 sm:px-4 sm:py-4 md:px-6 md:py-6 lg:px-8 lg:py-8 bg-white min-h-screen font-sans">
         
         {/* Header */}
@@ -99,10 +207,16 @@ const EventosInterface = () => {
           <p className="text-gray-600 text-sm mb-2">Eventos</p>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-4">
             <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-black">BUSCAR EVENTOS</h1>
-            <button className="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-opacity flex items-center gap-2 w-full md:w-auto justify-center text-sm">
-              <Calendar size={16} />
-              Registrar Eventos
-            </button>
+            <BotonConIcono
+                  texto="Registrar Eventos"
+                  IconTSX={
+                    <AgregarIcon className="w-4 sxs-only:w-3 xs-only:w-3 sm-only:w-3 md-only:w-3 lg-only:w-3 xl-only:w-3 ml-2" />
+                  }
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-opacity flex items-center gap-2 w-full md:w-auto justify-center text-sm"
+                  onClick={() => {
+                    setShowCreacionEvento(true);
+                  }}
+                />
           </div>
         </div>
 
@@ -129,24 +243,34 @@ const EventosInterface = () => {
                 <label className="text-black font-medium text-sm block mb-2">Desde:</label>
                 <div className="relative">
                   <input
-                    type="text"
-                    value={fromDate}
-                    onChange={(e) => setFromDate(e.target.value)}
-                    className="w-full px-3 py-2 bg-red-600 text-white rounded-lg focus:outline-none focus:bg-red-800 pr-8 text-sm"
+                    ref={inputDesdeRef}
+                    type="date"
+                    defaultValue={convertirFechaParaInput(hoy)}
+                    onChange={manejarCambioFechaDesde}
+                    className="date-input-custom w-full px-3 py-2 bg-red-600 text-white rounded-lg focus:outline-none focus:bg-red-800 pr-8 text-sm cursor-pointer"
                   />
-                  <Calendar className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white" size={16} />
+                  <Calendar 
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white cursor-pointer pointer-events-none" 
+                    size={16}
+                    onClick={() => inputDesdeRef.current?.showPicker()}
+                  />
                 </div>
               </div>
               <div className="flex-1">
                 <label className="text-black font-medium text-sm block mb-2">Hasta:</label>
                 <div className="relative">
                   <input
-                    type="text"
-                    value={toDate}
-                    onChange={(e) => setToDate(e.target.value)}
-                    className="w-full px-3 py-2 bg-red-600 text-white rounded-lg focus:outline-none focus:bg-red-800 pr-8 text-sm"
+                    ref={inputHastaRef}
+                    type="date"
+                    defaultValue={convertirFechaParaInput(hoy)}
+                    onChange={manejarCambioFechaHasta}
+                    className="date-input-custom w-full px-3 py-2 bg-red-600 text-white rounded-lg focus:outline-none focus:bg-red-800 pr-8 text-sm cursor-pointer"
                   />
-                  <Calendar className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white" size={16} />
+                  <Calendar 
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white cursor-pointer pointer-events-none" 
+                    size={16}
+                    onClick={() => inputHastaRef.current?.showPicker()}
+                  />
                 </div>
               </div>
             </div>
@@ -234,6 +358,7 @@ const EventosInterface = () => {
 
       </div>
     </div>
+    </>
   );
 };
 
