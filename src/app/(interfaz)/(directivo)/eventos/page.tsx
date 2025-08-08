@@ -77,7 +77,7 @@ const EventosInterface = () => {
     setFechaHasta(nuevaFecha);
   };
 
-  const getEstadoColor = (estado) => {
+  const getEstadoColor = (estado: string) => {
     switch (estado) {
       case 'Pasado':
         return 'bg-gray-800 text-white';
@@ -90,7 +90,7 @@ const EventosInterface = () => {
     }
   };
 
-  const renderAcciones = (evento) => {
+  const renderAcciones = (evento: any) => {
     if (evento.estado === 'Pasado') {
       return null;
     }
@@ -295,67 +295,121 @@ const EventosInterface = () => {
           </div>
         </div>
 
-        {/* Tabla Responsive - Para todas las pantallas */}
-        <div className="bg-white rounded-lg shadow-sm border overflow-hidden mb-6">
-          {/* Contenedor con scroll horizontal solo para la tabla */}
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-max">
-              {/* Header de tabla */}
-              <thead>
-                <tr className="bg-red-600 text-white">
-                  <th className="px-4 py-3 text-left font-medium text-sm whitespace-nowrap">ID</th>
-                  <th className="px-4 py-3 text-left font-medium text-sm whitespace-nowrap">Nombre del Evento</th>
-                  <th className="px-4 py-3 text-left font-medium text-sm whitespace-nowrap">Fecha Inicio</th>
-                  <th className="px-4 py-3 text-left font-medium text-sm whitespace-nowrap">Fecha Conclusión</th>
-                  <th className="px-4 py-3 text-left font-medium text-sm whitespace-nowrap">Estado</th>
-                  <th className="px-4 py-3 text-left font-medium text-sm whitespace-nowrap">Acciones</th>
-                </tr>
-              </thead>
-
-              {/* Cuerpo de la tabla */}
-              <tbody className="divide-y divide-gray-200">
-                {eventos.map((evento, index) => (
-                  <tr key={evento.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 text-black font-medium text-sm whitespace-nowrap">{evento.id}</td>
-                    <td className="px-4 py-3 text-black text-sm whitespace-nowrap">{evento.nombre}</td>
-                    <td className="px-4 py-3 text-black text-sm whitespace-nowrap">{evento.fechaInicio}</td>
-                    <td className="px-4 py-3 text-black text-sm whitespace-nowrap">{evento.fechaConclusion}</td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getEstadoColor(evento.estado)}`}>
+        {/* Vista de Tabla/Cards Responsive */}
+        <div className="mb-6">
+          {/* Vista de Cards para móviles */}
+          <div className="block lg:hidden space-y-4">
+            {eventos.map((evento) => (
+              <div key={evento.id} className="bg-white rounded-lg shadow-sm border p-4">
+                {/* Header del Card */}
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-medium text-gray-500">{evento.id}</span>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium w-20 text-center ${getEstadoColor(evento.estado)}`}>
                         {evento.estado}
                       </span>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      {renderAcciones(evento)}
-                    </td>
+                    </div>
+                    <h3 className="font-semibold text-gray-900 text-base leading-tight">
+                      {evento.nombre}
+                    </h3>
+                  </div>
+                </div>
+                
+                {/* Información de fechas */}
+                <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+                  <div>
+                    <span className="text-gray-500 block">Inicio:</span>
+                    <span className="font-medium text-gray-900">{evento.fechaInicio}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 block">Conclusión:</span>
+                    <span className="font-medium text-gray-900">{evento.fechaConclusion}</span>
+                  </div>
+                </div>
+                
+                {/* Acciones */}
+                {renderAcciones(evento) && (
+                  <div className="pt-3 border-t border-gray-100">
+                    {renderAcciones(evento)}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Vista de Tabla para pantallas grandes */}
+          <div className="hidden lg:block bg-white rounded-lg shadow-sm border overflow-x-hidden">
+            <div  className="w-full">
+              <table className="w-full max-w-full table-fixed">
+                {/* Header de tabla mejorado */}
+                <thead>
+                  <tr className="bg-red-600 text-white">
+                    <th className="px-6 py-4 text-left font-semibold text-sm uppercase tracking-wider">ID</th>
+                    <th className="px-6 py-4 text-left font-semibold text-sm uppercase tracking-wider">Nombre del Evento</th>
+                    <th className="px-6 py-4 text-left font-semibold text-sm uppercase tracking-wider">Fecha Inicio</th>
+                    <th className="px-6 py-4 text-left font-semibold text-sm uppercase tracking-wider">Fecha Conclusión</th>
+                    <th className="px-6 py-4 text-left font-semibold text-sm uppercase tracking-wider">Estado</th>
+                    <th className="px-6 py-4 text-left font-semibold text-sm uppercase tracking-wider">Acciones</th>
                   </tr>
+                </thead>
+
+                {/* Cuerpo de la tabla mejorado */}
+                <tbody className="divide-y divide-gray-200 bg-white">
+                  {eventos.map((evento) => (
+                    <tr key={evento.id} className="hover:bg-gray-50 transition-colors duration-200">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{evento.id}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-medium text-gray-900 max-w-xs truncate" title={evento.nombre}>
+                          {evento.nombre}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{evento.fechaInicio}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{evento.fechaConclusion}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-4 py-1 rounded-full text-xs font-semibold w-20 justify-center ${getEstadoColor(evento.estado)}`}>
+                          {evento.estado}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        {renderAcciones(evento)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Paginación */}
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-0">
+            <div className="flex items-center border-2 border-red-600 rounded-lg overflow-hidden">
+              <button className="px-3 py-2 text-red-600 hover:bg-red-600 hover:text-white transition-colors flex items-center gap-1 text-sm font-medium border-r border-red-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                <ChevronLeft size={16} /><span className="hidden sm:inline">Anterior</span>
+              </button>
+              
+              <div className="flex">
+                {[1, 2, 3].map(num => (
+                  <button key={num} className={`px-3 py-2 ${num === 1 ? 'bg-red-600 text-white' : 'text-red-600 hover:bg-red-50'} font-medium text-sm min-w-[40px] ${num > 1 ? 'border-l border-red-200' : ''}`}>
+                    {num}
+                  </button>
                 ))}
-              </tbody>
-            </table>
+                <span className="hidden lg:flex items-center px-2 text-red-600 text-sm border-l border-red-200">...</span>
+                <button className="hidden lg:block px-3 py-2 text-red-600 hover:bg-red-50 transition-colors text-sm font-medium min-w-[40px] border-l border-red-200">10</button>
+              </div>
+              
+              <button className="px-3 py-2 text-red-600 hover:bg-red-600 hover:text-white transition-colors flex items-center gap-1 text-sm font-medium border-l border-red-200">
+                <span className="hidden sm:inline">Siguiente</span><ChevronRight size={16} />
+              </button>
+            </div>
           </div>
-        </div>
-
-        {/* Paginación Responsive */}
-        <div className="flex justify-center">
-          <div className="flex items-center gap-1 border-2 border-red-600 rounded-lg p-1">
-            <button className="px-2 py-1 text-red-600 hover:bg-red-600 hover:text-white transition-colors rounded flex items-center gap-1 text-xs sm:text-sm">
-              <ChevronLeft size={14} />
-              <span className="hidden sm:inline">Anterior</span>
-            </button>
-            
-            <button className="px-2 py-1 bg-red-600 text-white rounded font-medium text-xs sm:text-sm">1</button>
-            <button className="px-2 py-1 text-red-600 hover:bg-red-600 hover:text-white transition-colors rounded text-xs sm:text-sm">2</button>
-            <button className="px-2 py-1 text-red-600 hover:bg-red-600 hover:text-white transition-colors rounded text-xs sm:text-sm">3</button>
-            <button className="px-2 py-1 text-red-600 hover:bg-red-600 hover:text-white transition-colors rounded text-xs sm:text-sm">4</button>
-            <span className="px-1 text-red-600 text-xs sm:text-sm">...</span>
-            
-            <button className="px-2 py-1 text-red-600 hover:bg-red-600 hover:text-white transition-colors rounded flex items-center gap-1 text-xs sm:text-sm">
-              <span className="hidden sm:inline">Siguiente</span>
-              <ChevronRight size={14} />
-            </button>
-          </div>
-        </div>
-
       </div>
     </div>
     </>
