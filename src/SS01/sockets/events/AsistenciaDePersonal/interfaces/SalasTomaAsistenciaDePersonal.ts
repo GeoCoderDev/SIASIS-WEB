@@ -1,5 +1,6 @@
 import { ModoRegistro } from "@/interfaces/shared/ModoRegistroPersonal";
-import { PersonalDelColegio, RolesSistema } from "@/interfaces/shared/RolesSistema";
+import { PersonalDelColegio } from "@/interfaces/shared/PersonalDelColegio";
+import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 
 export enum SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935 {
   //Salas de toma de asistencia de Directivo
@@ -22,7 +23,6 @@ export enum SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935 {
   SALA_TOMA_ASISTENCIA_PERSONAL_ADMINISTRATIVO_ENTRADA = "SALA_TOMA_ASISTENCIA_PERSONAL_ADMINISTRATIVO_ENTRADA",
   SALA_TOMA_ASISTENCIA_PERSONAL_ADMINISTRATIVO_SALIDA = "SALA_TOMA_ASISTENCIA_PERSONAL_ADMINISTRATIVO_SALIDA",
 }
-
 
 export const SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER: Record<
   PersonalDelColegio,
