@@ -12,10 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 
 import { AsistenciaDePersonalIDB } from "../../lib/utils/local/db/models/AsistenciaDePersonal/AsistenciaDePersonalIDB";
 import { FechaHoraActualRealState } from "@/global/state/others/fechaHoraActualReal";
-import {
-  PersonalDelColegio,
-  RolesSistema,
-} from "@/interfaces/shared/RolesSistema";
+import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import { Loader2 } from "lucide-react";
 import { AsistenciaDiariaResultado } from "@/interfaces/shared/AsistenciaRequests";
 import { ErrorResponseAPIBase } from "@/interfaces/shared/apis/types";
@@ -26,6 +23,7 @@ import { TomaAsistenciaPersonalSIU01Events } from "@/SS01/sockets/events/Asisten
 
 import { SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER } from "../../SS01/sockets/events/AsistenciaDePersonal/interfaces/SalasTomaAsistenciaDePersonal";
 import { Genero } from "@/interfaces/shared/Genero";
+import { PersonalDelColegio } from "@/interfaces/shared/PersonalDelColegio";
 
 // ========================================================================================
 // CONFIGURACIÓN DE SOCKET Y TIMEOUT
@@ -473,7 +471,7 @@ export const ListaPersonal = ({
     const timestampActual = fechaHoraRedux.utilidades?.timestamp
       ? fechaHoraRedux.utilidades?.timestamp - OFFSET_PERU_MS
       : Date.now();
-      
+
     const nuevoRegistro: AsistenciaDiariaResultado = {
       idUsuario,
       AsistenciaMarcada: true,
