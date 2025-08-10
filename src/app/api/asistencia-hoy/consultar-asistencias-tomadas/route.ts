@@ -42,8 +42,8 @@ const validarPermisos = (
   rol: RolesSistema,
   actor: ActoresSistema,
   tipoAsistencia: TipoAsistencia,
-  idODniConsulta: string | null,
-  miIdODni: string,
+  idConsulta: string | null,
+  miid: string,
   esConsultaPropia: boolean = false,
   grado?: string | null,
   seccion?: string | null,
@@ -93,7 +93,7 @@ const validarPermisos = (
         // Para asistencia personal: si es consulta propia, permitir sin idUsuario
         if (esConsultaPropia) return { esValido: true };
         // Para consulta de otros, verificar que sea su propio idUsuario
-        if (!idODniConsulta || idODniConsulta !== miIdODni) {
+        if (!idConsulta || idConsulta !== miid) {
           return {
             esValido: false,
             mensaje:
@@ -133,7 +133,7 @@ const validarPermisos = (
         // Para asistencia personal: si es consulta propia, permitir sin idUsuario
         if (esConsultaPropia) return { esValido: true };
         // Para consulta de otros, verificar que sea su propio idUsuario
-        if (!idODniConsulta || idODniConsulta !== miIdODni) {
+        if (!idConsulta || idConsulta !== miid) {
           return {
             esValido: false,
             mensaje:
@@ -162,7 +162,7 @@ const validarPermisos = (
         // Para asistencia personal: si es consulta propia, permitir sin idUsuario
         if (esConsultaPropia) return { esValido: true };
         // Para consulta de otros, verificar que sea su propio idUsuario
-        if (!idODniConsulta || idODniConsulta !== miIdODni) {
+        if (!idConsulta || idConsulta !== miid) {
           return {
             esValido: false,
             mensaje:
@@ -202,7 +202,7 @@ const validarPermisos = (
         // Para asistencia personal: si es consulta propia, permitir sin idUsuario
         if (esConsultaPropia) return { esValido: true };
         // Para consulta de otros, verificar que sea su propio idUsuario
-        if (!idODniConsulta || idODniConsulta !== miIdODni) {
+        if (!idConsulta || idConsulta !== miid) {
           return {
             esValido: false,
             mensaje:
@@ -231,7 +231,7 @@ const validarPermisos = (
         // Para asistencia personal: si es consulta propia, permitir sin idUsuario
         if (esConsultaPropia) return { esValido: true };
         // Para consulta de otros, verificar que sea su propio idUsuario
-        if (!idODniConsulta || idODniConsulta !== miIdODni) {
+        if (!idConsulta || idConsulta !== miid) {
           return {
             esValido: false,
             mensaje:
@@ -266,7 +266,7 @@ const validarPermisos = (
         };
       }
       // Solo consultas unitarias (idUsuario obligatorio)
-      if (!idODniConsulta) {
+      if (!idConsulta) {
         return {
           esValido: false,
           mensaje:
@@ -304,7 +304,7 @@ export async function GET(req: NextRequest) {
     const tipoAsistenciaParam = searchParams.get(
       "TipoAsistencia"
     ) as TipoAsistencia;
-    const idODniParam = searchParams.get("idUsuario"); // ✅ ACTUALIZADO: Era "DNI"
+    const idParam = searchParams.get("idUsuario"); // ✅ ACTUALIZADO: Era "DNI"
     const gradoParam = searchParams.get("Grado"); // Opcional
     const seccionParam = searchParams.get("Seccion"); // Opcional
     const nivelEducativoParam = searchParams.get("NivelEducativo"); // Opcional
@@ -400,7 +400,7 @@ export async function GET(req: NextRequest) {
       rol!,
       actor,
       tipoAsistenciaFinal,
-      idODniParam,
+      idParam,
       MI_idUsuario,
       esConsultaPropia,
       gradoParam,
@@ -423,9 +423,9 @@ export async function GET(req: NextRequest) {
 
     // ✅ CREAR PATRÓN DE BÚSQUEDA con lógica mejorada
     let patronBusqueda: string;
-    const idODniParaBusqueda = esConsultaPropia ? MI_idUsuario : idODniParam;
+    const idParaBusqueda = esConsultaPropia ? MI_idUsuario : idParam;
 
-    if (idODniParaBusqueda) {
+    if (idParaBusqueda) {
       // Consulta unitaria por idUsuario específico (propio o de otro)
       if (
         actor === ActoresSistema.Estudiante &&
@@ -433,9 +433,9 @@ export async function GET(req: NextRequest) {
         gradoParam &&
         seccionParam
       ) {
-        patronBusqueda = `${fechaActualPeru}:${modoRegistroParam}:${actor}:${idODniParaBusqueda}:${nivelEducativoParam}:${gradoParam}:${seccionParam}`;
+        patronBusqueda = `${fechaActualPeru}:${modoRegistroParam}:${actor}:${idParaBusqueda}:${nivelEducativoParam}:${gradoParam}:${seccionParam}`;
       } else {
-        patronBusqueda = `${fechaActualPeru}:${modoRegistroParam}:${actor}:${idODniParaBusqueda}`;
+        patronBusqueda = `${fechaActualPeru}:${modoRegistroParam}:${actor}:${idParaBusqueda}`;
       }
     } else if (
       nivelEducativoParam &&
@@ -461,7 +461,7 @@ export async function GET(req: NextRequest) {
 
     // Buscar claves
     let claves: string[];
-    if (idODniParaBusqueda) {
+    if (idParaBusqueda) {
       // Para consulta unitaria, verificar si existe la clave específica
       const existe = await redisClientInstance.exists(patronBusqueda);
       claves = existe ? [patronBusqueda] : [];
@@ -481,7 +481,7 @@ export async function GET(req: NextRequest) {
       if (valor) {
         const partes = clave.split(":");
         if (partes.length >= 4) {
-          const idODni = partes[3]; // ✅ ACTUALIZADO: Puede ser ID o DNI
+          const id = partes[3]; // ✅ ACTUALIZADO: Puede ser ID o DNI
 
           if (actor === ActoresSistema.Estudiante) {
             // Para estudiantes
@@ -492,7 +492,7 @@ export async function GET(req: NextRequest) {
               )
             ) {
               resultados.push({
-                idUsuario: idODni, // ✅ ACTUALIZADO: Era "DNI"
+                idUsuario: id, // ✅ ACTUALIZADO: Era "DNI"
                 AsistenciaMarcada: true,
                 Detalles: {
                   Estado: valor as EstadosAsistencia,
@@ -506,7 +506,7 @@ export async function GET(req: NextRequest) {
               const desfaseSegundos = parseInt(valor[1] as string);
 
               resultados.push({
-                idUsuario: idODni, // ✅ ACTUALIZADO: Era "DNI"
+                idUsuario: id, // ✅ ACTUALIZADO: Era "DNI"
                 AsistenciaMarcada: true,
                 Detalles: {
                   Timestamp: timestamp,
@@ -528,7 +528,7 @@ export async function GET(req: NextRequest) {
       Mes: Number(fechaActualPeru.split("-")[1]) as Meses,
       ModoRegistro: modoRegistroParam as ModoRegistro,
       TipoAsistencia: tipoAsistenciaFinal, // ✅ AGREGADO: Para claridad
-      Resultados: idODniParaBusqueda ? resultados[0] || null : resultados, // Unitario vs múltiple
+      Resultados: idParaBusqueda ? resultados[0] || null : resultados, // Unitario vs múltiple
     };
 
     return NextResponse.json(respuesta, { status: 200 });

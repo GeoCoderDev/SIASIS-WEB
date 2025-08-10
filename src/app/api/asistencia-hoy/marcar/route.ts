@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { EstadosAsistencia } from "@/interfaces/shared/EstadosAsistenciaEstudiantes";
 import { ActoresSistema } from "@/interfaces/shared/ActoresSistema";
-import {
-  RegistrarAsistenciaIndividualRequestBody,
-  RegistrarAsistenciaIndividualSuccessResponse,
-} from "@/interfaces/shared/apis/api01/asistencia/types";
+
 import { validateDNI } from "@/lib/helpers/validators/data/validateDNI";
 import {
   PermissionErrorTypes,
@@ -21,6 +18,10 @@ import {
   obtenerFechaHoraActualPeru,
 } from "../../_helpers/obtenerFechaActualPeru";
 import { verifyAuthToken } from "@/lib/utils/backend/auth/functions/jwtComprobations";
+import {
+  RegistrarAsistenciaIndividualRequestBody,
+  RegistrarAsistenciaIndividualSuccessResponse,
+} from "@/interfaces/shared/apis/api01/asistencia/types";
 
 // Constantes de configuración
 const MINUTOS_TOLERANCIA = 5; // 5 minutos de tolerancia para considerar llegada temprana
@@ -54,8 +55,8 @@ const validarPermisosRegistro = (
   rol: RolesSistema,
   actor: ActoresSistema,
   tipoAsistencia: TipoAsistencia,
-  idODniARegistrar: string,
-  miIdODni: string,
+  idARegistrar: string,
+  miid: string,
   esRegistroPropio: boolean = false,
   grado?: number,
   seccion?: string,
@@ -103,7 +104,7 @@ const validarPermisosRegistro = (
         }
       } else {
         // Para asistencia personal: solo su propio registro
-        if (!esRegistroPropio && idODniARegistrar !== miIdODni) {
+        if (!esRegistroPropio && idARegistrar !== miid) {
           return {
             esValido: false,
             mensaje:
@@ -141,7 +142,7 @@ const validarPermisosRegistro = (
         }
       } else {
         // Para asistencia personal: solo su propio registro
-        if (!esRegistroPropio && idODniARegistrar !== miIdODni) {
+        if (!esRegistroPropio && idARegistrar !== miid) {
           return {
             esValido: false,
             mensaje:
@@ -169,7 +170,7 @@ const validarPermisosRegistro = (
         };
       } else {
         // Para asistencia personal: solo su propio registro
-        if (!esRegistroPropio && idODniARegistrar !== miIdODni) {
+        if (!esRegistroPropio && idARegistrar !== miid) {
           return {
             esValido: false,
             mensaje:
@@ -196,7 +197,7 @@ const validarPermisosRegistro = (
         };
       } else {
         // Para asistencia personal: solo su propio registro
-        if (!esRegistroPropio && idODniARegistrar !== miIdODni) {
+        if (!esRegistroPropio && idARegistrar !== miid) {
           return {
             esValido: false,
             mensaje:
@@ -273,7 +274,7 @@ export async function POST(req: NextRequest) {
 
     const {
       Actor,
-      idUsuario,
+      Id_Usuario,
       FechaHoraEsperadaISO,
       ModoRegistro,
       TipoAsistencia: tipoAsistenciaParam,
@@ -286,10 +287,10 @@ export async function POST(req: NextRequest) {
 
     // ✅ NUEVA LÓGICA: Detectar si es registro propio
     // Si no se envía Actor, idUsuario, ni TipoAsistencia = registro propio
-    const esRegistroPropio = !Actor && !idUsuario && !tipoAsistenciaParam;
+    const esRegistroPropio = !Actor && !Id_Usuario && !tipoAsistenciaParam;
 
     let actorFinal: ActoresSistema;
-    let idODniFinal: string;
+    let idFinal: string;
     let tipoAsistenciaFinal: TipoAsistencia;
 
     if (esRegistroPropio) {
@@ -310,14 +311,14 @@ export async function POST(req: NextRequest) {
       }
 
       actorFinal = actorMapeado;
-      idODniFinal = MI_idUsuario; // ✅ Usar ID/DNI del token
+      idFinal = MI_idUsuario; // ✅ Usar ID/DNI del token
       tipoAsistenciaFinal = TipoAsistencia.ParaPersonal; // ✅ Siempre Personal para registro propio
     } else {
       // ✅ REGISTRO DE OTROS: Requiere todos los campos
       console.log(`🔍 Registro de otros detectado para rol: ${rol}`);
 
       // Validar que se proporcionaron todos los campos necesarios
-      if (!Actor || !idUsuario || !tipoAsistenciaParam) {
+      if (!Actor || !Id_Usuario || !tipoAsistenciaParam) {
         return NextResponse.json(
           {
             success: false,
@@ -343,9 +344,9 @@ export async function POST(req: NextRequest) {
 
       // ✅ NUEVA VALIDACIÓN: idUsuario puede ser ID (directivos) o DNI (otros)
       if (
-        !idUsuario ||
-        typeof idUsuario !== "string" ||
-        idUsuario.trim().length === 0
+        !Id_Usuario ||
+        typeof Id_Usuario !== "string" ||
+        Id_Usuario.trim().length === 0
       ) {
         return NextResponse.json(
           {
@@ -359,7 +360,7 @@ export async function POST(req: NextRequest) {
 
       // Para estudiantes y personal no-directivo, validar que sea DNI de 8 dígitos
       if (Actor !== ActoresSistema.Directivo) {
-        const dniValidation = validateDNI(idUsuario, true);
+        const dniValidation = validateDNI(Id_Usuario, true);
         if (!dniValidation.isValid) {
           return NextResponse.json(
             {
@@ -386,7 +387,7 @@ export async function POST(req: NextRequest) {
       }
 
       actorFinal = Actor as ActoresSistema;
-      idODniFinal = idUsuario;
+      idFinal = Id_Usuario;
       tipoAsistenciaFinal = tipoAsistenciaParam;
     }
 
@@ -472,7 +473,7 @@ export async function POST(req: NextRequest) {
       rol!,
       actorFinal,
       tipoAsistenciaFinal,
-      idODniFinal,
+      idFinal,
       MI_idUsuario,
       esRegistroPropio,
       Grado,
@@ -506,10 +507,10 @@ export async function POST(req: NextRequest) {
 
     if (esEstudiante) {
       // Para estudiantes: incluir nivel, grado y sección en la clave
-      clave = `${fechaHoy}:${ModoRegistro}:${actorFinal}:${idODniFinal}:${NivelDelEstudiante}:${Grado}:${Seccion}`;
+      clave = `${fechaHoy}:${ModoRegistro}:${actorFinal}:${idFinal}:${NivelDelEstudiante}:${Grado}:${Seccion}`;
     } else {
       // Para personal: clave tradicional
-      clave = `${fechaHoy}:${ModoRegistro}:${actorFinal}:${idODniFinal}`;
+      clave = `${fechaHoy}:${ModoRegistro}:${actorFinal}:${idFinal}`;
     }
 
     // Usar el TipoAsistencia determinado
@@ -557,7 +558,7 @@ export async function POST(req: NextRequest) {
           timestamp: timestampActual,
           desfaseSegundos,
           esNuevoRegistro,
-          esRegistroPropio: MI_idUsuario === idUsuario,
+          esRegistroPropio: MI_idUsuario === Id_Usuario,
           actorRegistrado: actorFinal, // ✅ Esto enviará la abreviación (D, A, PP, PS, T, R, PA, E)
           tipoAsistencia: tipoAsistenciaFinal,
         },

@@ -424,7 +424,7 @@ export class AsistenciaDePersonalRepository {
 
   /**
    * Elimina registros mensuales locales
-   * ✅ ACTUALIZADO: Usa idODni
+   * ✅ ACTUALIZADO: Usa id
    */
   public async eliminarRegistroMensual(
     tipoPersonal: TipoPersonal,
@@ -505,12 +505,12 @@ export class AsistenciaDePersonalRepository {
 
   /**
    * Verifica si existe un registro mensual para un personal específico
-   * ✅ ACTUALIZADO: Usa idODni
+   * ✅ ACTUALIZADO: Usa id
    */
   public async verificarExistenciaRegistroMensual(
     tipoPersonal: TipoPersonal,
     modoRegistro: ModoRegistro,
-    idODni: string,
+    id: string,
     mes: number
   ): Promise<number | null> {
     try {
@@ -526,7 +526,7 @@ export class AsistenciaDePersonalRepository {
       return new Promise((resolve, reject) => {
         try {
           const index = store.index(indexName);
-          const keyValue = [idODni, mes];
+          const keyValue = [id, mes];
           const request = index.get(keyValue);
 
           request.onsuccess = () => {
@@ -566,7 +566,7 @@ export class AsistenciaDePersonalRepository {
   public async verificarSiExisteRegistroDiario(
     tipoPersonal: TipoPersonal,
     modoRegistro: ModoRegistro,
-    idODni: string,
+    id: string,
     mes: number,
     dia: number
   ): Promise<boolean> {
@@ -576,7 +576,7 @@ export class AsistenciaDePersonalRepository {
       const store = await IndexedDBConnection.getStore(storeName, "readonly");
 
       // ✅ AGREGAR: Validar valores antes de usar en índice
-      this.validarValoresParaIndice(idODni, mes, tipoPersonal);
+      this.validarValoresParaIndice(id, mes, tipoPersonal);
 
       const indexName = this.mapper.getIndexNameForPersonalMes(tipoPersonal);
 
@@ -587,7 +587,7 @@ export class AsistenciaDePersonalRepository {
           // ✅ AGREGAR: Convertir identificador al tipo correcto
           const identificadorConvertido = this.convertirIdentificadorParaDB(
             tipoPersonal,
-            idODni
+            id
           );
           const keyValue = [identificadorConvertido, mes];
 
@@ -595,7 +595,7 @@ export class AsistenciaDePersonalRepository {
             `🔍 verificarSiExisteRegistroDiario - Índice: ${indexName}`,
             {
               tipoPersonal,
-              identificadorOriginal: idODni,
+              identificadorOriginal: id,
               identificadorConvertido,
               mes,
               dia,
@@ -731,12 +731,12 @@ export class AsistenciaDePersonalRepository {
 
   /**
    * Actualiza un registro existente agregando un nuevo día
-   * ✅ ACTUALIZADO: Usa idODni y garantiza timestamp actualizado
+   * ✅ ACTUALIZADO: Usa id y garantiza timestamp actualizado
    */
   public async actualizarRegistroExistente(
     tipoPersonal: TipoPersonal,
     modoRegistro: ModoRegistro,
-    idODni: string,
+    id: string,
     mes: number,
     dia: number,
     registro: RegistroEntradaSalida,
@@ -744,13 +744,13 @@ export class AsistenciaDePersonalRepository {
   ): Promise<OperationResult> {
     try {
       console.log(
-        `🔄 Actualizando registro existente para ${tipoPersonal} - ${idODni} - mes ${mes} - día ${dia}`
+        `🔄 Actualizando registro existente para ${tipoPersonal} - ${id} - mes ${mes} - día ${dia}`
       );
 
       const registroActual = await this.obtenerRegistroMensual(
         tipoPersonal,
         modoRegistro,
-        idODni,
+        id,
         mes,
         idRegistroExistente
       );
@@ -830,7 +830,7 @@ export class AsistenciaDePersonalRepository {
 
   /**
    * Elimina un día específico de un registro mensual
-   * ✅ ACTUALIZADO: Usa idODni y actualiza timestamp al modificar
+   * ✅ ACTUALIZADO: Usa id y actualiza timestamp al modificar
    */
   public async eliminarDiaDeRegistroMensual(
     tipoPersonal: TipoPersonal,
