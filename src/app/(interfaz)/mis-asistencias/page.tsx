@@ -17,10 +17,7 @@ import { AsistenciaDePersonalIDB } from "@/lib/utils/local/db/models/AsistenciaD
 import { convertirAFormato12Horas } from "@/lib/helpers/formatters/fechas-hora/formatearAFormato12Horas";
 import { ENTORNO } from "@/constants/ENTORNO";
 import { Entorno } from "@/interfaces/shared/Entornos";
-import {
-  EventosIDB,
-  IEventoLocal,
-} from "@/lib/utils/local/db/models/Eventos/EventosIDB";
+
 import { RegistroEntradaSalida } from "@/interfaces/shared/AsistenciaRequests";
 import { AsistenciaMensualPersonalLocal } from "@/lib/utils/local/db/models/AsistenciaDePersonal/AsistenciaDePersonalTypes";
 import userStorage from "@/lib/utils/local/db/models/UserStorage";
@@ -34,6 +31,7 @@ import TablaRegistrosAsistencia from "@/components/asistencia-personal/registros
 import InfoUsuarioAsistencia from "@/components/asistencia-personal/registros-asistencia-personal/InfoUsuarioAsistencia";
 import { DatosAsistenciaHoyIDB } from "@/lib/utils/local/db/models/DatosAsistenciaHoy/DatosAsistenciaHoyIDB";
 import { GenericUser } from "@/interfaces/shared/GenericUser";
+import { EventosIDB, IEventoLocal } from "@/lib/utils/local/db/models/eventos/EventosIDB";
 
 // 🔧 CONSTANTE DE CONFIGURACIÓN PARA DESARROLLO
 const CONSIDERAR_DIAS_NO_ESCOLARES = false; // false = solo días laborales, true = incluir sábados y domingos
