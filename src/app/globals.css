@@ -69,6 +69,7 @@ select::-webkit-listbox {
          cursor-pointer;
 }
 
+
 /* LOADER */
 .loader {
   aspect-ratio: 1;

@@ -10,7 +10,7 @@ import {
 } from "@/interfaces/shared/Asistencia/DatosAsistenciaHoyIE20935";
 import IndexedDBConnection from "../../IndexedDBConnection";
 import { LogoutTypes, ErrorDetailsForLogout } from "@/interfaces/LogoutTypes";
-import { logout } from "@/lib/helpers/logout";
+import { logout } from "@/lib/utils/frontend/auth/logout";
 import store from "@/global/store";
 import { HandlerDirectivoAsistenciaResponse } from "./handlers/HandlerDirectivoAsistenciaResponse";
 import { HandlerProfesorPrimariaAsistenciaResponse } from "./handlers/HandlerProfesorPrimariaAsistenciaResponse";

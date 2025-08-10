@@ -4,7 +4,7 @@ import TablasSistema, {
   ITablaInfo,
 } from "../../../../../interfaces/shared/TablasSistema";
 import { DatabaseModificationOperations } from "../../../../../interfaces/shared/DatabaseModificationOperations";
-import { logout } from "@/lib/helpers/logout";
+import { logout } from "@/lib/utils/frontend/auth/logout";
 import { LogoutTypes } from "@/interfaces/LogoutTypes";
 
 export interface T_Ultima_Actualizacion_Tablas_Locales {

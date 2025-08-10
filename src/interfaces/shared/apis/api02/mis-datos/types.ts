@@ -1,5 +1,5 @@
 import { T_Responsables } from "@prisma/client";
-import { ApiResponseBase, SuccessResponseAPIBase } from "../../types";
+import { ApiResponseBase, ErrorResponseAPIBase, SuccessResponseAPIBase } from "../../types";
 
 // -----------------------------------------
 //                METODO GET
@@ -41,3 +41,21 @@ export interface ActualizarUsuarioSuccessResponseAPI02
   message: string;
   data: ActualizarMisDatoUsuarioRequestBodyAPI02; // Los datos que se actualizaron
 }
+
+export type ObtenerMisDatosSuccessAPI02Data = MisDatosResponsable;
+
+export interface MisDatosSuccessResponseAPI02 extends SuccessResponseAPIBase {
+  data: ObtenerMisDatosSuccessAPI02Data;
+}
+
+// Interfaz para la respuesta exitosa
+export interface ActualizarUsuarioSuccessResponseAPI02
+  extends SuccessResponseAPIBase {
+  success: true;
+  message: string;
+  data: ActualizarMisDatoUsuarioRequestBodyAPI02; // Los datos que se actualizaron
+}
+
+
+
+export type MisDatosErrorResponseAPI02 = ErrorResponseAPIBase;

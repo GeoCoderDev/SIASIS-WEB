@@ -60,7 +60,9 @@ const AuxiliarCard = ({
       </span>
 
       <span
-        className="text-[15px] sxs-only:text-[13px] font-semibold text-verde-principal text-center"
+        className={`text-[15px] sxs-only:text-[13px] font-semibold text-center ${
+          Estado ? "text-verde-principal" : "text-rojo-oscuro"
+        }`}
         title={`Estado: ${Estado ? "Activo" : "Inactivo"}`}
       >
         Estado: {Estado ? "Activo" : "Inactivo"}

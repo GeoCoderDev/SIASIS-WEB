@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { logout } from "@/lib/helpers/logout";
+import { logout } from "@/lib/utils/frontend/auth/logout";
 import { LogoutTypes, ErrorDetailsForLogout } from "@/interfaces/LogoutTypes";
 import {
   ErrorResponseAPIBase,
@@ -372,7 +371,7 @@ export class AsistenciaDePersonalErrorHandler {
     this.setError?.(null);
     this.setIsSomethingLoading?.(false);
   }
-  
+
   /**
    * Establece estado de loading
    */

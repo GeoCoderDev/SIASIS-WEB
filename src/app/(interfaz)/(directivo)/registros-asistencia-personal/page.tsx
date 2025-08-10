@@ -19,7 +19,7 @@ import { ENTORNO } from "@/constants/ENTORNO";
 import { Entorno } from "@/interfaces/shared/Entornos";
 import {
   EventosIDB,
-} from "@/lib/utils/local/db/models/eventos/EventosIDB";
+} from "@/lib/utils/local/db/models/Eventos/EventosIDB";
 import { RegistroEntradaSalida } from "@/interfaces/shared/AsistenciaRequests";
 import { AsistenciaMensualPersonalLocal } from "@/lib/utils/local/db/models/AsistenciaDePersonal/AsistenciaDePersonalTypes";
 import SiasisUserSelector from "@/components/inputs/SiasisUserSelector";
@@ -29,7 +29,7 @@ import InfoUsuarioAsistencia from "@/components/asistencia-personal/registros-as
 import MensajesEstadoAsistencia from "@/components/asistencia-personal/registros-asistencia-personal/MensajesEstadoAsistencia";
 import TablaRegistrosAsistencia from "@/components/asistencia-personal/registros-asistencia-personal/TablaRegistrosAsistencias";
 import LeyendaEstadosAsistencia from "@/components/asistencia-personal/registros-asistencia-personal/LeyendaEstadosAsistencia";
-import { IEventoLocal } from "@/lib/utils/local/db/models/eventos/EventosIDBTypes";
+import { IEventoLocal } from "@/lib/utils/local/db/models/Eventos/EventosIDBTypes";
 import { TiposIdentificadoresTextos } from "@/interfaces/shared/TiposIdentificadores";
 import { extraerTipoDeIdentificador } from "@/lib/helpers/extractors/extraerTipoDeIdentificador";
 

@@ -24,7 +24,7 @@ import {
   switchSidebarIsOpen,
 } from "@/global/state/Flags/sidebarIsOpen";
 
-import { logout } from "@/lib/helpers/logout";
+import { logout } from "@/lib/utils/frontend/auth/logout";
 
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import { Genero } from "@/interfaces/shared/Genero";

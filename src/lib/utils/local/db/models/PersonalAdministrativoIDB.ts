@@ -362,7 +362,7 @@ export class PersonalAdministrativoIDB {
         for (const personalServidor of lote) {
           try {
             // Verificar si ya existe el personal administrativo
-            const existePersonal = await this.getByDNI(
+            const existePersonal = await this.getById(
               personalServidor.Id_Personal_Administrativo
             );
 
@@ -420,7 +420,7 @@ export class PersonalAdministrativoIDB {
    * @param dni DNI del personal administrativo
    * @returns Personal administrativo encontrado o null
    */
-  public async getByDNI(
+  public async getById(
     dni: string
   ): Promise<IPersonalAdministrativoLocal | null> {
     try {

@@ -51,7 +51,7 @@ export class AuxiliaresIDB {
     try {
       const debeSincronizar = await comprobarSincronizacionDeTabla(
         this.tablaInfo,
-        "API01"
+        this.siasisAPI
       );
 
       if (!debeSincronizar) {
@@ -325,7 +325,7 @@ export class AuxiliaresIDB {
         for (const auxiliarServidor of lote) {
           try {
             // Verificar si el auxiliar ya existe
-            const existeAuxiliar = await this.getByDNI(
+            const existeAuxiliar = await this.getById(
               auxiliarServidor.Id_Auxiliar
             );
 
@@ -383,7 +383,7 @@ export class AuxiliaresIDB {
    * @param dni DNI del auxiliar
    * @returns Auxiliar encontrado o null
    */
-  public async getByDNI(dni: string): Promise<IAuxiliarLocal | null> {
+  public async getById(dni: string): Promise<IAuxiliarLocal | null> {
     try {
       const store = await IndexedDBConnection.getStore(this.nombreTablaLocal);
 

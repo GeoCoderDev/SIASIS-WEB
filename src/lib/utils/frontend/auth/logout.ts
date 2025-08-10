@@ -1,6 +1,6 @@
 import { LogoutTypes, ErrorDetailsForLogout } from "@/interfaces/LogoutTypes";
-import userStorage from "../utils/local/db/models/UserStorage";
-import { formatErrorDetailsForUrl } from "./parsers/errorDetailsInURL";
+import userStorage from "../../local/db/models/UserStorage";
+import { formatErrorDetailsForUrl } from "@/lib/helpers/parsers/errorDetailsInURL";
 
 /**
  * Cierra la sesión del usuario y redirige a la página de login

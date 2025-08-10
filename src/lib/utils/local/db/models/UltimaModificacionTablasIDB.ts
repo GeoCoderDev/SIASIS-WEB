@@ -7,7 +7,7 @@ import TablasSistema, {
 import { DatabaseModificationOperations } from "../../../../../interfaces/shared/DatabaseModificationOperations";
 import { T_Ultima_Modificacion_Tablas } from "@prisma/client";
 
-import { logout } from "@/lib/helpers/logout";
+import { logout } from "@/lib/utils/frontend/auth/logout";
 import { LogoutTypes } from "@/interfaces/LogoutTypes";
 import comprobarSincronizacion from "@/lib/helpers/validations/comprobarSincronizacion";
 import fetchSiasisApiGenerator from "@/lib/helpers/generators/fetchSiasisApisGenerator";

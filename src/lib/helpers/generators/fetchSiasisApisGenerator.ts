@@ -3,7 +3,7 @@ import { MethodHTTP } from "@/interfaces/MethodsHTTP";
 import getRandomAPI01IntanceURL from "@/lib/helpers/functions/getRandomAPI01InstanceURL";
 import getRandomAPI02IntanceURL from "@/lib/helpers/functions/getRandomAPI02Instance";
 import userStorage from "@/lib/utils/local/db/models/UserStorage";
-import { logout } from "@/lib/helpers/logout";
+import { logout } from "@/lib/utils/frontend/auth/logout";
 import { FetchCancelable } from "@/lib/utils/FetchCancellable";
 import { LogoutTypes } from "@/interfaces/LogoutTypes";
 import { SiasisAPIS } from "@/interfaces/shared/SiasisComponents";
@@ -18,7 +18,9 @@ interface FetchSiasisAPIs {
 }
 
 interface FetchSiasisResult {
-  fetchSiasisAPI: (config: FetchSiasisAPIs) => Promise<FetchCancelable | undefined>;
+  fetchSiasisAPI: (
+    config: FetchSiasisAPIs
+  ) => Promise<FetchCancelable | undefined>;
   fetchCancelables: FetchCancelable[];
   cancelAllRequests: () => void;
 }

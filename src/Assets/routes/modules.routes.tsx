@@ -244,7 +244,7 @@ const allSiasisModules: SiasisModule[] = [
     active: true,
   },
   {
-    route: "/estudiantes-vinculados",
+    route: "/mis-estudiantes-relacionados",
     text: "Estudiantes Vinculados",
     IconTSX: (props: IconProps) => {
       return <EstudianteBirrete {...props} />;

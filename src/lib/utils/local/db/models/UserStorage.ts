@@ -1,9 +1,10 @@
 import { SuccessLoginData } from "@/interfaces/shared/apis/shared/login/types";
 import dbConnection from "../IndexedDBConnection";
-import { logout } from "@/lib/helpers/logout";
+import { logout } from "@/lib/utils/frontend/auth/logout";
 import { LogoutTypes, ErrorDetailsForLogout } from "@/interfaces/LogoutTypes";
 import { Genero } from "@/interfaces/shared/Genero";
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
+import { TablasLocal } from "@/interfaces/shared/TablasSistema";
 
 // Extendemos SuccessLoginData con la nueva propiedad
 export interface UserData extends SuccessLoginData {
@@ -11,7 +12,7 @@ export interface UserData extends SuccessLoginData {
 }
 
 class UserStorage {
-  private storeName: string = "user_data";
+  private storeName: TablasLocal = TablasLocal.Tabla_Datos_Usuario;
 
   /**
    * Maneja los errores según su tipo y realiza logout si es necesario

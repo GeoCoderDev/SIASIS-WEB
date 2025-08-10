@@ -15,13 +15,10 @@ export interface ApiResponseBase extends MessageProperty {
 
 export interface SuccessResponseAPIBase extends ApiResponseBase {
   success: true;
-  message: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data?: any;
 }
 
 export interface ErrorResponseAPIBase extends ApiResponseBase {
-  message: string;
   success: false;
   details?: ErrorDetails;
   errorType?: AllErrorTypes;
