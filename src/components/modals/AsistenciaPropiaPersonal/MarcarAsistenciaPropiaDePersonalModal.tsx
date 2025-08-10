@@ -19,7 +19,6 @@ import { useSS01 } from "@/hooks/useSS01";
 import { TomaAsistenciaPersonalSIU01Events } from "@/SS01/sockets/events/AsistenciaDePersonal/frontend/TomaAsistenciaPersonalSIU01Events";
 import { SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER } from "@/SS01/sockets/events/AsistenciaDePersonal/interfaces/SalasTomaAsistenciaDePersonal";
 import {
-  PersonalDelColegio,
   RolesSistema,
 } from "@/interfaces/shared/RolesSistema";
 import { AsistenciaDePersonalIDB } from "@/lib/utils/local/db/models/AsistenciaDePersonal/AsistenciaDePersonalIDB";
@@ -32,6 +31,7 @@ import {
   MENSAJES_CONEXION_SOCKET,
   SOCKET_CONNECTION_TIMEOUT,
 } from "@/constants/SOCKET_FRONTEND_CONFIGURATION";
+import { PersonalDelColegio } from "@/interfaces/shared/PersonalDelColegio";
 
 // ========================================================================================
 // CONFIGURACIÓN POR ENTORNO
