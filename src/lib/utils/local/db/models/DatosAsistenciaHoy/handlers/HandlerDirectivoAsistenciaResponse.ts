@@ -530,7 +530,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
     directivos.forEach((directivo, index) => {
       console.log(`📋 Directivo ${index + 1}:`);
       console.log("  - ID:", directivo.Id_Directivo);
-      console.log("  - DNI:", directivo.DNI);
+      console.log("  - DNI:", directivo.Identificador_Nacional);
       console.log("  - Nombre:", `${directivo.Nombres} ${directivo.Apellidos}`);
       console.log("  - Entrada:", directivo.Hora_Entrada_Dia_Actual);
       console.log("  - Salida:", directivo.Hora_Salida_Dia_Actual);
