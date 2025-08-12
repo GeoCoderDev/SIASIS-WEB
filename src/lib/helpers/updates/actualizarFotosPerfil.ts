@@ -4,9 +4,9 @@ import { NOMBRE_CLASE_IMAGENES_FOTO_PERFIL_USUARIO } from "@/Assets/others/Clase
  * Modifica el atributo src de las imágenes con clase "Foto-Perfil-Usuario"
  * @param newSrc - La nueva URL de imagen que se asignará
  */
-export function modificarFotosPerfilUsuario(
+export async function modificarFotosPerfilUsuario(
   Google_Drive_Foto_ID: string
-): void {
+): Promise<void> {
   // Seleccionar todos los elementos img con la clase "Foto-Perfil-Usuario"
   const imagenesPerfilUsuario = document.querySelectorAll(
     `img.${NOMBRE_CLASE_IMAGENES_FOTO_PERFIL_USUARIO}`
@@ -33,7 +33,7 @@ export function modificarFotosPerfilUsuario(
     }
   });
 
-  fetch("/api/update-cookie/photo", {
+  await fetch("/api/update-cookie/photo", {
     method: "PUT",
     body: JSON.stringify({ Google_Drive_Foto_ID }),
   });

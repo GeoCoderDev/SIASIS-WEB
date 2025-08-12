@@ -7,12 +7,19 @@ import { ErrorResponseAPIBase } from "@/interfaces/shared/apis/types";
 import Loader from "@/components/shared/loaders/Loader";
 import { AulasParaResponsablesIDB } from "@/lib/utils/local/db/models/Aulas/AulasParaResponsable";
 import { T_Aulas } from "@prisma/client";
+import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
+
+export interface EstudianteDelResponsableConAula
+  extends Omit<EstudianteDelResponsable, "Id_Aula"> {
+  aula: T_Aulas | null | undefined;
+}
 
 const MisEstudiantesRelacionados = () => {
   const [isSomethingLoading, setIsSomethingLoading] = useState(true);
-  const [misEstudiantesRelacionados, setMisEstudiantesRelacionados] = useState<
-    EstudianteDelResponsable[]
-  >([]);
+  const [
+    misEstudiantesRelacionadosConAula,
+    setMisEstudiantesRelacionadosConAula,
+  ] = useState<EstudianteDelResponsableConAula[]>([]);
   const [misAulasRelacionadas, setMisAulasRelacionadas] = useState<T_Aulas[]>(
     []
   );
@@ -52,12 +59,21 @@ const MisEstudiantesRelacionados = () => {
             estudiantesObtenidos
           );
 
+        // Mapear las aulas obtenidas a los estudiantes
+        const estudiantesConAula: EstudianteDelResponsableConAula[] =
+          estudiantesObtenidos.map((estudiante) => {
+            if (estudiante.Id_Aula === null)
+              return { ...estudiante, aula: null };
+            if (estudiante.Id_Aula === undefined)
+              return { ...estudiante, aula: undefined };
+            const aula = aulasObtenidas.find(
+              (aula) => aula.Id_Aula === estudiante.Id_Aula
+            );
+            return { ...estudiante, aula };
+          });
+
         // Si llegamos aquí, la operación fue exitosa
-        setMisEstudiantesRelacionados(estudiantesObtenidos);
-
-        console.log("Aulas obtenidas:", aulasObtenidas);
-
-        setMisAulasRelacionadas(aulasObtenidas);
+        setMisEstudiantesRelacionadosConAula(estudiantesConAula);
 
         // Logging para debugging
         console.log(
@@ -86,7 +102,7 @@ const MisEstudiantesRelacionados = () => {
         }
 
         // En caso de error, asegurar que no hay estudiantes mostrados
-        setMisEstudiantesRelacionados([]);
+        setMisEstudiantesRelacionadosConAula([]);
       } finally {
         // Siempre marcar como inicializado y detener loading al final
         setIsInitialized(true);
@@ -103,61 +119,46 @@ const MisEstudiantesRelacionados = () => {
     }
   }, [isInitialized, error]);
 
-  const obtenerDatosAulaPorId = (
-    idAula: string | null
-  ): T_Aulas | undefined | null => {
-    if (idAula === null) return null;
-    if (idAula === undefined) return undefined;
-    return misAulasRelacionadas.find((aula) => aula.Id_Aula === idAula);
-  };
-
-  // Función para reintentar la carga
-  const handleRetry = () => {
-    setIsInitialized(false);
-    setError(null);
-    setMisEstudiantesRelacionados([]);
-  };
-
   // Función para forzar actualización desde servidor
-  const handleForceRefresh = async () => {
-    try {
-      setIsSomethingLoading(true);
-      setError(null);
+  // const handleForceRefresh = async () => {
+  //   try {
+  //     setIsSomethingLoading(true);
+  //     setError(null);
 
-      const estudiantesParaResponsablesIDB = new EstudiantesParaResponsablesIDB(
-        "API02",
-        setIsSomethingLoading,
-        setError
-      );
+  //     const estudiantesParaResponsablesIDB = new EstudiantesParaResponsablesIDB(
+  //       "API02",
+  //       setIsSomethingLoading,
+  //       setError
+  //     );
 
-      // Forzar actualización desde el servidor
-      const estudiantesObtenidos =
-        await estudiantesParaResponsablesIDB.obtenerYSincronizarEstudiantesDelResponsable(
-          true
-        );
+  //     // Forzar actualización desde el servidor
+  //     const estudiantesObtenidos =
+  //       await estudiantesParaResponsablesIDB.obtenerYSincronizarEstudiantesDelResponsable(
+  //         true
+  //       );
 
-      setMisEstudiantesRelacionados(estudiantesObtenidos);
-      console.log(
-        `🔄 Estudiantes actualizados desde servidor: ${estudiantesObtenidos.length}`
-      );
-    } catch (refreshError) {
-      console.error("❌ Error al forzar actualización:", refreshError);
+  //     setMisEstudiantesRelacionadosConAula(estudiantesObtenidos);
+  //     console.log(
+  //       `🔄 Estudiantes actualizados desde servidor: ${estudiantesObtenidos.length}`
+  //     );
+  //   } catch (refreshError) {
+  //     console.error("❌ Error al forzar actualización:", refreshError);
 
-      if (!error) {
-        setError({
-          success: false,
-          message: "Error al actualizar desde el servidor",
-          errorType: "EXTERNAL_SERVICE_ERROR" as any,
-          details: {
-            origen: "MisEstudiantesRelacionados.handleForceRefresh",
-            timestamp: Date.now(),
-          },
-        });
-      }
-    } finally {
-      setIsSomethingLoading(false);
-    }
-  };
+  //     if (!error) {
+  //       setError({
+  //         success: false,
+  //         message: "Error al actualizar desde el servidor",
+  //         errorType: "EXTERNAL_SERVICE_ERROR" as any,
+  //         details: {
+  //           origen: "MisEstudiantesRelacionados.handleForceRefresh",
+  //           timestamp: Date.now(),
+  //         },
+  //       });
+  //     }
+  //   } finally {
+  //     setIsSomethingLoading(false);
+  //   }
+  // };
 
   // Renderizado condicional del contenido principal
   const renderContent = () => {
@@ -181,24 +182,6 @@ const MisEstudiantesRelacionados = () => {
             </p>
             <p className="text-sm text-gray-600 mb-2">{error.message}</p>
           </div>
-          <div className="flex gap-3">
-            <button
-              onClick={handleRetry}
-              disabled={isSomethingLoading}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-            >
-              {isSomethingLoading ? "Cargando..." : "Reintentar"}
-            </button>
-            <button
-              onClick={handleForceRefresh}
-              disabled={isSomethingLoading}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-            >
-              {isSomethingLoading
-                ? "Actualizando..."
-                : "Actualizar desde servidor"}
-            </button>
-          </div>
         </div>
       );
     }
@@ -214,26 +197,25 @@ const MisEstudiantesRelacionados = () => {
     }
 
     // Mostrar mensaje si no hay estudiantes
-    if (misEstudiantesRelacionados.length === 0) {
+    if (misEstudiantesRelacionadosConAula.length === 0) {
       return (
         <div className="text-center">
           <p className="text-gray-600 mb-4">
             No se encontraron estudiantes relacionados a ti
           </p>
-          <button
+          {/* <button
             onClick={handleForceRefresh}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
           >
             Buscar actualizaciones
-          </button>
+          </button> */}
         </div>
       );
     }
 
     // Mostrar estudiantes
-    return misEstudiantesRelacionados.map((miEstudianteRelacionado) => (
+    return misEstudiantesRelacionadosConAula.map((miEstudianteRelacionado) => (
       <MiEstudianteRelacionadoCard
-        obtenerDatosAulaPorId={obtenerDatosAulaPorId}
         key={miEstudianteRelacionado.Id_Estudiante}
         miEstudianteRelacionado={miEstudianteRelacionado}
       />

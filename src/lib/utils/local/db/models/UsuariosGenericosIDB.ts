@@ -11,6 +11,8 @@ import AllErrorTypes, { SystemErrorTypes } from "@/interfaces/shared/errors";
 import fetchSiasisApiGenerator from "@/lib/helpers/generators/fetchSiasisApisGenerator";
 import UltimaModificacionTablasIDB from "./UltimaModificacionTablasIDB";
 import { TablasRemoto } from "@/interfaces/shared/TablasSistema";
+import { Endpoint_Get_Usuarios_Genericos_API01 } from "@/lib/utils/backend/endpoints/api01/UsuariosGenericos";
+import { PersonalDelColegio } from "@/interfaces/shared/PersonalDelColegio";
 
 // Interfaz para el registro de cache
 export interface IUsuariosGenericosCache {
@@ -107,31 +109,14 @@ export class UsuariosGenericosIDB {
     limite: number
   ): Promise<{ resultados: GenericUser[]; total: number }> {
     try {
-      const { fetchSiasisAPI } = fetchSiasisApiGenerator(this.siasisAPI);
-
-      const fetchCancelable = await fetchSiasisAPI({
-        endpoint: "/api/usuarios-genericos",
-        method: "GET",
-        queryParams: {
-          Rol: rol,
-          Criterio: criterio.trim(),
-          Limite: limite,
-        },
-      });
-
-      if (!fetchCancelable) {
-        throw new Error("No se pudo crear la petición");
-      }
-
-      const response = await fetchCancelable.fetch();
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Error en la petición");
-      }
-
       const responseData =
-        (await response.json()) as GetGenericUsersSuccessResponse;
+        await Endpoint_Get_Usuarios_Genericos_API01.realizarPeticion({
+          queryParams: {
+            Criterio: criterio.trim(),
+            Limite: limite,
+            Rol: rol as PersonalDelColegio,
+          },
+        });
 
       return {
         resultados: responseData.data || [],

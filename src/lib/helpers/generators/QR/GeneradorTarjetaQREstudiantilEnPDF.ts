@@ -1,0 +1,152 @@
+import { EstudianteDelResponsableConAula } from "@/app/(interfaz)/(responsable)/mis-estudiantes-relacionados/page";
+import { generarTarjetaQREstudiantil } from "@/components/shared/plantillas/TarjetaQREstudiantil";
+import { generarCadenaDeDatosDeEstudianteCodificada } from "./generacionDeCadenaDeDatosDeEstudianteCodificada";
+import {
+  generarQREnElementoHTML,
+  QR_ESTUDIANTIL_PDF_CONFIG,
+} from "./generarQREnElementoHTML";
+
+export class GeneradorTarjetaQREstudiantilEnPDF {
+  private hiddenContainer: HTMLDivElement;
+
+  constructor(hiddenContainer: HTMLDivElement) {
+    this.hiddenContainer = hiddenContainer;
+  }
+
+  async generatePDF(
+    estudiante: EstudianteDelResponsableConAula,
+    quantity: number
+  ): Promise<Blob> {
+    if (!window.jspdf || !window.html2canvas) {
+      throw new Error("Required libraries not loaded");
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF("portrait", "mm", "a4");
+
+    this.hiddenContainer.innerHTML = "";
+
+    for (let i = 0; i < quantity; i++) {
+      const cardContainer = this.createCardContainer(i);
+      const cardHTML = generarTarjetaQREstudiantil(estudiante, i);
+
+      cardContainer.innerHTML = cardHTML;
+      document.body.appendChild(cardContainer);
+
+      await this.generateQRForCard(cardContainer, i, estudiante);
+      await this.waitForRender();
+
+      const canvas = await this.captureCard(cardContainer);
+      this.addCardToPDF(doc, canvas, i);
+
+      document.body.removeChild(cardContainer);
+    }
+
+    return doc.output("blob");
+  }
+
+  private createCardContainer(index: number): HTMLDivElement {
+    const container = document.createElement("div");
+    container.style.position = "absolute";
+    container.style.left = "-9999px";
+    container.style.top = `${index * 400}px`;
+    return container;
+  }
+
+  private async generateQRForCard(
+    container: HTMLDivElement,
+    index: number,
+    estudiante: EstudianteDelResponsableConAula
+  ): Promise<void> {
+    const qrContainer = container.querySelector(
+      `#qr-container-${index}`
+    ) as HTMLDivElement;
+    if (!qrContainer) return;
+
+    const qrData = generarCadenaDeDatosDeEstudianteCodificada(estudiante);
+    await generarQREnElementoHTML(qrContainer, qrData);
+  }
+
+  private async waitForRender(): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, 500));
+  }
+
+  private async captureCard(
+    container: HTMLDivElement
+  ): Promise<HTMLCanvasElement> {
+    const cardElement = container.querySelector(".student-card") as HTMLElement;
+
+    return await window.html2canvas(cardElement, {
+      scale: QR_ESTUDIANTIL_PDF_CONFIG.scale,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      width: QR_ESTUDIANTIL_PDF_CONFIG.cardDimensions.width,
+      height: QR_ESTUDIANTIL_PDF_CONFIG.cardDimensions.height,
+      logging: false,
+      allowTaint: true,
+      removeContainer: true,
+      imageTimeout: 0,
+    });
+  }
+
+  private addCardToPDF(
+    doc: any,
+    canvas: HTMLCanvasElement,
+    index: number
+  ): void {
+    const row = Math.floor(index / QR_ESTUDIANTIL_PDF_CONFIG.cardsPerRow);
+    const col = index % QR_ESTUDIANTIL_PDF_CONFIG.cardsPerRow;
+
+    const x =
+      QR_ESTUDIANTIL_PDF_CONFIG.marginMM +
+      col *
+        (QR_ESTUDIANTIL_PDF_CONFIG.cardWidthMM +
+          QR_ESTUDIANTIL_PDF_CONFIG.spacingX);
+    const y =
+      QR_ESTUDIANTIL_PDF_CONFIG.marginMM +
+      row *
+        (QR_ESTUDIANTIL_PDF_CONFIG.cardHeightMM +
+          QR_ESTUDIANTIL_PDF_CONFIG.spacingY);
+
+    if (
+      y + QR_ESTUDIANTIL_PDF_CONFIG.cardHeightMM >
+      QR_ESTUDIANTIL_PDF_CONFIG.pageHeight - QR_ESTUDIANTIL_PDF_CONFIG.marginMM
+    ) {
+      doc.addPage();
+      const newRow = Math.floor(
+        (index %
+          (QR_ESTUDIANTIL_PDF_CONFIG.cardsPerRow *
+            Math.floor(
+              (QR_ESTUDIANTIL_PDF_CONFIG.pageHeight -
+                2 * QR_ESTUDIANTIL_PDF_CONFIG.marginMM) /
+                (QR_ESTUDIANTIL_PDF_CONFIG.cardHeightMM +
+                  QR_ESTUDIANTIL_PDF_CONFIG.spacingY)
+            ))) /
+          QR_ESTUDIANTIL_PDF_CONFIG.cardsPerRow
+      );
+      const newY =
+        QR_ESTUDIANTIL_PDF_CONFIG.marginMM +
+        newRow *
+          (QR_ESTUDIANTIL_PDF_CONFIG.cardHeightMM +
+            QR_ESTUDIANTIL_PDF_CONFIG.spacingY);
+
+      doc.addImage(
+        canvas.toDataURL("image/png", 1.0),
+        "PNG",
+        x,
+        newY,
+        QR_ESTUDIANTIL_PDF_CONFIG.cardWidthMM,
+        QR_ESTUDIANTIL_PDF_CONFIG.cardHeightMM
+      );
+    } else {
+      doc.addImage(
+        canvas.toDataURL("image/png", 1.0),
+        "PNG",
+        x,
+        y,
+        QR_ESTUDIANTIL_PDF_CONFIG.cardWidthMM,
+        QR_ESTUDIANTIL_PDF_CONFIG.cardHeightMM
+      );
+    }
+  }
+}

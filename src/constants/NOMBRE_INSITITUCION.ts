@@ -1,0 +1,2 @@
+export const NOMBRE_INSTITUCION = "IE20935";
+export const NOMBRE_INSTITUCION_PARA_TARJETAS_QR = "I.E.20935 Asunción 8";

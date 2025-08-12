@@ -21,6 +21,7 @@ import fetchSiasisApiGenerator from "@/lib/helpers/generators/fetchSiasisApisGen
 import ultimaActualizacionTablasLocalesIDB from "./UltimaActualizacionTablasLocalesIDB";
 import { DatabaseModificationOperations } from "@/interfaces/shared/DatabaseModificationOperations";
 import { GetPersonalAdministrativoSuccessResponse } from "@/interfaces/shared/apis/api01/personal-administrativo/types";
+import { Endpoint_Get_Personal_Administrativo_API01 } from "@/lib/utils/backend/endpoints/api01/PersonalAdministrativo";
 
 // Tipo para la entidad (sin atributos de fechas)
 export type IPersonalAdministrativoLocal = PersonalAdministrativoSinContraseña;
@@ -77,41 +78,9 @@ export class PersonalAdministrativoIDB {
    */
   private async fetchYActualizarPersonalAdministrativo(): Promise<void> {
     try {
-      // Usar el generador para API01 (o la que corresponda)
-      const { fetchSiasisAPI } = fetchSiasisApiGenerator(this.siasisAPI);
-
-      // Realizar la petición al endpoint
-      const fetchCancelable = await fetchSiasisAPI({
-        endpoint: "/api/personal-administrativo",
-        method: "GET",
-      });
-
-      if (!fetchCancelable) {
-        throw new Error(
-          "No se pudo crear la petición de personal administrativo"
-        );
-      }
-
-      // Ejecutar la petición
-      const response = await fetchCancelable.fetch();
-
-      if (!response.ok) {
-        throw new Error(
-          `Error al obtener personal administrativo: ${response.statusText}`
-        );
-      }
-
-      const objectResponse = (await response.json()) as ApiResponseBase;
-
-      if (!objectResponse.success) {
-        throw new Error(
-          `Error en respuesta de personal administrativo: ${objectResponse.message}`
-        );
-      }
-
       // Extraer el personal administrativo del cuerpo de la respuesta
       const { data: personalAdministrativo } =
-        objectResponse as GetPersonalAdministrativoSuccessResponse;
+        await Endpoint_Get_Personal_Administrativo_API01.realizarPeticion();
 
       // Actualizar personal administrativo en la base de datos local
       const result = await this.upsertFromServer(personalAdministrativo);

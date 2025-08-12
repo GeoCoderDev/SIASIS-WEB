@@ -21,6 +21,7 @@ import fetchSiasisApiGenerator from "@/lib/helpers/generators/fetchSiasisApisGen
 import ultimaActualizacionTablasLocalesIDB from "./UltimaActualizacionTablasLocalesIDB";
 import { DatabaseModificationOperations } from "@/interfaces/shared/DatabaseModificationOperations";
 import { GetAuxiliaresSuccessResponse } from "@/interfaces/shared/apis/api01/auxiliares/types";
+import { Endpoint_Get_Auxiliares_API01 } from "@/lib/utils/backend/endpoints/api01/Auxiliares";
 
 // Tipo para la entidad (sin atributos de fechas)
 export type IAuxiliarLocal = AuxiliarSinContraseña;
@@ -72,38 +73,10 @@ export class AuxiliaresIDB {
    */
   private async fetchYActualizarAuxiliares(): Promise<void> {
     try {
-      // Usar el generador para API01 (o la que corresponda)
-      const { fetchSiasisAPI } = fetchSiasisApiGenerator(this.siasisAPI);
-
-      // Realizar la petición al endpoint
-      const fetchCancelable = await fetchSiasisAPI({
-        endpoint: "/api/auxiliares",
-        method: "GET",
-      });
-
-      if (!fetchCancelable) {
-        throw new Error("No se pudo crear la petición de auxiliares");
-      }
-
-      // Ejecutar la petición
-      const response = await fetchCancelable.fetch();
-
-      if (!response.ok) {
-        throw new Error(`Error al obtener auxiliares: ${response.statusText}`);
-      }
-
-      const objectResponse = (await response.json()) as ApiResponseBase;
-
-      if (!objectResponse.success) {
-        throw new Error(
-          `Error en respuesta de auxiliares: ${objectResponse.message}`
-        );
-      }
-
       // Extraer los auxiliares del cuerpo de la respuesta
       const { data: auxiliares } =
-        objectResponse as GetAuxiliaresSuccessResponse;
-
+        await Endpoint_Get_Auxiliares_API01.realizarPeticion();
+        
       // Actualizar auxiliares en la base de datos local
       const result = await this.upsertFromServer(auxiliares);
 

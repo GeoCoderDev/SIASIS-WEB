@@ -3,34 +3,48 @@ import CamaraIcon from "@/components/icons/CamaraIcon";
 import LibretaConLapiz from "@/components/icons/LibretaConLapiz";
 import QRIcon from "@/components/icons/QRIcon";
 import FotoPerfilClientSide from "@/components/utils/photos/FotoPerfilClientSide";
-import { EstudianteDelResponsable } from "@/interfaces/shared/apis/api02/mis-estudiantes-relacionados/types";
 import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
 import { RelacionesEstudianteResponsable } from "@/interfaces/shared/RelacionesEstudianteResponsable";
 import { TiposIdentificadoresTextos } from "@/interfaces/shared/TiposIdentificadores";
 import { extraerIdentificador } from "@/lib/helpers/extractors/extraerIdentificador";
 import { extraerTipoDeIdentificador } from "@/lib/helpers/extractors/extraerTipoDeIdentificador";
-import { T_Aulas } from "@prisma/client";
+import { EstudianteDelResponsableConAula } from "../page";
+import { useState } from "react";
+import GeneradorDeQRParaResponsablesModal from "@/components/modals/QR/GeneradorDeQRParaResponsablesModal";
+import GeneradorDeTarjetaQRDeEstudianteParaResponsablesModal from "@/components/modals/QR/GeneradorDeQRParaResponsablesModal";
 
 const MiEstudianteRelacionadoCard = ({
-  miEstudianteRelacionado: {
+  miEstudianteRelacionado,
+}: {
+  miEstudianteRelacionado: EstudianteDelResponsableConAula;
+}) => {
+  const [showCambiarFotoPerfilModal, setShowCambiarFotoPerfilModal] = useState<
+    string | null
+  >(null);
+  const [showGenerarQRDelEstudianteModal, setShowGenerarQRDelEstudianteModal] =
+    useState<string | null>(null);
+
+  const {
     Id_Estudiante,
     Nombres,
     Apellidos,
     Estado,
     Google_Drive_Foto_ID,
-    Id_Aula,
+    aula,
     Tipo_Relacion,
-  },
-  obtenerDatosAulaPorId,
-}: {
-  miEstudianteRelacionado: EstudianteDelResponsable;
-  obtenerDatosAulaPorId: (idAula: string | null) => T_Aulas | null | undefined;
-}) => {
-  const aula = obtenerDatosAulaPorId(Id_Aula);
+  } = miEstudianteRelacionado;
+
 
   return (
-    <div
-      className={`
+    <>
+      {showGenerarQRDelEstudianteModal && (
+        <GeneradorDeTarjetaQRDeEstudianteParaResponsablesModal
+          estudianteDelResponsableConAula={miEstudianteRelacionado}
+          eliminarModal={() => setShowGenerarQRDelEstudianteModal(null)}
+        />
+      )}
+      <div
+        className={`
         overflow-hidden relative siasis-shadow-card [cursor:default_!important] 
         flex flex-col items-center justify-center
         p-4 sxs-only:p-2.5 xs-only:p-3 sm-only:p-3.5 md-only:p-4 lg-only:p-4
@@ -65,9 +79,9 @@ const MiEstudianteRelacionadoCard = ({
         sxs-only:after:rounded-bl-[0.8rem]
         xs-only:after:rounded-bl-[0.9rem]
       `}
-    >
-      <FotoPerfilClientSide
-        className="
+      >
+        <FotoPerfilClientSide
+          className="
           w-[75px] h-[75px] 
           sxs-only:w-[55px] sxs-only:h-[55px] 
           xs-only:w-[60px] xs-only:h-[60px] 
@@ -76,11 +90,11 @@ const MiEstudianteRelacionadoCard = ({
           lg-only:w-[75px] lg-only:h-[75px]
           rounded-full object-cover
         "
-        Google_Drive_Foto_ID={Google_Drive_Foto_ID}
-      />
+          Google_Drive_Foto_ID={Google_Drive_Foto_ID}
+        />
 
-      <h2
-        className="
+        <h2
+          className="
         mb-1 font-medium text-center leading-tight
         text-[1.2rem]
         sxs-only:text-[1rem]
@@ -92,12 +106,12 @@ const MiEstudianteRelacionadoCard = ({
         xs-only:mb-0.5
         w-full overflow-hidden text-ellipsis whitespace-nowrap
       "
-      >
-        {Nombres} {Apellidos}
-      </h2>
+        >
+          {Nombres} {Apellidos}
+        </h2>
 
-      <span
-        className="
+        <span
+          className="
         text-azul-principal text-center
         text-[1.1rem]
         sxs-only:text-[0.9rem]
@@ -106,20 +120,20 @@ const MiEstudianteRelacionadoCard = ({
         md-only:text-[1.05rem]
         lg-only:text-[1.1rem]
       "
-      >
-        <b>
-          {
-            TiposIdentificadoresTextos[
-              extraerTipoDeIdentificador(Id_Estudiante)
-            ]
-          }
-          :
-        </b>{" "}
-        {extraerIdentificador(Id_Estudiante)}
-      </span>
+        >
+          <b>
+            {
+              TiposIdentificadoresTextos[
+                extraerTipoDeIdentificador(Id_Estudiante)
+              ]
+            }
+            :
+          </b>{" "}
+          {extraerIdentificador(Id_Estudiante)}
+        </span>
 
-      <i
-        className="
+        <i
+          className="
         font-medium text-center
         text-[0.95rem]
         sxs-only:text-[0.8rem]
@@ -128,18 +142,18 @@ const MiEstudianteRelacionadoCard = ({
         md-only:text-[0.95rem]
         lg-only:text-[1rem]
       "
-      >
-        {aula === undefined
-          ? "El aula ya no existe"
-          : aula === null
-          ? "Sin Aula"
-          : `${NivelEducativoTextos[aula.Nivel as NivelEducativo]} - ${
-              aula.Grado
-            }${aula.Seccion}`}
-      </i>
+        >
+          {aula === undefined
+            ? "El aula ya no existe"
+            : aula === null
+            ? "Sin Aula"
+            : `${NivelEducativoTextos[aula.Nivel as NivelEducativo]} - ${
+                aula.Grado
+              }${aula.Seccion}`}
+        </i>
 
-      <section
-        className="
+        <section
+          className="
           mt-2 flex flex-col w-full justify-center items-center
           gap-3 sxs-only:gap-2 xs-only:gap-2.5 sm-only:gap-3
           text-[0.9rem]
@@ -150,10 +164,10 @@ const MiEstudianteRelacionadoCard = ({
           lg-only:text-[0.9rem]
           font-semibold
         "
-        role="group"
-      >
-        <button
-          className="w-[9rem]
+          role="group"
+        >
+          <button
+            className="w-[9rem]
           flex items-center justify-center bg-amarillo-ediciones text-black gap-2 
           rounded-[10px] sxs-only:rounded-[8px] xs-only:rounded-[9px]
           py-2 px-2 
@@ -162,10 +176,10 @@ const MiEstudianteRelacionadoCard = ({
           sm-only:py-2 sm-only:px-2
           transition-all duration-200 hover:bg-opacity-90 active:scale-95
         "
-        >
-          Cambiar Foto
-          <CamaraIcon
-            className="
+          >
+            Cambiar Foto
+            <CamaraIcon
+              className="
             w-5 
             sxs-only:w-4 
             xs-only:w-4 
@@ -173,11 +187,11 @@ const MiEstudianteRelacionadoCard = ({
             md-only:w-5
             lg-only:w-5
           "
-          />
-        </button>
+            />
+          </button>
 
-        <button
-          className="w-[9rem]
+          <button
+            className="w-[9rem]
           text-white flex items-center justify-center bg-azul-principal gap-2 
           rounded-[10px] sxs-only:rounded-[8px] xs-only:rounded-[9px]
           py-2 px-2 
@@ -186,10 +200,10 @@ const MiEstudianteRelacionadoCard = ({
           sm-only:py-2 sm-only:px-2
           transition-all duration-200 hover:bg-opacity-90 active:scale-95
         "
-        >
-          Ver Asistencia
-          <LibretaConLapiz
-            className="
+          >
+            Ver Asistencia
+            <LibretaConLapiz
+              className="
             w-5 
             sxs-only:w-4 
             xs-only:w-4 
@@ -197,11 +211,13 @@ const MiEstudianteRelacionadoCard = ({
             md-only:w-5
             lg-only:w-5
           "
-          />
-        </button>
+            />
+          </button>
 
-        <button
-          className="w-[9rem]
+          {miEstudianteRelacionado.aula && (
+            <button
+              onClick={() => setShowGenerarQRDelEstudianteModal(Id_Estudiante)}
+              className="w-[9rem]
           text-white flex items-center justify-center bg-negro gap-2 
           rounded-[10px] sxs-only:rounded-[8px] xs-only:rounded-[9px]
           py-2 px-2 
@@ -210,10 +226,10 @@ const MiEstudianteRelacionadoCard = ({
           sm-only:py-2 sm-only:px-2
           transition-all duration-200 hover:bg-opacity-90 active:scale-95
         "
-        >
-          Generar QR
-          <QRIcon
-            className="
+            >
+              Generar QR
+              <QRIcon
+                className="
             w-[18px] 
             sxs-only:w-[14px] 
             xs-only:w-[15px] 
@@ -221,12 +237,14 @@ const MiEstudianteRelacionadoCard = ({
             md-only:w-[17px]
             lg-only:w-[18px]
           "
-          />
-        </button>
-      </section>
+              />
+            </button>
+          )}
 
-      <span
-        className={`
+        </section>
+
+        <span
+          className={`
             font-semibold
             ${Estado ? "text-verde-principal" : "text-rojo-oscuro"}
             text-center mt-2
@@ -239,11 +257,12 @@ const MiEstudianteRelacionadoCard = ({
             sxs-only:mt-1
             xs-only:mt-1.5
         `}
-        title={`Estado: ${Estado ? "Activo" : "Inactivo"}`}
-      >
-        Estado: {Estado ? "Activo" : "Inactivo"}
-      </span>
-    </div>
+          title={`Estado: ${Estado ? "Activo" : "Inactivo"}`}
+        >
+          Estado: {Estado ? "Activo" : "Inactivo"}
+        </span>
+      </div>
+    </>
   );
 };
 

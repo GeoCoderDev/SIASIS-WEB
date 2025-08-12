@@ -1,7 +1,6 @@
 // ============================================================================
-// BaseAulasIDB.ts - Clase abstracta base para gestión de aulas
+//               Clase abstracta base para gestión de aulas
 // ============================================================================
-
 
 import {
   ApiResponseBase,
@@ -13,12 +12,18 @@ import { SiasisAPIS } from "@/interfaces/shared/SiasisComponents";
 import comprobarSincronizacionDeTabla from "@/lib/helpers/validations/comprobarSincronizacionDeTabla";
 
 import { DatabaseModificationOperations } from "@/interfaces/shared/DatabaseModificationOperations";
-import TablasSistema, { ITablaInfo, TablasLocal } from "@/interfaces/shared/TablasSistema";
+import TablasSistema, {
+  ITablaInfo,
+  TablasLocal,
+} from "@/interfaces/shared/TablasSistema";
 import IndexedDBConnection from "../../IndexedDBConnection";
 import ultimaActualizacionTablasLocalesIDB from "../UltimaActualizacionTablasLocalesIDB";
-import AllErrorTypes, { DataConflictErrorTypes, SystemErrorTypes, UserErrorTypes } from "@/interfaces/shared/errors";
+import AllErrorTypes, {
+  DataConflictErrorTypes,
+  SystemErrorTypes,
+  UserErrorTypes,
+} from "@/interfaces/shared/errors";
 import { T_Aulas } from "@prisma/client";
-
 
 // Filtros básicos para búsqueda
 export interface IAulaBaseFilter {
@@ -82,7 +87,7 @@ export abstract class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
   public async getAulasPorIds(idsAulas: string[]): Promise<T[]> {
     try {
       const aulas: T[] = [];
-      
+
       for (const idAula of idsAulas) {
         const aula = await this.getAulaPorId(idAula);
         if (aula) {
@@ -149,8 +154,9 @@ export abstract class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
         const aulas: T[] = [];
         const request = store.openCursor();
 
-        request.onsuccess = (event:any) => {
-          const cursor = (event.target as IDBRequest).result as IDBCursorWithValue;
+        request.onsuccess = (event: any) => {
+          const cursor = (event.target as IDBRequest)
+            .result as IDBCursorWithValue;
           if (cursor) {
             const aula = cursor.value as T;
             let cumpleFiltros = true;
@@ -182,7 +188,9 @@ export abstract class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
       });
 
       if (result.length > 0) {
-        this.handleSuccess(`Se encontraron ${result.length} aulas con los filtros aplicados`);
+        this.handleSuccess(
+          `Se encontraron ${result.length} aulas con los filtros aplicados`
+        );
       } else {
         this.handleSuccess("No se encontraron aulas con los filtros aplicados");
       }
@@ -221,9 +229,7 @@ export abstract class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
   /**
    * Actualiza o crea aulas en lote desde el servidor
    */
-  protected async upsertFromServer(
-    aulasServidor: T[]
-  ): Promise<{
+  protected async upsertFromServer(aulasServidor: T[]): Promise<{
     created: number;
     updated: number;
     errors: number;

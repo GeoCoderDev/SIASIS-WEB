@@ -24,6 +24,8 @@ import {
   EliminarAsistenciaRequestBody,
   TipoAsistencia,
 } from "@/interfaces/shared/AsistenciaRequests";
+import { Endpoint_Get_Asistencias_Mensuales_De_Personal_API01 } from "@/lib/utils/backend/endpoints/api01/AsistenciasMensualesDePersonal";
+import { PersonalDelColegio } from "@/interfaces/shared/PersonalDelColegio";
 
 /**
  * 🎯 RESPONSABILIDAD: Llamadas a APIs externas
@@ -66,48 +68,16 @@ export class AsistenciaDePersonalAPIClient {
     mes: number
   ): Promise<AsistenciaCompletaMensualDePersonal | null> {
     try {
-      const { fetchSiasisAPI } = fetchSiasisApiGenerator(this.siasisAPI);
-
-      const fetchCancelable = await fetchSiasisAPI({
-        endpoint: `/api/personal/asistencias-mensuales?Rol=${rol}&ID=${idUsuario}&Mes=${mes}`,
-        method: "GET",
-      });
-
-      if (!fetchCancelable) {
-        throw new Error(
-          "No se pudo crear la petición de asistencias mensuales"
-        );
-      }
-
-      const response = await fetchCancelable.fetch();
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          console.log(
-            `📡 API devuelve 404 para ${idUsuario} - mes ${mes} (sin datos)`
-          );
-          return null;
-        }
-        throw new Error(`Error al obtener asistencias: ${response.statusText}`);
-      }
-
-      const objectResponse = (await response.json()) as ApiResponseBase;
-
-      if (!objectResponse.success) {
-        if (
-          (objectResponse as ErrorResponseAPIBase).errorType ===
-          DataErrorTypes.NO_DATA_AVAILABLE
-        ) {
-          console.log(
-            `📡 API devuelve NO_DATA_AVAILABLE para ${idUsuario} - mes ${mes}`
-          );
-          return null;
-        }
-        throw new Error(`Error en respuesta: ${objectResponse.message}`);
-      }
-
       const { data } =
-        objectResponse as GetAsistenciaMensualDePersonalSuccessResponse;
+        await Endpoint_Get_Asistencias_Mensuales_De_Personal_API01.realizarPeticion(
+          {
+            queryParams: {
+              Rol: rol as PersonalDelColegio,
+              ID: idUsuario,
+              Mes: mes,
+            },
+          }
+        );
 
       console.log(
         `📡 API devuelve datos exitosamente para ${idUsuario} - mes ${mes}`
