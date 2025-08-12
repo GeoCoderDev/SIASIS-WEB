@@ -87,6 +87,7 @@ export enum ValidationErrorTypes {
   REQUIRED_FIELDS = "REQUIRED_FIELDS",
   INVALID_REFERENCE = "INVALID_REFERENCE",
   VALUE_ALREADY_EXISTS = "VALUE_ALREADY_EXISTS",
+  INVALID_DNI="INVALID_DNI",
   INVALID_DATE_FORMAT = "INVALID_DATE_FORMAT", // 🆕 Formato de fecha inválido
   DATE_OUT_OF_RANGE = "DATE_OUT_OF_RANGE", // 🆕 Fecha fuera de rango
   INVALID_TIME_FORMAT = "INVALID_TIME_FORMAT", // 🆕 Formato de hora inválido

@@ -92,7 +92,7 @@ const GeneradorDeTarjetaQRModal = ({
               <div className="w-full aspect-[1/1.55] bg-white rounded-lg border-2 border-dashed border-green-300 flex items-center justify-center">
                 {isGeneratingPDF ? (
                   <div className="text-center">
-                    <div className="animate-spin rounded-full w-full aspect-[1/1.55] border-b-2 border-blue-500 mx-auto mb-2"></div>
+                    <div className="animate-spin rounded-full w-6 aspect-[1/1.55] border-b-2 border-blue-500 mx-auto mb-2"></div>
                     <p className="text-gray-500">Generando tarjetas...</p>
                   </div>
                 ) : pdfPreviewUrl ? (
