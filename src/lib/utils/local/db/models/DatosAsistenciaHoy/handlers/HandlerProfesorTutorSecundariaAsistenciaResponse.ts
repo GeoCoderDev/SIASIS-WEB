@@ -13,7 +13,7 @@ export class HandlerProfesorTutorSecundariaAsistenciaResponse extends HandlerAsi
   }
 
   public getMiDNI(): string {
-    return this.profesorSecundariaData.Mi_DNI;
+    return this.profesorSecundariaData.Mi_Identificador;
   }
 
   public getMiHorarioTomaAsistencia():
