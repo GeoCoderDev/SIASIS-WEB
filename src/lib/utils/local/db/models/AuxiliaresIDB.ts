@@ -6,7 +6,6 @@ import {
   TablasLocal,
 } from "../../../../../interfaces/shared/TablasSistema";
 import {
-  ApiResponseBase,
   ErrorResponseAPIBase,
   MessageProperty,
 } from "@/interfaces/shared/apis/types";
@@ -17,10 +16,8 @@ import AllErrorTypes, {
 } from "../../../../../interfaces/shared/errors";
 import { SiasisAPIS } from "@/interfaces/shared/SiasisComponents";
 import comprobarSincronizacionDeTabla from "@/lib/helpers/validations/comprobarSincronizacionDeTabla";
-import fetchSiasisApiGenerator from "@/lib/helpers/generators/fetchSiasisApisGenerator";
 import ultimaActualizacionTablasLocalesIDB from "./UltimaActualizacionTablasLocalesIDB";
 import { DatabaseModificationOperations } from "@/interfaces/shared/DatabaseModificationOperations";
-import { GetAuxiliaresSuccessResponse } from "@/interfaces/shared/apis/api01/auxiliares/types";
 import { Endpoint_Get_Auxiliares_API01 } from "@/lib/utils/backend/endpoints/api01/Auxiliares";
 
 // Tipo para la entidad (sin atributos de fechas)
