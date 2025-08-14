@@ -90,6 +90,8 @@ const config: Config = {
         "max-xl": {
           max: "1440px",
         },
+
+        //Breakpoints Excluyentes 
         "sxs-only": {
           min: "0px",
           max: "300px",
@@ -108,13 +110,30 @@ const config: Config = {
         },
         "lg-only": {
           min: "976px",
-          max: "1600px",
+          max: "1599px",
         },
         "xl-only": {
           min: "1600px",
         },
         "short-height": {
           raw: "(max-height: 50vw)",
+        },
+        
+        // ✨ NUEVOS BREAKPOINTS LANDSCAPE
+        "landscape-xs": {
+          raw: "(max-height: 649px) and (orientation: landscape)",
+        },
+        "landscape-tiny": {
+          raw: "(max-height: 400px) and (orientation: landscape)",
+        },
+        "landscape-small": {
+          raw: "(min-height: 401px) and (max-height: 649px) and (orientation: landscape)",
+        },
+        "landscape-phone": {
+          raw: "(max-height: 500px) and (max-width: 950px) and (orientation: landscape)",
+        },
+        "landscape-tablet-sm": {
+          raw: "(min-height: 501px) and (max-height: 649px) and (min-width: 700px) and (orientation: landscape)",
         },
       },
       borderRadius: {

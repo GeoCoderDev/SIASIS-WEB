@@ -7,6 +7,7 @@ import { logout } from "@/lib/utils/frontend/auth/logout";
 import { FetchCancelable } from "@/lib/utils/FetchCancellable";
 import { LogoutTypes } from "@/interfaces/LogoutTypes";
 import { SiasisAPIS } from "@/interfaces/shared/SiasisComponents";
+import getRandomAPI03IntanceURL from "../functions/getRandomAPI03InstanceURL";
 
 interface FetchSiasisAPIs {
   endpoint: string;
@@ -32,7 +33,11 @@ interface FetchSiasisResult {
  */
 const fetchSiasisApiGenerator = (siasisAPI: SiasisAPIS): FetchSiasisResult => {
   const urlAPI =
-    siasisAPI === "API01" ? getRandomAPI01IntanceURL : getRandomAPI02IntanceURL;
+    siasisAPI === "API01"
+      ? getRandomAPI01IntanceURL
+      : siasisAPI === "API02"
+      ? getRandomAPI02IntanceURL
+      : getRandomAPI03IntanceURL;
 
   // Almacenamos las peticiones cancelables en una variable local
   let fetchCancelables: FetchCancelable[] = [];

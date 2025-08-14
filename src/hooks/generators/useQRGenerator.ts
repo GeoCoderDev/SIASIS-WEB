@@ -1,4 +1,3 @@
-// hooks/useQRGenerator.ts
 import { useState, useCallback, useRef } from "react";
 import { EstudianteDelResponsableConAula } from "@/app/(interfaz)/(responsable)/mis-estudiantes-relacionados/page";
 import { checkWebShareApiSupport } from "@/lib/helpers/checkers/web-support/checkWebShareApiSupport";

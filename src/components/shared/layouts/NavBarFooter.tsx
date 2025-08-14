@@ -22,15 +22,29 @@ const getUniformContainerStyles = (itemsCount: number) => {
     3: "sxs-only:gap-4 xs-only:gap-6 sm-only:gap-8 md-only:gap-12 lg-only:gap-16 xl-only:gap-20",
   };
 
+  const landscapeGapClasses = {
+    1: "landscape-small:gap-[1.2rem] landscape-tablet-sm:gap-[1.2rem]", // 16px * 0.75 = 12px
+    2: "landscape-small:gap-[0.9rem] landscape-tablet-sm:gap-[0.9rem]", // 12px * 0.75 = 9px
+    3: "landscape-small:gap-[0.6rem] landscape-tablet-sm:gap-[0.6rem]", // 8px * 0.75 = 6px
+  };
+
   return `
     flex items-center
     w-full
     py-5 px-4
+    landscape-small:py-[0.9rem] landscape-small:px-[0.75rem]
+    landscape-tablet-sm:py-[0.9rem] landscape-tablet-sm:px-[0.75rem]
     bg-white/95
     border-t border-gray-200
     transition-all duration-200
     ${gapClasses[itemsCount as keyof typeof gapClasses] || gapClasses[3]}
+    ${
+      landscapeGapClasses[itemsCount as keyof typeof landscapeGapClasses] ||
+      landscapeGapClasses[3]
+    }
     short-height:py-4
+    landscape-small:short-height:py-[0.75rem]
+    landscape-tablet-sm:short-height:py-[0.75rem]
     overflow-x-auto
     justify-center
     min-w-fit
@@ -44,6 +58,8 @@ const getUniformItemStyles = () => `
   flex flex-col items-center
   transition-all duration-200
   hover:transform hover:scale-105
+  landscape-small:hover:scale-[0.97]
+  landscape-tablet-sm:hover:scale-[0.97]
   flex-shrink-0
   min-w-fit
 `;
@@ -56,6 +72,8 @@ const getUniformIconStyles = (isSelected: boolean = false) => `
   md-only:w-8 md-only:h-8
   lg-only:w-9 lg-only:h-9
   xl-only:w-9 xl-only:h-9
+  landscape-small:w-[1.5rem] landscape-small:h-[1.5rem]
+  landscape-tablet-sm:w-[1.5rem] landscape-tablet-sm:h-[1.5rem]
   ${isSelected ? "text-color-interfaz" : "text-black"}
   transition-colors duration-200
 `;
@@ -63,6 +81,8 @@ const getUniformIconStyles = (isSelected: boolean = false) => `
 // Estilos uniformes para las etiquetas de texto
 const getUniformLabelStyles = (isSelected: boolean = false) => `
   mt-1
+  landscape-small:mt-[0.15rem]
+  landscape-tablet-sm:mt-[0.15rem]
   text-xs font-medium
   sxs-only:text-xs
   xs-only:text-xs
@@ -70,10 +90,14 @@ const getUniformLabelStyles = (isSelected: boolean = false) => `
   md-only:text-sm
   lg-only:text-sm
   xl-only:text-sm
+  landscape-small:text-[0.7rem]
+  landscape-tablet-sm:text-[0.7rem]
   ${isSelected ? "text-color-interfaz" : "text-black"}
   transition-colors duration-200
   text-center leading-tight
   short-height:mt-0.5 short-height:text-xs
+  landscape-small:short-height:mt-[0.15rem] landscape-small:short-height:text-[0.7rem]
+  landscape-tablet-sm:short-height:mt-[0.15rem] landscape-tablet-sm:short-height:text-[0.7rem]
   whitespace-nowrap
 `;
 
@@ -173,7 +197,7 @@ const NavBarFooter = ({ Rol }: { Rol: RolesSistema }) => {
         />
       )}
       <nav
-      id="navbar-footer"
+        id="navbar-footer"
         className={`max-w-[100vw] w-full z-[101] bottom-0 left-0 bg-white shadow-[0_0_12px_4px_rgba(0,0,0,0.20)] animate__animated fixed
         ${
           montado && navBarFooterIsOpen

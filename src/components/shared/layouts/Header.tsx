@@ -187,7 +187,11 @@ const Header = ({
                  sxs-only:gap-x-2 sxs-only:py-2 sxs-only:px-2 sxs-only:min-h-[4rem]
                  xs-only:gap-x-2 xs-only:py-2 xs-only:px-3 xs-only:min-h-[4.5rem]
                  max-sm:gap-x-3 max-sm:py-2 max-sm:px-3 max-sm:min-h-[4.5rem]
-                 gap-x-4 py-3 px-4 sm:pl-6 sm:pr-4 text-xs sm:text-base min-h-[5rem]"
+                 gap-x-4 py-3 px-4 sm:pl-6 sm:pr-4 min-h-[5rem]
+                 landscape-small:gap-x-[0.5rem] landscape-small:py-[0.27rem] landscape-small:px-[0.54rem] landscape-small:pr-[0.54rem] landscape-small:min-h-[4.5rem]
+                 landscape-tablet-sm:gap-x-[0.5rem] landscape-tablet-sm:py-[0.27rem] landscape-tablet-sm:px-[0.54rem] landscape-tablet-sm:pr-[0.54rem] landscape-tablet-sm:min-h-[4.5rem]
+                 text-xs sm:text-base
+                 landscape-small:text-[0.9rem] landscape-tablet-sm:text-[0.9rem]"
       >
         {/* Control del sidebar */}
         <div
@@ -201,7 +205,8 @@ const Header = ({
                        sxs-only:w-8
                        xs-only:w-9
                        max-sm:w-10
-                       w-10 -border-2"
+                       w-10
+                       landscape-small:w-9 landscape-tablet-sm:w-9 -border-2"
             />
           ) : (
             <FooterIcon
@@ -209,7 +214,8 @@ const Header = ({
                        sxs-only:w-8
                        xs-only:w-9
                        max-sm:w-10
-                       w-10"
+                       w-10
+                       landscape-small:w-9 landscape-tablet-sm:w-9"
               title={
                 sidebarIsOpen
                   ? "Ocultar Barra Inferior"
@@ -220,7 +226,10 @@ const Header = ({
         </div>
 
         {/* Logo de la cabecera */}
-        <div className="sxs-only:scale-75 xs-only:scale-85 max-sm:scale-90">
+        <div
+          className="sxs-only:scale-75 xs-only:scale-85 max-sm:scale-90
+                       landscape-small:scale-90 landscape-tablet-sm:scale-90"
+        >
           <LogoCabecera />
         </div>
 
@@ -238,7 +247,8 @@ const Header = ({
                       sxs-only:gap-1
                       xs-only:gap-2
                       max-sm:gap-3
-                      gap-4"
+                      gap-4
+                      landscape-small:gap-[0.5rem] landscape-tablet-sm:gap-[0.5rem]"
         >
           {/* Nombre e información del rol */}
           <div
@@ -246,14 +256,16 @@ const Header = ({
                         sxs-only:gap-y-1 sxs-only:mr-1
                         xs-only:gap-y-1 xs-only:mr-1
                         max-sm:gap-y-1 max-sm:mr-2
-                        gap-y-1 mr-2"
+                        gap-y-1 mr-2
+                        landscape-small:gap-y-0 landscape-small:mr-[0.27rem] landscape-tablet-sm:gap-y-0 landscape-tablet-sm:mr-[0.27rem]"
           >
             <h1
               className="text-blanco font-extrabold text-left leading-5
                          sxs-only:text-[0.8rem] sxs-only:leading-4
                          xs-only:text-[0.9rem] xs-only:leading-4
                          max-sm:text-[1rem] max-sm:leading-5
-                         text-[1.1rem]"
+                         text-[1.1rem]
+                         landscape-small:text-[0.99rem] landscape-small:leading-[1.1rem] landscape-tablet-sm:text-[0.99rem] landscape-tablet-sm:leading-[1.1rem]"
             >
               {Nombres.value.split(" ").shift()}{" "}
               {Apellidos.value.split(" ").shift()}
@@ -263,7 +275,8 @@ const Header = ({
                         sxs-only:text-[0.7rem] sxs-only:leading-3
                         xs-only:text-[0.75rem] xs-only:leading-3
                         max-sm:text-[0.8rem] max-sm:leading-4
-                        text-[0.9rem] leading-4"
+                        text-[0.9rem] leading-4
+                        landscape-small:hidden landscape-tablet-sm:hidden"
             >
               {
                 RolesTextos[Rol as keyof typeof RolesTextos].mobile[
@@ -273,7 +286,8 @@ const Header = ({
             </i>
             <i
               className="text-blanco text-left italic max-sm:hidden
-                        text-[0.9rem] leading-4"
+                        text-[0.9rem] leading-4
+                        landscape-small:text-[0.81rem] landscape-small:leading-4 landscape-tablet-sm:text-[0.81rem] landscape-tablet-sm:leading-4"
             >
               {
                 RolesTextos[Rol as keyof typeof RolesTextos].desktop[
@@ -288,7 +302,8 @@ const Header = ({
             className="sxs-only:w-9
                      xs-only:w-10
                      max-sm:w-11
-                     w-13"
+                     w-13
+                     landscape-small:w-[2.925rem] landscape-tablet-sm:w-[2.925rem]"
             Google_Drive_Foto_ID={Google_Drive_Foto_ID}
           />
 
@@ -299,7 +314,8 @@ const Header = ({
                        sxs-only:w-8
                        xs-only:w-9
                        max-sm:w-10
-                       sm:w-7 w-10"
+                       sm:w-7 w-10
+                       landscape-small:w-7 landscape-tablet-sm:w-7"
             />
           </div>
 
@@ -308,11 +324,12 @@ const Header = ({
             <ul
               id="Menu-deplegable"
               style={{ boxShadow: "0px 0px 4px 2px rgba(0,0,0,0.2)" }}
-              className="absolute bg-white w-auto max-w-[90vw] flex flex-col items-center justify-center mt-3 rounded-lg top-full right-4
+              className="absolute bg-white w-auto max-w-[90vw] flex flex-col items-center justify-center mt-3 rounded-lg top-full
                        sxs-only:min-w-[7rem] sxs-only:right-2
                        xs-only:min-w-[7.5rem] xs-only:right-3
                        max-sm:min-w-[8rem] max-sm:right-3
-                       min-w-[9rem]"
+                       sm-only:min-w-[9rem] sm-only:right-4 md-only:min-w-[9rem] md-only:right-4 lg-only:min-w-[9rem] lg-only:right-4 xl-only:min-w-[9rem] xl-only:right-4
+                       landscape-small:min-w-[8.1rem] landscape-small:right-[0.36rem] landscape-tablet-sm:min-w-[8.1rem] landscape-tablet-sm:right-[0.36rem]"
               onClick={() => {
                 setMenuVisible(false);
               }}
@@ -323,7 +340,8 @@ const Header = ({
                              sxs-only:h-8 sxs-only:w-[7rem] sxs-only:text-sm
                              xs-only:h-9 xs-only:w-[7.5rem] xs-only:text-sm
                              max-sm:h-9 max-sm:w-[8rem] max-sm:text-sm
-                             h-10 w-[8rem]"
+                             h-10 w-[8rem]
+                             landscape-small:h-9 landscape-small:w-[7.2rem] landscape-small:text-sm landscape-tablet-sm:h-9 landscape-tablet-sm:w-[7.2rem] landscape-tablet-sm:text-sm"
                 >
                   Editar Perfil
                 </li>
@@ -333,7 +351,8 @@ const Header = ({
                          sxs-only:h-8 sxs-only:w-[7rem] sxs-only:text-sm
                          xs-only:h-9 xs-only:w-[7.5rem] xs-only:text-sm
                          max-sm:h-9 max-sm:w-[8rem] max-sm:text-sm
-                         h-10 w-[8rem]"
+                         h-10 w-[8rem]
+                         landscape-small:h-9 landscape-small:w-[7.2rem] landscape-small:text-sm landscape-tablet-sm:h-9 landscape-tablet-sm:w-[7.2rem] landscape-tablet-sm:text-sm"
                 onClick={() => logout()}
               >
                 Cerrar Sesión

@@ -119,55 +119,23 @@ const MisEstudiantesRelacionados = () => {
     }
   }, [isInitialized, error]);
 
-  // Función para forzar actualización desde servidor
-  // const handleForceRefresh = async () => {
-  //   try {
-  //     setIsSomethingLoading(true);
-  //     setError(null);
-
-  //     const estudiantesParaResponsablesIDB = new EstudiantesParaResponsablesIDB(
-  //       "API02",
-  //       setIsSomethingLoading,
-  //       setError
-  //     );
-
-  //     // Forzar actualización desde el servidor
-  //     const estudiantesObtenidos =
-  //       await estudiantesParaResponsablesIDB.obtenerYSincronizarEstudiantesDelResponsable(
-  //         true
-  //       );
-
-  //     setMisEstudiantesRelacionadosConAula(estudiantesObtenidos);
-  //     console.log(
-  //       `🔄 Estudiantes actualizados desde servidor: ${estudiantesObtenidos.length}`
-  //     );
-  //   } catch (refreshError) {
-  //     console.error("❌ Error al forzar actualización:", refreshError);
-
-  //     if (!error) {
-  //       setError({
-  //         success: false,
-  //         message: "Error al actualizar desde el servidor",
-  //         errorType: "EXTERNAL_SERVICE_ERROR" as any,
-  //         details: {
-  //           origen: "MisEstudiantesRelacionados.handleForceRefresh",
-  //           timestamp: Date.now(),
-  //         },
-  //       });
-  //     }
-  //   } finally {
-  //     setIsSomethingLoading(false);
-  //   }
-  // };
-
   // Renderizado condicional del contenido principal
   const renderContent = () => {
     // Mostrar loader mientras está cargando
     if (isSomethingLoading && !isInitialized) {
       return (
-        <span className="sxs-only:text-[12px] xs-only:text-[13px] sm-only:text-[14px] flex items-center">
+        <span
+          className="sxs-only:text-[11px] xs-only:text-[12px] sm-only:text-[13px] 
+                        landscape-small:text-[10.2px] landscape-tablet-sm:text-[10.2px]
+                        flex items-center"
+        >
           Cargando estudiantes...
-          <Loader className="w-[2rem] sxs-only:w-[1.5rem] xs-only:w-[1.7rem] p-2 sxs-only:p-1.5 bg-black ml-2" />
+          <Loader
+            className="w-[2rem] sxs-only:w-[1.84rem] xs-only:w-[1.84rem] 
+                            landscape-small:w-[1.7rem] landscape-tablet-sm:w-[1.7rem]
+                            p-2 sxs-only:p-[0.46rem] bg-black ml-2 
+                            landscape-small:ml-[0.425rem] landscape-tablet-sm:ml-[0.425rem]"
+          />
         </span>
       );
     }
@@ -175,12 +143,24 @@ const MisEstudiantesRelacionados = () => {
     // Mostrar error si existe
     if (error) {
       return (
-        <div className="flex flex-col items-center gap-4">
+        <div
+          className="flex flex-col items-center gap-4 
+                       landscape-small:gap-[0.85rem] landscape-tablet-sm:gap-[0.85rem]"
+        >
           <div className="text-center">
-            <p className="text-red-600 font-medium mb-2">
+            <p
+              className="text-red-600 font-medium mb-2 
+                         landscape-small:mb-[0.425rem] landscape-tablet-sm:mb-[0.425rem]"
+            >
               ❌ Error al cargar estudiantes
             </p>
-            <p className="text-sm text-gray-600 mb-2">{error.message}</p>
+            <p
+              className="text-sm text-gray-600 mb-2 
+                         landscape-small:text-[11.9px] landscape-small:mb-[0.425rem] 
+                         landscape-tablet-sm:text-[11.9px] landscape-tablet-sm:mb-[0.425rem]"
+            >
+              {error.message}
+            </p>
           </div>
         </div>
       );
@@ -189,9 +169,18 @@ const MisEstudiantesRelacionados = () => {
     // Mostrar loader durante actualizaciones
     if (isSomethingLoading && isInitialized) {
       return (
-        <span className="sxs-only:text-[12px] xs-only:text-[13px] sm-only:text-[14px] flex items-center">
+        <span
+          className="sxs-only:text-[11px] xs-only:text-[12px] sm-only:text-[13px] 
+                        landscape-small:text-[10.2px] landscape-tablet-sm:text-[10.2px]
+                        flex items-center"
+        >
           Actualizando
-          <Loader className="w-[2rem] sxs-only:w-[1.5rem] xs-only:w-[1.7rem] p-2 sxs-only:p-1.5 bg-black ml-2" />
+          <Loader
+            className="w-[2rem] sxs-only:w-[1.84rem] xs-only:w-[1.84rem] 
+                            landscape-small:w-[1.7rem] landscape-tablet-sm:w-[1.7rem]
+                            p-2 sxs-only:p-[0.46rem] bg-black ml-2 
+                            landscape-small:ml-[0.425rem] landscape-tablet-sm:ml-[0.425rem]"
+          />
         </span>
       );
     }
@@ -200,15 +189,12 @@ const MisEstudiantesRelacionados = () => {
     if (misEstudiantesRelacionadosConAula.length === 0) {
       return (
         <div className="text-center">
-          <p className="text-gray-600 mb-4">
+          <p
+            className="text-gray-600 mb-4 
+                       landscape-small:mb-[0.85rem] landscape-tablet-sm:mb-[0.85rem]"
+          >
             No se encontraron estudiantes relacionados a ti
           </p>
-          {/* <button
-            onClick={handleForceRefresh}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
-          >
-            Buscar actualizaciones
-          </button> */}
         </div>
       );
     }
@@ -224,25 +210,38 @@ const MisEstudiantesRelacionados = () => {
 
   return (
     <div className="w-full h-full flex flex-col items-center justify-center p-6">
-      <div className="flex items-center gap-4 mb-6">
-        <h1 className="text-[2.185rem] sxs-only:text-[1.725rem] xs-only:text-[1.84rem] sm-only:text-[1.955rem] md-only:text-[2.07rem] text-negro font-semibold mt-2 text-center">
+      <div
+        className="flex items-center gap-4 mb-6 
+                     sxs-only:gap-[0.92rem] sxs-only:mb-[1.38rem] 
+                     xs-only:gap-[0.92rem] xs-only:mb-[1.38rem] 
+                     sm-only:gap-[0.92rem] sm-only:mb-[1.38rem]
+                     landscape-small:gap-[0.85rem] landscape-small:mb-[1.275rem] 
+                     landscape-tablet-sm:gap-[0.85rem] landscape-tablet-sm:mb-[1.275rem]"
+      >
+        <h1
+          className="text-[2.185rem] 
+                      sxs-only:text-[1.587rem] 
+                      xs-only:text-[1.693rem] 
+                      sm-only:text-[1.799rem] 
+                      md-only:text-[1.905rem] 
+                      landscape-small:text-[1.857rem] 
+                      landscape-tablet-sm:text-[1.857rem]
+                      text-negro font-semibold mt-2 text-center 
+                      landscape-small:mt-[0.425rem] landscape-tablet-sm:mt-[0.425rem]"
+        >
           ESTUDIANTES RELACIONADOS
         </h1>
-
-        {/* Botón de actualización manual (solo visible cuando hay estudiantes y no hay error) */}
-        {/* {isInitialized && !error && misEstudiantesRelacionados.length > 0 && (
-          <button
-            onClick={handleForceRefresh}
-            disabled={isSomethingLoading}
-            className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Actualizar desde servidor"
-          >
-            Actualizar
-          </button>
-        )} */}
       </div>
 
-      <div className="w-full h-full -border-2 flex items-center justify-center gap-x-[min(3rem,5vw)]">
+      <div
+        className="w-full h-full -border-2 flex items-center justify-center 
+                     gap-x-[min(3rem,5vw)] 
+                     sxs-only:gap-x-[min(2.76rem,4.6vw)] 
+                     xs-only:gap-x-[min(2.76rem,4.6vw)] 
+                     sm-only:gap-x-[min(2.76rem,4.6vw)]
+                     landscape-small:gap-x-[min(2.55rem,4.25vw)] 
+                     landscape-tablet-sm:gap-x-[min(2.55rem,4.25vw)]"
+      >
         {renderContent()}
       </div>
     </div>

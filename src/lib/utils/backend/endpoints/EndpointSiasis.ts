@@ -4,7 +4,6 @@ import {
   SuccessResponseAPIBase,
 } from "@/interfaces/shared/apis/types";
 import { SiasisAPIS } from "@/interfaces/shared/SiasisComponents";
-import fetchSiasisApiGenerator from "@/lib/helpers/generators/fetchSiasisApisGenerator";
 
 // ============================================
 // UTILITY TYPES AVANZADAS
@@ -267,6 +266,10 @@ export class EndpointSiasis<
     ...args: RealizarPeticionParams<TRoute, TQuery, TBody>
   ): Promise<TResponse> {
     try {
+      const { default: fetchSiasisApiGenerator } = await import(
+        "@/lib/helpers/generators/fetchSiasisApisGenerator"
+      );
+
       const params = args[0];
       const body = (params as any)?.body;
 

@@ -47,7 +47,7 @@ const Auxiliares = () => {
       <div className="flex flex-col items-center w-full flex-1 pt-8 sxs-only:pt-6 xs-only:pt-7 sm-only:pt-7 md-only:pt-8">
         {isSomethingLoading && (
           <span className="sxs-only:text-[12px] xs-only:text-[13px] sm-only:text-[14px] flex items-center">
-            Actualizando <Loader className="w-[2rem] sxs-only:w-[1.5rem] xs-only:w-[1.7rem] p-2 sxs-only:p-1.5 bg-black ml-2" />
+            Actualizando  <Loader className="w-[2rem] sxs-only:w-[1.5rem] xs-only:w-[1.7rem] p-2 sxs-only:p-1.5 bg-black ml-2" />
           </span>
         )}
         {auxiliares && (
