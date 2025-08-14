@@ -16,7 +16,7 @@ import { useEffect, useState } from "react";
 import { obtenerTextoRol } from "../asistencia-personal/ListadoPersonal";
 import VolverIcon from "../icons/VolverIcon";
 
-import React from 'react'
+import React from "react";
 
 const FullScreenModalAsistenciaEstudiantesSecundaria = ({
   closeFullScreenModal,
@@ -102,8 +102,6 @@ const FullScreenModalAsistenciaEstudiantesSecundaria = ({
     }
   };
 
-
-
   // Determinar qué contenido mostrar según el estado actual
   const renderContenido = () => {
     // Si estamos cargando, mostrar un spinner
@@ -119,8 +117,7 @@ const FullScreenModalAsistenciaEstudiantesSecundaria = ({
         </div>
       );
     }
-
-   
+  };
 
   return (
     <div className="animate__animated animate__fadeInUp [animation-duration:800ms] fixed top-0 left-0 w-full h-[100dvh] grid grid-rows-[auto_1fr_auto] bg-white z-[1001]">
