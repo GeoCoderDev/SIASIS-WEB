@@ -4,8 +4,8 @@ import { Meses } from "./Meses";
 import { ActoresSistema } from "./ActoresSistema";
 import { EstadosAsistenciaPersonal } from "./EstadosAsistenciaPersonal";
 import { EstadosAsistencia } from "./EstadosAsistenciaEstudiantes";
-
-
+import { SuccessResponseAPIBase } from "./apis/types";
+import { NivelEducativo } from "./NivelEducativo";
 
 export interface AsistenciaDiariaResultado {
   idUsuario: string; // ✅ ACTUALIZADO: Era "DNI", ahora soporta ID (directivos) o DNI (otros)
@@ -22,7 +22,6 @@ export interface AsistenciaDiariaResultado {
 export interface DetallesAsistenciaUnitariaEstudiantes {
   Estado: EstadosAsistencia;
 }
-
 
 export interface RegistroAsistenciaUnitariaPersonal {
   ModoRegistro: ModoRegistro;
@@ -44,12 +43,10 @@ export type RegistroAsistenciaMensualPersonal = Pick<
   RegistrosDelMes: Record<number, DetallesAsistenciaUnitariaPersonal | null>;
 };
 
-
 export interface DetallesAsistenciaUnitariaPersonal {
   Timestamp: number;
   DesfaseSegundos: number;
 }
-
 
 export interface ConsultarAsistenciasDiariasPorActorEnRedisResponseBody {
   Actor: ActoresSistema;
@@ -77,12 +74,10 @@ export interface IniciarTomaAsistenciaRequestBody {
   TipoAsistencia: TipoAsistencia;
 }
 
-
 export interface DetallesAsistenciaUnitariaPersonal {
   Timestamp: number;
   DesfaseSegundos: number;
 }
-
 
 /**
  * ✅ ACTUALIZADO: Respuesta del endpoint de consulta de asistencias diarias
@@ -125,7 +120,6 @@ export interface ConsultaAsistenciaEstudiante extends ConsultaAsistenciaPropia {
   Seccion?: string; // Requerido para consultas grupales o individuales
 }
 
-
 export interface EstadoTomaAsistenciaResponseBody {
   TipoAsistencia: TipoAsistencia;
   Dia: number;
@@ -159,9 +153,10 @@ export interface RegistroEntradaSalidaPersonal {
   estado: EstadosAsistenciaPersonal;
 }
 
+
 // Interface para el request body
 export interface EliminarAsistenciaRequestBody {
-  idUsuario: string;
+  Id_Usuario: string;
   Actor: ActoresSistema;
   ModoRegistro: ModoRegistro;
   TipoAsistencia: TipoAsistencia;
@@ -182,4 +177,52 @@ export interface EliminarAsistenciaSuccessResponse {
     claveEliminada: string | null;
     fecha: string;
   };
+}
+
+
+export interface RegistrarAsistenciaIndividualSuccessResponse
+  extends SuccessResponseAPIBase {
+  data: {
+    timestamp: number;
+    desfaseSegundos: number;
+    esNuevoRegistro: boolean;
+    esRegistroPropio: boolean;
+    actorRegistrado: ActoresSistema;
+    tipoAsistencia: TipoAsistencia;
+  };
+}
+
+// ✅ Interface principal (flexible para todos los casos)
+export interface RegistrarAsistenciaIndividualRequestBody {
+  Id_Usuario?: string; // ✅ Opcional para registro propio
+  TipoAsistencia?: TipoAsistencia;
+  Actor?: ActoresSistema | RolesSistema;
+  ModoRegistro: ModoRegistro;
+  FechaHoraEsperadaISO: string;
+  NivelDelEstudiante?: NivelEducativo;
+  Grado?: number;
+  Seccion?: string;
+}
+
+// ✅ Interfaces específicas para TypeScript
+export interface RegistroPropio {
+  ModoRegistro: ModoRegistro;
+  FechaHoraEsperadaISO: string;
+}
+
+export interface RegistroPersonal extends RegistroPropio {
+  Id_Usuario: string;
+  TipoAsistencia: TipoAsistencia.ParaPersonal;
+  Actor: Exclude<ActoresSistema, ActoresSistema.Estudiante>;
+}
+
+export interface RegistroEstudiante extends RegistroPropio {
+  Id_Usuario: string;
+  TipoAsistencia:
+    | TipoAsistencia.ParaEstudiantesPrimaria
+    | TipoAsistencia.ParaEstudiantesSecundaria;
+  Actor: ActoresSistema.Estudiante;
+  NivelDelEstudiante: NivelEducativo;
+  Grado: number;
+  Seccion: string;
 }

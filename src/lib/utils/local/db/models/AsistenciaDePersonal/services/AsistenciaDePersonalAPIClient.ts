@@ -22,6 +22,7 @@ import { AsistenciaDePersonalDateHelper } from "./AsistenciaDePersonalDateHelper
 import { AsistenciaDePersonalRepository } from "./AsistenciaDePersonalRepository";
 import {
   EliminarAsistenciaRequestBody,
+  RegistrarAsistenciaIndividualRequestBody,
   TipoAsistencia,
 } from "@/interfaces/shared/AsistenciaRequests";
 import { Endpoint_Get_Asistencias_Mensuales_De_Personal_API01 } from "@/lib/utils/backend/endpoints/api01/AsistenciasMensualesDePersonal";
@@ -244,7 +245,7 @@ export class AsistenciaDePersonalAPIClient {
    * ✅ NUEVO: Marca asistencia en Redis mediante API
    */
   public async marcarAsistenciaEnRedis(
-    dni: string,
+    id: string,
     rol: RolesSistema,
     modoRegistro: ModoRegistro,
     horaEsperadaISO: string
@@ -253,8 +254,8 @@ export class AsistenciaDePersonalAPIClient {
       const actor = this.mapper.obtenerActorDesdeRol(rol);
       const timestampOperacion = this.dateHelper.obtenerTimestampPeruano();
 
-      const requestBody = {
-        idUsuario: dni,
+      const requestBody: RegistrarAsistenciaIndividualRequestBody = {
+        Id_Usuario: id,
         Actor: actor,
         TipoAsistencia: TipoAsistencia.ParaPersonal,
         ModoRegistro: modoRegistro,
@@ -466,7 +467,7 @@ export class AsistenciaDePersonalAPIClient {
     try {
       const timestampOperacion = this.dateHelper.obtenerTimestampPeruano();
 
-      const requestBody = {
+      const requestBody: RegistrarAsistenciaIndividualRequestBody = {
         ModoRegistro: modoRegistro,
         FechaHoraEsperadaISO: horaEsperadaISO,
       };
@@ -550,7 +551,7 @@ export class AsistenciaDePersonalAPIClient {
 
       // Crear el request body para la API de eliminación
       const requestBody: EliminarAsistenciaRequestBody = {
-        idUsuario: String(idUsuario),
+        Id_Usuario: String(idUsuario),
         Actor: actor,
         ModoRegistro: modoRegistro,
         TipoAsistencia: TipoAsistencia.ParaPersonal,

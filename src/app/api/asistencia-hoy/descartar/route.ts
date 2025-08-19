@@ -160,7 +160,7 @@ export async function DELETE(req: NextRequest) {
     const body = (await req.json()) as EliminarAsistenciaRequestBody;
 
     const {
-      idUsuario,
+      Id_Usuario,
       Actor,
       ModoRegistro,
       TipoAsistencia: tipoAsistencia,
@@ -171,7 +171,7 @@ export async function DELETE(req: NextRequest) {
     } = body;
 
     // Validar DNI
-    const dniValidation = validateDNI(idUsuario, true);
+    const dniValidation = validateDNI(Id_Usuario, true);
     //El directivo tendra ID
     if (!dniValidation.isValid && Actor !== ActoresSistema.Directivo) {
       return NextResponse.json(
@@ -251,7 +251,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     // Determinar la fecha a usar
-    const fechaEliminacion = Fecha || await obtenerFechaActualPeru();
+    const fechaEliminacion = Fecha || (await obtenerFechaActualPeru());
 
     // Validar formato de fecha si se proporciona
     if (Fecha && !/^\d{4}-\d{2}-\d{2}$/.test(Fecha)) {
@@ -278,7 +278,7 @@ export async function DELETE(req: NextRequest) {
           fechaEliminacion,
           ModoRegistro,
           Actor,
-          idUsuario,
+          Id_Usuario,
           NivelEducativo,
           Grado,
           Seccion
@@ -290,7 +290,7 @@ export async function DELETE(req: NextRequest) {
           fechaEliminacion,
           ModoRegistro,
           Actor,
-          idUsuario
+          Id_Usuario
         );
       }
     } else {
@@ -299,7 +299,7 @@ export async function DELETE(req: NextRequest) {
         fechaEliminacion,
         ModoRegistro,
         Actor,
-        idUsuario
+        Id_Usuario
       );
     }
 

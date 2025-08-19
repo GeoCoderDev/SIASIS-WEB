@@ -11,17 +11,17 @@ import {
 import { redisClient } from "../../../../../config/Redis/RedisClient";
 import { ErrorResponseAPIBase } from "@/interfaces/shared/apis/types";
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
-import { TipoAsistencia } from "@/interfaces/shared/AsistenciaRequests";
+import {
+  RegistrarAsistenciaIndividualRequestBody,
+  RegistrarAsistenciaIndividualSuccessResponse,
+  TipoAsistencia,
+} from "@/interfaces/shared/AsistenciaRequests";
 import { HORA_MAXIMA_EXPIRACION_PARA_REGISTROS_EN_REDIS } from "@/constants/expirations";
 import {
   obtenerFechaActualPeru,
   obtenerFechaHoraActualPeru,
 } from "../../_helpers/obtenerFechaActualPeru";
 import { verifyAuthToken } from "@/lib/utils/backend/auth/functions/jwtComprobations";
-import {
-  RegistrarAsistenciaIndividualRequestBody,
-  RegistrarAsistenciaIndividualSuccessResponse,
-} from "@/interfaces/shared/apis/api01/asistencia/types";
 
 // Constantes de configuración
 const MINUTOS_TOLERANCIA = 5; // 5 minutos de tolerancia para considerar llegada temprana

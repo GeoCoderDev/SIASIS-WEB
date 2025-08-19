@@ -2,12 +2,16 @@ import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import { CLN01_Stores } from "./CLN01_Stores";
 import { SIASIS_CLN01_VERSION } from "@/constants/SIASIS_CLN01_VERSION";
 
+const nombre_rol_local_storage = "rol";
+const nombre_postfix_local_storage = "PostfixIDBFromUserData";
+
 export class IndexedDBConnection {
   private static instance: IndexedDBConnection;
   private db: IDBDatabase | null = null;
 
   // Propiedad estática que se inicializa de forma inteligente
   private static _rol: RolesSistema | null = null;
+  private static _PostfixIDB: string | null = null;
 
   // Usamos la variable de entorno para la versión
   private dbVersionString: string = SIASIS_CLN01_VERSION;
@@ -38,7 +42,33 @@ export class IndexedDBConnection {
     IndexedDBConnection._rol = newRol;
     // Guardar en localStorage si estamos en el cliente
     if (typeof window !== "undefined" && window.localStorage) {
-      localStorage.setItem("rol", newRol);
+      localStorage.setItem(nombre_rol_local_storage, newRol);
+    }
+  }
+
+  /**
+   * Getter para el rol que se auto-inicializa desde localStorage si es necesario
+   */
+  public static get PostfixIDBFromUserData(): string {
+    // Si no está seteado, intentar cargar desde localStorage
+    if (!IndexedDBConnection._PostfixIDB) {
+      IndexedDBConnection._PostfixIDB =
+        IndexedDBConnection.loadPostfixFromStorage();
+    }
+    return IndexedDBConnection._PostfixIDB;
+  }
+
+  /**
+   * Setter para el PostfixIDBFromUserData
+   */
+  public static set PostfixIDBFromUserData(username: string) {
+    IndexedDBConnection._PostfixIDB = `${username.substring(1, 3)}`;
+    // Guardar en localStorage si estamos en el cliente
+    if (typeof window !== "undefined" && window.localStorage) {
+      localStorage.setItem(
+        nombre_postfix_local_storage,
+        IndexedDBConnection._PostfixIDB
+      );
     }
   }
 
@@ -48,7 +78,9 @@ export class IndexedDBConnection {
   private static loadRolFromStorage(): RolesSistema {
     // Verificar si estamos en el cliente
     if (typeof window !== "undefined" && window.localStorage) {
-      const storedRole = localStorage.getItem("rol") as RolesSistema;
+      const storedRole = localStorage.getItem(
+        nombre_rol_local_storage
+      ) as RolesSistema;
       if (storedRole && Object.values(RolesSistema).includes(storedRole)) {
         return storedRole;
       }
@@ -58,10 +90,23 @@ export class IndexedDBConnection {
   }
 
   /**
+   * Carga el postfix desde localStorage de forma segura
+   */
+  private static loadPostfixFromStorage(): string {
+    // Verificar si estamos en el cliente
+    if (typeof window !== "undefined" && window.localStorage) {
+      if (localStorage.getItem(nombre_postfix_local_storage))
+        return localStorage.getItem(nombre_postfix_local_storage)!;
+    }
+    // Valor por defecto si no hay nada en localStorage o no es válido
+    return "XXX";
+  }
+
+  /**
    * Obtiene el nombre de la base de datos basado en el rol actual
    */
   private get dbName(): string {
-    return `SIASIS-CLN01-${IndexedDBConnection.rol}`;
+    return `SIASIS-CLN01-${IndexedDBConnection.rol}-${IndexedDBConnection.PostfixIDBFromUserData}`;
   }
 
   /**

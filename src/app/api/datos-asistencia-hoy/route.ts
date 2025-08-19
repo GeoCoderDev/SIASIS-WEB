@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { LogoutTypes, ErrorDetailsForLogout } from "@/interfaces/LogoutTypes";
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
-import { NOMBRE_ARCHIVO_CON_DATOS_ASISTENCIA_DIARIOS } from "@/constants/NOMBRE_ARCHIVOS_EN_BLOBS";
+import { NOMBRE_ARCHIVO_CON_DATOS_ASISTENCIA_DIARIOS } from "@/constants/NOMBRE_ARCHIVOS_SISTEMA";
 import {
   AuxiliarAsistenciaResponse,
   BaseAsistenciaResponse,
@@ -12,31 +12,16 @@ import {
   ProfesorTutorSecundariaAsistenciaResponse,
   ResponsableAsistenciaResponse,
 } from "@/interfaces/shared/Asistencia/DatosAsistenciaHoyIE20935";
-
 import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
 import { verifyAuthToken } from "@/lib/utils/backend/auth/functions/jwtComprobations";
 import { redirectToLogin } from "@/lib/utils/backend/auth/functions/redirectToLogin";
 import { redisClient } from "../../../../config/Redis/RedisClient";
+import { esContenidoJSON } from "../_helpers/esContenidoJSON";
 
-// Función auxiliar para verificar si el contenido es realmente JSON
-async function esContenidoJSON(response: Response): Promise<boolean> {
-  try {
-    // Verificar header Content-Type
-    const contentType = response.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
-      // Si no es application/json, verificamos el contenido mismo
-      const texto = await response.clone().text();
-
-      // Intentar hacer un parse del texto para ver si es JSON válido
-      JSON.parse(texto);
-      return true;
-    }
-    return true;
-  } catch (error) {
-    console.warn("El contenido recibido no es JSON válido:", error);
-    return false;
-  }
-}
+// Cache para datos de asistencia
+let datosAsistenciaCache: DatosAsistenciaHoyIE20935 | null = null;
+let ultimaActualizacionAsistencia = 0;
+const CACHE_DURACION_ASISTENCIA = 1 * 60 * 60 * 1000; // 1 hora en milisegundos
 
 export async function GET(req: NextRequest) {
   try {
@@ -46,62 +31,84 @@ export async function GET(req: NextRequest) {
 
     let datosCompletos: DatosAsistenciaHoyIE20935;
     let usandoRespaldo = false;
+    let usandoCache = false;
 
-    try {
-      // Intento principal: obtener datos del blob
-      const response = await fetch(
-        `${process.env
-          .RDP04_THIS_INSTANCE_VERCEL_BLOB_BASE_URL!}/${NOMBRE_ARCHIVO_CON_DATOS_ASISTENCIA_DIARIOS}`
-      );
+    const ahora = Date.now();
 
-      if (!response.ok || !(await esContenidoJSON(response))) {
-        throw new Error("Respuesta del blob inválida o no es JSON");
-      }
-
-      datosCompletos = await response.json();
-    } catch (blobError) {
-      // Plan B: Si el primer fetch falla, intentar con Google Drive
-      console.warn(
-        "Error al obtener datos del blob, usando respaldo:",
-        blobError
-      );
-      usandoRespaldo = true;
-
+    // Verificar si podemos usar el cache
+    if (
+      datosAsistenciaCache &&
+      ahora - ultimaActualizacionAsistencia < CACHE_DURACION_ASISTENCIA
+    ) {
+      datosCompletos = datosAsistenciaCache;
+      usandoCache = true;
+    } else {
       try {
-        // Obtener el ID de Google Drive desde Redis
-        const archivoDatosAsistenciaHoyGoogleDriveID = await redisClient().get(
-          NOMBRE_ARCHIVO_CON_DATOS_ASISTENCIA_DIARIOS
+        // Intento principal: obtener datos del blob
+        const response = await fetch(
+          `${process.env
+            .RDP04_THIS_INSTANCE_VERCEL_BLOB_BASE_URL!}/${NOMBRE_ARCHIVO_CON_DATOS_ASISTENCIA_DIARIOS}`
         );
 
-        if (!archivoDatosAsistenciaHoyGoogleDriveID) {
-          throw new Error("No se encontró el ID del archivo en Redis");
+        if (!response.ok || !(await esContenidoJSON(response))) {
+          throw new Error("Respuesta del blob inválida o no es JSON");
         }
 
-        // Hacer el fetch de respaldo desde Google Drive
-        const respaldoResponse = await fetch(
-          `https://drive.google.com/uc?export=download&id=${archivoDatosAsistenciaHoyGoogleDriveID}`
+        datosCompletos = await response.json();
+      } catch (blobError) {
+        // Plan B: Si el primer fetch falla, intentar con Google Drive
+        console.warn(
+          "Error al obtener datos del blob, usando respaldo:",
+          blobError
         );
+        usandoRespaldo = true;
 
-        if (
-          !respaldoResponse.ok ||
-          !(await esContenidoJSON(respaldoResponse))
-        ) {
+        try {
+          // Obtener el ID de Google Drive desde Redis
+          const archivoDatosAsistenciaHoyGoogleDriveID =
+            await redisClient().get(
+              NOMBRE_ARCHIVO_CON_DATOS_ASISTENCIA_DIARIOS
+            );
+
+          if (!archivoDatosAsistenciaHoyGoogleDriveID) {
+            throw new Error("No se encontró el ID del archivo en Redis");
+          }
+
+          // Hacer el fetch de respaldo desde Google Drive
+          const respaldoResponse = await fetch(
+            `https://drive.google.com/uc?export=download&id=${archivoDatosAsistenciaHoyGoogleDriveID}`
+          );
+
+          if (
+            !respaldoResponse.ok ||
+            !(await esContenidoJSON(respaldoResponse))
+          ) {
+            throw new Error(
+              `Error en la respuesta de respaldo: ${respaldoResponse.status} ${respaldoResponse.statusText}`
+            );
+          }
+
+          datosCompletos = await respaldoResponse.json();
+          console.log(
+            "Datos obtenidos exitosamente desde respaldo Google Drive"
+          );
+        } catch (respaldoError) {
+          // Si también falla el respaldo, lanzar un error más descriptivo
+          console.error(
+            "Error al obtener datos desde respaldo:",
+            respaldoError
+          );
           throw new Error(
-            `Error en la respuesta de respaldo: ${respaldoResponse.status} ${respaldoResponse.statusText}`
+            `Falló el acceso principal y el respaldo: ${
+              (respaldoError as Error).message
+            }`
           );
         }
-
-        datosCompletos = await respaldoResponse.json();
-        console.log("Datos obtenidos exitosamente desde respaldo Google Drive");
-      } catch (respaldoError) {
-        // Si también falla el respaldo, lanzar un error más descriptivo
-        console.error("Error al obtener datos desde respaldo:", respaldoError);
-        throw new Error(
-          `Falló el acceso principal y el respaldo: ${
-            (respaldoError as Error).message
-          }`
-        );
       }
+
+      // Actualizar cache con los nuevos datos
+      datosAsistenciaCache = datosCompletos;
+      ultimaActualizacionAsistencia = ahora;
     }
 
     // Filtrar datos según el rol
@@ -114,7 +121,9 @@ export async function GET(req: NextRequest) {
     // Devolver los datos filtrados con indicador de fuente
     return NextResponse.json({
       ...datosFiltrados,
-      _debug: usandoRespaldo
+      _debug: usandoCache
+        ? "Datos obtenidos desde cache"
+        : usandoRespaldo
         ? "Datos obtenidos desde respaldo"
         : "Datos obtenidos desde fuente principal",
     });

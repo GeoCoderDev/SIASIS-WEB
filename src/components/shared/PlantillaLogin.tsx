@@ -1,4 +1,4 @@
- "use client";
+"use client";
 import ContrasenaIcon from "../icons/ContrasenaIcon";
 import UsuarioIcon from "../icons/UsuarioIcon";
 import VolverIcon from "../icons/VolverIcon";
@@ -123,6 +123,8 @@ const PlantillaLogin = ({ rol, siasisAPI, endpoint }: PlantillaLoginProps) => {
 
       // Guardar rol del usuario en la propiedad estática Y localStorage automáticamente
       IndexedDBConnection.rol = data.Rol as RolesSistema;
+      IndexedDBConnection.PostfixIDBFromUserData =
+        formularioLogin.Nombre_Usuario;
 
       // Guardando data en IndexedDB
       await userStorage.saveUserData({
@@ -179,7 +181,9 @@ const PlantillaLogin = ({ rol, siasisAPI, endpoint }: PlantillaLoginProps) => {
             <h2 className="text-[0.9rem] text-gris-oscuro mt-3">
               Inicio de Sesión
             </h2>
-            <h3 className="text-[1.5rem] font-bold text-gris-oscuro text-wrap -break-words">{rol}</h3>
+            <h3 className="text-[1.5rem] font-bold text-gris-oscuro text-wrap -break-words">
+              {rol}
+            </h3>
 
             <form className="mt-4" onSubmit={handleSubmit}>
               <div className="mb-3 flex items-center border border-color-interfaz rounded-lg overflow-hidden">
