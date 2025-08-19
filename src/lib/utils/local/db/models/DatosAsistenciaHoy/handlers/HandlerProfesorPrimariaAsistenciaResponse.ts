@@ -12,7 +12,7 @@ export class HandlerProfesorPrimariaAsistenciaResponse extends HandlerAsistencia
     this.profesorPrimariaData = asistenciaData;
   }
 
-  public getMiDNI(): string {
+  public getMiIdentificador(): string {
     return this.profesorPrimariaData.Mi_Identificador;
   }
 

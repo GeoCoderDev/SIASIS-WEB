@@ -18,9 +18,7 @@ import { Entorno } from "@/interfaces/shared/Entornos";
 import { useSS01 } from "@/hooks/useSS01";
 import { TomaAsistenciaPersonalSIU01Events } from "@/SS01/sockets/events/AsistenciaDePersonal/frontend/TomaAsistenciaPersonalSIU01Events";
 import { SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER } from "@/SS01/sockets/events/AsistenciaDePersonal/interfaces/SalasTomaAsistenciaDePersonal";
-import {
-  RolesSistema,
-} from "@/interfaces/shared/RolesSistema";
+import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import { AsistenciaDePersonalIDB } from "@/lib/utils/local/db/models/AsistenciaDePersonal/AsistenciaDePersonalIDB";
 import { HandlerProfesorPrimariaAsistenciaResponse } from "@/lib/utils/local/db/models/DatosAsistenciaHoy/handlers/HandlerProfesorPrimariaAsistenciaResponse";
 import { HandlerAuxiliarAsistenciaResponse } from "@/lib/utils/local/db/models/DatosAsistenciaHoy/handlers/HandlerAuxiliarAsistenciaResponse";
@@ -263,7 +261,7 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
           | HandlerAuxiliarAsistenciaResponse
           | HandlerProfesorTutorSecundariaAsistenciaResponse
           | HandlerPersonalAdministrativoAsistenciaResponse
-      ).getMiDNI();
+      ).getMiIdentificador();
 
       const miNombres = await userStorage.getNombres();
       const miApellidos = await userStorage.getApellidos();

@@ -31,7 +31,10 @@ import TablaRegistrosAsistencia from "@/components/asistencia-personal/registros
 import InfoUsuarioAsistencia from "@/components/asistencia-personal/registros-asistencia-personal/InfoUsuarioAsistencia";
 import { DatosAsistenciaHoyIDB } from "@/lib/utils/local/db/models/DatosAsistenciaHoy/DatosAsistenciaHoyIDB";
 import { GenericUser } from "@/interfaces/shared/GenericUser";
-import { EventosIDB, IEventoLocal } from "@/lib/utils/local/db/models/eventos/EventosIDB";
+import {
+  EventosIDB,
+  IEventoLocal,
+} from "@/lib/utils/local/db/models/eventos/EventosIDB";
 
 // 🔧 CONSTANTE DE CONFIGURACIÓN PARA DESARROLLO
 const CONSIDERAR_DIAS_NO_ESCOLARES = false; // false = solo días laborales, true = incluir sábados y domingos
@@ -170,7 +173,7 @@ const MisAsistencias = () => {
           return;
         }
 
-        const miDNI = (handler as any).getMiDNI();
+        const miDNI = (handler as any).getMiIdentificador();
         if (!miDNI) {
           console.warn("⚠️ No se pudo obtener mi DNI para sincronizar marcado");
           return;
@@ -1576,7 +1579,8 @@ const MisAsistencias = () => {
     ? ({
         Nombres: misDatos.Nombres,
         Apellidos: misDatos.Apellidos,
-        Identificador_Nacional_Directivo: misDatos.Identificador_Nacional_Directivo,
+        Identificador_Nacional_Directivo:
+          misDatos.Identificador_Nacional_Directivo,
         ID_Usuario: misDatos.ID_Usuario || "N/A",
         Google_Drive_Foto_ID: misDatos.Google_Drive_Foto_ID,
       } as GenericUser)

@@ -12,7 +12,7 @@ export class HandlerAuxiliarAsistenciaResponse extends HandlerAsistenciaBase {
     this.auxiliarData = asistenciaData;
   }
 
-  public getMiDNI(): string {
+  public getMiIdentificador(): string {
     return this.auxiliarData.Mi_Identificador;
   }
 

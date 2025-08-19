@@ -390,7 +390,7 @@ export class AsistenciaDePersonalIDB {
         return;
       }
 
-      const miDNI = (handler as any).getMiDNI();
+      const miDNI = (handler as any).getMiIdentificador();
       if (!miDNI) {
         console.warn("⚠️ No se pudo obtener mi DNI para sincronizar marcado");
         return;
@@ -715,7 +715,7 @@ export class AsistenciaDePersonalIDB {
         };
       }
 
-      const miDNI = (handler as any).getMiDNI();
+      const miDNI = (handler as any).getMiIdentificador();
       if (!miDNI) {
         return {
           marcada: false,
@@ -1146,7 +1146,10 @@ export class AsistenciaDePersonalIDB {
             `✅ Sincronizado: ${dni} - día ${dia}/${mes} (${estado})`
           );
         } catch (error) {
-          console.error(`❌ Error sincronizando ${resultado.idUsuario}:`, error);
+          console.error(
+            `❌ Error sincronizando ${resultado.idUsuario}:`,
+            error
+          );
           stats.errores++;
         }
       }
@@ -1456,7 +1459,7 @@ export class AsistenciaDePersonalIDB {
         };
       }
 
-      const miDNI = (handler as any).getMiDNI();
+      const miDNI = (handler as any).getMiIdentificador();
       if (!miDNI) {
         return {
           marcada: false,

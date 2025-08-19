@@ -1255,7 +1255,12 @@ export class AsistenciaPersonalSyncService {
     // Si no hay registros → Aplicar lógica de horarios
     if (!registro) {
       console.log("📭 Sin registros existentes - Aplicar lógica de horarios");
-      return await this.aplicarLogicaHorarios(tipoPersonal, rol, idUsuario, mes);
+      return await this.aplicarLogicaHorarios(
+        tipoPersonal,
+        rol,
+        idUsuario,
+        mes
+      );
     }
 
     // ✅ CORREGIDO: Si hay registros → SIEMPRE aplicar lógica de horarios para mes actual
@@ -2394,7 +2399,7 @@ export class AsistenciaPersonalSyncService {
         );
       }
 
-      const miDNI = (handler as any).getMiDNI(); // Todos los handlers tienen este método
+      const miDNI = (handler as any).getMiIdentificador(); // Todos los handlers tienen este método
 
       console.log(
         `🎯 Flujo mis asistencias iniciado: ${rol} ${miDNI} - ${estadoTemporal.descripcion}`
