@@ -95,8 +95,11 @@ export enum TablasLocal {
   Tabla_Cursos_Horario = "cursos_horario",
   Tabla_Eventos = "eventos",
   Tabla_Comunicados = "comunicados",
+  Tabla_Vacaciones_Interescolares = "vacaciones_interescolares",
 
   // Control de asistencia personal
+  Tabla_Control_Entrada_directivos = "control_entrada_directivos",
+  Tabla_Control_Salida_directivos = "control_salida_directivos",
   Tabla_Control_Entrada_Profesores_Primaria = "control_entrada_profesores_primaria",
   Tabla_Control_Salida_Profesores_Primaria = "control_salida_profesores_primaria",
   Tabla_Control_Entrada_Profesores_Secundaria = "control_entrada_profesores_secundaria",
@@ -122,9 +125,11 @@ export enum TablasLocal {
   Tabla_Datos_Usuario = "user_data",
   Tabla_Solicitudes_Offline = "offline_requests",
   Tabla_Metadatos_Sistema = "system_meta",
-  // ✅ NUEVA ENTRADA: Tabla para asistencias del día actual
+
+  // Tabla para asistencias del día actual
   Tabla_Asistencias_Tomadas_Hoy = "asistencias_tomadas_hoy",
   Tabla_Usuarios_Genericos_Cache = "usuarios_genericos_cache",
+  Tabla_Archivos_Asistencia_Hoy = "archivos_asistencia_hoy",
 }
 
 /**

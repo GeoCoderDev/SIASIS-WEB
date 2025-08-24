@@ -11,7 +11,7 @@ export enum LogoutTypes {
   ERROR_DATOS_CORRUPTOS = "ERROR_DATOS_CORRUPTOS",
   ERROR_PARSEO = "ERROR_PARSEO",
   PERMISOS_INSUFICIENTES = "PERMISOS_INSUFICIENTES",
-  ERROR_SEGURIDAD="ERROR_SEGURIDAD",
+  ERROR_SEGURIDAD = "ERROR_SEGURIDAD",
   ERROR_AUTENTICACION = "ERROR_AUTENTICACION",
 }
 
@@ -21,5 +21,5 @@ export interface ErrorDetailsForLogout {
   mensaje?: string;
   timestamp?: number;
   contexto?: string;
-  siasisComponent?: SiasisComponent;
+  siasisComponent?: SiasisComponent | SiasisComponent[];
 }

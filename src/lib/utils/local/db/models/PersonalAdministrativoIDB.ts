@@ -17,10 +17,8 @@ import AllErrorTypes, {
 } from "../../../../../interfaces/shared/errors";
 import { SiasisAPIS } from "@/interfaces/shared/SiasisComponents";
 import comprobarSincronizacionDeTabla from "@/lib/helpers/validations/comprobarSincronizacionDeTabla";
-import fetchSiasisApiGenerator from "@/lib/helpers/generators/fetchSiasisApisGenerator";
 import ultimaActualizacionTablasLocalesIDB from "./UltimaActualizacionTablasLocalesIDB";
 import { DatabaseModificationOperations } from "@/interfaces/shared/DatabaseModificationOperations";
-import { GetPersonalAdministrativoSuccessResponse } from "@/interfaces/shared/apis/api01/personal-administrativo/types";
 import { Endpoint_Get_Personal_Administrativo_API01 } from "@/lib/utils/backend/endpoints/api01/PersonalAdministrativo";
 
 // Tipo para la entidad (sin atributos de fechas)
@@ -40,7 +38,7 @@ export class PersonalAdministrativoIDB {
     this.tablaInfo.nombreLocal || "personal_administrativo";
 
   constructor(
-    private siasisAPI: SiasisAPIS,
+    private siasisAPI: SiasisAPIS = "API01",
     private setIsSomethingLoading: (isLoading: boolean) => void,
     private setError: (error: ErrorResponseAPIBase | null) => void,
     private setSuccessMessage?: (message: MessageProperty | null) => void
@@ -53,7 +51,7 @@ export class PersonalAdministrativoIDB {
     try {
       const debeSincronizar = await comprobarSincronizacionDeTabla(
         this.tablaInfo,
-        "API01"
+        this.siasisAPI
       );
 
       if (!debeSincronizar) {

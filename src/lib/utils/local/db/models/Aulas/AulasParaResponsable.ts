@@ -55,8 +55,8 @@ export class AulasParaResponsablesIDB extends BaseAulasIDB<T_Aulas> {
   public async obtenerAulasPorEstudiantes(
     estudiantes: T_Estudiantes[]
   ): Promise<T_Aulas[]> {
-    this.setIsSomethingLoading(true);
-    this.setError(null);
+    this.setIsSomethingLoading?.(true);
+    this.setError?.(null);
     this.setSuccessMessage?.(null);
 
     try {
@@ -76,7 +76,7 @@ export class AulasParaResponsablesIDB extends BaseAulasIDB<T_Aulas> {
         this.handleSuccess(
           "No hay aulas para procesar (estudiantes sin aulas asignadas)"
         );
-        this.setIsSomethingLoading(false);
+        this.setIsSomethingLoading?.(false);
         return [];
       }
 
@@ -106,7 +106,7 @@ export class AulasParaResponsablesIDB extends BaseAulasIDB<T_Aulas> {
         this.handleSuccess(
           `Se encontraron todas las ${aulasEnCache.length} aulas en caché local`
         );
-        this.setIsSomethingLoading(false);
+        this.setIsSomethingLoading?.(false);
         return aulasEnCache;
       }
 
@@ -149,11 +149,11 @@ export class AulasParaResponsablesIDB extends BaseAulasIDB<T_Aulas> {
         );
       }
 
-      this.setIsSomethingLoading(false);
+      this.setIsSomethingLoading?.(false);
       return todasLasAulas;
     } catch (error) {
       this.handleIndexedDBError(error, "obtener aulas por estudiantes");
-      this.setIsSomethingLoading(false);
+      this.setIsSomethingLoading?.(false);
       return [];
     }
   }
@@ -162,8 +162,8 @@ export class AulasParaResponsablesIDB extends BaseAulasIDB<T_Aulas> {
    * Obtiene aulas específicas por sus IDs, consultando la API si es necesario
    */
   public async obtenerAulasEspecificas(idsAulas: string[]): Promise<T_Aulas[]> {
-    this.setIsSomethingLoading(true);
-    this.setError(null);
+    this.setIsSomethingLoading?.(true);
+    this.setError?.(null);
     this.setSuccessMessage?.(null);
 
     try {
@@ -175,7 +175,7 @@ export class AulasParaResponsablesIDB extends BaseAulasIDB<T_Aulas> {
 
       if (idsUnicos.length === 0) {
         this.handleSuccess("No hay IDs de aulas para procesar");
-        this.setIsSomethingLoading(false);
+        this.setIsSomethingLoading?.(false);
         return [];
       }
 
@@ -197,7 +197,7 @@ export class AulasParaResponsablesIDB extends BaseAulasIDB<T_Aulas> {
         this.handleSuccess(
           `Se encontraron todas las ${aulasEnCache.length} aulas en caché local`
         );
-        this.setIsSomethingLoading(false);
+        this.setIsSomethingLoading?.(false);
         return aulasEnCache;
       }
 
@@ -216,11 +216,11 @@ export class AulasParaResponsablesIDB extends BaseAulasIDB<T_Aulas> {
         `Se obtuvieron ${todasLasAulas.length} aulas (${aulasEnCache.length} desde caché, ${aulasDesdeAPI.length} desde API)`
       );
 
-      this.setIsSomethingLoading(false);
+      this.setIsSomethingLoading?.(false);
       return todasLasAulas;
     } catch (error) {
       this.handleIndexedDBError(error, "obtener aulas específicas");
-      this.setIsSomethingLoading(false);
+      this.setIsSomethingLoading?.(false);
       return [];
     }
   }
@@ -267,7 +267,7 @@ export class AulasParaResponsablesIDB extends BaseAulasIDB<T_Aulas> {
     }
 
     // Establecer error en el estado
-    this.setError({
+    this.setError?.({
       success: false,
       message: message,
       errorType: errorType,

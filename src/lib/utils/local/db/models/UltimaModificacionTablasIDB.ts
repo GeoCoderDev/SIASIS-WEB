@@ -22,7 +22,7 @@ class UltimaModificacionTablasIDB {
   // Información completa de la tabla que incluye nombre local, remoto, descripción, etc.
   private tablaInfo: ITablaInfo = TablasSistema.ULTIMA_MODIFICACION;
 
-  constructor(private siasisAPI: SiasisAPIS) {}
+  constructor(private siasisAPI: SiasisAPIS | SiasisAPIS[]) {}
 
   /**
    * Método de sincronización que verifica y actualiza datos desde el servidor
@@ -65,47 +65,97 @@ class UltimaModificacionTablasIDB {
   }
 
   /**
-   * Obtiene las modificaciones de tablas desde la API y las almacena localmente
+   * Obtiene las modificaciones de tablas desde una o múltiples APIs y las almacena localmente
    * @returns Promise que se resuelve cuando las modificaciones han sido actualizadas
    */
   public async fetchYActualizarModificaciones(): Promise<void> {
     try {
-      // Usar el generador para API01 (o la que corresponda)
-      const { fetchSiasisAPI } = fetchSiasisApiGenerator(this.siasisAPI);
+      // Determinar si tenemos una API o múltiples APIs
+      const apis = Array.isArray(this.siasisAPI)
+        ? this.siasisAPI
+        : [this.siasisAPI];
 
-      // Realizar la petición al endpoint
-      const fetchCancelable = await fetchSiasisAPI({
-        endpoint: "/api/modificaciones-tablas",
-        method: "GET",
+      console.log(`Consultando modificaciones desde ${apis.length} API(s)`);
+
+      // Crear promesas para cada API
+      const promesasApis = apis.map(async (api, index) => {
+        try {
+          console.log(`Iniciando consulta a API ${index + 1}:`, api);
+
+          const { fetchSiasisAPI } = fetchSiasisApiGenerator(api);
+
+          // Realizar la petición al endpoint
+          const fetchCancelable = await fetchSiasisAPI({
+            endpoint: "/api/modificaciones-tablas",
+            method: "GET",
+          });
+
+          if (!fetchCancelable) {
+            throw new Error(
+              `No se pudo crear la petición de modificaciones de tablas para API ${
+                index + 1
+              }`
+            );
+          }
+
+          // Ejecutar la petición
+          const response = await fetchCancelable.fetch();
+
+          if (!response.ok) {
+            throw new Error(
+              `Error al obtener modificaciones de tablas desde API ${
+                index + 1
+              }: ${response.statusText}`
+            );
+          }
+
+          const data = await response.json();
+
+          if (!data.success) {
+            throw new Error(
+              `Error en respuesta de modificaciones de tablas desde API ${
+                index + 1
+              }: ${data.message}`
+            );
+          }
+
+          console.log(
+            `API ${index + 1} respondió con ${
+              data.data?.length || 0
+            } modificaciones`
+          );
+          return data.data as T_Ultima_Modificacion_Tablas[];
+        } catch (error) {
+          console.warn(`Error al consultar API ${index + 1} (${api}):`, error);
+          // Retornar array vacío para esta API en caso de error
+          // Esto permite que otras APIs continúen funcionando
+          return [] as T_Ultima_Modificacion_Tablas[];
+        }
       });
 
-      if (!fetchCancelable) {
-        throw new Error(
-          "No se pudo crear la petición de modificaciones de tablas"
-        );
-      }
+      // Ejecutar todas las consultas en paralelo
+      const resultadosApis = await Promise.all(promesasApis);
 
-      // Ejecutar la petición
-      const response = await fetchCancelable.fetch();
+      // Consolidar todos los resultados
+      const todasLasModificaciones = resultadosApis.flat();
+      console.log(
+        `Total de modificaciones obtenidas: ${todasLasModificaciones.length}`
+      );
 
-      if (!response.ok) {
-        throw new Error(
-          `Error al obtener modificaciones de tablas: ${response.statusText}`
-        );
-      }
-
-      const data = await response.json();
-
-      if (!data.success) {
-        throw new Error(
-          `Error en respuesta de modificaciones de tablas: ${data.message}`
-        );
-      }
+      // Eliminar duplicados y conservar el más reciente por tabla
+      const modificacionesConsolidadas = this.consolidarModificaciones(
+        todasLasModificaciones
+      );
+      console.log(
+        `Modificaciones consolidadas (sin duplicados): ${modificacionesConsolidadas.length}`
+      );
 
       // Actualizar modificaciones en la base de datos local
-      await this.updateFromApiResponse(data.data);
+      await this.updateFromApiResponse(modificacionesConsolidadas);
 
-      console.log("Modificaciones de tablas actualizadas correctamente");
+      console.log(
+        "Modificaciones de tablas actualizadas correctamente desde todas las APIs"
+      );
     } catch (error) {
       console.error(
         "Error al obtener y actualizar modificaciones de tablas:",
@@ -135,11 +185,72 @@ class UltimaModificacionTablasIDB {
         mensaje: error instanceof Error ? error.message : String(error),
         timestamp: Date.now(),
         codigo: error instanceof Error && error.name ? error.name : undefined,
+        contexto: `APIs consultadas: ${
+          Array.isArray(this.siasisAPI)
+            ? this.siasisAPI.join(", ")
+            : this.siasisAPI
+        }`,
       };
 
       logout(logoutType, errorDetails);
       throw error;
     }
+  }
+
+  /**
+   * Consolida las modificaciones eliminando duplicados y conservando la más reciente por tabla
+   * @param modificaciones Array de todas las modificaciones obtenidas
+   * @returns Array consolidado sin duplicados
+   */
+  private consolidarModificaciones(
+    modificaciones: T_Ultima_Modificacion_Tablas[]
+  ): T_Ultima_Modificacion_Tablas[] {
+    if (modificaciones.length === 0) {
+      return [];
+    }
+
+    // Agrupar modificaciones por nombre de tabla
+    const modificacionesPorTabla = new Map<
+      string,
+      T_Ultima_Modificacion_Tablas[]
+    >();
+
+    modificaciones.forEach((modificacion) => {
+      const nombreTabla = modificacion.Nombre_Tabla;
+
+      if (!modificacionesPorTabla.has(nombreTabla)) {
+        modificacionesPorTabla.set(nombreTabla, []);
+      }
+
+      modificacionesPorTabla.get(nombreTabla)!.push(modificacion);
+    });
+
+    // Para cada tabla, conservar solo la modificación más reciente
+    const modificacionesConsolidadas: T_Ultima_Modificacion_Tablas[] = [];
+
+    modificacionesPorTabla.forEach((modificacionesDeTabla, nombreTabla) => {
+      if (modificacionesDeTabla.length === 1) {
+        // Si solo hay una modificación, la conservamos
+        modificacionesConsolidadas.push(modificacionesDeTabla[0]);
+      } else {
+        // Si hay múltiples, conservamos la más reciente
+        const masReciente = modificacionesDeTabla.reduce((prev, current) => {
+          const fechaPrev = new Date(prev.Fecha_Modificacion).getTime();
+          const fechaCurrent = new Date(current.Fecha_Modificacion).getTime();
+
+          return fechaCurrent > fechaPrev ? current : prev;
+        });
+
+        console.log(
+          `Tabla "${nombreTabla}": Se encontraron ${modificacionesDeTabla.length} registros, ` +
+            `conservando el más reciente (${masReciente.Fecha_Modificacion})`
+        );
+
+        modificacionesConsolidadas.push(masReciente);
+      }
+    });
+
+    return modificacionesConsolidadas;
   }
 
   /**
@@ -417,6 +528,7 @@ class UltimaModificacionTablasIDB {
       throw error;
     }
   }
+
   /**
    * Obtiene la modificación más reciente por fecha
    * @returns La modificación más reciente o null si no hay registros

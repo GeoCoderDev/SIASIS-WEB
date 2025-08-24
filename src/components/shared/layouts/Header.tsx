@@ -38,6 +38,7 @@ import {
   NOMBRE_TIMESTAMP_ULTIMA_CONSULTA_LOCAL_STORAGE,
   TIEMPO_PARA_ACTUALIZAR_MINIMO_HORA_AL_VOLVER_A_VER_PAGINA_MS,
 } from "@/constants/INTERVALO_MINUTOS_SINCRONIZACION_HORA_REAL";
+import ListasEstudiantesPorGradosHoyIDB from "@/lib/utils/local/db/models/ListasEstudiantesPorGradosHoy/ListasEstudiantesPorGradosHoyIDB";
 
 /**
  * Componente Header - Barra superior con información del usuario y controles del sidebar
@@ -82,12 +83,27 @@ const Header = ({
       await datosAsistenciaHoy.obtenerDatos();
     };
     obtenerDatosAsistenciaHoy();
+
+    //Obtener listas de estudiantes
+    const obtenerListasEstudiantes = async () => {
+      const listasEstudiantesIDB = new ListasEstudiantesPorGradosHoyIDB(
+        "SIU01 API"
+      );
+
+      await listasEstudiantesIDB.actualizarTodasLasListasDisponibles();
+    };
+
+    //Solicitar todas las listas de estudiantes de manera secuencial
+    if (Rol === RolesSistema.Auxiliar) {
+      obtenerListasEstudiantes();
+    }
   }, [inicializado]);
 
   // Efecto para obtener datos de asistencia al cargar el componente
   useEffect(() => {
     // Sincronizar la hora cuando la ventana vuelve a ser visible
     sincronizarConServidor();
+
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "visible") {
         // Comprobar si ha pasado el tiempo mínimo antes de sincronizar

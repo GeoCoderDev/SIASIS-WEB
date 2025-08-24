@@ -1,4 +1,6 @@
-export const CLN01_Stores = {
+import { TablasLocal } from "@/interfaces/shared/TablasSistema";
+
+export const CLN01_Stores: Record<TablasLocal, any> = {
   // ========================================
   // STORES PARA DATOS DE SESIÓN Y CACHE
   // ========================================
@@ -7,7 +9,7 @@ export const CLN01_Stores = {
     autoIncrement: false,
     indexes: [],
   },
-  datos_asistencia_hoy: {
+  archivos_asistencia_hoy: {
     keyPath: null,
     autoIncrement: false,
     indexes: [],
@@ -16,35 +18,6 @@ export const CLN01_Stores = {
   // ========================================
   // USUARIOS Y ROLES
   // ========================================
-
-  directivos: {
-    keyPath: "Id_Directivo",
-    autoIncrement: true,
-    indexes: [
-      { 
-        name: "por_identificador_nacional", 
-        keyPath: "Identificador_Nacional", 
-        options: { unique: true } 
-      },
-      {
-        name: "por_nombre_usuario",
-        keyPath: "Nombre_Usuario",
-        options: { unique: true },
-      },
-      {
-        name: "por_correo",
-        keyPath: "Correo_Electronico",
-        options: { unique: true },
-      },
-      { name: "por_nombres", keyPath: "Nombres", options: { unique: false } },
-      {
-        name: "por_apellidos",
-        keyPath: "Apellidos",
-        options: { unique: false },
-      },
-      { name: "por_genero", keyPath: "Genero", options: { unique: false } },
-    ],
-  },
 
   estudiantes: {
     keyPath: "Id_Estudiante", // Mantiene DNI porque los estudiantes no cambiaron
@@ -226,54 +199,54 @@ export const CLN01_Stores = {
   // ========================================
 
   // ✅ AGREGADO: Horarios por días - Personal Administrativo
-  horarios_por_dias_personal_administrativo: {
-    keyPath: "Id_Horario_Por_Dia_P_Administrativo",
-    autoIncrement: true,
-    indexes: [
-      {
-        name: "por_personal_administrativo",
-        keyPath: "Id_Personal_Administrativo", // Cambió de DNI_ a Id_
-        options: { unique: false },
-      },
-      { name: "por_dia", keyPath: "Dia", options: { unique: false } },
-      {
-        name: "por_personal_dia",
-        keyPath: ["Id_Personal_Administrativo", "Dia"], // Cambió de DNI_ a Id_
-        options: { unique: true },
-      },
-      {
-        name: "por_hora_inicio",
-        keyPath: "Hora_Inicio",
-        options: { unique: false },
-      },
-      { name: "por_hora_fin", keyPath: "Hora_Fin", options: { unique: false } },
-    ],
-  },
+  // horarios_por_dias_personal_administrativo: {
+  //   keyPath: "Id_Horario_Por_Dia_P_Administrativo",
+  //   autoIncrement: true,
+  //   indexes: [
+  //     {
+  //       name: "por_personal_administrativo",
+  //       keyPath: "Id_Personal_Administrativo", // Cambió de DNI_ a Id_
+  //       options: { unique: false },
+  //     },
+  //     { name: "por_dia", keyPath: "Dia", options: { unique: false } },
+  //     {
+  //       name: "por_personal_dia",
+  //       keyPath: ["Id_Personal_Administrativo", "Dia"], // Cambió de DNI_ a Id_
+  //       options: { unique: true },
+  //     },
+  //     {
+  //       name: "por_hora_inicio",
+  //       keyPath: "Hora_Inicio",
+  //       options: { unique: false },
+  //     },
+  //     { name: "por_hora_fin", keyPath: "Hora_Fin", options: { unique: false } },
+  //   ],
+  // },
 
   // ✅ AGREGADO: Horarios por días - Directivos
-  horarios_por_dias_directivos: {
-    keyPath: "Id_Horario_Por_Dia_Directivo",
-    autoIncrement: true,
-    indexes: [
-      {
-        name: "por_directivo",
-        keyPath: "Id_Directivo", // Mantiene Id_Directivo (es diferente)
-        options: { unique: false },
-      },
-      { name: "por_dia", keyPath: "Dia", options: { unique: false } },
-      {
-        name: "por_directivo_dia",
-        keyPath: ["Id_Directivo", "Dia"],
-        options: { unique: true },
-      },
-      {
-        name: "por_hora_inicio",
-        keyPath: "Hora_Inicio",
-        options: { unique: false },
-      },
-      { name: "por_hora_fin", keyPath: "Hora_Fin", options: { unique: false } },
-    ],
-  },
+  // horarios_por_dias_directivos: {
+  //   keyPath: "Id_Horario_Por_Dia_Directivo",
+  //   autoIncrement: true,
+  //   indexes: [
+  //     {
+  //       name: "por_directivo",
+  //       keyPath: "Id_Directivo", // Mantiene Id_Directivo (es diferente)
+  //       options: { unique: false },
+  //     },
+  //     { name: "por_dia", keyPath: "Dia", options: { unique: false } },
+  //     {
+  //       name: "por_directivo_dia",
+  //       keyPath: ["Id_Directivo", "Dia"],
+  //       options: { unique: true },
+  //     },
+  //     {
+  //       name: "por_hora_inicio",
+  //       keyPath: "Hora_Inicio",
+  //       options: { unique: false },
+  //     },
+  //     { name: "por_hora_fin", keyPath: "Hora_Fin", options: { unique: false } },
+  //   ],
+  // },
 
   // ========================================
   // CONTROL DE ASISTENCIA DEL PERSONAL
@@ -476,7 +449,7 @@ export const CLN01_Stores = {
   },
 
   // ✅ AGREGADO: DIRECTIVOS
-  control_entrada_mensual_directivos: {
+  control_entrada_directivos: {
     keyPath: "Id_C_E_M_P_Directivo",
     autoIncrement: true,
     indexes: [
@@ -500,7 +473,7 @@ export const CLN01_Stores = {
     ],
   },
 
-  control_salida_mensual_directivos: {
+  control_salida_directivos: {
     keyPath: "Id_C_S_M_P_Directivo",
     autoIncrement: true,
     indexes: [
@@ -944,29 +917,6 @@ export const CLN01_Stores = {
     ],
   },
 
-  // ✅ AGREGADO: Archivos respaldo Google Drive
-  archivos_respaldo_google_drive: {
-    keyPath: "Id_Archivo_Respaldo",
-    autoIncrement: true,
-    indexes: [
-      {
-        name: "por_nombre_archivo",
-        keyPath: "Nombre_Archivo",
-        options: { unique: true },
-      },
-      {
-        name: "por_google_drive_id",
-        keyPath: "Google_Drive_Id",
-        options: { unique: true },
-      },
-      {
-        name: "por_ultima_modificacion",
-        keyPath: "Ultima_Modificacion",
-        options: { unique: false },
-      },
-    ],
-  },
-
   // ✅ AGREGADO: Vacaciones interescolares
   vacaciones_interescolares: {
     keyPath: "Id_Vacacion_Interescolar",
@@ -1035,7 +985,11 @@ export const CLN01_Stores = {
     keyPath: "clave",
     autoIncrement: false,
     indexes: [
-      { name: "por_identificador", keyPath: "identificador", options: { unique: false } },
+      {
+        name: "por_identificador",
+        keyPath: "identificador",
+        options: { unique: false },
+      },
       { name: "por_fecha", keyPath: "fecha", options: { unique: false } },
       { name: "por_actor", keyPath: "actor", options: { unique: false } },
       {

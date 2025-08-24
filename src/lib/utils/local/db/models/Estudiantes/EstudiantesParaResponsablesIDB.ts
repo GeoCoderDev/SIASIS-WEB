@@ -247,7 +247,7 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
     }
 
     // Establecer error en el estado
-    this.setError({
+    this.setError?.({
       success: false,
       message: message,
       errorType: errorType,
@@ -315,8 +315,8 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
   public async obtenerYSincronizarEstudiantesDelResponsable(
     forzarActualizacion: boolean = false
   ): Promise<EstudianteDelResponsable[]> {
-    this.setIsSomethingLoading(true);
-    this.setError(null);
+    this.setIsSomethingLoading?.(true);
+    this.setError?.(null);
     this.setSuccessMessage?.(null);
 
     try {
@@ -329,7 +329,7 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
           this.handleSuccess(
             `Se encontraron ${estudiantesCacheados.length} estudiantes (desde caché local)`
           );
-          this.setIsSomethingLoading(false);
+          this.setIsSomethingLoading?.(false);
           return estudiantesCacheados;
         }
       }
@@ -348,14 +348,14 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
         this.handleSuccess("No se encontraron estudiantes relacionados");
       }
 
-      this.setIsSomethingLoading(false);
+      this.setIsSomethingLoading?.(false);
       return estudiantes;
     } catch (error) {
       this.handleIndexedDBError(
         error,
         "obtener y sincronizar estudiantes del responsable"
       );
-      this.setIsSomethingLoading(false);
+      this.setIsSomethingLoading?.(false);
       return [];
     }
   }
@@ -410,8 +410,8 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
     tipoRelacion: string,
     includeInactive: boolean = false
   ): Promise<EstudianteDelResponsable[]> {
-    this.setIsSomethingLoading(true);
-    this.setError(null);
+    this.setIsSomethingLoading?.(true);
+    this.setError?.(null);
 
     try {
       await this.sync();
@@ -456,11 +456,11 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
         );
       }
 
-      this.setIsSomethingLoading(false);
+      this.setIsSomethingLoading?.(false);
       return result;
     } catch (error) {
       this.handleIndexedDBError(error, "filtrar por tipo de relación");
-      this.setIsSomethingLoading(false);
+      this.setIsSomethingLoading?.(false);
       return [];
     }
   }
@@ -476,8 +476,8 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
     filtros: IEstudianteResponsableFilter,
     includeInactive: boolean = false
   ): Promise<EstudianteDelResponsable[]> {
-    this.setIsSomethingLoading(true);
-    this.setError(null);
+    this.setIsSomethingLoading?.(true);
+    this.setError?.(null);
 
     try {
       await this.sync();
@@ -572,11 +572,11 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
         );
       }
 
-      this.setIsSomethingLoading(false);
+      this.setIsSomethingLoading?.(false);
       return result;
     } catch (error) {
       this.handleIndexedDBError(error, "buscar con filtros de responsable");
-      this.setIsSomethingLoading(false);
+      this.setIsSomethingLoading?.(false);
       return [];
     }
   }
@@ -694,8 +694,8 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
    * (específicos del responsable)
    */
   public async limpiarEstudiantesDelResponsable(): Promise<void> {
-    this.setIsSomethingLoading(true);
-    this.setError(null);
+    this.setIsSomethingLoading?.(true);
+    this.setError?.(null);
 
     try {
       const store = await IndexedDBConnection.getStore(
@@ -734,10 +734,10 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
       this.handleSuccess(
         `Se eliminaron ${estudiantesAEliminar.length} estudiantes del responsable`
       );
-      this.setIsSomethingLoading(false);
+      this.setIsSomethingLoading?.(false);
     } catch (error) {
       this.handleIndexedDBError(error, "limpiar estudiantes del responsable");
-      this.setIsSomethingLoading(false);
+      this.setIsSomethingLoading?.(false);
     }
   }
 }

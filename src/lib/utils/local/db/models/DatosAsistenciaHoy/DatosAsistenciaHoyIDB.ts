@@ -24,6 +24,7 @@ import {
   EstadoTomaAsistenciaResponseBody,
   TipoAsistencia,
 } from "@/interfaces/shared/AsistenciaRequests";
+import { TablasLocal } from "@/interfaces/shared/TablasSistema";
 
 // Interfaz para el objeto guardado en IndexedDB
 export interface DatosAsistenciaAlmacenados {
@@ -34,7 +35,8 @@ export interface DatosAsistenciaAlmacenados {
 }
 
 export class DatosAsistenciaHoyIDB {
-  private readonly storeName: string = "datos_asistencia_hoy";
+  private readonly storeName: TablasLocal =
+    TablasLocal.Tabla_Archivos_Asistencia_Hoy;
   private static readonly STORAGE_KEY = "datos_asistencia_actuales";
   // Constantes para las nuevas keys
   private static readonly ESTADO_TOMA_ASISTENCIA_PERSONAL_KEY =

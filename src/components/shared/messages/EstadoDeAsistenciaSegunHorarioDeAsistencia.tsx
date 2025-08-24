@@ -389,7 +389,7 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
         return `⏰ Activación en: ${estadoActual.tiempoRestante?.replace(
           "Activación en: ",
           ""
-        )} | Horario: ${estadoActual.horarioReal}`;
+        )} | Tu Horario Laboral: ${estadoActual.horarioReal}`;
       case "entrada-activa":
         const yaEntrada = asistencia.inicializado && asistencia.entradaMarcada;
         return yaEntrada
@@ -413,7 +413,7 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
               "Cierre en: "
             )} | ${estadoActual.horarioReal}`;
       case "finalizado":
-        return `🔒 Registro cerrado | Horario: ${estadoActual.horarioReal}`;
+        return `🔒 Registro cerrado | Tu Horario Laboral: ${estadoActual.horarioReal}`;
       default:
         return "🔄 Procesando estado...";
     }

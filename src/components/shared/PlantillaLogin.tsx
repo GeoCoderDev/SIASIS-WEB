@@ -132,9 +132,6 @@ const PlantillaLogin = ({ rol, siasisAPI, endpoint }: PlantillaLoginProps) => {
         ultimaSincronizacionTablas: Date.now(),
       });
 
-      // Sincronizando las modificaciones de tablas
-      await new UltimaModificacionTablasIDB(siasisAPI).sync(true);
-
       //CADA VES QUE SE INICIE SESION, SE DEBE MOSTRAR LOS COMUNICADOS DEL DIA DE HOY
       sessionStorage.setItem(
         SE_MOSTRARON_COMUNICADOS_DE_HOY_KEY,

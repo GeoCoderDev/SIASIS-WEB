@@ -14,7 +14,7 @@ import UltimaModificacionTablasIDB from "../../utils/local/db/models/UltimaModif
  */
 export const comprobarSincronizacionDeTabla = async (
   tablaInfo: ITablaInfo,
-  siasisAPI: SiasisAPIS
+  siasisAPI: SiasisAPIS | SiasisAPIS[]
 ): Promise<boolean> => {
   try {
     // Obtener la última actualización local
