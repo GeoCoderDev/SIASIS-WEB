@@ -26,6 +26,7 @@ import { ENTORNO } from "@/constants/ENTORNO";
 import { Entorno } from "@/interfaces/shared/Entornos";
 import { BaseEstudiantesIDB } from "@/lib/utils/local/db/models/Estudiantes/EstudiantesBaseIDB";
 import { BaseAulasIDB } from "@/lib/utils/local/db/models/Aulas/AulasBase";
+import FullScreenModalAsistenciaEstudiantesSecundaria from "@/components/asistencia-estudiantes-secundaria/FullScreenModalAsistenciaEstudiantesSecundaria";
 
 // Función auxiliar para formatear hora correctamente
 const formatearHora12 = (fecha: Date): string => {
@@ -35,68 +36,6 @@ const formatearHora12 = (fecha: Date): string => {
     hour12: true,
     timeZone: "America/Lima",
   });
-};
-
-// Modal temporal (mockeado)
-const ModalTomaAsistenciaEstudiantesSecundaria = ({
-  isOpen,
-  onClose,
-  handlerAuxiliar,
-  totalEstudiantes,
-  totalAulas,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  handlerAuxiliar: HandlerAuxiliarAsistenciaResponse;
-  totalEstudiantes: number;
-  totalAulas: number;
-}) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full">
-        <h2 className="text-xl font-bold text-green-800 mb-4">
-          🎓 Toma de Asistencia - Secundaria
-        </h2>
-        <div className="space-y-3 text-sm">
-          <div className="bg-green-50 p-3 rounded">
-            <p className="font-medium text-green-700">📊 Resumen</p>
-            <p className="text-green-600">
-              • {totalEstudiantes} estudiantes de secundaria
-            </p>
-            <p className="text-green-600">• {totalAulas} aulas de secundaria</p>
-          </div>
-          <div className="bg-blue-50 p-3 rounded">
-            <p className="font-medium text-blue-700">👤 Auxiliar</p>
-            <p className="text-blue-600">
-              ID: {handlerAuxiliar.getMiIdentificador()}
-            </p>
-          </div>
-          <p className="text-gray-600 text-xs">
-            ⚠️ Este es un modal temporal de prueba. La funcionalidad completa se
-            implementará posteriormente.
-          </p>
-        </div>
-        <div className="mt-6 flex gap-3">
-          <button
-            onClick={onClose}
-            className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-          >
-            Cerrar
-          </button>
-          <button
-            className="flex-1 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-            onClick={() => {
-              alert("Funcionalidad en desarrollo...");
-            }}
-          >
-            Continuar (Mock)
-          </button>
-        </div>
-      </div>
-    </div>
-  );
 };
 
 const TomarAsistenciaEstudiantesSecundaria = () => {
@@ -443,12 +382,13 @@ const TomarAsistenciaEstudiantesSecundaria = () => {
   return (
     <>
       {showModal && handlerAuxiliar && (
-        <ModalTomaAsistenciaEstudiantesSecundaria
-          isOpen={showModal}
-          onClose={() => setShowModal(false)}
+        <FullScreenModalAsistenciaEstudiantesSecundaria
+          fechaHoraActual={fechaHoraActual}
+          closeFullScreenModal={() => setShowModal(false)}
           handlerAuxiliar={handlerAuxiliar}
           totalEstudiantes={totalEstudiantes}
           totalAulas={totalAulas}
+          tiempoRestante={tiempoRestanteParaCierre}
         />
       )}
 

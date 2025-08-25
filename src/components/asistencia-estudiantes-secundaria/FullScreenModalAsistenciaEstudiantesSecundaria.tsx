@@ -1,39 +1,37 @@
 "use client";
 
+import React, { useEffect, useState } from "react";
 import { saludosDia } from "@/Assets/voice/others/SaludosDelDia";
 import { FechaHoraActualRealState } from "@/global/state/others/fechaHoraActualReal";
-import {
-  ModoRegistro,
-  modoRegistroTextos,
-} from "@/interfaces/shared/ModoRegistroPersonal";
-import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import { determinarPeriodoDia } from "@/lib/calc/determinarPeriodoDia";
 import { TiempoRestante } from "@/lib/calc/time/tiempoRestanteHasta";
-import { HandlerDirectivoAsistenciaResponse } from "@/lib/utils/local/db/models/DatosAsistenciaHoy/handlers/HandlerDirectivoAsistenciaResponse";
+import { HandlerAuxiliarAsistenciaResponse } from "@/lib/utils/local/db/models/DatosAsistenciaHoy/handlers/HandlerAuxiliarAsistenciaResponse";
 import userStorage from "@/lib/utils/local/db/models/UserStorage";
 import { Speaker } from "@/lib/utils/voice/Speaker";
-import { useEffect, useState } from "react";
-import { obtenerTextoRol } from "../asistencia-personal/ListadoPersonal";
+import RegistroEstudiantesSecundariaPorQR from "./RegistroEstudiantesSecundariaPorQR";
+import RegistroEstudiantesSecundariaManual from "./RegistroEstudiantesSecundariaManual";
 import VolverIcon from "../icons/VolverIcon";
 
-import React from "react";
+// Tipos para el método de registro
+type MetodoRegistro = "qr" | "manual" | null;
 
 const FullScreenModalAsistenciaEstudiantesSecundaria = ({
   closeFullScreenModal,
   fechaHoraActual,
   tiempoRestante,
-  handlerDatosAsistenciaHoyDirectivo,
+  handlerAuxiliar,
+  totalEstudiantes,
+  totalAulas,
 }: {
-  handlerDatosAsistenciaHoyDirectivo: HandlerDirectivoAsistenciaResponse;
+  handlerAuxiliar: HandlerAuxiliarAsistenciaResponse;
   closeFullScreenModal: () => void;
   fechaHoraActual: FechaHoraActualRealState;
   tiempoRestante?: TiempoRestante | null;
+  totalEstudiantes: number;
+  totalAulas: number;
 }) => {
-  // Estados para controlar el flujo
-  const [rolSeleccionado, setRolSeleccionado] = useState<RolesSistema | null>(
-    null
-  );
-  const [modoRegistro, setModoRegistro] = useState<ModoRegistro | null>(null);
+  const [metodoSeleccionado, setMetodoSeleccionado] =
+    useState<MetodoRegistro>(null);
   const [cargando, setCargando] = useState(false);
 
   // Obtener el saludo según la hora del día
@@ -45,120 +43,189 @@ const FullScreenModalAsistenciaEstudiantesSecundaria = ({
   // Efecto para el saludo de bienvenida
   useEffect(() => {
     const saludoDeBienvenida = async () => {
-      const nombreCompletoCortoDirectivoLogeado =
+      const nombreCompletoCortoAuxiliar =
         await userStorage.getNombreCompletoCorto();
-
       const speaker = Speaker.getInstance();
-
       speaker.start(
-        `${saludo}, Directivo ${nombreCompletoCortoDirectivoLogeado}, usted ha iniciado la toma de Asistencia de Personal`
+        `${saludo}, Auxiliar ${nombreCompletoCortoAuxiliar}, ha iniciado la toma de asistencia de estudiantes de secundaria`
       );
     };
 
     saludoDeBienvenida();
   }, [saludo]);
 
-  // Manejador para la selección de rol
-  const handleRolSelection = (rol: RolesSistema) => {
+  // Manejar selección de método
+  const handleMetodoSelection = (metodo: MetodoRegistro) => {
     setCargando(true);
 
-    // Audio feedback
     const speaker = Speaker.getInstance();
-    speaker.start(`Ha seleccionado el rol ${obtenerTextoRol(rol)}`);
+    speaker.start(
+      metodo === "qr"
+        ? "Ha seleccionado el escáner de códigos QR"
+        : "Ha seleccionado el registro manual de estudiantes"
+    );
 
-    // Simulamos una pequeña carga para mejorar la experiencia
     setTimeout(() => {
-      setRolSeleccionado(rol);
-      setCargando(false);
-    }, 300);
-  };
-
-  // Manejador para la selección de modo (entrada/salida)
-  const handleModoSelection = (modo: ModoRegistro | null) => {
-    setCargando(true);
-
-    // Audio feedback
-    const speaker = Speaker.getInstance();
-    speaker.start(`Registrando ${modoRegistroTextos[modo!]}`);
-
-    // Simulamos una pequeña carga para mejorar la experiencia
-    setTimeout(() => {
-      setModoRegistro(modo);
+      setMetodoSeleccionado(metodo);
       setCargando(false);
     }, 300);
   };
 
   // Función para volver al paso anterior
   const handleVolver = () => {
-    // Feedback por voz al retroceder
     const speaker = Speaker.getInstance();
-
-    if (modoRegistro !== null) {
-      speaker.start(`Volviendo a la selección de modo de registro`);
-      setModoRegistro(null);
-    } else if (rolSeleccionado !== null) {
-      speaker.start(`Volviendo a la selección de rol`);
-      setRolSeleccionado(null);
-    }
+    speaker.start("Volviendo al menú de selección de método");
+    setMetodoSeleccionado(null);
   };
 
-  // Determinar qué contenido mostrar según el estado actual
+  // Renderizar cards de selección de método
+  const renderSeleccionMetodo = () => (
+    <div className="max-w-6xl mx-auto p-6">
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-bold text-green-800 mb-2">
+          ¿Cómo desea registrar la asistencia?
+        </h2>
+        <p className="text-green-600">
+          Seleccione el método que prefiera para registrar la asistencia de{" "}
+          {totalEstudiantes} estudiantes de secundaria
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Card 1: Escáner QR */}
+        <div
+          className="bg-white border-2 border-blue-200 rounded-xl p-8 cursor-pointer hover:border-blue-400 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+          onClick={() => handleMetodoSelection("qr")}
+        >
+          <div className="text-center">
+            <div className="mb-6 flex justify-center">
+              <div className="w-32 h-32 flex items-center justify-center">
+                <img
+                  src="/images/svg/LectorDeQR.svg"
+                  alt="Escáner QR"
+                  className="h-full aspect-auto"
+                />
+              </div>
+            </div>
+            <h3 className="text-xl font-bold text-blue-800 mb-4">
+              Usar mi celular como escáner de códigos QR
+            </h3>
+            <p className="text-gray-600 text-sm leading-relaxed">
+              Utiliza la cámara de tu dispositivo para escanear los códigos QR
+              que presentan los estudiantes de secundaria. Cada estudiante debe
+              presentar su código personal al llegar al colegio. Simplemente
+              apunta la cámara hacia el código QR del estudiante y el sistema
+              registrará automáticamente su asistencia, determinando si llegó
+              puntual o con tardanza según la hora establecida.
+            </p>
+          </div>
+        </div>
+
+        {/* Card 2: Registro Manual */}
+        <div
+          className="bg-white border-2 border-green-200 rounded-xl p-8 cursor-pointer hover:border-green-400 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+          onClick={() => handleMetodoSelection("manual")}
+        >
+          <div className="text-center">
+            <div className="mb-6 flex justify-center">
+              <div className="w-32 h-32 flex items-center justify-center">
+                <img
+                  src="/images/svg/DatosDeEstudiante.svg"
+                  alt="Registro Manual"
+                  className="h-full aspect-auto"
+                />
+              </div>
+            </div>
+            <h3 className="text-xl font-bold text-green-800 mb-4">
+              Ingresar datos puntuales de cada Estudiante
+            </h3>
+            <p className="text-gray-600 text-sm leading-relaxed">
+              Método alternativo para casos especiales donde el escaneo de QR no
+              es posible. Úsalo cuando un estudiante olvidó su código QR, la
+              cámara de tu celular presenta fallos, el código QR está dañado,
+              manchado o ilegible por cualquier motivo. Selecciona primero el
+              grado y sección correspondiente, luego busca al estudiante por su
+              nombre y apellido en la lista.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Determinar qué contenido mostrar
   const renderContenido = () => {
-    // Si estamos cargando, mostrar un spinner
     if (cargando) {
       return (
         <div className="w-full h-full flex items-center justify-center bg-white bg-opacity-75">
           <div className="flex flex-col items-center">
-            <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-            <p className="mt-3 text-blue-600 font-medium text-sm">
+            <div className="w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+            <p className="mt-3 text-green-600 font-medium text-sm">
               Cargando...
             </p>
           </div>
         </div>
       );
     }
+
+    switch (metodoSeleccionado) {
+      case "qr":
+        return (
+          <RegistroEstudiantesSecundariaPorQR
+            handlerAuxiliar={handlerAuxiliar}
+          />
+        );
+      case "manual":
+        return (
+          <RegistroEstudiantesSecundariaManual
+            handlerAuxiliar={handlerAuxiliar}
+          />
+        );
+      default:
+        return renderSeleccionMetodo();
+    }
   };
 
   return (
-    <div className="animate__animated animate__fadeInUp [animation-duration:800ms] fixed top-0 left-0 w-full h-[100dvh] grid grid-rows-[auto_1fr_auto] bg-white z-[1001]">
-      {/* Cabecera - REDUCIDA */}
-      <header className="bg-blue-50 border-b border-blue-100 py-3 px-2 md-only:py-3 md-only:px-3 lg-only:py-4 lg-only:px-3 xl-only:py-4 xl-only:px-3 shadow-sm">
-        <div className="max-w-7xl mx-auto flex flex-col sm-only:flex-row md-only:flex-row lg-only:flex-row xl-only:flex-row justify-between items-center gap-1 sm-only:gap-2 gap-y-3">
-          <div className="flex items-center gap-3 sm-only:gap-3">
-            {/* Botón "Retroceder" - solo visible cuando se ha seleccionado algo */}
-            {rolSeleccionado !== null && (
+    <div className="animate__animated animate__fadeInUp [animation-duration:800ms] fixed top-0 left-0 w-full h-[100dvh] grid grid-rows-[auto_1fr_auto] bg-gray-50 z-[1001]">
+      {/* Cabecera */}
+      <header className="bg-green-50 border-b border-green-100 py-3 px-2 md:py-3 md:px-3 lg:py-4 lg:px-3 shadow-sm">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-1 sm:gap-2 gap-y-3">
+          <div className="flex items-center gap-3">
+            {/* Botón "Retroceder" - solo visible cuando se ha seleccionado un método */}
+            {metodoSeleccionado !== null && (
               <button
                 onClick={handleVolver}
-                className="flex items-center text-blanco bg-color-interfaz px-2 py-1.5 sm-only:px-3 sm-only:py-2 rounded-md text-[0.9rem]"
+                className="flex items-center text-blanco bg-color-interfaz px-2 py-1.5 sm:px-3 sm:py-2 rounded-md text-[0.9rem]"
               >
                 <VolverIcon className="w-6 mr-1" />
                 Retroceder
               </button>
             )}
             <div className="flex flex-col">
-              <span className="text-blue-600 font-medium text-xs leading-tight">
+              <span className="text-green-600 font-medium text-xs leading-tight">
                 {fechaHoraActual.formateada?.fechaLegible}
               </span>
-              <span className="text-blue-600 font-medium text-xs leading-tight">
+              <span className="text-green-600 font-medium text-xs leading-tight">
                 {fechaHoraActual.formateada?.horaAmPm}
               </span>
-              <span className="text-blue-900 font-bold text-sm sm-only:text-base md-only:text-base lg-only:text-lg xl-only:text-lg leading-tight text-center sm-only:text-left md-only:text-left lg-only:text-left xl-only:text-left">
-                Registro de Asistencia de Personal
+              <span className="text-green-900 font-bold text-sm sm:text-base lg:text-lg leading-tight text-center sm:text-left">
+                🎓 Asistencia de Estudiantes - Secundaria
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-3 sm-only:gap-2 md-only:gap-3 lg-only:gap-3 xl-only:gap-3">
+          <div className="flex items-center gap-3">
             <div className="flex flex-col items-end">
               <span className="text-red-600 font-medium text-xs leading-tight">
-                Toma de Asistencia acaba en:
+                Tiempo restante:
               </span>
-              <span className="text-red-700 font-bold text-xs sm-only:text-sm md-only:text-sm lg-only:text-base xl-only:text-base leading-tight">
+              <span className="text-red-700 font-bold text-xs sm:text-sm lg:text-base leading-tight">
                 {tiempoRestante?.formatoCorto}
               </span>
             </div>
             <button
               onClick={closeFullScreenModal}
-              className="bg-red-600 hover:bg-red-700 text-white font-medium py-1 px-1.5 sm-only:py-1 sm-only:px-2 md-only:py-1.5 md-only:px-3 lg-only:py-1.5 lg-only:px-3 xl-only:py-1.5 xl-only:px-3 rounded-lg transition-colors shadow-sm text-[0.9rem] sm-only:text-[0.9rem] md-only:text-[0.8rem]  lg-only:text-base xl-only:text-base"
+              className="bg-red-600 hover:bg-red-700 text-white font-medium py-1 px-2 sm:py-1.5 sm:px-3 rounded-lg transition-colors shadow-sm text-sm"
             >
               Cerrar
             </button>
@@ -167,17 +234,17 @@ const FullScreenModalAsistenciaEstudiantesSecundaria = ({
       </header>
 
       {/* Contenido principal con scroll */}
-      <main className="overflow-auto">{renderContenido()}</main>
+      <main className="overflow-auto bg-gray-50">{renderContenido()}</main>
 
-      {/* Pie de página - REDUCIDO */}
-      <footer className="bg-color-interfaz text-white border-t border-color-interfaz py-3 px-2 md-only:py-3 md-only:px-3 lg-only:py-3 lg-only:px-3 xl-only:py-3 xl-only:px-3 shadow-md">
+      {/* Pie de página */}
+      <footer className="bg-green-700 text-white border-t border-green-700 py-3 px-2 md:py-3 md:px-3 shadow-md">
         <div className="max-w-7xl mx-auto text-center">
           <div className="flex flex-col items-center gap-1">
-            <p className="font-semibold text-xs sm-only:text-sm md-only:text-sm lg-only:text-sm xl-only:text-sm leading-tight">
+            <p className="font-semibold text-xs sm:text-sm leading-tight">
               I.E. 20935 Asunción 8 - Imperial, Cañete
             </p>
             <p className="text-xs opacity-80 leading-tight">
-              Sistema de Control de Asistencia ©{" "}
+              Sistema de Control de Asistencia - Estudiantes de Secundaria ©{" "}
               {fechaHoraActual.utilidades?.año || new Date().getFullYear()}
             </p>
           </div>
