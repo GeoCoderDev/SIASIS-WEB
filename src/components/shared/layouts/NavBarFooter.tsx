@@ -179,6 +179,19 @@ const NavBarFooter = ({ Rol }: { Rol: RolesSistema }) => {
     setMontado(true);
   }, []);
 
+  const showEstadoDeAsistenciaSegunHorario = allSiasisModules.every(
+    (modulo) => {
+      if (
+        modulo.allowedRoles.includes(Rol) &&
+        modulo.route === pathname &&
+        modulo.detallesEstadoAsistenciaNavbarInactivo
+      ) {
+        return false;
+      }
+      return true;
+    }
+  );
+
   const navBarFooterIsOpen = useSelector(
     (state: RootState) => state.flags.sidebarIsOpen
   );
@@ -207,11 +220,12 @@ const NavBarFooter = ({ Rol }: { Rol: RolesSistema }) => {
         [animation-duration:150ms] `}
       >
         {/* ✅ PASAMOS LOS DATOS COMPARTIDOS AL COMPONENTE DE ESTADO */}
-        {Rol !== RolesSistema.Responsable && (
-          <EstadoDeAsistenciaSegunHorarioDeAsistencia
-            datosAsistencia={datosAsistencia}
-          />
-        )}
+        {Rol !== RolesSistema.Responsable &&
+          showEstadoDeAsistenciaSegunHorario && (
+            <EstadoDeAsistenciaSegunHorarioDeAsistencia
+              datosAsistencia={datosAsistencia}
+            />
+          )}
         <div className="flex items-center justify-center">
           {getNavBarFooterByRol(Rol, pathname)}
         </div>

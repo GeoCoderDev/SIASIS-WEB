@@ -30,6 +30,7 @@ export interface SiasisModule {
   IconTSX: (props: IconProps) => ReactElement;
   allowedRoles: RolesSistema[]; // Propiedad para roles permitidos
   active: boolean;
+  detallesEstadoAsistenciaNavbarInactivo?: boolean;
 }
 
 const allSiasisModules: SiasisModule[] = [
@@ -181,6 +182,7 @@ const allSiasisModules: SiasisModule[] = [
     },
     allowedRoles: [RolesSistema.ProfesorPrimaria],
     active: true,
+    detallesEstadoAsistenciaNavbarInactivo: true,
   },
   {
     route: "/mi-aula",
@@ -199,6 +201,7 @@ const allSiasisModules: SiasisModule[] = [
     },
     allowedRoles: [RolesSistema.Auxiliar],
     active: true,
+    detallesEstadoAsistenciaNavbarInactivo: true,
   },
   {
     route: "/asistencias-escolares-secundaria",
@@ -224,7 +227,11 @@ const allSiasisModules: SiasisModule[] = [
     IconTSX: (props: IconProps) => {
       return <RelojTIempo {...props} />;
     },
-    allowedRoles: [RolesSistema.ProfesorSecundaria, RolesSistema.Tutor, RolesSistema.PersonalAdministrativo],
+    allowedRoles: [
+      RolesSistema.ProfesorSecundaria,
+      RolesSistema.Tutor,
+      RolesSistema.PersonalAdministrativo,
+    ],
     active: true,
   },
 
