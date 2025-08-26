@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { IDetectedBarcode, Scanner } from "@yudiel/react-qr-scanner";
+import { decodificarCadenaQREstudiante } from "@/lib/helpers/generators/QR/generacionDeCadenaDeDatosDeEstudianteCodificada";
+import { BaseEstudiantesIDB } from "@/lib/utils/local/db/models/Estudiantes/EstudiantesBaseIDB";
 
 interface CamaraInfo {
   deviceId: string;
@@ -178,21 +180,29 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
   // Función para manejar el resultado del QR
   const handleQRResult = useCallback(
     async (detectedCodes: IDetectedBarcode[]) => {
-      if (!detectedCodes || detectedCodes.length === 0) {
-        console.log("QUE PASOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
+      if (
+        // !componenteMontadoRef.current ||
+        !detectedCodes ||
+        detectedCodes.length === 0
+      ) {
         return;
       }
 
       const ultimoQR = detectedCodes.at(-1);
 
-      // Simulación de estudiante escaneado para demo
-      const estudianteDemo = {
-        Id_Estudiante: "EST-" + Math.random().toString(36).substr(2, 9),
-        Nombres: "Juan Carlos",
-        Apellidos: "Pérez López",
-      };
+      const studentData = decodificarCadenaQREstudiante(ultimoQR!.rawValue);
 
-      setEstudianteEscaneado(estudianteDemo);
+      const estudiantesIDB = new BaseEstudiantesIDB();
+
+      const estudianteEncontrado =
+        (await estudiantesIDB.getEstudiantePorId(
+          studentData.identificadorEstudiante!
+        )) ||
+        (await estudiantesIDB.getEstudiantePorId(
+          studentData.identificadorEstudiante!.split("-")[0]
+        ));
+
+      setEstudianteEscaneado(estudianteEncontrado);
       setEscaneando(false);
       setErrorEscaneo("");
     },
