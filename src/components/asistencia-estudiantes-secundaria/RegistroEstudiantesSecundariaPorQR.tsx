@@ -2,6 +2,14 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { IDetectedBarcode, Scanner } from "@yudiel/react-qr-scanner";
 import { decodificarCadenaQREstudiante } from "@/lib/helpers/generators/QR/generacionDeCadenaDeDatosDeEstudianteCodificada";
 import { BaseEstudiantesIDB } from "@/lib/utils/local/db/models/Estudiantes/EstudiantesBaseIDB";
+import { VIBRATIONS, vibrator } from "@/lib/utils/vibration/Vibrator";
+import { beep } from "@/lib/utils/sounds/Beep";
+import { Speaker } from "@/lib/utils/voice/Speaker";
+import { obtenerNombreApellidoSimple } from "@/lib/helpers/formatters/personalData/nombres-apellidos";
+import { saludosDia } from "@/Assets/voice/others/SaludosDelDia";
+import { determinarPeriodoDia } from "@/lib/calc/determinarPeriodoDia";
+import { FechaHoraActualRealState } from "@/global/state/others/fechaHoraActualReal";
+import { dameCualquieraDeEstos } from "@/lib/helpers/randomizers/dameCualquieraDeEstos";
 
 interface CamaraInfo {
   deviceId: string;
@@ -11,11 +19,12 @@ interface CamaraInfo {
 
 interface RegistroEstudiantesSecundariaPorQRProps {
   handlerAuxiliar?: any;
+  fechaHoraActual: FechaHoraActualRealState;
 }
 
 const RegistroEstudiantesSecundariaPorQR: React.FC<
   RegistroEstudiantesSecundariaPorQRProps
-> = ({ handlerAuxiliar }) => {
+> = ({ handlerAuxiliar, fechaHoraActual }) => {
   // Estados principales
   const [camarasDisponibles, setCamarasDisponibles] = useState<CamaraInfo[]>(
     []
@@ -177,7 +186,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     }
   }, [cargandoCamaras]);
 
-  // Función para manejar el resultado del QR
+  // Función para manejar el resultado del QR - VERSIÓN MEJORADA CON MANEJO DE ERRORES
   const handleQRResult = useCallback(
     async (detectedCodes: IDetectedBarcode[]) => {
       if (
@@ -189,11 +198,34 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
       }
 
       const ultimoQR = detectedCodes.at(-1);
-
       const studentData = decodificarCadenaQREstudiante(ultimoQR!.rawValue);
 
+      // Verificar si hubo error en la decodificación
+      if (!studentData.exito || studentData.error) {
+        // Error en decodificación del QR
+        vibrator.vibrate(VIBRATIONS.MEDIUM);
+        const speaker = Speaker.getInstance();
+
+        // Mostrar el error específico donde iba el formulario de confirmación
+        setEstudianteEscaneado({
+          error: studentData.error,
+          tipo: "decodificacion",
+        });
+
+        // El speaker dice el error
+        speaker.start(studentData.error!);
+        setEscaneando(false);
+        setErrorEscaneo("");
+        return;
+      }
+
+      // Si llegamos aquí, la decodificación fue exitosa
+      vibrator.vibrate(VIBRATIONS.SHORT);
+
+      const speaker = Speaker.getInstance();
       const estudiantesIDB = new BaseEstudiantesIDB();
 
+      // Buscar el estudiante en la base de datos local
       const estudianteEncontrado =
         (await estudiantesIDB.getEstudiantePorId(
           studentData.identificadorEstudiante!
@@ -202,22 +234,57 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
           studentData.identificadorEstudiante!.split("-")[0]
         ));
 
+      if (!estudianteEncontrado) {
+        // Error: estudiante no encontrado en BD local
+        vibrator.vibrate(VIBRATIONS.MEDIUM);
+
+        setEstudianteEscaneado({
+          error: "El estudiante no se encuentra en la lista de hoy",
+          tipo: "estudiante_no_encontrado",
+          identificadorEscaneado: studentData.identificadorEstudiante,
+        });
+
+        speaker.start("El estudiante no se encuentra en la lista de hoy");
+        setEscaneando(false);
+        setErrorEscaneo("");
+        return;
+      }
+
+      // Todo exitoso - comportamiento original
+      const periodoDelDia = determinarPeriodoDia(
+        fechaHoraActual.fechaHora || new Date().toISOString()
+      );
+      const saludo = saludosDia[periodoDelDia];
+
       setEstudianteEscaneado(estudianteEncontrado);
+      speaker.start(
+        `${obtenerNombreApellidoSimple(
+          estudianteEncontrado.Nombres,
+          estudianteEncontrado.Apellidos
+        )}, ${dameCualquieraDeEstos(
+          saludo,
+          "Hola",
+          "Bienvenido",
+          "Buen día",
+          "Adelante"
+        )}`
+      );
       setEscaneando(false);
       setErrorEscaneo("");
     },
-    []
+    [fechaHoraActual]
   );
 
-  // Función para manejar errores del scanner
-  const handleQRError = useCallback((error: any) => {
-    if (error && !error.message?.includes("No QR code found")) {
-      console.warn("Scanner error:", error.message);
-    }
-  }, []);
-
-  // Función para marcar asistencia
+  // Función para marcar asistencia - MODIFICADA para manejar errores
   const marcarAsistencia = (estudiante: any) => {
+    if (estudiante.error) {
+      // Si es un error, simplemente reiniciamos el escáner
+      setEstudianteEscaneado(null);
+      setEscaneando(true);
+      return;
+    }
+
+    // Comportamiento original para estudiantes válidos
     const nuevosRegistrados = new Set(estudiantesRegistrados);
     nuevosRegistrados.add(estudiante.Id_Estudiante);
     setEstudiantesRegistrados(nuevosRegistrados);
@@ -225,6 +292,13 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     setEstudianteEscaneado(null);
     setEscaneando(true);
   };
+
+  // Función para manejar errores del scanner
+  const handleQRError = useCallback((error: any) => {
+    if (error && !error.message?.includes("No QR code found")) {
+      console.warn("Scanner error:", error.message);
+    }
+  }, []);
 
   // Función para cambiar cámara
   const cambiarCamara = (deviceId: string) => {
@@ -276,6 +350,48 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     }
   };
 
+  const ErrorDisplay = ({ errorData }: { errorData: any }) => (
+    <div className="w-full max-w-xs bg-red-50 border-2 border-red-200 p-3 rounded-lg shadow-lg">
+      <div className="text-center mb-3">
+        <div className="w-10 h-10 rounded-full bg-red-100 mx-auto mb-2 flex items-center justify-center">
+          <span className="text-red-600 text-lg">⚠️</span>
+        </div>
+        <p className="font-bold text-red-800 text-xs mb-1 leading-tight">
+          Error en el QR
+        </p>
+        <p className="text-[0.6rem] text-red-600 mb-1 leading-tight">
+          {errorData.error}
+        </p>
+        {errorData.identificadorEscaneado && (
+          <p className="text-[0.6rem] text-gray-500 truncate">
+            ID: {errorData.identificadorEscaneado}
+          </p>
+        )}
+      </div>
+
+      <div className="flex gap-1.5">
+        <button
+          onClick={() => {
+            setEstudianteEscaneado(null);
+            setEscaneando(true);
+          }}
+          className="flex-1 bg-blue-500 text-white py-2.5 xs:py-3 rounded-lg font-medium hover:bg-blue-600 transition-colors text-xs"
+        >
+          🔄 Intentar de nuevo
+        </button>
+        <button
+          onClick={() => {
+            setEstudianteEscaneado(null);
+            setEscaneando(false);
+          }}
+          className="px-4 xs:px-5 py-2.5 xs:py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors text-xs"
+        >
+          ✕
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="max-w-6xl mx-auto p-3 sxs-only:p-2 xs-only:p-3 sm-only:p-4 md-only:p-5 lg-only:p-6 xl-only:p-6">
       {/* Layout para móviles: Stack vertical como antes */}
@@ -292,6 +408,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
             <div className="w-1/2 max-w-xs mx-auto border-2 border-dashed border-gray-300 rounded-lg overflow-hidden">
               {escaneando && camaraSeleccionada && sistemaInicializado ? (
                 <Scanner
+                  sound={false}
                   onScan={handleQRResult}
                   onError={handleQRError}
                   constraints={{

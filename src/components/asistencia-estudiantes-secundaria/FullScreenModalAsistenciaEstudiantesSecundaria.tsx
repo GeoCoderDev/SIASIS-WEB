@@ -207,6 +207,7 @@ const FullScreenModalAsistenciaEstudiantesSecundaria = ({
       case "qr":
         return (
           <RegistroEstudiantesSecundariaPorQR
+            fechaHoraActual={fechaHoraActual}
             handlerAuxiliar={handlerAuxiliar}
           />
         );

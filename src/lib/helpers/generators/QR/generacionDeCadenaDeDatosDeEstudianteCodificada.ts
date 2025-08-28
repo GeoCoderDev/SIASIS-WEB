@@ -291,23 +291,54 @@ interface ResultadoDecodificacion {
   error?: string;
 }
 
-// 🔍 Función para decodificar QR
+// 🔍 Función para decodificar QR - VERSIÓN MEJORADA SIN THROWS
 export function decodificarCadenaQREstudiante(
   cadenaQR: string
 ): ResultadoDecodificacion {
   try {
     log("🔍 Iniciando decodificación de:", cadenaQR);
 
-    const numero = decodificarBase62(cadenaQR);
-    log("🔢 Número decodificado:", numero.toString());
-
-    const datosCombinados = numeroAString(numero);
-    log("🔗 Datos combinados recuperados:", datosCombinados);
-
-    if (datosCombinados.length < 9) {
+    // Validación básica de entrada
+    if (!cadenaQR || cadenaQR.trim().length === 0) {
+      logError("💥 Error: Cadena QR vacía");
       return {
         exito: false,
-        error: "QR demasiado corto - datos insuficientes",
+        error: "Código QR no válido",
+      };
+    }
+
+    let numero: bigint;
+    try {
+      numero = decodificarBase62(cadenaQR);
+      log("🔢 Número decodificado:", numero.toString());
+    } catch (error) {
+      logError("💥 Error en decodificación Base62:", error);
+      return {
+        exito: false,
+        error: "Código QR no válido",
+      };
+    }
+
+    let datosCombinados: string;
+    try {
+      datosCombinados = numeroAString(numero);
+      log("🔗 Datos combinados recuperados:", datosCombinados);
+    } catch (error) {
+      logError("💥 Error al convertir número a string:", error);
+      return {
+        exito: false,
+        error: "Código QR no válido",
+      };
+    }
+
+    if (datosCombinados.length < 9) {
+      logError(
+        "💥 Error: QR demasiado corto, longitud:",
+        datosCombinados.length
+      );
+      return {
+        exito: false,
+        error: "Código QR no válido",
       };
     }
 
@@ -318,9 +349,10 @@ export function decodificarCadenaQREstudiante(
     log("🗜️ Datos comprimidos recuperados:", datosComprimidos);
 
     if (!verificarHash(datosComprimidos, hashRecibido)) {
+      logError("💥 Error: Hash inválido - verificación de integridad fallida");
       return {
         exito: false,
-        error: "QR inválido - verificación de integridad fallida",
+        error: "Código QR no válido",
       };
     }
 
@@ -328,35 +360,52 @@ export function decodificarCadenaQREstudiante(
 
     const datosDescomprimidos = descomprimirDatos(datosComprimidos);
     if (!datosDescomprimidos) {
+      logError("💥 Error: No se pudieron descomprimir los datos");
       return {
         exito: false,
-        error: "QR inválido - formato de datos incorrecto",
+        error: "Código QR no válido",
       };
     }
 
     log("📊 Datos descomprimidos:", datosDescomprimidos);
 
-    // Validaciones
+    // Validaciones con mensajes específicos y amigables
     const añoActual = new Date().getFullYear();
 
     if (
       VALIDAR_NOMBRE_SISTEMA &&
       datosDescomprimidos.sistema !== NOMBRE_ACTUAL_SISTEMA
     ) {
-      return { exito: false, error: "QR no pertenece al sistema actual" };
+      logError(
+        `💥 Error: Sistema incorrecto. Esperado: ${NOMBRE_ACTUAL_SISTEMA}, Recibido: ${datosDescomprimidos.sistema}`
+      );
+      return {
+        exito: false,
+        error:
+          "Genera nuevamente el QR puesto que el nombre del sistema cambió",
+      };
     }
 
     if (
       VALIDAR_INSTITUCION &&
       datosDescomprimidos.institucion !== NOMBRE_INSTITUCION
     ) {
-      return { exito: false, error: "QR no pertenece a esta institución" };
+      logError(
+        `💥 Error: Institución incorrecta. Esperado: ${NOMBRE_INSTITUCION}, Recibido: ${datosDescomprimidos.institucion}`
+      );
+      return {
+        exito: false,
+        error: "Este código QR no pertenece a esta institución",
+      };
     }
 
     if (VALIDAR_AÑO && datosDescomprimidos.año !== añoActual) {
+      logError(
+        `💥 Error: Año incorrecto. Esperado: ${añoActual}, Recibido: ${datosDescomprimidos.año}`
+      );
       return {
         exito: false,
-        error: `QR pertenece al año ${datosDescomprimidos.año}, año actual: ${añoActual}`,
+        error: `Este código QR pertenece al año ${datosDescomprimidos.año}, debe ser del año actual ${añoActual}`,
       };
     }
 
@@ -366,35 +415,42 @@ export function decodificarCadenaQREstudiante(
         datosDescomprimidos.tipoIdentificador
       )
     ) {
-      return { exito: false, error: "Tipo de identificador no válido" };
+      logError(
+        `💥 Error: Tipo de identificador inválido: ${datosDescomprimidos.tipoIdentificador}`
+      );
+      return {
+        exito: false,
+        error: "Código QR no válido",
+      };
     }
 
     if (
       datosDescomprimidos.nivel !== "P" &&
       datosDescomprimidos.nivel !== "S"
     ) {
+      logError(
+        `💥 Error: Nivel educativo inválido: ${datosDescomprimidos.nivel}`
+      );
       return {
         exito: false,
-        error:
-          "Nivel educativo inválido - debe ser P (PRIMARIA) o S (SECUNDARIA)",
+        error: "Código QR no válido",
       };
     }
 
     const identificadorEstudiante = `${datosDescomprimidos.identificador}-${datosDescomprimidos.tipoIdentificador}`;
 
+    log("✅ Decodificación exitosa:", identificadorEstudiante);
     return {
       exito: true,
       identificadorEstudiante,
       datosDecodificados: datosDescomprimidos,
+      error: undefined, // Explícitamente undefined para éxito
     };
   } catch (error) {
-    logError("💥 Error durante decodificación:", error);
+    logError("💥 Error inesperado durante decodificación:", error);
     return {
       exito: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Error desconocido al decodificar QR",
+      error: "Código QR no válido",
     };
   }
 }
