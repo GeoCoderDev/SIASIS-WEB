@@ -1,25 +1,20 @@
 "use client";
 import { useEffect, useState } from "react";
 import MiEstudianteRelacionadoCard from "./_components/MiEstudianteRelacionadoCard";
-import { EstudianteDelResponsable } from "@/interfaces/shared/apis/api02/mis-estudiantes-relacionados/types";
+
 import { EstudiantesParaResponsablesIDB } from "@/lib/utils/local/db/models/Estudiantes/EstudiantesParaResponsablesIDB";
 import { ErrorResponseAPIBase } from "@/interfaces/shared/apis/types";
 import Loader from "@/components/shared/loaders/Loader";
 import { AulasParaResponsablesIDB } from "@/lib/utils/local/db/models/Aulas/AulasParaResponsable";
 import { T_Aulas } from "@prisma/client";
-import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
-
-export interface EstudianteDelResponsableConAula
-  extends Omit<EstudianteDelResponsable, "Id_Aula"> {
-  aula: T_Aulas | null | undefined;
-}
+import { EstudianteConAulaYRelacion } from "@/interfaces/shared/Estudiantes";
 
 const MisEstudiantesRelacionados = () => {
   const [isSomethingLoading, setIsSomethingLoading] = useState(true);
   const [
     misEstudiantesRelacionadosConAula,
     setMisEstudiantesRelacionadosConAula,
-  ] = useState<EstudianteDelResponsableConAula[]>([]);
+  ] = useState<EstudianteConAulaYRelacion[]>([]);
   const [misAulasRelacionadas, setMisAulasRelacionadas] = useState<T_Aulas[]>(
     []
   );
@@ -60,7 +55,7 @@ const MisEstudiantesRelacionados = () => {
           );
 
         // Mapear las aulas obtenidas a los estudiantes
-        const estudiantesConAula: EstudianteDelResponsableConAula[] =
+        const estudiantesConAula: EstudianteConAulaYRelacion[] =
           estudiantesObtenidos.map((estudiante) => {
             if (estudiante.Id_Aula === null)
               return { ...estudiante, aula: null };

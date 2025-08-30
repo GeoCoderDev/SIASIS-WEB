@@ -1,11 +1,11 @@
 import { useState, useCallback, useRef } from "react";
-import { EstudianteDelResponsableConAula } from "@/app/(interfaz)/(responsable)/mis-estudiantes-relacionados/page";
 import { checkWebShareApiSupport } from "@/lib/helpers/checkers/web-support/checkWebShareApiSupport";
 import { GeneradorTarjetaQREstudiantilEnPDF } from "@/lib/helpers/generators/QR/GeneradorTarjetaQREstudiantilEnPDF";
 import { downloadBlob } from "@/lib/helpers/downloaders/downloadBlob";
 import { compartirArchivoEnBlobPorNavegador } from "@/lib/helpers/others/compartirArchivoEnBlobPorNavegador";
+import { EstudianteConAulaYRelacion } from "@/interfaces/shared/Estudiantes";
 
-export const useQRGenerator = (estudiante: EstudianteDelResponsableConAula) => {
+export const useQRGenerator = (estudiante: EstudianteConAulaYRelacion) => {
   const hiddenCardsRef = useRef<HTMLDivElement>(null);
   const [selectedQuantity, setSelectedQuantity] = useState<number>(1);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState<boolean>(false);

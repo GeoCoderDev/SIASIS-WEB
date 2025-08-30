@@ -30,7 +30,10 @@ import LeyendaEstadosAsistencia from "@/components/asistencia-personal/registros
 
 import { TiposIdentificadoresTextos } from "@/interfaces/shared/TiposIdentificadores";
 import { extraerTipoDeIdentificador } from "@/lib/helpers/extractors/extraerTipoDeIdentificador";
-import { EventosIDB, IEventoLocal } from "@/lib/utils/local/db/models/eventos/EventosIDB";
+import {
+  EventosIDB,
+  IEventoLocal,
+} from "@/lib/utils/local/db/models/Eventos/EventosIDB";
 
 // 🔧 CONSTANTE DE CONFIGURACIÓN PARA DESARROLLO
 const CONSIDERAR_DIAS_NO_ESCOLARES = false; // false = solo días laborales, true = incluir sábados y domingos
@@ -558,11 +561,7 @@ const RegistrosAsistenciaDePersonal = () => {
 
   // ✅ Función de búsqueda
   const buscarAsistencias = async () => {
-    if (
-      !selectedRol ||
-      !selectedMes ||
-      !usuarioSeleccionado?.ID_Usuario
-    ) {
+    if (!selectedRol || !selectedMes || !usuarioSeleccionado?.ID_Usuario) {
       setError({
         success: false,
         message: "Por favor completa todos los campos correctamente",
@@ -797,7 +796,14 @@ const RegistrosAsistenciaDePersonal = () => {
       });
 
       const identificadorLabelCell = worksheet.getCell(`G${filaActual}`);
-      identificadorLabelCell.value =`${TiposIdentificadoresTextos[extraerTipoDeIdentificador(usuarioSeleccionado.Identificador_Nacional_Directivo ?? usuarioSeleccionado.ID_Usuario)]}:`;
+      identificadorLabelCell.value = `${
+        TiposIdentificadoresTextos[
+          extraerTipoDeIdentificador(
+            usuarioSeleccionado.Identificador_Nacional_Directivo ??
+              usuarioSeleccionado.ID_Usuario
+          )
+        ]
+      }:`;
       aplicarBordesACeldasCombinadas(`G${filaActual}:H${filaActual}`, {
         font: { bold: true, size: 10 },
         fill: {

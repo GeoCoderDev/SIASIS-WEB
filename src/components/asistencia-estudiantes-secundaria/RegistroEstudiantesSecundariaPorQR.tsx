@@ -3,7 +3,6 @@ import { IDetectedBarcode, Scanner } from "@yudiel/react-qr-scanner";
 import { decodificarCadenaQREstudiante } from "@/lib/helpers/generators/QR/generacionDeCadenaDeDatosDeEstudianteCodificada";
 import { BaseEstudiantesIDB } from "@/lib/utils/local/db/models/Estudiantes/EstudiantesBaseIDB";
 import { VIBRATIONS, vibrator } from "@/lib/utils/vibration/Vibrator";
-import { beep } from "@/lib/utils/sounds/Beep";
 import { Speaker } from "@/lib/utils/voice/Speaker";
 import { obtenerNombreApellidoSimple } from "@/lib/helpers/formatters/personalData/nombres-apellidos";
 import { saludosDia } from "@/Assets/voice/others/SaludosDelDia";
@@ -186,7 +185,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     }
   }, [cargandoCamaras]);
 
-  // Función para manejar el resultado del QR - VERSIÓN MEJORADA CON MANEJO DE ERRORES
+  // Función para manejar el resultado del QR - MODIFICADA CON MANEJO DE ERRORES
   const handleQRResult = useCallback(
     async (detectedCodes: IDetectedBarcode[]) => {
       if (
@@ -203,7 +202,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
       // Verificar si hubo error en la decodificación
       if (!studentData.exito || studentData.error) {
         // Error en decodificación del QR
-        vibrator.vibrate(VIBRATIONS.MEDIUM);
+        vibrator.vibrate(VIBRATIONS.LONG);
         const speaker = Speaker.getInstance();
 
         // Mostrar el error específico donde iba el formulario de confirmación
@@ -275,6 +274,13 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     [fechaHoraActual]
   );
 
+  // Función para manejar errores del scanner
+  const handleQRError = useCallback((error: any) => {
+    if (error && !error.message?.includes("No QR code found")) {
+      console.warn("Scanner error:", error.message);
+    }
+  }, []);
+
   // Función para marcar asistencia - MODIFICADA para manejar errores
   const marcarAsistencia = (estudiante: any) => {
     if (estudiante.error) {
@@ -292,13 +298,6 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     setEstudianteEscaneado(null);
     setEscaneando(true);
   };
-
-  // Función para manejar errores del scanner
-  const handleQRError = useCallback((error: any) => {
-    if (error && !error.message?.includes("No QR code found")) {
-      console.warn("Scanner error:", error.message);
-    }
-  }, []);
 
   // Función para cambiar cámara
   const cambiarCamara = (deviceId: string) => {
@@ -350,6 +349,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     }
   };
 
+  // NUEVO: Componente para mostrar errores en lugar del formulario de confirmación
   const ErrorDisplay = ({ errorData }: { errorData: any }) => (
     <div className="w-full max-w-xs bg-red-50 border-2 border-red-200 p-3 rounded-lg shadow-lg">
       <div className="text-center mb-3">
@@ -497,47 +497,53 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
               )}
             </div>
 
-            {/* Confirmador superpuesto para móviles - Ajustado para no desbordarse */}
+            {/* Confirmador/Error superpuesto para móviles - MODIFICADO */}
             {estudianteEscaneado && (
               <div className="absolute inset-0 bg-white bg-opacity-95 backdrop-blur-sm rounded-lg flex items-center justify-center p-2">
-                <div className="w-full max-w-xs bg-green-50 border-2 border-green-200 p-3 rounded-lg shadow-lg">
-                  <div className="text-center mb-3">
-                    <div className="w-10 h-10 rounded-full bg-gray-300 mx-auto mb-2 overflow-hidden">
-                      <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                        <span className="text-sm">📷</span>
+                {estudianteEscaneado.error ? (
+                  // Mostrar error en lugar del formulario de confirmación
+                  <ErrorDisplay errorData={estudianteEscaneado} />
+                ) : (
+                  // Formulario de confirmación original para estudiantes válidos
+                  <div className="w-full max-w-xs bg-green-50 border-2 border-green-200 p-3 rounded-lg shadow-lg">
+                    <div className="text-center mb-3">
+                      <div className="w-10 h-10 rounded-full bg-gray-300 mx-auto mb-2 overflow-hidden">
+                        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                          <span className="text-sm">📷</span>
+                        </div>
                       </div>
+                      <p className="font-bold text-green-800 text-xs mb-1 leading-tight">
+                        {estudianteEscaneado.Nombres}{" "}
+                        {estudianteEscaneado.Apellidos}
+                      </p>
+                      <p className="text-[0.6rem] text-green-600 mb-1">
+                        ✅ QR Escaneado
+                      </p>
+                      <p className="text-[0.6rem] text-gray-500 truncate">
+                        ID: {estudianteEscaneado.Id_Estudiante}
+                      </p>
                     </div>
-                    <p className="font-bold text-green-800 text-xs mb-1 leading-tight">
-                      {estudianteEscaneado.Nombres}{" "}
-                      {estudianteEscaneado.Apellidos}
-                    </p>
-                    <p className="text-[0.6rem] text-green-600 mb-1">
-                      ✅ QR Escaneado
-                    </p>
-                    <p className="text-[0.6rem] text-gray-500 truncate">
-                      ID: {estudianteEscaneado.Id_Estudiante}
-                    </p>
-                  </div>
 
-                  <div className="flex gap-1.5">
-                    {/* Botones aumentados 10% para móviles */}
-                    <button
-                      onClick={() => marcarAsistencia(estudianteEscaneado)}
-                      className="flex-1 bg-green-500 text-white py-2.5 xs:py-3 rounded-lg font-medium hover:bg-green-600 transition-colors text-xs"
-                    >
-                      ✓ Confirmar
-                    </button>
-                    <button
-                      onClick={() => {
-                        setEstudianteEscaneado(null);
-                        setEscaneando(true);
-                      }}
-                      className="px-4 xs:px-5 py-2.5 xs:py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors text-xs"
-                    >
-                      ✕
-                    </button>
+                    <div className="flex gap-1.5">
+                      {/* Botones aumentados 10% para móviles */}
+                      <button
+                        onClick={() => marcarAsistencia(estudianteEscaneado)}
+                        className="flex-1 bg-green-500 text-white py-2.5 xs:py-3 rounded-lg font-medium hover:bg-green-600 transition-colors text-xs"
+                      >
+                        ✓ Confirmar
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEstudianteEscaneado(null);
+                          setEscaneando(true);
+                        }}
+                        className="px-4 xs:px-5 py-2.5 xs:py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors text-xs"
+                      >
+                        ✕
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
           </div>
@@ -753,7 +759,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
 
         {/* Sección 2: Registro de asistencia + Selección de cámaras */}
         <div className="space-y-3 lg:space-y-4">
-          {/* Registro de Asistencia - Reducido 15% */}
+          {/* Registro de Asistencia - MODIFICADO para manejar errores */}
           <div className="bg-white rounded-lg border-2 border-green-200 p-3 md:p-4 lg:p-5">
             <h3 className="text-lg font-bold text-green-800 mb-3">
               Registro de Asistencia
@@ -771,44 +777,89 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
               </div>
             </div>
 
-            {/* Estudiante escaneado */}
+            {/* Estudiante escaneado o error */}
             {estudianteEscaneado ? (
-              <div className="bg-green-50 border border-green-200 p-3 rounded-lg">
-                <div className="flex items-center mb-3">
-                  <div className="w-12 h-12 rounded-full bg-gray-300 flex-shrink-0 mr-3 overflow-hidden">
-                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                      <span className="text-xs">📷</span>
+              estudianteEscaneado.error ? (
+                // Mostrar error
+                <div className="bg-red-50 border border-red-200 p-3 rounded-lg">
+                  <div className="flex items-center mb-3">
+                    <div className="w-12 h-12 rounded-full bg-red-100 flex-shrink-0 mr-3 flex items-center justify-center">
+                      <span className="text-red-600 text-lg">⚠️</span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-red-800 text-sm">
+                        Error en el QR
+                      </p>
+                      <p className="text-xs text-red-600 mb-1">
+                        {estudianteEscaneado.error}
+                      </p>
+                      {estudianteEscaneado.identificadorEscaneado && (
+                        <p className="text-xs text-gray-500 truncate">
+                          ID: {estudianteEscaneado.identificadorEscaneado}
+                        </p>
+                      )}
                     </div>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-bold text-green-800 text-sm truncate">
-                      {estudianteEscaneado.Nombres}{" "}
-                      {estudianteEscaneado.Apellidos}
-                    </p>
-                    <p className="text-xs text-green-600">✅ QR Escaneado</p>
-                    <p className="text-xs text-gray-500 truncate">
-                      ID: {estudianteEscaneado.Id_Estudiante}
-                    </p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setEstudianteEscaneado(null);
+                        setEscaneando(true);
+                      }}
+                      className="flex-1 bg-blue-500 text-white py-2 rounded-lg font-medium hover:bg-blue-600 transition-colors text-sm"
+                    >
+                      🔄 Intentar de nuevo
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEstudianteEscaneado(null);
+                        setEscaneando(false);
+                      }}
+                      className="px-3 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors text-sm"
+                    >
+                      ✕ Cancelar
+                    </button>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => marcarAsistencia(estudianteEscaneado)}
-                    className="flex-1 bg-green-500 text-white py-2 rounded-lg font-medium hover:bg-green-600 transition-colors text-sm"
-                  >
-                    ✓ Confirmar Asistencia
-                  </button>
-                  <button
-                    onClick={() => {
-                      setEstudianteEscaneado(null);
-                      setEscaneando(true);
-                    }}
-                    className="px-3 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors text-sm"
-                  >
-                    ✕ Cancelar
-                  </button>
+              ) : (
+                // Formulario de confirmación original para estudiantes válidos
+                <div className="bg-green-50 border border-green-200 p-3 rounded-lg">
+                  <div className="flex items-center mb-3">
+                    <div className="w-12 h-12 rounded-full bg-gray-300 flex-shrink-0 mr-3 overflow-hidden">
+                      <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                        <span className="text-xs">📷</span>
+                      </div>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-green-800 text-sm truncate">
+                        {estudianteEscaneado.Nombres}{" "}
+                        {estudianteEscaneado.Apellidos}
+                      </p>
+                      <p className="text-xs text-green-600">✅ QR Escaneado</p>
+                      <p className="text-xs text-gray-500 truncate">
+                        ID: {estudianteEscaneado.Id_Estudiante}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => marcarAsistencia(estudianteEscaneado)}
+                      className="flex-1 bg-green-500 text-white py-2 rounded-lg font-medium hover:bg-green-600 transition-colors text-sm"
+                    >
+                      ✓ Confirmar Asistencia
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEstudianteEscaneado(null);
+                        setEscaneando(true);
+                      }}
+                      className="px-3 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors text-sm"
+                    >
+                      ✕ Cancelar
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )
             ) : (
               <div className="text-center text-gray-500">
                 {escaneando ? (

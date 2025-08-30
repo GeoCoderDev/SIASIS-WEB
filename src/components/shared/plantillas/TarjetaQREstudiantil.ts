@@ -1,4 +1,4 @@
-import { EstudianteDelResponsableConAula } from "@/app/(interfaz)/(responsable)/mis-estudiantes-relacionados/page";
+import { EstudianteConAulaYRelacion } from "@/app/(interfaz)/(responsable)/mis-estudiantes-relacionados/page";
 import { GradosTextos } from "@/Assets/GradosTextos";
 import { NivelEducativoTextos } from "@/Assets/NivelEducativoTextos";
 import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
@@ -6,7 +6,7 @@ import { NOMBRE_ACTUAL_SISTEMA } from "@/constants/NOMBRE_SISTEMA";
 import { NOMBRE_INSTITUCION_PARA_TARJETAS_QR } from "@/constants/NOMBRE_INSITITUCION";
 
 export const generarTarjetaQREstudiantil = (
-  estudiante: EstudianteDelResponsableConAula,
+  estudiante: EstudianteConAulaYRelacion,
   index: number
 ): string => {
   const nombreCorto = `${estudiante.Nombres.split(" ")[0]} ${

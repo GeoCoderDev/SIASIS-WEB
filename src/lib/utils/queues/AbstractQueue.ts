@@ -527,40 +527,43 @@ export abstract class DataQueue<TData = any> extends AbstractQueue<
   }
 }
 
-// ==================== EJEMPLO DE IMPLEMENTACIONES CONCRETAS ====================
-
-/**
- * Ejemplo: Cola de funciones con persistencia en LocalStorage
- */
-export class LocalStorageFunctionQueue extends FunctionQueue {
-  constructor(storageKey: string = "function_queue", options?: QueueOptions) {
-    const persistence: QueuePersistence<QueueFunction> = {
-      async getQueueItems(): Promise<QueueFunction[]> {
-        // Nota: Las funciones no se pueden serializar,
-        // esta implementación requeriría un enfoque diferente
-        return [];
-      },
-      async saveQueueItems(items: QueueFunction[]): Promise<void> {
-        // Las funciones no se pueden guardar directamente
-        console.warn("Las funciones no pueden ser persistidas en LocalStorage");
-      },
-      async clearQueue(): Promise<void> {
-        localStorage.removeItem(storageKey);
-      },
-      isAvailable(): boolean {
-        return typeof Storage !== "undefined";
-      },
-    };
-
-    super(persistence, options || {});
-  }
-}
 
 
 
 
 
+// // ==================== EJEMPLO DE IMPLEMENTACIONES CONCRETAS ====================
 
+// /**
+//  * Ejemplo: Cola de funciones con persistencia en LocalStorage
+//  */
+// export class LocalStorageFunctionQueue extends FunctionQueue {
+//   constructor(storageKey: string = "function_queue", options?: QueueOptions) {
+//     const persistence: QueuePersistence<QueueFunction> = {
+//       async getQueueItems(): Promise<QueueFunction[]> {
+//         // Nota: Las funciones no se pueden serializar,
+//         // esta implementación requeriría un enfoque diferente
+//         return [];
+//       },
+//       async saveQueueItems(items: QueueFunction[]): Promise<void> {
+//         // Las funciones no se pueden guardar directamente
+//         console.warn("Las funciones no pueden ser persistidas en LocalStorage");
+//       },
+//       async clearQueue(): Promise<void> {
+//         localStorage.removeItem(storageKey);
+//       },
+//       isAvailable(): boolean {
+//         return typeof Storage !== "undefined";
+//       },
+//     };
+
+//     super(persistence, options || {});
+//   }
+// }
+
+
+
+   
 
 
 /**

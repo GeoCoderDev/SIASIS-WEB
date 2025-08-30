@@ -8,14 +8,14 @@ import { RelacionesEstudianteResponsable } from "@/interfaces/shared/RelacionesE
 import { TiposIdentificadoresTextos } from "@/interfaces/shared/TiposIdentificadores";
 import { extraerIdentificador } from "@/lib/helpers/extractors/extraerIdentificador";
 import { extraerTipoDeIdentificador } from "@/lib/helpers/extractors/extraerTipoDeIdentificador";
-import { EstudianteDelResponsableConAula } from "../page";
 import { useState } from "react";
 import GeneradorDeTarjetaQRDeEstudianteParaResponsablesModal from "@/components/modals/QR/GeneradorDeQRParaResponsablesModal";
+import { EstudianteConAulaYRelacion } from "@/interfaces/shared/Estudiantes";
 
 const MiEstudianteRelacionadoCard = ({
   miEstudianteRelacionado,
 }: {
-  miEstudianteRelacionado: EstudianteDelResponsableConAula;
+  miEstudianteRelacionado: EstudianteConAulaYRelacion;
 }) => {
   const [showCambiarFotoPerfilModal, setShowCambiarFotoPerfilModal] = useState<
     string | null
@@ -37,7 +37,7 @@ const MiEstudianteRelacionadoCard = ({
     <>
       {showGenerarQRDelEstudianteModal && (
         <GeneradorDeTarjetaQRDeEstudianteParaResponsablesModal
-          estudianteDelResponsableConAula={miEstudianteRelacionado}
+          EstudianteConAulaYRelacion={miEstudianteRelacionado}
           eliminarModal={() => setShowGenerarQRDelEstudianteModal(null)}
         />
       )}

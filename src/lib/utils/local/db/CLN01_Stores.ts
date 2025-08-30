@@ -917,7 +917,6 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     ],
   },
 
-  // ✅ AGREGADO: Vacaciones interescolares
   vacaciones_interescolares: {
     keyPath: "Id_Vacacion_Interescolar",
     autoIncrement: true,
@@ -1040,6 +1039,24 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
       {
         name: "por_rol_criterio",
         keyPath: ["rol", "criterio"],
+        options: { unique: false },
+      },
+    ],
+  },
+
+
+  cola_asistencia_escolar: {
+    keyPath: "id",
+    autoIncrement: true,
+    indexes: [
+      {
+        name: "por_fecha",
+        keyPath: "fecha",
+        options: { unique: false },
+      },
+      {
+        name: "por_estudiante",
+        keyPath: "id_estudiante",
         options: { unique: false },
       },
     ],

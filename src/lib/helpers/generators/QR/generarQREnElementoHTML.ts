@@ -8,7 +8,7 @@ export const QR_ESTUDIANTIL_PDF_CONFIG = {
   spacingX: 24,
   spacingY: 31,
   qrSize: 124,
-  scale: 4,
+  scale: 2,
   cardDimensions: {
     width: 254,
     height: 387,

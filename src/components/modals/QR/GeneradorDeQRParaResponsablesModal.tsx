@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { EstudianteDelResponsableConAula } from "@/app/(interfaz)/(responsable)/mis-estudiantes-relacionados/page";
 import ModalContainer from "../ModalContainer";
 import { useQRGenerator } from "@/hooks/generators/useQRGenerator";
 import CompartirIcon from "@/components/icons/CompartirIcon";
@@ -10,6 +9,7 @@ import { NivelEducativoTextos } from "@/Assets/NivelEducativoTextos";
 import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
 import { useDetectorNavegador } from "@/hooks/useDetectorNavegador";
 import { NavegadoresWeb } from "@/interfaces/shared/NavegadoresWeb";
+import { EstudianteConAulaYRelacion } from "@/interfaces/shared/Estudiantes";
 
 declare global {
   interface Window {
@@ -91,12 +91,12 @@ const ESTILOS_POR_NAVEGADORES: Record<
 };
 
 interface Props {
-  estudianteDelResponsableConAula: EstudianteDelResponsableConAula;
+  EstudianteConAulaYRelacion: EstudianteConAulaYRelacion;
   eliminarModal: () => void;
 }
 
 const GeneradorDeTarjetaQRModal = ({
-  estudianteDelResponsableConAula,
+  EstudianteConAulaYRelacion,
   eliminarModal,
 }: Props) => {
   const {
@@ -112,7 +112,7 @@ const GeneradorDeTarjetaQRModal = ({
     downloadPDF,
     sharePDF,
     cleanup,
-  } = useQRGenerator(estudianteDelResponsableConAula);
+  } = useQRGenerator(EstudianteConAulaYRelacion);
 
   // Detectar navegador
   const navegador = useDetectorNavegador();
@@ -230,9 +230,11 @@ const GeneradorDeTarjetaQRModal = ({
               >
                 {isGeneratingPDF ? (
                   <div className={clasesLoader}>
-                    <Loader className="w-[2rem] sxs-only:w-[1.2rem] xs-only:w-[1.5rem] p-1 sxs-only:p-1.5 bg-white ml-2
+                    <Loader
+                      className="w-[2rem] sxs-only:w-[1.2rem] xs-only:w-[1.5rem] p-1 sxs-only:p-1.5 bg-white ml-2
                                       landscape-small:w-[1.8rem] landscape-small:p-[0.225rem] landscape-small:ml-[0.45rem]
-                                      landscape-tablet-sm:w-[1.8rem] landscape-tablet-sm:p-[0.225rem] landscape-tablet-sm:ml-[0.45rem]" />
+                                      landscape-tablet-sm:w-[1.8rem] landscape-tablet-sm:p-[0.225rem] landscape-tablet-sm:ml-[0.45rem]"
+                    />
                     <p
                       className="text-white font-semibold
                                   sxs-only:text-[10px]
@@ -401,16 +403,16 @@ const GeneradorDeTarjetaQRModal = ({
                                   landscape-tablet-sm:text-[12.6px] landscape-tablet-sm:leading-tight"
                   >
                     <p className="font-medium text-blue-800 text-center">
-                      {estudianteDelResponsableConAula.Nombres}{" "}
-                      {estudianteDelResponsableConAula.Apellidos}
+                      {EstudianteConAulaYRelacion.Nombres}{" "}
+                      {EstudianteConAulaYRelacion.Apellidos}
                     </p>
-                    {estudianteDelResponsableConAula.aula && (
+                    {EstudianteConAulaYRelacion.aula && (
                       <p className="text-blue-600 text-center">
-                        {`${estudianteDelResponsableConAula.aula.Grado}° ${
-                          estudianteDelResponsableConAula.aula.Seccion
+                        {`${EstudianteConAulaYRelacion.aula.Grado}° ${
+                          EstudianteConAulaYRelacion.aula.Seccion
                         } - ${
                           NivelEducativoTextos[
-                            estudianteDelResponsableConAula.aula
+                            EstudianteConAulaYRelacion.aula
                               .Nivel as NivelEducativo
                           ]
                         }`}
