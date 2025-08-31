@@ -516,7 +516,7 @@ export async function POST(req: NextRequest) {
 
     if (esRegistroEstudiante) {
       // Para estudiantes: incluir nivel, grado y sección en la clave
-      clave = `${fechaHoy}:${ModoRegistro}:${actorFinal}:${idFinal}:${NivelDelEstudiante}:${Grado}:${Seccion}`;
+      clave = `${fechaHoy}:${ModoRegistro}:${actorFinal}:${NivelDelEstudiante}:${Grado}:${Seccion}:${idFinal}`;
     } else {
       // Para personal: clave tradicional
       clave = `${fechaHoy}:${ModoRegistro}:${actorFinal}:${idFinal}`;

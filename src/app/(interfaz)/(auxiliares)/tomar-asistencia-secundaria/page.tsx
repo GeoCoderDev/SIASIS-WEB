@@ -61,10 +61,6 @@ const TomarAsistenciaEstudiantesSecundaria = () => {
 
   const [isLoading, setIsLoading] = useState(true);
 
-  
-  
-
-
   // Modelos para estudiantes y aulas
   const [estudiantesIDB] = useState(() => new BaseEstudiantesIDB());
   const [aulasIDB] = useState(() => new BaseAulasIDB());

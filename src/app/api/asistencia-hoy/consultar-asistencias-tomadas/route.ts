@@ -11,7 +11,7 @@ import {
   TipoAsistencia,
 } from "@/interfaces/shared/AsistenciaRequests";
 import { Meses } from "@/interfaces/shared/Meses";
-import { EstadosAsistencia } from "@/interfaces/shared/EstadosAsistenciaEstudiantes";
+
 
 /**
  * Mapea un rol del sistema al actor correspondiente para consultas de asistencia personal
