@@ -485,17 +485,13 @@ export async function GET(req: NextRequest) {
 
           if (actor === ActoresSistema.Estudiante) {
             // Para estudiantes
-            if (
-              typeof valor === "string" &&
-              Object.values(EstadosAsistencia).includes(
-                valor as EstadosAsistencia
-              )
-            ) {
+            if (Array.isArray(valor) && valor.length >= 2) {
+              const desfaseSegundos = parseInt(valor[0] as string);
               resultados.push({
                 idUsuario: id, // ✅ ACTUALIZADO: Era "DNI"
                 AsistenciaMarcada: true,
                 Detalles: {
-                  Estado: valor as EstadosAsistencia,
+                  DesfaseSegundos: desfaseSegundos,
                 },
               });
             }
