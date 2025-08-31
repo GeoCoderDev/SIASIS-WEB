@@ -2,7 +2,6 @@
 //               Implementación específica para responsables
 // ============================================================================
 
-import { EstudianteDelResponsable } from "@/interfaces/shared/apis/api02/mis-estudiantes-relacionados/types";
 import {
   BaseEstudiantesIDB,
   IEstudianteBaseFilter,
@@ -10,6 +9,7 @@ import {
 import IndexedDBConnection from "../../IndexedDBConnection";
 import AllErrorTypes, { SystemErrorTypes } from "@/interfaces/shared/errors";
 import { Endpoint_Get_MisEstudiantesRelacionados_API02 } from "@/lib/utils/backend/endpoints/api02/Estudiantes";
+import { EstudianteDelResponsable } from "@/interfaces/shared/Estudiantes";
 
 // Filtros específicos para estudiantes de responsables (extiende los filtros base)
 export interface IEstudianteResponsableFilter extends IEstudianteBaseFilter {
