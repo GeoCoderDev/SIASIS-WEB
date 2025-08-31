@@ -33,7 +33,7 @@ import { extraerTipoDeIdentificador } from "@/lib/helpers/extractors/extraerTipo
 import {
   EventosIDB,
   IEventoLocal,
-} from "@/lib/utils/local/db/models/Eventos/EventosIDB";
+} from "@/lib/utils/local/db/models/EventosLocal/EventosIDB";
 
 // 🔧 CONSTANTE DE CONFIGURACIÓN PARA DESARROLLO
 const CONSIDERAR_DIAS_NO_ESCOLARES = false; // false = solo días laborales, true = incluir sábados y domingos
