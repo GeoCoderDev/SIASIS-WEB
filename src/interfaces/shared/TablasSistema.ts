@@ -131,8 +131,8 @@ export enum TablasLocal {
   Tabla_Usuarios_Genericos_Cache = "usuarios_genericos_cache",
   Tabla_Archivos_Asistencia_Hoy = "archivos_asistencia_hoy",
 
-  // Queue
-  Tabla_Cola_Asistencia = "cola_asistencia_escolar",
+  // Persistencias para Colas
+  Tabla_Cola_Asistencias_Escolares = "cola_asistencias_escolares",
 }
 
 /**
@@ -432,6 +432,15 @@ export const TablasSistema = {
     descripcion: "Cache de consultas de usuarios genéricos",
     sincronizable: false,
   },
+
+  // Colas
+
+  COLA_ASISTENCIAS_ESCOLARES: {
+    nombreLocal: TablasLocal.Tabla_Cola_Asistencias_Escolares,
+    descripcion: "Cola de asistencias escolares",
+    sincronizable: false,
+  },
+
 };
 
 export default TablasSistema;

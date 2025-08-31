@@ -1,5 +1,5 @@
 import { AsistenciaMensualPersonalLocal } from "../AsistenciaDePersonalTypes";
-import { AsistenciaDePersonalDateHelper } from "./AsistenciaDePersonalDateHelper";
+import { AsistenciaDateHelper } from "../../utils/AsistenciaDateHelper";
 
 /**
  * 🎯 RESPONSABILIDAD: Validaciones y verificaciones de datos
@@ -9,9 +9,9 @@ import { AsistenciaDePersonalDateHelper } from "./AsistenciaDePersonalDateHelper
  * - Comprobar actualización necesaria
  */
 export class AsistenciaDePersonalValidator {
-  private dateHelper: AsistenciaDePersonalDateHelper;
+  private dateHelper: AsistenciaDateHelper;
 
-  constructor(dateHelper: AsistenciaDePersonalDateHelper) {
+  constructor(dateHelper: AsistenciaDateHelper) {
     this.dateHelper = dateHelper;
   }
 

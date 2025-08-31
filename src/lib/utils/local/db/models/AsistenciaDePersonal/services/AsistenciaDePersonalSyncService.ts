@@ -23,7 +23,7 @@ import { AsistenciaDePersonalValidator } from "./AsistenciaDePersonalValidator";
 import { AsistenciaDePersonalAPIClient } from "./AsistenciaDePersonalAPIClient";
 import { AsistenciaDePersonalMapper } from "./AsistenciaDePersonalMapper";
 import { AsistenciaDePersonalCacheManager } from "./AsistenciaDePersonalCacheManager";
-import { AsistenciaDePersonalDateHelper } from "./AsistenciaDePersonalDateHelper";
+import { AsistenciaDateHelper } from "../../utils/AsistenciaDateHelper";
 import { Meses } from "@/interfaces/shared/Meses";
 import { DIAS_ESCOLARES_MINIMOS_VERIFICACION } from "@/constants/DIAS_ESCOLARES_MINIMOS_VERIFICACION";
 
@@ -45,7 +45,7 @@ export class AsistenciaPersonalSyncService {
   private apiClient: AsistenciaDePersonalAPIClient;
   private mapper: AsistenciaDePersonalMapper;
   private cacheManager: AsistenciaDePersonalCacheManager;
-  private dateHelper: AsistenciaDePersonalDateHelper;
+  private dateHelper: AsistenciaDateHelper;
 
   constructor(
     repository: AsistenciaDePersonalRepository,
@@ -53,7 +53,7 @@ export class AsistenciaPersonalSyncService {
     apiClient: AsistenciaDePersonalAPIClient,
     mapper: AsistenciaDePersonalMapper,
     cacheManager: AsistenciaDePersonalCacheManager,
-    dateHelper: AsistenciaDePersonalDateHelper
+    dateHelper: AsistenciaDateHelper
   ) {
     this.repository = repository;
     this.validator = validator;
@@ -2372,7 +2372,7 @@ export class AsistenciaPersonalSyncService {
     mes: number
   ): Promise<ConsultaAsistenciaResult> {
     try {
-      this.dateHelper = this.dateHelper || new AsistenciaDePersonalDateHelper();
+      this.dateHelper = this.dateHelper || new AsistenciaDateHelper();
 
       // Validaciones iguales al método original
       const estadoTemporal = this.dateHelper.obtenerEstadoTemporalMes(mes);

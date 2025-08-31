@@ -8,6 +8,8 @@ export class FetchCancelable {
   public queryParams?: QueryParams;
 
   constructor(url: string, options: RequestInit, queryParams?: QueryParams) {
+    this.controller = new AbortController();
+
     let query = "";
 
     if (queryParams) {
@@ -24,15 +26,16 @@ export class FetchCancelable {
 
     this.url = `${url}${query}`;
     this.options = options;
-    this.controller = new AbortController();
     this.signal = this.controller.signal;
     this.queryParams = queryParams;
   }
 
-  fetch(): Promise<Response> {
-    return fetch(this.url, { ...this.options, signal: this.signal }).finally(()=>{
-      console.log("HOOK FUNCIONANDO") ;
-    }) ;
+  async fetch(): Promise<Response> {
+    return fetch(this.url, { ...this.options, signal: this.signal }).finally(
+      () => {
+        console.log("HOOK FUNCIONANDO");
+      }
+    );
   }
 
   cancel(): void {

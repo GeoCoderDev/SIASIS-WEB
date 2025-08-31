@@ -6,6 +6,117 @@ import { BaseAulasIDB } from "@/lib/utils/local/db/models/Aulas/AulasBase";
 import { HandlerAuxiliarAsistenciaResponse } from "@/lib/utils/local/db/models/DatosAsistenciaHoy/handlers/HandlerAuxiliarAsistenciaResponse";
 import { Speaker } from "@/lib/utils/voice/Speaker";
 import EstudianteSecundariaParaTomaAsistenciaCard from "./EstudianteSecundariaParaTomaAsistenciaCard";
+import { Asistencias_Escolares_QUEUE } from "@/lib/utils/queues/AsistenciasEscolaresQueue";
+import { ActoresSistema } from "@/interfaces/shared/ActoresSistema";
+import { ModoRegistro } from "@/interfaces/shared/ModoRegistroPersonal";
+import { TipoAsistencia } from "@/interfaces/shared/AsistenciaRequests";
+import { HORAS_ANTES_SALIDA_CAMBIO_MODO_PARA_ESTUDIANTES_DE_SECUNDARIA } from "@/constants/INTERVALOS_ASISTENCIAS_ESCOLARES";
+import { alterarUTCaZonaPeruana } from "@/lib/helpers/alteradores/alterarUTCaZonaPeruana";
+import { CONTROL_ASISTENCIA_DE_SALIDA_SECUNDARIA } from "@/constants/ASISTENCIA_ENTRADA_SALIDA_ESCOLAR";
+import FotoPerfilClientSide from "../utils/photos/FotoPerfilClientSide";
+import { extraerTipoDeIdentificador } from "@/lib/helpers/extractors/extraerTipoDeIdentificador";
+import { TiposIdentificadoresTextos } from "@/interfaces/shared/TiposIdentificadores";
+import { extraerIdentificador } from "@/lib/helpers/extractors/extraerIdentificador";
+
+// Componente de card compacta optimizada
+interface ConfiguracionBoton {
+  texto: string;
+  colorClass: string;
+}
+
+interface EstudianteCardCompactaProps {
+  estudiante: T_Estudiantes;
+  aulaSeleccionada: T_Aulas | null;
+  onMarcarAsistencia: (estudiante: T_Estudiantes) => void;
+  yaRegistrado?: boolean;
+  configuracionBoton?: ConfiguracionBoton;
+}
+
+const EstudianteCardCompacta: React.FC<EstudianteCardCompactaProps> = ({
+  estudiante,
+  aulaSeleccionada,
+  onMarcarAsistencia,
+  yaRegistrado = false,
+  configuracionBoton = {
+    texto: "✓ Marcar",
+    colorClass: "bg-green-500 hover:bg-green-600",
+  },
+}) => {
+  const esSalida = configuracionBoton.colorClass.includes("red");
+
+  return (
+    <div
+      className={`border rounded-lg p-2.5 shadow-[0_0_4px_1px_rgba(0,0,0,0.2)] hover:shadow-md transition-all duration-200 ${
+        yaRegistrado
+          ? "bg-green-50 border-green-200"
+          : "bg-white hover:bg-gray-50"
+      }`}
+      style={{
+        borderLeftWidth: "3px",
+        borderLeftColor: aulaSeleccionada?.Color || "#gray",
+      }}
+    >
+      {/* Layout horizontal: Foto + Datos */}
+      <div className="flex items-center gap-2.5">
+        {/* Foto fija a la izquierda */}
+        <FotoPerfilClientSide
+          className="aspect-square min-w-8 rounded-full object-cover"
+          Google_Drive_Foto_ID={estudiante.Google_Drive_Foto_ID}
+        />
+
+        {/* Datos organizados en 3 filas */}
+        <div className="flex-1 min-w-0">
+          {/* Fila 1: Nombre completo + estado */}
+          <div className="flex items-center justify-between mb-1">
+            <p className="font-medium text-gray-900 text-sm truncate pr-1">
+              {estudiante.Nombres} {estudiante.Apellidos}
+            </p>
+            {yaRegistrado && (
+              <span className="text-green-600 text-sm flex-shrink-0">✓</span>
+            )}
+          </div>
+
+          {/* Fila 2: DNI + Grado/Sección en una sola línea */}
+          <div className="flex items-center justify-start text-xs text-gray-500 mb-2 flex-wrap  gap-2">
+            <span className="truncate">
+              {
+                TiposIdentificadoresTextos[
+                  extraerTipoDeIdentificador(estudiante.Id_Estudiante)
+                ]
+              }
+              : {extraerIdentificador(estudiante.Id_Estudiante)}
+            </span>
+            {aulaSeleccionada && (
+              <span className="text-gray-400 ml-2 flex-shrink-0">
+                {aulaSeleccionada.Grado}° "{aulaSeleccionada.Seccion}"
+              </span>
+            )}
+          </div>
+
+          {/* Fila 3: Botón compacto */}
+          <button
+            onClick={() => onMarcarAsistencia(estudiante)}
+            disabled={yaRegistrado}
+            className={`w-full py-1.5 px-2 rounded text-xs font-medium transition-colors ${
+              yaRegistrado
+                ? "bg-green-100 text-green-700 cursor-not-allowed"
+                : `${configuracionBoton.colorClass} text-white`
+            }`}
+            title={
+              yaRegistrado
+                ? "Ya registrado"
+                : esSalida
+                ? "Marcar salida"
+                : "Marcar entrada"
+            }
+          >
+            {yaRegistrado ? "✓ Registrado" : configuracionBoton.texto}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 interface RegistroEstudiantesSecundariaManualProps {
   handlerAuxiliar: HandlerAuxiliarAsistenciaResponse;
@@ -36,7 +147,7 @@ const RegistroEstudiantesSecundariaManual: React.FC<
   // Estado para el filtro de búsqueda por nombre
   const [busquedaNombre, setBusquedaNombre] = useState<string>("");
 
-  // Estado para estudiantes ya registrados (simulado)
+  // Estado para estudiantes ya registrados
   const [estudiantesRegistrados, setEstudiantesRegistrados] = useState<
     Set<string>
   >(new Set());
@@ -44,6 +155,53 @@ const RegistroEstudiantesSecundariaManual: React.FC<
   // Modelos de base de datos
   const [estudiantesIDB] = useState(() => new BaseEstudiantesIDB());
   const [aulasIDB] = useState(() => new BaseAulasIDB());
+
+  // Función para determinar el modo de registro actual
+  const determinarModoRegistro = (): ModoRegistro => {
+    if (!CONTROL_ASISTENCIA_DE_SALIDA_SECUNDARIA) {
+      return ModoRegistro.Entrada;
+    }
+
+    const fechaActual = handlerAuxiliar.getFechaHoraRedux();
+    if (!fechaActual) return ModoRegistro.Entrada;
+
+    const horarioSecundaria = handlerAuxiliar.getHorarioEscolarSecundaria();
+    const horaActual = fechaActual;
+
+    // Calcular la hora límite (1 hora antes de la salida oficial)
+    const horaLimite = new Date(
+      alterarUTCaZonaPeruana(String(horarioSecundaria.Fin))
+    );
+    horaLimite.setHours(
+      horaLimite.getHours() -
+        HORAS_ANTES_SALIDA_CAMBIO_MODO_PARA_ESTUDIANTES_DE_SECUNDARIA
+    );
+
+    return horaActual < horaLimite ? ModoRegistro.Entrada : ModoRegistro.Salida;
+  };
+
+  // Función para obtener configuración del botón
+  const obtenerConfiguracionBoton = () => {
+    if (!CONTROL_ASISTENCIA_DE_SALIDA_SECUNDARIA) {
+      return {
+        texto: "Marcar Asistencia",
+        colorClass: "bg-green-500 hover:bg-green-600",
+      };
+    }
+
+    const modoActual = determinarModoRegistro();
+    if (modoActual === ModoRegistro.Entrada) {
+      return {
+        texto: "Marcar Entrada",
+        colorClass: "bg-green-500 hover:bg-green-600",
+      };
+    } else {
+      return {
+        texto: "Marcar Salida",
+        colorClass: "bg-red-500 hover:bg-red-600",
+      };
+    }
+  };
 
   // Cargar grados disponibles al montar
   useEffect(() => {
@@ -191,19 +349,77 @@ const RegistroEstudiantesSecundariaManual: React.FC<
     setBusquedaNombre(e.target.value);
   };
 
-  // Función para marcar asistencia
+  // Función para marcar asistencia - CON CONTROL DE HORARIO
   const marcarAsistencia = (estudiante: T_Estudiantes) => {
-    // TODO: Implementar lógica real de marcado de asistencia
-    console.log(
-      `Marcando asistencia para: ${estudiante.Nombres} ${estudiante.Apellidos}`
+    const fechaActual = handlerAuxiliar.getFechaHoraRedux();
+    if (!fechaActual) {
+      console.error("No se puede marcar asistencia: falta fecha actual");
+      return;
+    }
+
+    const horarioSecundaria = handlerAuxiliar.getHorarioEscolarSecundaria();
+    const horaActual = fechaActual;
+    const horaEntradaOficial = new Date(
+      alterarUTCaZonaPeruana(String(horarioSecundaria.Inicio))
     );
+    const horaSalidaOficial = new Date(
+      alterarUTCaZonaPeruana(String(horarioSecundaria.Fin))
+    );
+
+    let modoRegistro: ModoRegistro;
+    let desfaseSegundos: number;
+
+    if (CONTROL_ASISTENCIA_DE_SALIDA_SECUNDARIA) {
+      // Lógica original con entrada/salida
+      const horaLimite = new Date(horaSalidaOficial);
+      horaLimite.setHours(
+        horaLimite.getHours() -
+          HORAS_ANTES_SALIDA_CAMBIO_MODO_PARA_ESTUDIANTES_DE_SECUNDARIA
+      );
+
+      modoRegistro =
+        horaActual < horaLimite ? ModoRegistro.Entrada : ModoRegistro.Salida;
+
+      if (modoRegistro === ModoRegistro.Entrada) {
+        desfaseSegundos = Math.floor(
+          (horaActual.getTime() - horaEntradaOficial.getTime()) / 1000
+        );
+      } else {
+        desfaseSegundos = Math.floor(
+          (horaActual.getTime() - horaSalidaOficial.getTime()) / 1000
+        );
+      }
+    } else {
+      // Solo entrada, siempre calcular desfase con hora de entrada
+      modoRegistro = ModoRegistro.Entrada;
+      desfaseSegundos = Math.floor(
+        (horaActual.getTime() - horaEntradaOficial.getTime()) / 1000
+      );
+    }
 
     const speaker = Speaker.getInstance();
+    const tipoRegistro =
+      CONTROL_ASISTENCIA_DE_SALIDA_SECUNDARIA &&
+      modoRegistro === ModoRegistro.Salida
+        ? "salida"
+        : "entrada";
+
     speaker.start(
-      `Asistencia registrada para ${estudiante.Nombres} ${estudiante.Apellidos}`
+      `${tipoRegistro} registrada para ${estudiante.Nombres} ${estudiante.Apellidos}`
     );
 
-    // Agregar a la lista de registrados (simulado)
+    Asistencias_Escolares_QUEUE.enqueue({
+      Id_Estudiante: estudiante.Id_Estudiante,
+      Actor: ActoresSistema.Estudiante,
+      desfaseSegundosAsistenciaEstudiante: desfaseSegundos,
+      NivelDelEstudiante: aulaSeleccionada!.Nivel as NivelEducativo,
+      Grado: aulaSeleccionada!.Grado,
+      Seccion: aulaSeleccionada!.Seccion,
+      ModoRegistro: modoRegistro,
+      TipoAsistencia: TipoAsistencia.ParaEstudiantesSecundaria,
+    });
+
+    // Agregar a la lista de registrados
     const nuevosRegistrados = new Set(estudiantesRegistrados);
     nuevosRegistrados.add(estudiante.Id_Estudiante);
     setEstudiantesRegistrados(nuevosRegistrados);
@@ -219,290 +435,398 @@ const RegistroEstudiantesSecundariaManual: React.FC<
     setEstudiantesFiltrados([]);
   };
 
+  const configuracionBoton = obtenerConfiguracionBoton();
+
   return (
-    <div className="max-w-6xl mx-auto p-3 sxs-only:p-2 xs-only:p-3 sm-only:p-4 md-only:p-5 lg-only:p-6 xl-only:p-6">
-      {/* Panel de filtros */}
-      <div className="bg-white rounded-lg border-2 border-green-200 p-3 xs:p-4 sm:p-5 md:p-6 mb-3 xs:mb-4 sm:mb-6">
-        <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center mb-2 xs:mb-3 md:mb-4 gap-2 xs:gap-0">
-          <h3 className="text-base xs:text-lg md:text-lg font-bold text-green-800">
-            <span className="hidden sm:inline">
-              Filtros de Búsqueda - Estudiantes de Secundaria
-            </span>
-            <span className="hidden xs:inline sm:hidden">
-              Filtros - Secundaria
-            </span>
-            <span className="xs:hidden">Filtros</span>
-          </h3>
-          <button
-            onClick={limpiarFiltros}
-            className="text-xs xs:text-sm text-gray-500 hover:text-gray-700 underline"
-          >
-            <span className="hidden xs:inline">Limpiar filtros</span>
-            <span className="xs:hidden">Limpiar</span>
-          </button>
-        </div>
-
-        {/* Grid responsive para filtros */}
-        <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 gap-2 xs:gap-3 md:gap-4">
-          {/* Selector de Grado */}
-          <div>
-            <label className="block text-xs xs:text-sm font-medium text-gray-700 mb-1 xs:mb-2">
-              Grado
-            </label>
-            <select
-              value={gradoSeleccionado || ""}
-              onChange={(e) => handleGradoChange(Number(e.target.value))}
-              className="w-full p-2 xs:p-2.5 md:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-xs xs:text-sm"
-            >
-              <option value="">
-                <span className="hidden xs:inline">Seleccione un grado</span>
-                <span className="xs:hidden">Seleccione grado</span>
-              </option>
-              {grados.map((grado) => (
-                <option key={grado} value={grado}>
-                  {grado}° Grado
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Selector de Sección */}
-          <div>
-            <label className="block text-xs xs:text-sm font-medium text-gray-700 mb-1 xs:mb-2">
-              Sección
-            </label>
-            <select
-              value={seccionSeleccionada || ""}
-              onChange={(e) => handleSeccionChange(e.target.value)}
-              disabled={!gradoSeleccionado}
-              className="w-full p-2 xs:p-2.5 md:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100 text-xs xs:text-sm"
-            >
-              <option value="">
-                <span className="hidden xs:inline">Seleccione una sección</span>
-                <span className="xs:hidden">Seleccione sección</span>
-              </option>
-              {secciones.map((seccion) => (
-                <option key={seccion} value={seccion}>
-                  Sección {seccion}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Campo de búsqueda por nombre */}
-          <div className="xs:col-span-2 md:col-span-1">
-            <label className="block text-xs xs:text-sm font-medium text-gray-700 mb-1 xs:mb-2">
-              <span className="hidden xs:inline">Buscar estudiante</span>
-              <span className="xs:hidden">Buscar</span>
-            </label>
-            <input
-              type="text"
-              value={busquedaNombre}
-              onChange={handleBusquedaChange}
-              disabled={!aulaSeleccionada}
-              placeholder="Ingrese nombre y/o apellido..."
-              className="w-full p-2 xs:p-2.5 md:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100 placeholder-gray-400 text-xs xs:text-sm"
-            />
-          </div>
-        </div>
-
-        {/* Información del aula seleccionada */}
-        {aulaSeleccionada && (
-          <div className="mt-3 xs:mt-4 p-2 xs:p-3 bg-gray-50 rounded-lg">
-            <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-2 xs:gap-0">
-              <div>
-                <p className="text-xs xs:text-sm">
-                  <span className="font-medium">
-                    <span className="hidden xs:inline">Aula seleccionada:</span>
-                    <span className="xs:hidden">Aula:</span>
-                  </span>{" "}
-                  {aulaSeleccionada.Grado}° "{aulaSeleccionada.Seccion}" -
-                  <span
-                    className="inline-block w-3 h-3 xs:w-4 xs:h-4 rounded-full ml-1 xs:ml-2 mr-1"
-                    style={{ backgroundColor: aulaSeleccionada.Color }}
-                  ></span>
-                  <span className="hidden xs:inline">
-                    {aulaSeleccionada.Color}
-                  </span>
-                </p>
-                <p className="text-[0.6rem] xs:text-xs text-gray-600">
-                  <span className="hidden sm:inline">
-                    {estudiantesFiltrados.length} de {estudiantesDelAula.length}{" "}
-                    estudiantes mostrados
-                    {busquedaNombre && ` (filtrado por: "${busquedaNombre}")`}
-                  </span>
-                  <span className="hidden xs:inline sm:hidden">
-                    {estudiantesFiltrados.length}/{estudiantesDelAula.length}{" "}
-                    estudiantes
-                    {busquedaNombre && ` (filtro: "${busquedaNombre}")`}
-                  </span>
-                  <span className="xs:hidden">
-                    {estudiantesFiltrados.length}/{estudiantesDelAula.length}
-                  </span>
-                </p>
-              </div>
-              <div className="text-xs xs:text-sm">
-                <span className="text-green-600 font-medium">
-                  <span className="hidden xs:inline">
-                    {estudiantesRegistrados.size} registrados
-                  </span>
-                  <span className="xs:hidden">
-                    {estudiantesRegistrados.size}
-                  </span>
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Lista de estudiantes */}
-      {estudiantesFiltrados.length > 0 && (
-        <div className="bg-white rounded-lg border-2 border-green-200 p-3 xs:p-4 sm:p-5 md:p-6">
-          <h3 className="text-base xs:text-lg md:text-lg font-bold text-green-800 mb-2 xs:mb-3 md:mb-4">
-            <span className="hidden sm:inline">
-              Lista de Estudiantes - {aulaSeleccionada?.Grado}° "
-              {aulaSeleccionada?.Seccion}"
-              {busquedaNombre && ` - Búsqueda: "${busquedaNombre}"`}
-            </span>
-            <span className="hidden xs:inline sm:hidden">
-              {aulaSeleccionada?.Grado}° "{aulaSeleccionada?.Seccion}"
-              {busquedaNombre && ` - "${busquedaNombre}"`}
-            </span>
-            <span className="xs:hidden">
-              {aulaSeleccionada?.Grado}° "{aulaSeleccionada?.Seccion}"
-            </span>
-          </h3>
-
-          {/* Grid responsive para estudiantes */}
-          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2 xs:gap-3 sm:gap-4">
-            {estudiantesFiltrados.map((estudiante) => (
-              <EstudianteSecundariaParaTomaAsistenciaCard
-                key={estudiante.Id_Estudiante}
-                estudiante={estudiante}
-                aulaSeleccionada={aulaSeleccionada}
-                onMarcarAsistencia={marcarAsistencia}
-                yaRegistrado={estudiantesRegistrados.has(
-                  estudiante.Id_Estudiante
-                )}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Estado cuando no hay resultados de búsqueda */}
-      {aulaSeleccionada &&
-        estudiantesDelAula.length > 0 &&
-        estudiantesFiltrados.length === 0 &&
-        busquedaNombre && (
-          <div className="bg-white rounded-lg border-2 border-yellow-200 p-4 xs:p-6 md:p-8 text-center">
-            <div className="text-yellow-600">
-              <svg
-                className="w-12 h-12 xs:w-14 xs:h-14 md:w-16 md:h-16 mx-auto mb-3 xs:mb-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.291-1.002-5.824-2.651M15 17H9v-2.5A5.5 5.5 0 0114.5 9H15v8z"
-                />
-              </svg>
-              <h4 className="text-sm xs:text-base md:text-lg font-medium mb-1 xs:mb-2">
-                <span className="hidden xs:inline">
-                  No se encontraron resultados
-                </span>
-                <span className="xs:hidden">Sin resultados</span>
-              </h4>
-              <p className="text-gray-600 text-xs xs:text-sm">
-                <span className="hidden sm:inline">
-                  No hay estudiantes que coincidan con "
-                  <strong>{busquedaNombre}</strong>" en el aula{" "}
-                  {aulaSeleccionada.Grado}° "{aulaSeleccionada.Seccion}".
-                </span>
-                <span className="hidden xs:inline sm:hidden">
-                  No hay estudiantes con "<strong>{busquedaNombre}</strong>"
-                </span>
-                <span className="xs:hidden">Sin coincidencias</span>
-              </p>
+    <div className="w-full h-full flex items-center justify-center p-2 md:p-4">
+      <div className="w-full max-w-7xl h-full max-h-[85vh] flex flex-col">
+        {/* MÓVILES: Layout vertical (<md) */}
+        <div className="md:hidden flex flex-col h-full overflow-hidden">
+          {/* Panel de filtros ULTRA COMPACTO para móviles */}
+          <div className="flex-shrink-0 bg-white border-b border-green-200 p-2">
+            <div className="flex justify-between items-center mb-1">
+              <h3 className="text-sm font-bold text-green-800">Filtros</h3>
               <button
-                onClick={() => setBusquedaNombre("")}
-                className="mt-2 xs:mt-3 md:mt-4 px-3 xs:px-4 py-1.5 xs:py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition-colors text-xs xs:text-sm"
+                onClick={limpiarFiltros}
+                className="text-xs text-gray-500 hover:text-gray-700 underline"
               >
-                <span className="hidden xs:inline">
-                  Mostrar todos los estudiantes
-                </span>
-                <span className="xs:hidden">Mostrar todos</span>
+                Limpiar
               </button>
             </div>
-          </div>
-        )}
 
-      {/* Estado cuando no hay estudiantes en el aula */}
-      {aulaSeleccionada && estudiantesDelAula.length === 0 && (
-        <div className="bg-white rounded-lg border-2 border-gray-200 p-4 xs:p-6 md:p-8 text-center">
-          <div className="text-gray-500">
-            <svg
-              className="w-12 h-12 xs:w-14 xs:h-14 md:w-16 md:h-16 mx-auto mb-3 xs:mb-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+            {/* Grid compacto para filtros móviles */}
+            <div className="grid grid-cols-2 gap-1.5 mb-2">
+              {/* Selector de Grado */}
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-0.5">
+                  Grado
+                </label>
+                <select
+                  value={gradoSeleccionado || ""}
+                  onChange={(e) => handleGradoChange(Number(e.target.value))}
+                  className="w-full p-1.5 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-green-500"
+                >
+                  <option value="">Seleccionar</option>
+                  {grados.map((grado) => (
+                    <option key={grado} value={grado}>
+                      {grado}°
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Selector de Sección */}
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-0.5">
+                  Sección
+                </label>
+                <select
+                  value={seccionSeleccionada || ""}
+                  onChange={(e) => handleSeccionChange(e.target.value)}
+                  disabled={!gradoSeleccionado}
+                  className="w-full p-1.5 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-green-500 disabled:bg-gray-100"
+                >
+                  <option value="">Seleccionar</option>
+                  {secciones.map((seccion) => (
+                    <option key={seccion} value={seccion}>
+                      {seccion}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Campo de búsqueda */}
+            <div>
+              <input
+                type="text"
+                value={busquedaNombre}
+                onChange={handleBusquedaChange}
+                disabled={!aulaSeleccionada}
+                placeholder="Buscar estudiante..."
+                className="w-full p-1.5 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-green-500 disabled:bg-gray-100"
               />
-            </svg>
-            <h4 className="text-sm xs:text-base md:text-lg font-medium mb-1 xs:mb-2">
-              <span className="hidden xs:inline">Aula sin estudiantes</span>
-              <span className="xs:hidden">Sin estudiantes</span>
-            </h4>
-            <p className="text-xs xs:text-sm">
-              <span className="hidden xs:inline">
-                No se encontraron estudiantes activos en esta aula.
-              </span>
-              <span className="xs:hidden">No hay estudiantes activos</span>
-            </p>
+            </div>
+
+            {/* Info del aula SIMPLIFICADA */}
+            {aulaSeleccionada && (
+              <div className="mt-1.5 p-1.5 bg-gray-50 rounded text-xs">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1">
+                    <span
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: aulaSeleccionada.Color }}
+                    ></span>
+                    <span className="font-medium">
+                      {aulaSeleccionada.Grado}° "{aulaSeleccionada.Seccion}"
+                    </span>
+                  </div>
+                  <div className="flex gap-2 text-xs">
+                    <span className="text-blue-600">
+                      {estudiantesFiltrados.length} mostrados
+                    </span>
+                    <span className="text-green-600">
+                      {estudiantesRegistrados.size} registrados
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Área de resultados con scroll interno móviles */}
+          <div className="flex-1 overflow-y-auto bg-gray-50 p-2">
+            {estudiantesFiltrados.length > 0 && (
+              <div className="grid grid-cols-1 gap-1.5">
+                {estudiantesFiltrados.map((estudiante) => (
+                  <EstudianteCardCompacta
+                    key={estudiante.Id_Estudiante}
+                    estudiante={estudiante}
+                    aulaSeleccionada={aulaSeleccionada}
+                    onMarcarAsistencia={marcarAsistencia}
+                    yaRegistrado={estudiantesRegistrados.has(
+                      estudiante.Id_Estudiante
+                    )}
+                    configuracionBoton={configuracionBoton}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Estados vacíos para móviles */}
+            {!aulaSeleccionada && (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center text-gray-400">
+                  <div className="aspect-square w-20 mx-auto mb-2 flex items-center justify-center bg-gray-100 rounded-full">
+                    <svg
+                      className="aspect-square w-14 mx-auto mb-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                      />
+                    </svg>
+                  </div>
+                  <h4 className="text-sm font-medium mb-1">
+                    Seleccione un aula
+                  </h4>
+                  <p className="text-xs">Elija grado y sección</p>
+                </div>
+              </div>
+            )}
+
+            {aulaSeleccionada && estudiantesDelAula.length === 0 && (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center text-gray-500">
+                  <div className="text-2xl mb-2">👥</div>
+                  <h4 className="text-sm font-medium">Sin estudiantes</h4>
+                </div>
+              </div>
+            )}
+
+            {aulaSeleccionada &&
+              estudiantesDelAula.length > 0 &&
+              estudiantesFiltrados.length === 0 &&
+              busquedaNombre && (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center text-yellow-600">
+                    <div className="text-2xl mb-2">🔍</div>
+                    <h4 className="text-sm font-medium mb-2">Sin resultados</h4>
+                    <button
+                      onClick={() => setBusquedaNombre("")}
+                      className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 text-xs"
+                    >
+                      Mostrar todos
+                    </button>
+                  </div>
+                </div>
+              )}
           </div>
         </div>
-      )}
 
-      {/* Estado inicial - sin seleccionar aula */}
-      {!aulaSeleccionada && (
-        <div className="bg-white rounded-lg border-2 border-gray-200 p-4 xs:p-6 md:p-8 text-center">
-          <div className="text-gray-400">
-            <svg
-              className="w-12 h-12 xs:w-14 xs:h-14 md:w-16 md:h-16 mx-auto mb-3 xs:mb-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-              />
-            </svg>
-            <h4 className="text-sm xs:text-base md:text-lg font-medium mb-1 xs:mb-2">
-              <span className="hidden xs:inline">Seleccione un aula</span>
-              <span className="xs:hidden">Seleccione aula</span>
-            </h4>
-            <p className="text-xs xs:text-sm">
-              <span className="hidden xs:inline">
-                Elija el grado y la sección para mostrar la lista de
-                estudiantes.
-              </span>
-              <span className="xs:hidden">Elija grado y sección</span>
-            </p>
+        {/* DESKTOP: Layout de columnas (md+) - MÁS COMPACTO */}
+        <div className="hidden md:flex h-full">
+          {/* COLUMNA IZQUIERDA: Panel de filtros MÁS ESTRECHO */}
+          <div className="w-64 flex-shrink-0 bg-white border-r border-green-200 flex flex-col">
+            {/* Header del panel COMPACTO */}
+            <div className="p-3 border-b border-gray-200">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="text-base font-bold text-green-800">Filtros</h3>
+                <button
+                  onClick={limpiarFiltros}
+                  className="text-sm text-gray-500 hover:text-gray-700 underline"
+                >
+                  Limpiar
+                </button>
+              </div>
+            </div>
+
+            {/* Formulario de filtros COMPACTO */}
+            <div className="p-3 space-y-3 flex-1">
+              {/* Selector de Grado */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Grado
+                </label>
+                <select
+                  value={gradoSeleccionado || ""}
+                  onChange={(e) => handleGradoChange(Number(e.target.value))}
+                  className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-green-500 text-sm"
+                >
+                  <option value="">Seleccionar grado</option>
+                  {grados.map((grado) => (
+                    <option key={grado} value={grado}>
+                      {grado}° Grado
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Selector de Sección */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Sección
+                </label>
+                <select
+                  value={seccionSeleccionada || ""}
+                  onChange={(e) => handleSeccionChange(e.target.value)}
+                  disabled={!gradoSeleccionado}
+                  className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-green-500 disabled:bg-gray-100 text-sm"
+                >
+                  <option value="">Seleccionar sección</option>
+                  {secciones.map((seccion) => (
+                    <option key={seccion} value={seccion}>
+                      Sección {seccion}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Campo de búsqueda */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Buscar
+                </label>
+                <input
+                  type="text"
+                  value={busquedaNombre}
+                  onChange={handleBusquedaChange}
+                  disabled={!aulaSeleccionada}
+                  placeholder="Nombre o apellido..."
+                  className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-green-500 disabled:bg-gray-100 text-sm"
+                />
+              </div>
+
+              {/* Información del aula ULTRA SIMPLIFICADA */}
+              {aulaSeleccionada && (
+                <div className="p-2 bg-gray-50 rounded border">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="w-3 h-3 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: aulaSeleccionada.Color }}
+                      ></span>
+                      <span className="text-sm font-medium">
+                        {aulaSeleccionada.Grado}° "{aulaSeleccionada.Seccion}"
+                      </span>
+                    </div>
+                    <div className="text-xs text-gray-600 space-y-0.5">
+                      <div> {estudiantesDelAula.length} estudiantes</div>
+                      <div className="flex gap-3">
+                        <span className="text-blue-600">
+                          Mostrados: {estudiantesFiltrados.length}
+                        </span>
+                        <span className="text-green-600">
+                          Registrados: {estudiantesRegistrados.size}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* COLUMNA DERECHA: Área de resultados */}
+          <div className="flex-1 flex flex-col bg-gray-50 overflow-hidden">
+            {/* Header de resultados COMPACTO */}
+            <div className="bg-white border-b border-gray-200 p-3 flex-shrink-0">
+              <div className="flex justify-between items-center">
+                {aulaSeleccionada ? (
+                  <div>
+                    <h3 className="text-base font-bold text-green-800">
+                      {aulaSeleccionada.Grado}° "{aulaSeleccionada.Seccion}" |
+                       {" "}{estudiantesFiltrados.length} Estudiantes
+                    </h3>
+                  </div>
+                ) : (
+                  <h3 className="text-base font-bold text-gray-600">
+                    Estudiantes de Secundaria
+                  </h3>
+                )}
+
+                {estudiantesRegistrados.size > 0 && (
+                  <div className="text-right">
+                    <div className="text-lg font-bold text-green-700">
+                      {estudiantesRegistrados.size}
+                    </div>
+                    <div className="text-xs text-green-600">Registrados</div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Área de scroll con resultados */}
+            <div className="flex-1 overflow-y-auto p-3">
+              {estudiantesFiltrados.length > 0 && (
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-3">
+                  {estudiantesFiltrados.map((estudiante) => (
+                    <EstudianteCardCompacta
+                      key={estudiante.Id_Estudiante}
+                      estudiante={estudiante}
+                      aulaSeleccionada={aulaSeleccionada}
+                      onMarcarAsistencia={marcarAsistencia}
+                      yaRegistrado={estudiantesRegistrados.has(
+                        estudiante.Id_Estudiante
+                      )}
+                      configuracionBoton={configuracionBoton}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* Estados vacíos COMPACTOS */}
+              {!aulaSeleccionada && (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center text-gray-400">
+                    <div className="text-4xl mb-3">
+                      <svg
+                        className="aspect-square w-16 mx-auto mb-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                        />
+                      </svg>
+                    </div>
+                    <h4 className="text-lg font-medium mb-2">
+                      Seleccione un aula
+                    </h4>
+                    <p className="text-gray-500">
+                      Use el panel de filtros para elegir grado y sección
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {aulaSeleccionada && estudiantesDelAula.length === 0 && (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center text-gray-500">
+                    <div className="text-4xl mb-3">👥</div>
+                    <h4 className="text-lg font-medium">
+                      Aula sin estudiantes
+                    </h4>
+                  </div>
+                </div>
+              )}
+
+              {aulaSeleccionada &&
+                estudiantesDelAula.length > 0 &&
+                estudiantesFiltrados.length === 0 &&
+                busquedaNombre && (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center text-yellow-600">
+                      <div className="text-4xl mb-3">🔍</div>
+                      <h4 className="text-lg font-medium mb-2">
+                        No se encontraron resultados
+                      </h4>
+                      <p className="text-gray-600 mb-3">
+                        Sin coincidencias para "
+                        <strong>{busquedaNombre}</strong>"
+                      </p>
+                      <button
+                        onClick={() => setBusquedaNombre("")}
+                        className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 text-sm"
+                      >
+                        Mostrar todos
+                      </button>
+                    </div>
+                  </div>
+                )}
+            </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };

@@ -1044,19 +1044,33 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     ],
   },
 
-
-  cola_asistencia_escolar: {
-    keyPath: "id",
-    autoIncrement: true,
+  cola_asistencias_escolares: {
+    keyPath: "NumeroDeOrden",
+    autoIncrement: false,
     indexes: [
       {
-        name: "por_fecha",
-        keyPath: "fecha",
+        name: "por_estudiante",
+        keyPath: "Id_Estudiante",
         options: { unique: false },
       },
       {
-        name: "por_estudiante",
-        keyPath: "id_estudiante",
+        name: "por_tipo_asistencia",
+        keyPath: "TipoAsistencia",
+        options: { unique: false },
+      },
+      {
+        name: "por_desfase_segundos",
+        keyPath: "DesfaseSegundos",
+        options: { unique: false },
+      },
+      {
+        name: "por_estudiante_tipo",
+        keyPath: ["Id_Estudiante", "TipoAsistencia"],
+        options: { unique: false },
+      },
+      {
+        name: "por_tipo_desfase",
+        keyPath: ["TipoAsistencia", "DesfaseSegundos"],
         options: { unique: false },
       },
     ],

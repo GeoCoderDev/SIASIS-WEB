@@ -30,7 +30,7 @@ import {
   TipoAsistencia,
 } from "@/interfaces/shared/AsistenciaRequests";
 import { AsistenciaDePersonalMapper } from "./services/AsistenciaDePersonalMapper";
-import { AsistenciaDePersonalDateHelper } from "./services/AsistenciaDePersonalDateHelper";
+import { AsistenciaDateHelper } from "../utils/AsistenciaDateHelper";
 import { AsistenciaDePersonalValidator } from "./services/AsistenciaDePersonalValidator";
 import { AsistenciaDePersonalRepository } from "./services/AsistenciaDePersonalRepository";
 import { AsistenciaDePersonalCacheManager } from "./services/AsistenciaDePersonalCacheManager";
@@ -56,7 +56,7 @@ import { AsistenciaPersonalSyncService } from "./services/AsistenciaDePersonalSy
 export class AsistenciaDePersonalIDB {
   // Servicios especializados
   private mapper: AsistenciaDePersonalMapper;
-  private dateHelper: AsistenciaDePersonalDateHelper;
+  private dateHelper: AsistenciaDateHelper;
   private validator: AsistenciaDePersonalValidator;
   private repository: AsistenciaDePersonalRepository;
   private cacheManager: AsistenciaDePersonalCacheManager;
@@ -72,7 +72,7 @@ export class AsistenciaDePersonalIDB {
   ) {
     // Inicializar servicios base
     this.mapper = new AsistenciaDePersonalMapper();
-    this.dateHelper = new AsistenciaDePersonalDateHelper();
+    this.dateHelper = new AsistenciaDateHelper();
     this.errorHandler = new AsistenciaDePersonalErrorHandler(
       setIsSomethingLoading,
       setError,

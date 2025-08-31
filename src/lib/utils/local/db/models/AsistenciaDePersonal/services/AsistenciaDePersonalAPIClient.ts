@@ -18,7 +18,7 @@ import {
   OperationResult,
 } from "../AsistenciaDePersonalTypes";
 import { AsistenciaDePersonalMapper } from "./AsistenciaDePersonalMapper";
-import { AsistenciaDePersonalDateHelper } from "./AsistenciaDePersonalDateHelper";
+import { AsistenciaDateHelper } from "../../utils/AsistenciaDateHelper";
 import { AsistenciaDePersonalRepository } from "./AsistenciaDePersonalRepository";
 import {
   EliminarAsistenciaRequestBody,
@@ -44,13 +44,13 @@ import { PersonalDelColegio } from "@/interfaces/shared/PersonalDelColegio";
 export class AsistenciaDePersonalAPIClient {
   private siasisAPI: SiasisAPIS;
   private mapper: AsistenciaDePersonalMapper;
-  private dateHelper: AsistenciaDePersonalDateHelper; // ✅ NUEVO: Dependencia de DateHelper
+  private dateHelper: AsistenciaDateHelper; // ✅ NUEVO: Dependencia de DateHelper
   private repository: AsistenciaDePersonalRepository; // ✅ NUEVO: Para actualizar registros locales
 
   constructor(
     siasisAPI: SiasisAPIS,
     mapper: AsistenciaDePersonalMapper,
-    dateHelper: AsistenciaDePersonalDateHelper, // ✅ NUEVO
+    dateHelper: AsistenciaDateHelper, // ✅ NUEVO
     repository: AsistenciaDePersonalRepository // ✅ NUEVO
   ) {
     this.siasisAPI = siasisAPI;

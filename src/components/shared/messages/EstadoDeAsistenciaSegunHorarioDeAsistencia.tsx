@@ -9,7 +9,7 @@ import { Meses, mesesTextos } from "@/interfaces/shared/Meses";
 import { formatearISOaFormato12Horas } from "@/lib/helpers/formatters/fechas-hora/formatearAFormato12Horas";
 import {
   HORAS_ANTES_INICIO_ACTIVACION,
-  HORAS_ANTES_SALIDA_CAMBIO_MODO,
+  HORAS_ANTES_SALIDA_CAMBIO_MODO_PARA_PERSONAL,
   HORAS_DESPUES_SALIDA_LIMITE,
 } from "@/constants/INTERVALOS_CONSULTAS_ASISTENCIAS_PROPIAS_PARA_PERSONAL_NO_DIRECTIVO";
 import { HORA_ACTUALIZACION_DATOS_ASISTENCIA_DIARIOS } from "@/constants/HORA_ACTUALIZACION_DATOS_ASISTENCIA_DIARIOS";
@@ -277,7 +277,8 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
         finHoy.setHours(horarioFin.getHours(), horarioFin.getMinutes(), 0, 0);
 
         const unaHoraAntesSalida = new Date(
-          finHoy.getTime() - HORAS_ANTES_SALIDA_CAMBIO_MODO * 60 * 60 * 1000
+          finHoy.getTime() -
+            HORAS_ANTES_SALIDA_CAMBIO_MODO_PARA_PERSONAL * 60 * 60 * 1000
         );
         const tiempoHastaSalida = calcularTiempoRestante(unaHoraAntesSalida);
 
@@ -289,7 +290,7 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
           descripcion: yaRegistroEntrada
             ? "Tu entrada ha sido registrada exitosamente"
             : "El sistema está activo para marcar tu llegada",
-          informacionExtra: `Cambiará a modo salida ${HORAS_ANTES_SALIDA_CAMBIO_MODO} hora antes de tu salida`,
+          informacionExtra: `Cambiará a modo salida ${HORAS_ANTES_SALIDA_CAMBIO_MODO_PARA_PERSONAL} hora antes de tu salida`,
           tiempoRestante: `Cambio a salida en: ${tiempoHastaSalida}`,
           horarioReal: horarioRealTexto,
           color: yaRegistroEntrada ? "azul" : "verde",

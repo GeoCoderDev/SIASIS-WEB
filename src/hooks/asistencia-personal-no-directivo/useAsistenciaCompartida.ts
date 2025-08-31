@@ -14,7 +14,7 @@ import { HorarioTomaAsistencia } from "@/interfaces/shared/Asistencia/DatosAsist
 import { ModoRegistro } from "@/interfaces/shared/ModoRegistroPersonal";
 import {
   HORAS_ANTES_INICIO_ACTIVACION,
-  HORAS_ANTES_SALIDA_CAMBIO_MODO,
+  HORAS_ANTES_SALIDA_CAMBIO_MODO_PARA_PERSONAL,
   HORAS_DESPUES_SALIDA_LIMITE,
   INTERVALO_CONSULTA_ASISTENCIA_OPTIMIZADO_MS,
 } from "@/constants/INTERVALOS_CONSULTAS_ASISTENCIAS_PROPIAS_PARA_PERSONAL_NO_DIRECTIVO";
@@ -145,7 +145,8 @@ export const useAsistenciaCompartida = (
         inicioHoy.getTime() - HORAS_ANTES_INICIO_ACTIVACION * 60 * 60 * 1000
       );
       const unaHoraAntesSalida = new Date(
-        finHoy.getTime() - HORAS_ANTES_SALIDA_CAMBIO_MODO * 60 * 60 * 1000
+        finHoy.getTime() -
+          HORAS_ANTES_SALIDA_CAMBIO_MODO_PARA_PERSONAL * 60 * 60 * 1000
       );
       const dosHorasDespuesSalida = new Date(
         finHoy.getTime() + HORAS_DESPUES_SALIDA_LIMITE * 60 * 60 * 1000

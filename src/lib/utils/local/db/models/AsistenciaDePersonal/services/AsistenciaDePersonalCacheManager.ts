@@ -15,7 +15,7 @@ import {
   AsistenciasTomadasHoyIDB,
   ConsultaAsistenciaHoy,
 } from "../../AsistenciasTomadasHoy/AsistenciasTomadasHoyIDB";
-import { AsistenciaDePersonalDateHelper } from "./AsistenciaDePersonalDateHelper";
+import { AsistenciaDateHelper } from "../../utils/AsistenciaDateHelper";
 import { AsistenciaDePersonalMapper } from "./AsistenciaDePersonalMapper";
 import IndexedDBConnection from "../../../IndexedDBConnection";
 import { AsistenciaDePersonalAPIClient } from "./AsistenciaDePersonalAPIClient";
@@ -32,14 +32,14 @@ import { AsistenciaDePersonalValidator } from "./AsistenciaDePersonalValidator";
 export class AsistenciaDePersonalCacheManager {
   private cacheAsistenciasHoy: AsistenciasTomadasHoyIDB;
   private mapper: AsistenciaDePersonalMapper;
-  private dateHelper: AsistenciaDePersonalDateHelper;
+  private dateHelper: AsistenciaDateHelper;
   private ultimaLimpiezaDiaAnterior: string | null = null; // 🆕 Evita limpiezas duplicadas
   private apiClient: AsistenciaDePersonalAPIClient;
   private validator: AsistenciaDePersonalValidator;
 
   constructor(
     mapper: AsistenciaDePersonalMapper,
-    dateHelper: AsistenciaDePersonalDateHelper,
+    dateHelper: AsistenciaDateHelper,
     apiClient: AsistenciaDePersonalAPIClient,
     validator: AsistenciaDePersonalValidator
   ) {

@@ -11,7 +11,7 @@ import {
 import { Meses } from "@/interfaces/shared/Meses";
 import IndexedDBConnection from "../../../IndexedDBConnection";
 import { AsistenciaDePersonalMapper } from "./AsistenciaDePersonalMapper";
-import { AsistenciaDePersonalDateHelper } from "./AsistenciaDePersonalDateHelper";
+import { AsistenciaDateHelper } from "../../utils/AsistenciaDateHelper";
 
 /**
  * 🎯 RESPONSABILIDAD: Operaciones CRUD con IndexedDB
@@ -26,11 +26,11 @@ import { AsistenciaDePersonalDateHelper } from "./AsistenciaDePersonalDateHelper
  */
 export class AsistenciaDePersonalRepository {
   private mapper: AsistenciaDePersonalMapper;
-  private dateHelper: AsistenciaDePersonalDateHelper;
+  private dateHelper: AsistenciaDateHelper;
 
   constructor(
     mapper: AsistenciaDePersonalMapper,
-    dateHelper: AsistenciaDePersonalDateHelper
+    dateHelper: AsistenciaDateHelper
   ) {
     this.mapper = mapper;
     this.dateHelper = dateHelper;

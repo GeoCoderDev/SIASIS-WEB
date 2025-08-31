@@ -59,6 +59,12 @@ const TomarAsistenciaEstudiantesSecundaria = () => {
   const [sincronizando, setSincronizando] = useState(false);
   const [modoFinDeSemana, setModoFinDeSemana] = useState(false);
 
+  const [isLoading, setIsLoading] = useState(true);
+
+  
+  
+
+
   // Modelos para estudiantes y aulas
   const [estudiantesIDB] = useState(() => new BaseEstudiantesIDB());
   const [aulasIDB] = useState(() => new BaseAulasIDB());

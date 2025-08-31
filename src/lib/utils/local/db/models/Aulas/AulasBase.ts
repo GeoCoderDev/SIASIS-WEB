@@ -23,7 +23,8 @@ import AllErrorTypes, {
   SystemErrorTypes,
   UserErrorTypes,
 } from "@/interfaces/shared/errors";
-import { T_Aulas } from "@prisma/client";
+import { T_Aulas, T_Estudiantes } from "@prisma/client";
+import { EstudianteConAula } from "@/interfaces/shared/Estudiantes";
 
 // Filtros básicos para búsqueda
 export interface IAulaBaseFilter {
@@ -271,6 +272,24 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
       this.handleIndexedDBError(error, "obtener aulas por IDs");
       return [];
     }
+  }
+
+  public async obtenerEstudianteConAula(
+    estudiante: T_Estudiantes
+  ): Promise<EstudianteConAula | null> {
+    if (!estudiante || !estudiante.Id_Aula) return null;
+
+    const aula = await this.getAulaPorId(estudiante.Id_Aula!);
+    if (!aula) return null;
+
+    return {
+      Id_Estudiante: estudiante.Id_Estudiante,
+      Nombres: estudiante.Nombres,
+      Apellidos: estudiante.Apellidos,
+      Estado: estudiante.Estado,
+      Google_Drive_Foto_ID: estudiante.Google_Drive_Foto_ID,
+      aula: aula,
+    };
   }
 
   /**

@@ -17,11 +17,9 @@ export interface AsistenciaDiariaResultado {
   idUsuario: string;
   AsistenciaMarcada: boolean;
   Detalles: {
-
     // Para personal
     Timestamp?: number;
 
-    
     DesfaseSegundos: number;
   };
 }
@@ -64,7 +62,6 @@ export type RegistroAsistenciaMensualPersonal = Pick<
   Mes: Meses;
   RegistrosDelMes: Record<number, DetallesAsistenciaUnitariaPersonal | null>;
 };
-
 
 //////////////////////
 // ENUMS
@@ -158,8 +155,6 @@ export interface ConsultaAsistenciaEstudiante {
   Seccion?: string; // Requerido para consultas grupales o individuales
 }
 
-
-
 // ------------------------------------------------------------------------
 // |     REGISTRO DE LA ASISTENCIA DE UN ACTOR(PERSONAL / ESTUDIANTE)     |
 // ------------------------------------------------------------------------
@@ -173,11 +168,10 @@ export interface RegistrarAsistenciaIndividualRequestBody {
   ModoRegistro: ModoRegistro;
   FechaHoraEsperadaISO?: string; // Solo para Personal(Para un calculo de desfase mas acertado)
   desfaseSegundosAsistenciaEstudiante?: number; //Solo para estudiantes
-  NivelDelEstudiante?: NivelEducativo;
-  Grado?: number;
-  Seccion?: string;
+  NivelDelEstudiante?: NivelEducativo; // Solo para estudiantes
+  Grado?: number; // Solo para estudiantes
+  Seccion?: string; // Solo para estudiantes
 }
-
 
 // --------------------------------------------------------------------------------------
 // |     CONSULTA DE ASISTENCIAS TOMADAS AGRUPADAS POR ACTOR O PARA UN SOLO PERSONAL    |
@@ -194,7 +188,6 @@ export interface RegistrarAsistenciaIndividualSuccessResponse
     tipoAsistencia: TipoAsistencia;
   };
 }
-
 
 // ------------------------------------------------------------------------------
 // |               INTERFACES DE ASISTENCIAS MENSUALES LOCALES                  |

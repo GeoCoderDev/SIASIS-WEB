@@ -13,7 +13,7 @@ import store from "@/global/store";
  * - Determinar lógica de consulta a API
  * -  Métodos para flujo inteligente de consultas
  */
-export class AsistenciaDePersonalDateHelper {
+export class AsistenciaDateHelper {
   /**
    * Obtiene la fecha actual desde el estado de Redux
    * @returns Objeto Date con la fecha actual según el estado global o null si no se puede obtener.
