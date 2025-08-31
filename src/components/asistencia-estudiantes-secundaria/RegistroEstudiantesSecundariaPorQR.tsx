@@ -520,7 +520,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
       <div className="flex gap-1.5">
         <button
           onClick={reiniciarEscaner}
-          className="flex-1 bg-blue-500 text-white py-2.5 xs:py-3 rounded-lg font-medium hover:bg-blue-600 transition-colors text-xs"
+          className="flex-1 bg-blue-500 text-white py-2.5 xs:py-3 rounded-lg font-medium hover:bg-blue-600 transition-colors text-xs flex items-center justify-center gap-2"
         >
           <Actualizar_1_Icon className="w-4" /> Intentar de nuevo
         </button>
@@ -969,7 +969,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
                 <div className="flex gap-2">
                   <button
                     onClick={reiniciarEscaner}
-                    className="flex-1 bg-blue-500 text-white py-2 rounded-lg font-medium hover:bg-blue-600 transition-colors text-sm"
+                    className="flex-1 bg-blue-500 text-white py-2 rounded-lg font-medium hover:bg-blue-600 transition-colors text-sm flex items-center justify-center gap-2"
                   >
                     <Actualizar_1_Icon className="w-4" /> Intentar de nuevo
                   </button>
