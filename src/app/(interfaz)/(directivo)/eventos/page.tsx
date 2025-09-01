@@ -19,7 +19,7 @@ const EventosInterface = () => {
   
   // Estados para paginación
   const [paginaActual, setPaginaActual] = useState(1);
-  const eventosPorPagina = 5; // Puedes cambiar este número según necesites
+  const eventosPorPagina = 5;
 
   // Referencias a los inputs para controlar el calendario
   const inputDesdeRef = useRef<HTMLInputElement>(null);
