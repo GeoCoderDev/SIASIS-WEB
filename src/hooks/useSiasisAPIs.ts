@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { QueryParams } from "@/interfaces/shared/CustomObjects";
 import { MethodHTTP } from "@/interfaces/MethodsHTTP";
-import userStorage from "@/lib/utils/local/db/models/UserStorage";
+
 import { logout } from "@/lib/utils/frontend/auth/logout";
 import { FetchCancelable } from "@/lib/utils/FetchCancellable";
 import { LogoutTypes } from "@/interfaces/LogoutTypes";
@@ -49,6 +49,9 @@ const useSiasisAPIs = (
 
       if (userAutheticated) {
         try {
+          const { default: userStorage } = await import(
+            "@/lib/utils/local/db/models/UserStorage"
+          );
           token = await userStorage.getAuthToken();
 
           // Si se requiere autenticación pero no hay token, hacer logout

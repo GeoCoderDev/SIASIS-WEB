@@ -38,7 +38,6 @@ import {
   NOMBRE_TIMESTAMP_ULTIMA_CONSULTA_LOCAL_STORAGE,
   TIEMPO_PARA_ACTUALIZAR_MINIMO_HORA_AL_VOLVER_A_VER_PAGINA_MS,
 } from "@/constants/INTERVALO_MINUTOS_SINCRONIZACION_HORA_REAL";
-import ListasEstudiantesPorGradosHoyIDB from "@/lib/utils/local/db/models/ListasEstudiantesPorGradosHoy/ListasEstudiantesPorGradosHoyIDB";
 
 /**
  * Componente Header - Barra superior con información del usuario y controles del sidebar
@@ -76,8 +75,18 @@ const Header = ({
     setMenuVisible(!menuVisible);
   };
 
+  const inicializarColaDeAsistencias = async () => {
+    const { Asistencias_Escolares_QUEUE } = await import(
+      "@/lib/utils/queues/AsistenciasEscolaresQueue"
+    );
+
+    Asistencias_Escolares_QUEUE.start();
+  };
+
   useEffect(() => {
     if (!inicializado) return;
+
+    // Obtener datos de asistencia de hoy para Auxiliar
     const obtenerDatosAsistenciaHoy = async () => {
       const datosAsistenciaHoy = new DatosAsistenciaHoyIDB();
       await datosAsistenciaHoy.obtenerDatos();
@@ -86,11 +95,17 @@ const Header = ({
 
     //Obtener listas de estudiantes
     const obtenerListasEstudiantes = async () => {
+      const { ListasEstudiantesPorGradosHoyIDB } = await import(
+        "@/lib/utils/local/db/models/ListasEstudiantesPorGradosHoy/ListasEstudiantesPorGradosHoyIDB"
+      );
+
       const listasEstudiantesIDB = new ListasEstudiantesPorGradosHoyIDB(
         "SIU01 API"
       );
 
       await listasEstudiantesIDB.actualizarTodasLasListasDisponibles();
+      // Inicializar COLA DE ASISTENCIAS en caso hayan items pendientes
+      inicializarColaDeAsistencias();
     };
 
     //Solicitar todas las listas de estudiantes de manera secuencial
@@ -106,6 +121,9 @@ const Header = ({
 
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "visible") {
+        // Inicializar COLA DE ASISTENCIAS en caso hayan items pendientes
+        inicializarColaDeAsistencias();
+
         // Comprobar si ha pasado el tiempo mínimo antes de sincronizar
         const ultimaConsulta = localStorage.getItem(
           NOMBRE_TIMESTAMP_ULTIMA_CONSULTA_LOCAL_STORAGE

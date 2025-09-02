@@ -1,5 +1,5 @@
 import { LogoutTypes, ErrorDetailsForLogout } from "@/interfaces/LogoutTypes";
-import userStorage from "../../local/db/models/UserStorage";
+
 import { formatErrorDetailsForUrl } from "@/lib/helpers/parsers/errorDetailsInURL";
 
 /**
@@ -17,6 +17,9 @@ export const logout = async (
 
     // Limpiar almacenamiento local
     localStorage.clear();
+    const { default: userStorage } = await import(
+      "@/lib/utils/local/db/models/UserStorage"
+    );
     await userStorage.clearUserData();
 
     // Construir URL de redirección

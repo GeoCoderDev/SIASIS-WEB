@@ -1,5 +1,5 @@
 import { AuxiliarSinContraseña } from "@/interfaces/shared/apis/shared/others/types";
-import IndexedDBConnection from "../IndexedDBConnection";
+
 import {
   TablasSistema,
   ITablaInfo,
@@ -19,6 +19,7 @@ import comprobarSincronizacionDeTabla from "@/lib/helpers/validations/comprobarS
 import ultimaActualizacionTablasLocalesIDB from "./UltimaActualizacionTablasLocalesIDB";
 import { DatabaseModificationOperations } from "@/interfaces/shared/DatabaseModificationOperations";
 import { Endpoint_Get_Auxiliares_API01 } from "@/lib/utils/backend/endpoints/api01/Auxiliares";
+import IndexedDBConnection from "@/constants/singleton/IndexedDBConnection";
 
 // Tipo para la entidad (sin atributos de fechas)
 export type IAuxiliarLocal = AuxiliarSinContraseña;
@@ -73,7 +74,7 @@ export class AuxiliaresIDB {
       // Extraer los auxiliares del cuerpo de la respuesta
       const { data: auxiliares } =
         await Endpoint_Get_Auxiliares_API01.realizarPeticion();
-        
+
       // Actualizar auxiliares en la base de datos local
       const result = await this.upsertFromServer(auxiliares);
 

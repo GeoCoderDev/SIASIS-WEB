@@ -1,5 +1,5 @@
 "use client";
-import { DatosAsistenciaHoyIDB } from "@/lib/utils/local/db/models/DatosAsistenciaHoy/DatosAsistenciaHoyIDB";
+
 import { HandlerAsistenciaBase } from "@/lib/utils/local/db/models/DatosAsistenciaHoy/handlers/HandlerDatosAsistenciaBase";
 
 import { T_Comunicados } from "@prisma/client";
@@ -18,6 +18,9 @@ const ComunicadosDeHoy = () => {
 
   const getComunicadosDeHoy = async () => {
     try {
+      const { DatosAsistenciaHoyIDB } = await import(
+        "@/lib/utils/local/db/models/DatosAsistenciaHoy/DatosAsistenciaHoyIDB"
+      );
       const datosAsistenciaHoyDirectivoIDB = new DatosAsistenciaHoyIDB();
 
       const handlerAsistenciaResponse =

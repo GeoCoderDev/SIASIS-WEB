@@ -65,19 +65,80 @@ export class AsistenciasEscolaresIDBRepository extends QueueRepository<ItemDeCol
   }
 
   /**
-   * Elimina y retorna el primer item de la cola (FIFO)
+   * Obtiene el primer item SIN eliminarlo
+   */
+  async getFirstItem(): Promise<ItemDeColaAsistenciaEscolar | null> {
+    try {
+      const items = await this.idbModel.getAll();
+      return items.length > 0 ? items[0] : null;
+    } catch (error) {
+      console.error("Error al obtener primer item:", error);
+      return null;
+    }
+  }
+
+  /**
+   * Elimina el primer item de la cola
    */
   async dequeue(): Promise<boolean> {
     try {
-      const items = await this.idbModel.getAll();
-      if (items.length === 0) {
+      const firstItem = await this.getFirstItem();
+      if (!firstItem) {
         return false;
       }
 
-      const primerItem = items[0]; // Ya están ordenados por NumeroDeOrden
-      return await this.idbModel.deleteByNumeroOrden(primerItem.NumeroDeOrden);
+      return await this.idbModel.deleteByNumeroOrden(firstItem.NumeroDeOrden);
     } catch (error) {
       console.error("Error al hacer dequeue:", error);
+      return false;
+    }
+  }
+
+  /**
+   * NUEVO: Elimina un item específico por su número de orden
+   */
+  async deleteByOrderNumber(numeroDeOrden: number): Promise<boolean> {
+    try {
+      return await this.idbModel.deleteByNumeroOrden(numeroDeOrden);
+    } catch (error) {
+      console.error("Error al eliminar por número de orden:", error);
+      return false;
+    }
+  }
+
+  /**
+   * NUEVO: Mueve un item al final de la cola (le asigna un nuevo número de orden)
+   */
+  async moveToEnd(numeroDeOrden: number): Promise<boolean> {
+    try {
+      // 1. Obtener el item actual
+      const item = await this.idbModel.getByNumeroOrden(numeroDeOrden);
+      if (!item) {
+        console.error(
+          `Item con número de orden ${numeroDeOrden} no encontrado`
+        );
+        return false;
+      }
+
+      // 2. Obtener nuevo número de orden (al final)
+      const nuevoNumeroDeOrden = await this.getNextOrderNumber();
+
+      // 3. Eliminar el item actual
+      const deleted = await this.idbModel.deleteByNumeroOrden(numeroDeOrden);
+      if (!deleted) {
+        console.error(`No se pudo eliminar el item ${numeroDeOrden}`);
+        return false;
+      }
+
+      // 4. Crear el item con el nuevo número de orden al final
+      await this.idbModel.create({
+        ...item,
+        NumeroDeOrden: nuevoNumeroDeOrden,
+      });
+
+      return true;
+    } catch (error) {
+      console.error("Error al mover item al final:", error);
       return false;
     }
   }

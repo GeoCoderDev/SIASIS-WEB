@@ -93,7 +93,7 @@ const FullScreenModalAsistenciaEstudiantesSecundaria = ({
             Seleccione el método que prefiera para registrar la asistencia de{" "}
             {totalEstudiantes} estudiantes de secundaria
           </span>
-          <span className="hidden xs:inline sm:hidden">
+          <span className="hidden max-sm:inline sm:hidden">
             Método para registrar {totalEstudiantes} estudiantes
           </span>
           <span className="xs:hidden">

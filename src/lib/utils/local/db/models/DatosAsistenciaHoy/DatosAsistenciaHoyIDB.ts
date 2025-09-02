@@ -8,7 +8,7 @@ import {
   ProfesorTutorSecundariaAsistenciaResponse,
   ResponsableAsistenciaResponse,
 } from "@/interfaces/shared/Asistencia/DatosAsistenciaHoyIE20935";
-import IndexedDBConnection from "../../IndexedDBConnection";
+
 import { LogoutTypes, ErrorDetailsForLogout } from "@/interfaces/LogoutTypes";
 import { logout } from "@/lib/utils/frontend/auth/logout";
 import store from "@/global/store";
@@ -25,6 +25,7 @@ import {
   TipoAsistencia,
 } from "@/interfaces/shared/AsistenciaRequests";
 import { TablasLocal } from "@/interfaces/shared/TablasSistema";
+import IndexedDBConnection from "@/constants/singleton/IndexedDBConnection";
 
 // Interfaz para el objeto guardado en IndexedDB
 export interface DatosAsistenciaAlmacenados {
