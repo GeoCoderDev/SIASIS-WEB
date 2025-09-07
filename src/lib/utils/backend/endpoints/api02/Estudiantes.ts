@@ -9,3 +9,5 @@ export const Endpoint_Get_MisEstudiantesRelacionados_API02 = new EndpointSiasis<
   metodoHttp: "GET",
   ruta: "/api/mis-estudiantes-relacionados",
 });
+
+

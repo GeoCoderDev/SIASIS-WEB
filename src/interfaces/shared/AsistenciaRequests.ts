@@ -7,13 +7,14 @@ import { EstadosAsistenciaPersonal } from "./EstadosAsistenciaPersonal";
 import { EstadosAsistencia } from "./EstadosAsistenciaEstudiantes";
 import { SuccessResponseAPIBase } from "./apis/types";
 import { NivelEducativo } from "./NivelEducativo";
+import { AsistenciaEscolarDeUnDia } from "./AsistenciasEscolares";
 
 // ========== RESPUESTAS Y RESULTADOS ==========
 
 //////////////////////
 // RESULTADOS DIARIOS
 //////////////////////
-export interface AsistenciaDiariaResultado {
+export interface AsistenciaDiariaDePersonalResultado {
   idUsuario: string;
   AsistenciaMarcada: boolean;
   Detalles: {
@@ -22,6 +23,12 @@ export interface AsistenciaDiariaResultado {
 
     DesfaseSegundos: number;
   };
+}
+
+export interface AsistenciaDiariaEscolarResultado {
+  Id_Estudiante: string;
+  AsistenciaMarcada: boolean;
+  Asistencia: AsistenciaEscolarDeUnDia | null;
 }
 
 // ---------------------------------------------------------------
@@ -114,13 +121,16 @@ export interface IniciarTomaAsistenciaRequestBody {
 // |        ASISTENCIAS TOMADAS AGRUPADAS POR ACTOR O POR UN SOLO PERSONAL        |
 // --------------------------------------------------------------------------------
 
-export interface ConsultarAsistenciasTomadasPorActorEnRedisResponseBody {
-  Actor: ActoresSistema;
+export interface ConsultarAsistenciasDePersonalTomadasPorRolEnRedisResponseBody {
+  Rol: RolesSistema;
   Dia: number;
   Mes: Meses;
   ModoRegistro: ModoRegistro;
   TipoAsistencia: TipoAsistencia;
-  Resultados: AsistenciaDiariaResultado[] | AsistenciaDiariaResultado | null; // Array para múltiples, objeto/null para unitario
+  Resultados:
+    | AsistenciaDiariaDePersonalResultado[]
+    | AsistenciaDiariaDePersonalResultado
+    | null; // Array para múltiples, objeto/null para unitario
 }
 
 // --------------------------------------------------------------------------------

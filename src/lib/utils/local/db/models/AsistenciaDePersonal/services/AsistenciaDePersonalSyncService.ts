@@ -13,8 +13,8 @@ import {
 
 import { AsistenciaCompletaMensualDePersonal } from "@/interfaces/shared/apis/api01/personal/types";
 import {
-  AsistenciaDiariaResultado,
-  ConsultarAsistenciasTomadasPorActorEnRedisResponseBody,
+  AsistenciaDiariaDePersonalResultado,
+  ConsultarAsistenciasDePersonalTomadasPorRolEnRedisResponseBody,
   TipoAsistencia,
   //   DetallesAsistenciaUnitariaPersonal,
 } from "@/interfaces/shared/AsistenciaRequests";
@@ -2546,11 +2546,12 @@ export class AsistenciaPersonalSyncService {
    * ✅ CORREGIDO: Timestamp automático y delegación de fechas
    */
   public async sincronizarAsistenciasDesdeRedis(
-    datosRedis: ConsultarAsistenciasTomadasPorActorEnRedisResponseBody
+    datosRedis: ConsultarAsistenciasDePersonalTomadasPorRolEnRedisResponseBody
   ): Promise<SincronizacionStats> {
     const stats: SincronizacionStats = {
-      totalRegistros: (datosRedis.Resultados as AsistenciaDiariaResultado[])
-        .length,
+      totalRegistros: (
+        datosRedis.Resultados as AsistenciaDiariaDePersonalResultado[]
+      ).length,
       registrosNuevos: 0,
       registrosExistentes: 0,
       errores: 0,
@@ -2558,7 +2559,7 @@ export class AsistenciaPersonalSyncService {
 
     try {
       const tipoPersonal = this.mapper.obtenerTipoPersonalDesdeRolOActor(
-        datosRedis.Actor
+        datosRedis.Rol
       );
 
       const mesActual = datosRedis.Mes;
@@ -2582,7 +2583,7 @@ export class AsistenciaPersonalSyncService {
         ).toLocaleString("es-PE")})`
       );
 
-      for (const resultado of datosRedis.Resultados as AsistenciaDiariaResultado[]) {
+      for (const resultado of datosRedis.Resultados as AsistenciaDiariaDePersonalResultado[]) {
         try {
           const registroExistente =
             await this.repository.verificarSiExisteRegistroDiario(

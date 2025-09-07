@@ -2,7 +2,7 @@ import { Genero } from "@/interfaces/shared/Genero";
 import FotoPerfilClientSide from "../utils/photos/FotoPerfilClientSide";
 import { CheckCircle, Loader2, X, Trash2, Clock } from "lucide-react";
 import {
-  AsistenciaDiariaResultado,
+  AsistenciaDiariaDePersonalResultado,
   DetallesAsistenciaUnitariaPersonal,
 } from "@/interfaces/shared/AsistenciaRequests";
 import { useState } from "react";
@@ -33,7 +33,7 @@ const ItemTomaAsistencia = ({
   handleEliminarAsistencia?: (
     personal: PersonalParaTomarAsistencia
   ) => Promise<void>;
-  asistenciaRegistrada?: AsistenciaDiariaResultado | null; // ← NUEVO
+  asistenciaRegistrada?: AsistenciaDiariaDePersonalResultado | null; // ← NUEVO
   timestampActual?: number; // ← NUEVO: desde Redux
   disabled?: boolean;
   loading?: boolean;

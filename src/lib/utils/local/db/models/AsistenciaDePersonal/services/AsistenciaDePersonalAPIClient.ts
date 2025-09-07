@@ -119,7 +119,7 @@ export class AsistenciaDePersonalAPIClient {
 
       // Si ES consulta propia, no agregar Actor para que la API detecte consulta propia
 
-      const url = `/api/asistencia-hoy/consultar-asistencias-tomadas?${params.toString()}`;
+      const url = `/api/asistencia-hoy/consultar-asistencias-personal-tomadas?${params.toString()}`;
 
       const response = await fetch(url);
 
@@ -314,7 +314,7 @@ export class AsistenciaDePersonalAPIClient {
     modoRegistro: ModoRegistro
   ): Promise<any> {
     try {
-      const url = `/api/asistencia-hoy/consultar-asistencias-tomadas?TipoAsistencia=${tipoAsistencia}&Actor=${actor}&ModoRegistro=${modoRegistro}`;
+      const url = `/api/asistencia-hoy/consultar-asistencias-personal-tomadas?TipoAsistencia=${tipoAsistencia}&Rol=${actor}&ModoRegistro=${modoRegistro}`;
 
       console.log(`🔍 Consultando asistencias en Redis: ${url}`);
 
@@ -408,7 +408,7 @@ export class AsistenciaDePersonalAPIClient {
         ModoRegistro: modoRegistro,
       });
 
-      const url = `/api/asistencia-hoy/consultar-asistencias-tomadas?${params.toString()}`;
+      const url = `/api/asistencia-hoy/consultar-asistencias-personal-tomadas?${params.toString()}`;
 
       const response = await fetch(url);
 

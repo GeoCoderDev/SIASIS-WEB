@@ -14,7 +14,7 @@ import { AsistenciaDePersonalIDB } from "../../lib/utils/local/db/models/Asisten
 import { FechaHoraActualRealState } from "@/global/state/others/fechaHoraActualReal";
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import { Loader2 } from "lucide-react";
-import { AsistenciaDiariaResultado } from "@/interfaces/shared/AsistenciaRequests";
+import { AsistenciaDiariaDePersonalResultado } from "@/interfaces/shared/AsistenciaRequests";
 import { ErrorResponseAPIBase } from "@/interfaces/shared/apis/types";
 import { useSelector } from "react-redux";
 import { RootState } from "@/global/store";
@@ -300,7 +300,7 @@ export const ListaPersonal = ({
 
   // ✅ NUEVO: Estado para almacenar las asistencias registradas por DNI
   const [asistenciasRegistradas, setAsistenciasRegistradas] = useState<
-    Map<string, AsistenciaDiariaResultado>
+    Map<string, AsistenciaDiariaDePersonalResultado>
   >(new Map());
 
   // Estados para el sistema de manejo de errores
@@ -355,7 +355,10 @@ export const ListaPersonal = ({
 
         if (resultado.exitoso && resultado.datos) {
           // Crear mapa de asistencias por DNI
-          const mapaAsistencias = new Map<string, AsistenciaDiariaResultado>();
+          const mapaAsistencias = new Map<
+            string,
+            AsistenciaDiariaDePersonalResultado
+          >();
 
           const resultados = Array.isArray(resultado.datos.Resultados)
             ? resultado.datos.Resultados
@@ -472,7 +475,7 @@ export const ListaPersonal = ({
       ? fechaHoraRedux.utilidades?.timestamp - OFFSET_PERU_MS
       : Date.now();
 
-    const nuevoRegistro: AsistenciaDiariaResultado = {
+    const nuevoRegistro: AsistenciaDiariaDePersonalResultado = {
       idUsuario,
       AsistenciaMarcada: true,
       Detalles: {

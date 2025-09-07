@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { LogoutTypes, ErrorDetailsForLogout } from "@/interfaces/LogoutTypes";
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
-import { NOMBRE_ARCHIVO_CON_DATOS_ASISTENCIA_DIARIOS } from "@/constants/NOMBRE_ARCHIVOS_SISTEMA";
 import {
   AuxiliarAsistenciaResponse,
   BaseAsistenciaResponse,
@@ -15,13 +14,7 @@ import {
 import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
 import { verifyAuthToken } from "@/lib/utils/backend/auth/functions/jwtComprobations";
 import { redirectToLogin } from "@/lib/utils/backend/auth/functions/redirectToLogin";
-import { redisClient } from "../../../../config/Redis/RedisClient";
-import { esContenidoJSON } from "../_helpers/esContenidoJSON";
-
-// Cache para datos de asistencia
-let datosAsistenciaCache: DatosAsistenciaHoyIE20935 | null = null;
-let ultimaActualizacionAsistencia = 0;
-const CACHE_DURACION_ASISTENCIA = 1 * 60 * 60 * 1000; // 1 hora en milisegundos
+import { obtenerDatosAsistenciaHoy } from "../_utils/obtenerDatosAsistenciaHoy";
 
 export async function GET(req: NextRequest) {
   try {
@@ -29,87 +22,12 @@ export async function GET(req: NextRequest) {
 
     if (error) return error;
 
-    let datosCompletos: DatosAsistenciaHoyIE20935;
-    let usandoRespaldo = false;
-    let usandoCache = false;
-
-    const ahora = Date.now();
-
-    // Verificar si podemos usar el cache
-    if (
-      datosAsistenciaCache &&
-      ahora - ultimaActualizacionAsistencia < CACHE_DURACION_ASISTENCIA
-    ) {
-      datosCompletos = datosAsistenciaCache;
-      usandoCache = true;
-    } else {
-      try {
-        // Intento principal: obtener datos del blob
-        const response = await fetch(
-          `${process.env
-            .RDP04_THIS_INSTANCE_VERCEL_BLOB_BASE_URL!}/${NOMBRE_ARCHIVO_CON_DATOS_ASISTENCIA_DIARIOS}`
-        );
-
-        if (!response.ok || !(await esContenidoJSON(response))) {
-          throw new Error("Respuesta del blob inválida o no es JSON");
-        }
-
-        datosCompletos = await response.json();
-      } catch (blobError) {
-        // Plan B: Si el primer fetch falla, intentar con Google Drive
-        console.warn(
-          "Error al obtener datos del blob, usando respaldo:",
-          blobError
-        );
-        usandoRespaldo = true;
-
-        try {
-          // Obtener el ID de Google Drive desde Redis
-          const archivoDatosAsistenciaHoyGoogleDriveID =
-            await redisClient().get(
-              NOMBRE_ARCHIVO_CON_DATOS_ASISTENCIA_DIARIOS
-            );
-
-          if (!archivoDatosAsistenciaHoyGoogleDriveID) {
-            throw new Error("No se encontró el ID del archivo en Redis");
-          }
-
-          // Hacer el fetch de respaldo desde Google Drive
-          const respaldoResponse = await fetch(
-            `https://drive.google.com/uc?export=download&id=${archivoDatosAsistenciaHoyGoogleDriveID}`
-          );
-
-          if (
-            !respaldoResponse.ok ||
-            !(await esContenidoJSON(respaldoResponse))
-          ) {
-            throw new Error(
-              `Error en la respuesta de respaldo: ${respaldoResponse.status} ${respaldoResponse.statusText}`
-            );
-          }
-
-          datosCompletos = await respaldoResponse.json();
-          console.log(
-            "Datos obtenidos exitosamente desde respaldo Google Drive"
-          );
-        } catch (respaldoError) {
-          // Si también falla el respaldo, lanzar un error más descriptivo
-          console.error(
-            "Error al obtener datos desde respaldo:",
-            respaldoError
-          );
-          throw new Error(
-            `Falló el acceso principal y el respaldo: ${
-              (respaldoError as Error).message
-            }`
-          );
-        }
-      }
-
-      // Actualizar cache con los nuevos datos
-      datosAsistenciaCache = datosCompletos;
-      ultimaActualizacionAsistencia = ahora;
-    }
+    // Obtener datos usando el nuevo servicio
+    const {
+      datos: datosCompletos,
+      fuente,
+      mensaje,
+    } = await obtenerDatosAsistenciaHoy();
 
     // Filtrar datos según el rol
     const datosFiltrados = filtrarDatosSegunRol(
@@ -121,14 +39,12 @@ export async function GET(req: NextRequest) {
     // Devolver los datos filtrados con indicador de fuente
     return NextResponse.json({
       ...datosFiltrados,
-      _debug: usandoCache
-        ? "Datos obtenidos desde cache"
-        : usandoRespaldo
-        ? "Datos obtenidos desde respaldo"
-        : "Datos obtenidos desde fuente principal",
+      _debug: mensaje,
+      _fuente: fuente,
     });
   } catch (error) {
     console.error("Error al obtener datos de asistencia:", error);
+
     // Determinar el tipo de error
     let logoutType = LogoutTypes.ERROR_SISTEMA;
     const errorDetails: ErrorDetailsForLogout = {
@@ -144,7 +60,8 @@ export async function GET(req: NextRequest) {
         error.message.includes("fetch") ||
         error.message.includes("network") ||
         error.message.includes("ECONNREFUSED") ||
-        error.message.includes("timeout")
+        error.message.includes("timeout") ||
+        error.message.includes("Timeout de petición HTTP")
       ) {
         logoutType = LogoutTypes.ERROR_RED;
         errorDetails.mensaje =
@@ -154,14 +71,18 @@ export async function GET(req: NextRequest) {
       else if (
         error.message.includes("JSON") ||
         error.message.includes("parse") ||
-        error.message.includes("no es JSON válido")
+        error.message.includes("no contiene JSON válido")
       ) {
         logoutType = LogoutTypes.ERROR_DATOS_CORRUPTOS;
         errorDetails.mensaje = "Error al procesar los datos de asistencia";
         errorDetails.contexto = "Formato de datos inválido";
       }
       // Si falló la búsqueda en Redis
-      else if (error.message.includes("No se encontró el ID")) {
+      else if (
+        error.message.includes(
+          "No se encontró el ID del archivo de respaldo en Redis"
+        )
+      ) {
         logoutType = LogoutTypes.ERROR_DATOS_NO_DISPONIBLES;
         errorDetails.mensaje =
           "No se pudo encontrar la información de asistencia";
@@ -176,6 +97,16 @@ export async function GET(req: NextRequest) {
           "No se pudo obtener la información de asistencia";
         errorDetails.contexto =
           "Falló tanto el acceso a blob como a Google Drive";
+      }
+      // Si es un error HTTP específico
+      else if (
+        error.message.includes("Error HTTP en blob") ||
+        error.message.includes("Error HTTP en respaldo")
+      ) {
+        logoutType = LogoutTypes.ERROR_RED;
+        errorDetails.mensaje =
+          "Error del servidor al obtener datos de asistencia";
+        errorDetails.contexto = "Respuesta HTTP inválida";
       }
 
       errorDetails.mensaje += `: ${error.message}`;

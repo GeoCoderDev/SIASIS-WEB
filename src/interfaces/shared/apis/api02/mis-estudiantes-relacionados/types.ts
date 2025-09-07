@@ -1,9 +1,7 @@
+import { EstudianteDelResponsable } from "../../../Estudiantes";
 
-import { SuccessResponseAPIBase } from "../../types";
-import { EstudianteDelResponsable } from "@/interfaces/shared/Estudiantes";
-
-export interface MisEstudiantesRelacionadosSuccessResponseAPI02
-  extends SuccessResponseAPIBase {
+export interface MisEstudiantesRelacionadosSuccessResponseAPI02 {
+  success: true;
   data: EstudianteDelResponsable[];
   total: number;
 }

@@ -88,18 +88,18 @@ export class AsistenciasTomadasHoyIDB {
       consulta.fecha ||
       this.dateHelper.obtenerFechaStringActual() ||
       this.obtenerFechaHoyFallback();
-    const base = `${fecha}:${consulta.modoRegistro}:${consulta.actor}:${consulta.idUsuario}`;
+    const base = `${fecha}:${consulta.modoRegistro}:${consulta.actor}`;
 
     // ✅ FORMATO ESTUDIANTE: Siempre incluir nivel, grado y sección
     if (consulta.actor === ActoresSistema.Estudiante) {
       const nivel = consulta.nivelEducativo || "UNKNOWN";
-      const grado = consulta.grado || "0";
-      const seccion = consulta.seccion || "X";
+      const grado = consulta.grado!;
+      const seccion = consulta.seccion!;
       return `${base}:${nivel}:${grado}:${seccion}`;
     }
 
     // ✅ FORMATO PERSONAL: Solo la clave base
-    return base;
+    return `${base}:${consulta.idUsuario}`;
   }
 
   /**

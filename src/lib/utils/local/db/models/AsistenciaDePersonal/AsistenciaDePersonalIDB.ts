@@ -26,7 +26,7 @@ import {
   MessageProperty,
 } from "@/interfaces/shared/apis/types";
 import {
-  ConsultarAsistenciasTomadasPorActorEnRedisResponseBody,
+  ConsultarAsistenciasDePersonalTomadasPorRolEnRedisResponseBody,
   TipoAsistencia,
 } from "@/interfaces/shared/AsistenciaRequests";
 import { AsistenciaDePersonalMapper } from "./services/AsistenciaDePersonalMapper";
@@ -1283,7 +1283,7 @@ export class AsistenciaDePersonalIDB {
    * Sincroniza las asistencias registradas en Redis con la base de datos local IndexedDB
    */
   public async sincronizarAsistenciasDesdeRedis(
-    datosRedis: ConsultarAsistenciasTomadasPorActorEnRedisResponseBody
+    datosRedis: ConsultarAsistenciasDePersonalTomadasPorRolEnRedisResponseBody
   ): Promise<SincronizacionStats> {
     try {
       this.errorHandler.setLoading(true);
