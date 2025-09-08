@@ -19,6 +19,7 @@ interface ConsultarAsistenciasEstudiantesResponseBody {
   Nivel?: string;
   Grado?: number;
   Seccion?: string;
+  TotalEstudiantesEsperados?: number;
   Resultados:
     | AsistenciaDiariaEscolarResultado
     | AsistenciaDiariaEscolarResultado[]
@@ -153,6 +154,7 @@ export async function GET(req: NextRequest) {
     const gradoParam = searchParams.get("Grado");
     const idEstudianteParam = searchParams.get("idEstudiante");
     const seccionParam = searchParams.get("Seccion");
+    const totalEstudiantesParam = searchParams.get("totalEstudiantes");
 
     console.log(`${logPrefix} 📋 Parámetros recibidos:`);
     console.log(`${logPrefix} 📋   TipoAsistencia: ${tipoAsistenciaParam}`);
@@ -160,6 +162,7 @@ export async function GET(req: NextRequest) {
     console.log(`${logPrefix} 📋   Grado: ${gradoParam}`);
     console.log(`${logPrefix} 📋   idEstudiante: ${idEstudianteParam}`);
     console.log(`${logPrefix} 📋   Seccion: ${seccionParam}`);
+    console.log(`${logPrefix} 📋   totalEstudiantes: ${totalEstudiantesParam}`);
 
     // Validar parámetros obligatorios
     if (!tipoAsistenciaParam) {
@@ -186,6 +189,19 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    // NUEVA VALIDACIÓN: Seccion es obligatoria para la nueva estructura
+    if (!seccionParam) {
+      console.log(`${logPrefix} ❌ Falta parámetro Seccion`);
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Se requiere el parámetro Seccion para trabajar con la nueva estructura de datos",
+        },
+        { status: 400 }
+      );
+    }
+
     // Validar que TipoAsistencia sea válido y sea para estudiantes
     const tiposValidos = [
       TipoAsistencia.ParaEstudiantesPrimaria,
@@ -207,22 +223,54 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Validar que se proporcione idEstudiante O Seccion
-    if (!idEstudianteParam && !seccionParam) {
-      console.log(`${logPrefix} ❌ Faltan parámetros: idEstudiante o Seccion`);
+    // Determinar tipo de consulta: individual vs aula
+    const esConsultaIndividual = !!idEstudianteParam;
+    const esConsultaAula = !idEstudianteParam;
+
+    console.log(
+      `${logPrefix} 🎯 Tipo de consulta: ${
+        esConsultaIndividual ? "Individual" : "Aula completa"
+      }`
+    );
+
+    // NUEVA VALIDACIÓN: totalEstudiantes obligatorio solo para consultas de aula
+    if (esConsultaAula && !totalEstudiantesParam) {
+      console.log(
+        `${logPrefix} ❌ Falta parámetro totalEstudiantes para consulta de aula`
+      );
       return NextResponse.json(
         {
           success: false,
           message:
-            "Se requiere idEstudiante (consulta individual) o Seccion (consulta de aula)",
+            "El parámetro totalEstudiantes es obligatorio para consultas de aula completa (cuando no se especifica idEstudiante)",
         },
         { status: 400 }
       );
     }
 
-    if (idEstudianteParam && seccionParam) {
+    // Validar totalEstudiantes si se proporciona
+    let totalEstudiantes: number | undefined;
+    if (totalEstudiantesParam) {
+      totalEstudiantes = parseInt(totalEstudiantesParam);
+      if (
+        isNaN(totalEstudiantes) ||
+        totalEstudiantes < 1 ||
+        totalEstudiantes > 50
+      ) {
+        console.log(
+          `${logPrefix} ❌ totalEstudiantes inválido: ${totalEstudiantesParam}`
+        );
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              "El parámetro totalEstudiantes debe ser un número entre 1 y 50",
+          },
+          { status: 400 }
+        );
+      }
       console.log(
-        `${logPrefix} ⚠️ Ambos parámetros proporcionados, priorizando idEstudiante`
+        `${logPrefix} ✅ totalEstudiantes validado: ${totalEstudiantes}`
       );
     }
 
@@ -262,8 +310,23 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    // Validar sección (formato básico)
+    if (seccionParam && !/^[A-Z]{1,2}$/i.test(seccionParam)) {
+      console.log(
+        `${logPrefix} ❌ Formato de sección inválido: ${seccionParam}`
+      );
+      return NextResponse.json(
+        {
+          success: false,
+          message: "La sección debe ser una o dos letras (A, B, AB, etc.)",
+        },
+        { status: 400 }
+      );
+    }
+
+    const seccion = seccionParam.toUpperCase();
     console.log(
-      `${logPrefix} ✅ Parámetros validados - Nivel: ${nivel}, Grado: ${grado}`
+      `${logPrefix} ✅ Parámetros validados - Nivel: ${nivel}, Grado: ${grado}, Sección: ${seccion}`
     );
 
     // Validar permisos
@@ -273,7 +336,7 @@ export async function GET(req: NextRequest) {
       tipoAsistenciaParam,
       nivelParam || undefined,
       grado,
-      seccionParam || undefined
+      seccion
     );
 
     if (!validacionPermisos.esValido) {
@@ -298,21 +361,21 @@ export async function GET(req: NextRequest) {
       | null;
     let mensajeDebug = "";
 
-    if (idEstudianteParam) {
+    if (esConsultaIndividual) {
       // Consulta por ID específico de estudiante
       console.log(
-        `${logPrefix} 🔍 INICIANDO consulta por estudiante: ${idEstudianteParam}`
+        `${logPrefix} 🔍 INICIANDO consulta individual: ${idEstudianteParam}`
       );
       console.log(
-        `${logPrefix} 🎯 Parámetros para consulta: nivel=${nivel}, grado=${grado}, seccion=${seccionParam}, rol=${rol}`
+        `${logPrefix} 🎯 Parámetros para consulta: nivel=${nivel}, grado=${grado}, seccion=${seccion}, rol=${rol}`
       );
 
       const resultado = await asistenciasRepo.consultarPorIdEstudiante(
-        idEstudianteParam,
+        idEstudianteParam!,
         tipoAsistenciaParam,
         nivel,
         grado,
-        seccionParam || undefined,
+        seccion,
         rol!
       );
 
@@ -327,16 +390,17 @@ export async function GET(req: NextRequest) {
       );
       console.log(`${logPrefix} 📊   Mensaje: ${mensajeDebug}`);
     } else {
-      // Consulta por aula (nivel, grado, sección)
+      // Consulta por aula (nivel, grado, sección) - ACTUALIZADA CON totalEstudiantes
       console.log(
-        `${logPrefix} 🏫 INICIANDO consulta por aula: ${nivelParam} ${grado}° ${seccionParam}`
+        `${logPrefix} 🏫 INICIANDO consulta por aula: ${nivel} ${grado}° ${seccion} (${totalEstudiantes} estudiantes esperados)`
       );
 
       const resultado = await asistenciasRepo.consultarPorAula(
         tipoAsistenciaParam,
         nivel!,
         grado!,
-        seccionParam!,
+        seccion!,
+        totalEstudiantes!, // Nuevo parámetro obligatorio
         rol!
       );
 
@@ -347,7 +411,7 @@ export async function GET(req: NextRequest) {
       console.log(
         `${logPrefix} 📊   Datos: ${
           Array.isArray(resultados)
-            ? `${resultados.length} estudiantes`
+            ? `${resultados.length}/${totalEstudiantes} estudiantes`
             : "No encontrado"
         }`
       );
@@ -369,7 +433,9 @@ export async function GET(req: NextRequest) {
       Mes: mes as Meses,
       Nivel: nivelParam || undefined,
       Grado: grado,
-      Seccion: seccionParam || undefined,
+      Seccion: seccion,
+      ...(esConsultaAula &&
+        totalEstudiantes && { TotalEstudiantesEsperados: totalEstudiantes }),
       Resultados: resultados,
       _debug: mensajeDebug,
     };
