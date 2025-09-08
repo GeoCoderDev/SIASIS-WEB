@@ -23,6 +23,8 @@ import {
   CONTROL_ASISTENCIA_DE_SALIDA_PRIMARIA,
   CONTROL_ASISTENCIA_DE_SALIDA_SECUNDARIA,
 } from "@/constants/ASISTENCIA_ENTRADA_SALIDA_ESCOLAR";
+import { ENTORNO } from "@/constants/ENTORNO";
+import { Entorno } from "@/interfaces/shared/Entornos";
 
 // =====================================
 // CONSTANTES DE CONFIGURACIÓN
@@ -1083,9 +1085,13 @@ export class AsistenciasEscolaresHoyRepository {
     datos: AsistenciasEscolaresArchivo
   ): Promise<boolean> {
     const ahoraFecha = await obtenerFechaHoraActualPeru();
-    const diferenciaMinutos =
+    let diferenciaMinutos =
       (await calcularDiferenciaMillis(datos.Fecha_Actualizacion, ahoraFecha)) /
       (1000 * 60);
+
+    if (ENTORNO !== Entorno.PRODUCCION) {
+      diferenciaMinutos = Math.abs(diferenciaMinutos);
+    }
 
     const estaActualizada =
       diferenciaMinutos <= INTERVALO_ACTUALIZACION_LISTAS_MINUTOS;
