@@ -3,7 +3,6 @@ import { ActoresSistema } from "@/interfaces/shared/ActoresSistema";
 import { ModoRegistro } from "@/interfaces/shared/ModoRegistro";
 import { TipoAsistencia } from "@/interfaces/shared/AsistenciaRequests";
 import { EstadosAsistenciaPersonal } from "@/interfaces/shared/EstadosAsistenciaPersonal";
-import { EstadosAsistencia } from "@/interfaces/shared/EstadosAsistenciaEstudiantes";
 import { CANTIDAD_MINUTOS_MAXIMO_PARA_DESCARTE_ASISTENCIAS } from "@/constants/CANTIDAD_MINUTOS_MAXIMO_PARA_DESCARTE_ASISTENCIAS";
 import { TablasLocal } from "@/interfaces/shared/TablasSistema";
 import { AsistenciaDateHelper } from "../utils/AsistenciaDateHelper";
@@ -32,7 +31,7 @@ export interface AsistenciaPersonalHoy extends AsistenciaHoyBase {
 
 // ✅ INTERFAZ: Asistencia de estudiante
 export interface AsistenciaEstudianteHoy extends AsistenciaHoyBase {
-  estado: EstadosAsistencia;
+  estado: EstadosAsistenciaPersonal;
   nivelEducativo?: string;
   grado?: string;
   seccion?: string;
@@ -238,7 +237,7 @@ export class AsistenciasTomadasHoyIDB {
 
       if (actor === ActoresSistema.Estudiante) {
         // ✅ ASISTENCIA DE ESTUDIANTE: El valor es un estado (string)
-        const estado = valor as EstadosAsistencia;
+        const estado = valor as EstadosAsistenciaPersonal;
 
         asistenciaCache = {
           clave,
