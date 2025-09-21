@@ -1,10 +1,9 @@
 // ========== IMPORTS ==========
-import { ModoRegistro } from "./ModoRegistroPersonal";
+import { ModoRegistro } from "./ModoRegistro";
 import { RolesSistema } from "./RolesSistema";
 import { Meses } from "./Meses";
 import { ActoresSistema } from "./ActoresSistema";
 import { EstadosAsistenciaPersonal } from "./EstadosAsistenciaPersonal";
-import { EstadosAsistencia } from "./EstadosAsistenciaEstudiantes";
 import { SuccessResponseAPIBase } from "./apis/types";
 import { NivelEducativo } from "./NivelEducativo";
 import { AsistenciaEscolarDeUnDia } from "./AsistenciasEscolares";
@@ -78,29 +77,6 @@ export enum TipoAsistencia {
   ParaEstudiantesSecundaria = "secundaria",
   ParaEstudiantesPrimaria = "primaria",
 }
-
-// // ✅ Interfaces específicas para TypeScript
-// export interface RegistroPropio {
-//   ModoRegistro: ModoRegistro;
-//   FechaHoraEsperadaISO: string;
-// }
-
-// export interface RegistroPersonal extends RegistroPropio {
-//   Id_Usuario: string;
-//   TipoAsistencia: TipoAsistencia.ParaPersonal;
-//   Actor: Exclude<ActoresSistema, ActoresSistema.Estudiante>;
-// }
-
-// export interface RegistroEstudiante extends RegistroPropio {
-//   Id_Usuario: string;
-//   TipoAsistencia:
-//     | TipoAsistencia.ParaEstudiantesPrimaria
-//     | TipoAsistencia.ParaEstudiantesSecundaria;
-//   Actor: ActoresSistema.Estudiante;
-//   NivelDelEstudiante: NivelEducativo;
-//   Grado: number;
-//   Seccion: string;
-// }
 
 // ----------------------------------------------------------------------------
 // |         RELACIONADO AL ESTADO DE CADA TIPO DE TOMA DE ASISTENCIA         |

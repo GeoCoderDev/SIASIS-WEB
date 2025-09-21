@@ -13,7 +13,7 @@ import {
   TipoAsistencia,
 } from "@/interfaces/shared/AsistenciaRequests";
 import { ActoresSistema } from "@/interfaces/shared/ActoresSistema";
-import { ModoRegistro } from "@/interfaces/shared/ModoRegistroPersonal";
+import { ModoRegistro } from "@/interfaces/shared/ModoRegistro";
 import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
 
 // Interfaz principal para los items de la cola

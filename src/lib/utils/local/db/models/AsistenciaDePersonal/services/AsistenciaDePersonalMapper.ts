@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import { ActoresSistema } from "@/interfaces/shared/ActoresSistema";
-import { ModoRegistro } from "@/interfaces/shared/ModoRegistroPersonal";
+import { ModoRegistro } from "@/interfaces/shared/ModoRegistro";
 import { EstadosAsistenciaPersonal } from "@/interfaces/shared/EstadosAsistenciaPersonal";
 
 import { TipoPersonal } from "../AsistenciaDePersonalTypes";

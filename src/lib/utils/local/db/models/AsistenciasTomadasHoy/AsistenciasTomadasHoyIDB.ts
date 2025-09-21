@@ -1,6 +1,6 @@
 import IndexedDBConnection from "../../IndexedDBConnection";
 import { ActoresSistema } from "@/interfaces/shared/ActoresSistema";
-import { ModoRegistro } from "@/interfaces/shared/ModoRegistroPersonal";
+import { ModoRegistro } from "@/interfaces/shared/ModoRegistro";
 import { TipoAsistencia } from "@/interfaces/shared/AsistenciaRequests";
 import { EstadosAsistenciaPersonal } from "@/interfaces/shared/EstadosAsistenciaPersonal";
 import { EstadosAsistencia } from "@/interfaces/shared/EstadosAsistenciaEstudiantes";

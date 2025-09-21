@@ -1,4 +1,4 @@
-import { ModoRegistro } from "./ModoRegistroPersonal";
+import { ModoRegistro } from "./ModoRegistro";
 
 // Interfaz para el registro existente en MongoDB
 export interface RegistroAsistenciaExistente {

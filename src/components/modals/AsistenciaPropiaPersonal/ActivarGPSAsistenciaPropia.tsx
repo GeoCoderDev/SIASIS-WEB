@@ -1,7 +1,7 @@
 import {
   ModoRegistro,
   modoRegistroTextos,
-} from "@/interfaces/shared/ModoRegistroPersonal";
+} from "@/interfaces/shared/ModoRegistro";
 import ModalContainer from "../ModalContainer";
 
 const ActivarGPSoBrindarPermisosGPSModal = ({

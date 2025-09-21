@@ -1,107 +1,208 @@
+import { TablasLocal } from "@/interfaces/shared/TablasSistema";
 import {
   ErrorResponseAPIBase,
   MessageProperty,
 } from "@/interfaces/shared/apis/types";
 import AllErrorTypes, {
-  DataConflictErrorTypes,
   SystemErrorTypes,
+  DataConflictErrorTypes,
   UserErrorTypes,
 } from "@/interfaces/shared/errors";
-import { SiasisAPIS } from "@/interfaces/shared/SiasisComponents";
+import { AsistenciaDateHelper } from "../utils/AsistenciaDateHelper";
 import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
-import { T_Aulas, T_Estudiantes } from "@prisma/client";
+import { AsistenciaEscolarDeUnDia } from "@/interfaces/shared/AsistenciasEscolares";
 import IndexedDBConnection from "../../IndexedDBConnection";
-import { TablasLocal } from "@/interfaces/shared/TablasSistema";
+import {
+  GradosPrimaria,
+  GradosSecundaria,
+} from "@/constants/GRADOS_POR_NIVEL_EDUCATIVO";
 
-// Interfaces para asistencias escolares
-export interface IAsistenciaEscolar {
-  uuid: string; // UUID local para IndexedDB
-  Id_Estudiante: string;
-  Mes: number;
-  Asistencias_Mensuales: string; // JSON string
-  ultima_fecha_actualizacion?: number; // Timestamp para sincronización
+// Tipo para las asistencias por día (número como clave, no string)
+export type AsistenciasPorDia = {
+  [dia: number]: AsistenciaEscolarDeUnDia;
+};
+
+// Interfaz para el registro local usando clave compuesta [Id_Estudiante, Mes]
+export interface IAsistenciaEscolarLocal {
+  Id_Estudiante: string; // Parte de la clave compuesta
+  Mes: number; // Parte de la clave compuesta
+  Asistencias_Mensuales: string; // JSON string para máxima eficiencia
+  ultima_fecha_actualizacion: number; // Timestamp numérico desde Redux
 }
 
-export interface IFiltroAsistencias {
+// Filtros para consultas
+export interface IAsistenciaEscolarFilter {
   Id_Estudiante?: string;
   Mes?: number;
-  mesInicio?: number;
-  mesFin?: number;
-  idsEstudiantes?: string[];
+  NivelEducativo?: NivelEducativo;
+  Grado?: number;
+  rangoMeses?: { inicio: number; fin: number };
+  rangoFechas?: { inicio: number; fin: number }; // Timestamps
 }
 
-export type EstudianteBasico = Omit<T_Estudiantes, "Id_Aula">;
-
-export interface EstudianteConAula extends EstudianteBasico {
-  aula: T_Aulas | null | undefined;
+export interface AsistenciasResponsableData {
+  Mes: number;
+  Asistencias: Record<number, AsistenciaEscolarDeUnDia | null>;
+  registroCompleto: IAsistenciaEscolarLocal;
 }
+
+// Resultado de operaciones
+export interface AsistenciaOperationResult {
+  success: boolean;
+  message: string;
+  data?: AsistenciasResponsableData;
+  count?: number;
+}
+
+// Mapeo de nivel y grado a tabla local
+const MAPEO_TABLA_ASISTENCIAS: Record<string, TablasLocal> = {
+  // Primaria
+  "P-1": TablasLocal.Tabla_Asistencia_Primaria_1,
+  "P-2": TablasLocal.Tabla_Asistencia_Primaria_2,
+  "P-3": TablasLocal.Tabla_Asistencia_Primaria_3,
+  "P-4": TablasLocal.Tabla_Asistencia_Primaria_4,
+  "P-5": TablasLocal.Tabla_Asistencia_Primaria_5,
+  "P-6": TablasLocal.Tabla_Asistencia_Primaria_6,
+  // Secundaria
+  "S-1": TablasLocal.Tabla_Asistencia_Secundaria_1,
+  "S-2": TablasLocal.Tabla_Asistencia_Secundaria_2,
+  "S-3": TablasLocal.Tabla_Asistencia_Secundaria_3,
+  "S-4": TablasLocal.Tabla_Asistencia_Secundaria_4,
+  "S-5": TablasLocal.Tabla_Asistencia_Secundaria_5,
+};
 
 /**
  * Clase base para el manejo de asistencias escolares en IndexedDB
- * Maneja las 11 tablas de asistencia según nivel y grado del estudiante
+ * Proporciona funcionalidad CRUD común para las 11 tablas particionadas
+ * por nivel educativo y grado usando claves compuestas [Id_Estudiante, Mes]
  */
-export abstract class AsistenciasEscolaresBaseIDB {
+export class AsistenciasEscolaresBaseIDB {
+  protected dateHelper: AsistenciaDateHelper;
+
   constructor(
-    protected siasisAPI: SiasisAPIS,
     protected setIsSomethingLoading?: (isLoading: boolean) => void,
     protected setError?: (error: ErrorResponseAPIBase | null) => void,
     protected setSuccessMessage?: (message: MessageProperty | null) => void
-  ) {}
+  ) {
+    this.dateHelper = new AsistenciaDateHelper();
+  }
+
+  // =====================================================================================
+  // MÉTODOS DE MAPEO Y UTILIDADES
+  // =====================================================================================
 
   /**
-   * Obtiene el nombre de la tabla local según el nivel y grado del estudiante
+   * Obtiene el nombre de la tabla correspondiente según nivel y grado
    */
-  protected obtenerNombreTablaLocal(
+  protected obtenerNombreTabla(
     nivel: NivelEducativo,
     grado: number
   ): TablasLocal {
+    const clave = `${nivel}-${grado}`;
+    const tabla = MAPEO_TABLA_ASISTENCIAS[clave];
+
+    if (!tabla) {
+      throw new Error(
+        `No se encontró tabla para nivel ${nivel} y grado ${grado}`
+      );
+    }
+
+    return tabla;
+  }
+
+  /**
+   * Valida que el grado sea válido para el nivel educativo
+   */
+  protected validarNivelYGrado(nivel: NivelEducativo, grado: number): boolean {
     if (nivel === NivelEducativo.PRIMARIA) {
-      return `asistencias_e_p_${grado}` as TablasLocal;
+      return Object.values(GradosPrimaria).includes(grado);
     } else if (nivel === NivelEducativo.SECUNDARIA) {
-      return `asistencias_e_s_${grado}` as TablasLocal;
-    } else {
-      throw new Error(`Nivel educativo no válido: ${nivel}`);
+      return Object.values(GradosSecundaria).includes(grado);
     }
+    return false;
   }
 
   /**
-   * Valida que el estudiante tenga aula asignada y extrae nivel/grado
+   * Obtiene todas las tablas para un nivel educativo específico
    */
-  protected validarYExtraerDatosAula(estudiante: EstudianteConAula): {
-    nivel: NivelEducativo;
-    grado: number;
-  } {
-    if (!estudiante.aula) {
-      throw new Error("El estudiante no tiene aula asignada");
+  protected obtenerTablasDeNivel(nivel: NivelEducativo): TablasLocal[] {
+    const tablas: TablasLocal[] = [];
+
+    if (nivel === NivelEducativo.PRIMARIA) {
+      Object.values(GradosPrimaria).forEach((grado) => {
+        tablas.push(this.obtenerNombreTabla(nivel, grado as GradosPrimaria));
+      });
+    } else if (nivel === NivelEducativo.SECUNDARIA) {
+      Object.values(GradosSecundaria).forEach((grado) => {
+        tablas.push(this.obtenerNombreTabla(nivel, grado as GradosSecundaria));
+      });
     }
 
-    if (!estudiante.aula.Nivel || !estudiante.aula.Grado) {
-      throw new Error("El aula del estudiante no tiene nivel o grado definido");
-    }
-
-    return {
-      nivel: estudiante.aula.Nivel as NivelEducativo,
-      grado: estudiante.aula.Grado,
-    };
+    return tablas;
   }
 
   /**
-   * 1. Obtener asistencias de un estudiante específico para un mes
+   * Parsea de forma segura el JSON de asistencias mensuales
    */
-  public async getById(
-    estudiante: EstudianteConAula,
-    mes: number
-  ): Promise<IAsistenciaEscolar | null> {
+  protected parsearAsistenciasMensuales(
+    asistenciasJson: string
+  ): AsistenciasPorDia {
     try {
-      const { nivel, grado } = this.validarYExtraerDatosAula(estudiante);
-      const nombreTabla = this.obtenerNombreTablaLocal(nivel, grado);
+      return JSON.parse(asistenciasJson) as AsistenciasPorDia;
+    } catch (error) {
+      console.error("Error al parsear asistencias mensuales:", error);
+      return {};
+    }
+  }
 
+  /**
+   * Convierte objeto de asistencias a JSON string
+   */
+  protected stringificarAsistenciasMensuales(
+    asistencias: AsistenciasPorDia
+  ): string {
+    try {
+      return JSON.stringify(asistencias);
+    } catch (error) {
+      console.error("Error al convertir asistencias a JSON:", error);
+      return "{}";
+    }
+  }
+
+  /**
+   * Genera clave compuesta para registro mensual de asistencia
+   */
+  protected generarClaveCompuesta(
+    idEstudiante: string,
+    mes: number
+  ): [string, number] {
+    return [idEstudiante, mes];
+  }
+
+  // =====================================================================================
+  // MÉTODOS CRUD BÁSICOS
+  // =====================================================================================
+
+  /**
+   * Obtiene un registro de asistencia específico usando clave compuesta
+   */
+  public async obtenerRegistroPorClave(
+    nivel: NivelEducativo,
+    grado: number,
+    idEstudiante: string,
+    mes: number
+  ): Promise<IAsistenciaEscolarLocal | null> {
+    try {
+      if (!this.validarNivelYGrado(nivel, grado)) {
+        throw new Error(`Grado ${grado} no válido para nivel ${nivel}`);
+      }
+
+      const nombreTabla = this.obtenerNombreTabla(nivel, grado);
       const store = await IndexedDBConnection.getStore(nombreTabla);
-      const index = store.index("por_estudiante_mes");
-      const key = [estudiante.Id_Estudiante, mes];
+      const claveCompuesta = this.generarClaveCompuesta(idEstudiante, mes);
 
-      return new Promise<IAsistenciaEscolar | null>((resolve, reject) => {
-        const request = index.get(key);
+      return new Promise<IAsistenciaEscolarLocal | null>((resolve, reject) => {
+        const request = store.get(claveCompuesta);
 
         request.onsuccess = () => {
           resolve(request.result || null);
@@ -112,56 +213,50 @@ export abstract class AsistenciasEscolaresBaseIDB {
         };
       });
     } catch (error) {
-      console.error(
-        `Error al obtener asistencia del estudiante ${estudiante.Id_Estudiante} del mes ${mes}:`,
-        error
-      );
       this.handleIndexedDBError(
         error,
-        `obtener asistencia del estudiante ${estudiante.Id_Estudiante} del mes ${mes}`
+        `obtener registro ${idEstudiante}-${mes}`
       );
       return null;
     }
   }
 
   /**
-   * 2. Obtener todas las asistencias de un mes con filtros opcionales
-   * Requiere especificar nivel y grado para determinar la tabla
+   * Obtiene asistencias de un estudiante para un mes específico
+   * (Método mantenido para compatibilidad - internamente usa la clave compuesta)
    */
-  public async getByMes(
+  public async obtenerAsistenciaEstudianteMes(
     nivel: NivelEducativo,
     grado: number,
-    mes: number,
-    filtros?: IFiltroAsistencias
-  ): Promise<IAsistenciaEscolar[]> {
-    try {
-      const nombreTabla = this.obtenerNombreTablaLocal(nivel, grado);
-      const store = await IndexedDBConnection.getStore(nombreTabla);
-      const index = store.index("por_mes");
+    idEstudiante: string,
+    mes: number
+  ): Promise<IAsistenciaEscolarLocal | null> {
+    // Delegar al método de clave compuesta
+    return this.obtenerRegistroPorClave(nivel, grado, idEstudiante, mes);
+  }
 
-      return new Promise<IAsistenciaEscolar[]>((resolve, reject) => {
-        const request = index.getAll(mes);
+  /**
+   * Obtiene todas las asistencias de un estudiante
+   */
+  public async obtenerAsistenciasEstudiante(
+    nivel: NivelEducativo,
+    grado: number,
+    idEstudiante: string
+  ): Promise<IAsistenciaEscolarLocal[]> {
+    try {
+      if (!this.validarNivelYGrado(nivel, grado)) {
+        throw new Error(`Grado ${grado} no válido para nivel ${nivel}`);
+      }
+
+      const nombreTabla = this.obtenerNombreTabla(nivel, grado);
+      const store = await IndexedDBConnection.getStore(nombreTabla);
+      const index = store.index("por_estudiante");
+
+      return new Promise<IAsistenciaEscolarLocal[]>((resolve, reject) => {
+        const request = index.getAll(idEstudiante);
 
         request.onsuccess = () => {
-          let resultados = request.result as IAsistenciaEscolar[];
-
-          // Aplicar filtros adicionales si existen
-          if (filtros) {
-            if (filtros.Id_Estudiante) {
-              resultados = resultados.filter(
-                (asistencia) =>
-                  asistencia.Id_Estudiante === filtros.Id_Estudiante
-              );
-            }
-
-            if (filtros.idsEstudiantes && filtros.idsEstudiantes.length > 0) {
-              resultados = resultados.filter((asistencia) =>
-                filtros.idsEstudiantes!.includes(asistencia.Id_Estudiante)
-              );
-            }
-          }
-
-          resolve(resultados);
+          resolve(request.result as IAsistenciaEscolarLocal[]);
         };
 
         request.onerror = () => {
@@ -169,337 +264,375 @@ export abstract class AsistenciasEscolaresBaseIDB {
         };
       });
     } catch (error) {
-      console.error(`Error al obtener asistencias del mes ${mes}:`, error);
+      this.handleIndexedDBError(
+        error,
+        `obtener asistencias de estudiante ${idEstudiante}`
+      );
+      return [];
+    }
+  }
+
+  /**
+   * Obtiene asistencias por mes (todas las de un grado específico)
+   */
+  public async obtenerAsistenciasPorMes(
+    nivel: NivelEducativo,
+    grado: number,
+    mes: number
+  ): Promise<IAsistenciaEscolarLocal[]> {
+    try {
+      if (!this.validarNivelYGrado(nivel, grado)) {
+        throw new Error(`Grado ${grado} no válido para nivel ${nivel}`);
+      }
+
+      const nombreTabla = this.obtenerNombreTabla(nivel, grado);
+      const store = await IndexedDBConnection.getStore(nombreTabla);
+      const index = store.index("por_mes");
+
+      return new Promise<IAsistenciaEscolarLocal[]>((resolve, reject) => {
+        const request = index.getAll(mes);
+
+        request.onsuccess = () => {
+          resolve(request.result as IAsistenciaEscolarLocal[]);
+        };
+
+        request.onerror = () => {
+          reject(request.error);
+        };
+      });
+    } catch (error) {
       this.handleIndexedDBError(error, `obtener asistencias del mes ${mes}`);
       return [];
     }
   }
 
   /**
-   * 3. Crear nueva entrada de asistencia
+   * Guarda o actualiza un registro de asistencia usando clave compuesta
    */
-  public async add(
-    estudiante: EstudianteConAula,
-    asistencia: Omit<IAsistenciaEscolar, "uuid">
-  ): Promise<boolean> {
-    try {
-      const { nivel, grado } = this.validarYExtraerDatosAula(estudiante);
-      const nombreTabla = this.obtenerNombreTablaLocal(nivel, grado);
-
-      // Generar UUID y agregar timestamp de actualización
-      const asistenciaConUUID: IAsistenciaEscolar = {
-        uuid: crypto.randomUUID(),
-        ...asistencia,
-        ultima_fecha_actualizacion: Date.now(),
-      };
-
-      const store = await IndexedDBConnection.getStore(
-        nombreTabla,
-        "readwrite"
-      );
-
-      return new Promise<boolean>((resolve, reject) => {
-        const request = store.add(asistenciaConUUID);
-
-        request.onsuccess = () => {
-          this.handleSuccess(
-            `Asistencia creada exitosamente para el estudiante ${asistencia.Id_Estudiante}`
-          );
-          resolve(true);
-        };
-
-        request.onerror = () => {
-          console.error("Error al crear asistencia:", request.error);
-          reject(request.error);
-        };
-      });
-    } catch (error) {
-      console.error("Error al crear asistencia:", error);
-      this.handleIndexedDBError(error, "crear asistencia");
-      return false;
-    }
-  }
-
-  /**
-   * 4. Actualizar asistencia existente
-   */
-  public async update(
-    estudiante: EstudianteConAula,
-    asistencia: IAsistenciaEscolar
-  ): Promise<boolean> {
-    try {
-      const { nivel, grado } = this.validarYExtraerDatosAula(estudiante);
-      const nombreTabla = this.obtenerNombreTablaLocal(nivel, grado);
-
-      // Actualizar timestamp de actualización
-      const asistenciaActualizada: IAsistenciaEscolar = {
-        ...asistencia,
-        ultima_fecha_actualizacion: Date.now(),
-      };
-
-      const store = await IndexedDBConnection.getStore(
-        nombreTabla,
-        "readwrite"
-      );
-
-      return new Promise<boolean>((resolve, reject) => {
-        const request = store.put(asistenciaActualizada);
-
-        request.onsuccess = () => {
-          this.handleSuccess(
-            `Asistencia actualizada exitosamente para el estudiante ${asistencia.Id_Estudiante}`
-          );
-          resolve(true);
-        };
-
-        request.onerror = () => {
-          console.error("Error al actualizar asistencia:", request.error);
-          reject(request.error);
-        };
-      });
-    } catch (error) {
-      console.error("Error al actualizar asistencia:", error);
-      this.handleIndexedDBError(error, "actualizar asistencia");
-      return false;
-    }
-  }
-
-  /**
-   * 5. Eliminar asistencia específica
-   */
-  public async delete(
-    estudiante: EstudianteConAula,
-    mes: number
-  ): Promise<boolean> {
-    try {
-      // Primero obtener el registro para tener el UUID
-      const asistencia = await this.getById(estudiante, mes);
-
-      if (!asistencia) {
-        this.setError?.({
-          success: false,
-          message: `No se encontró asistencia del estudiante ${estudiante.Id_Estudiante} para el mes ${mes}`,
-          errorType: UserErrorTypes.USER_NOT_FOUND,
-        });
-        return false;
-      }
-
-      const { nivel, grado } = this.validarYExtraerDatosAula(estudiante);
-      const nombreTabla = this.obtenerNombreTablaLocal(nivel, grado);
-      const store = await IndexedDBConnection.getStore(
-        nombreTabla,
-        "readwrite"
-      );
-
-      return new Promise<boolean>((resolve, reject) => {
-        const request = store.delete(asistencia.uuid);
-
-        request.onsuccess = () => {
-          this.handleSuccess(
-            `Asistencia eliminada exitosamente para el estudiante ${estudiante.Id_Estudiante} del mes ${mes}`
-          );
-          resolve(true);
-        };
-
-        request.onerror = () => {
-          console.error("Error al eliminar asistencia:", request.error);
-          reject(request.error);
-        };
-      });
-    } catch (error) {
-      console.error(
-        `Error al eliminar asistencia del estudiante ${estudiante.Id_Estudiante} del mes ${mes}:`,
-        error
-      );
-      this.handleIndexedDBError(
-        error,
-        `eliminar asistencia del estudiante ${estudiante.Id_Estudiante} del mes ${mes}`
-      );
-      return false;
-    }
-  }
-
-  /**
-   * 6. Verificar si existe registro de asistencia
-   */
-  public async exists(
-    estudiante: EstudianteConAula,
-    mes: number
-  ): Promise<boolean> {
-    try {
-      const asistencia = await this.getById(estudiante, mes);
-      return asistencia !== null;
-    } catch (error) {
-      console.error(
-        `Error al verificar existencia de asistencia del estudiante ${estudiante.Id_Estudiante} del mes ${mes}:`,
-        error
-      );
-      return false;
-    }
-  }
-
-  /**
-   * 7. Contar registros con filtros opcionales para una tabla específica
-   */
-  public async count(
+  public async guardarRegistroAsistencia(
     nivel: NivelEducativo,
     grado: number,
-    filtros?: IFiltroAsistencias
-  ): Promise<number> {
+    registro: Omit<IAsistenciaEscolarLocal, "ultima_fecha_actualizacion">
+  ): Promise<AsistenciaOperationResult> {
     try {
-      const nombreTabla = this.obtenerNombreTablaLocal(nivel, grado);
-      const store = await IndexedDBConnection.getStore(nombreTabla);
+      if (!this.validarNivelYGrado(nivel, grado)) {
+        throw new Error(`Grado ${grado} no válido para nivel ${nivel}`);
+      }
 
-      return new Promise<number>((resolve, reject) => {
-        const request = store.openCursor();
-        let contador = 0;
-
-        request.onsuccess = (event) => {
-          const cursor = (event.target as IDBRequest)
-            .result as IDBCursorWithValue;
-
-          if (cursor) {
-            const asistencia = cursor.value as IAsistenciaEscolar;
-            let incluir = true;
-
-            // Aplicar filtros si existen
-            if (filtros) {
-              if (
-                filtros.Id_Estudiante &&
-                asistencia.Id_Estudiante !== filtros.Id_Estudiante
-              ) {
-                incluir = false;
-              }
-
-              if (filtros.Mes && asistencia.Mes !== filtros.Mes) {
-                incluir = false;
-              }
-
-              if (filtros.mesInicio && asistencia.Mes < filtros.mesInicio) {
-                incluir = false;
-              }
-
-              if (filtros.mesFin && asistencia.Mes > filtros.mesFin) {
-                incluir = false;
-              }
-
-              if (
-                filtros.idsEstudiantes &&
-                filtros.idsEstudiantes.length > 0 &&
-                !filtros.idsEstudiantes.includes(asistencia.Id_Estudiante)
-              ) {
-                incluir = false;
-              }
-            }
-
-            if (incluir) {
-              contador++;
-            }
-
-            cursor.continue();
-          } else {
-            resolve(contador);
-          }
-        };
-
-        request.onerror = () => {
-          reject(request.error);
-        };
-      });
-    } catch (error) {
-      console.error("Error al contar asistencias:", error);
-      this.handleIndexedDBError(error, "contar asistencias");
-      return 0;
-    }
-  }
-
-  /**
-   * 8. Limpiar tabla específica por nivel y grado
-   */
-  public async clear(nivel: NivelEducativo, grado: number): Promise<boolean> {
-    try {
-      const nombreTabla = this.obtenerNombreTablaLocal(nivel, grado);
+      const nombreTabla = this.obtenerNombreTabla(nivel, grado);
       const store = await IndexedDBConnection.getStore(
         nombreTabla,
         "readwrite"
       );
 
-      return new Promise<boolean>((resolve, reject) => {
-        const request = store.clear();
+      // Agregar timestamp actual
+      const registroCompleto: IAsistenciaEscolarLocal = {
+        ...registro,
+        ultima_fecha_actualizacion: this.dateHelper.obtenerTimestampPeruano(),
+      };
+
+      return new Promise<AsistenciaOperationResult>((resolve, reject) => {
+        const request = store.put(registroCompleto);
 
         request.onsuccess = () => {
-          this.handleSuccess(
-            `Tabla de asistencias ${nombreTabla} limpiada exitosamente`
-          );
-          resolve(true);
+          resolve({
+            success: true,
+            message: "Registro de asistencia guardado exitosamente",
+            data: {
+              Asistencias: JSON.parse(registroCompleto.Asistencias_Mensuales),
+              Mes: registroCompleto.Mes,
+              registroCompleto: registroCompleto,
+            },
+          });
         };
 
         request.onerror = () => {
-          console.error(
-            "Error al limpiar tabla de asistencias:",
-            request.error
-          );
           reject(request.error);
         };
       });
     } catch (error) {
-      console.error("Error al limpiar tabla de asistencias:", error);
-      this.handleIndexedDBError(error, "limpiar tabla de asistencias");
-      return false;
+      this.handleIndexedDBError(error, "guardar registro de asistencia");
+      return {
+        success: false,
+        message: `Error al guardar registro: ${
+          error instanceof Error ? error.message : "Error desconocido"
+        }`,
+      };
     }
   }
 
   /**
-   * Método adicional: Limpiar todas las tablas de asistencias
+   * Elimina un registro de asistencia usando clave compuesta
    */
-  public async clearAll(): Promise<boolean> {
+  public async eliminarRegistroAsistencia(
+    nivel: NivelEducativo,
+    grado: number,
+    idEstudiante: string,
+    mes: number
+  ): Promise<AsistenciaOperationResult> {
     try {
-      const tablasLimpiadas = [];
-
-      // Limpiar tablas de primaria (1-6)
-      for (let grado = 1; grado <= 6; grado++) {
-        try {
-          await this.clear(NivelEducativo.PRIMARIA, grado);
-          tablasLimpiadas.push(`${NivelEducativo.PRIMARIA}-${grado}`);
-        } catch (error) {
-          console.error(
-            `Error limpiando tabla primaria grado ${grado}:`,
-            error
-          );
-        }
+      if (!this.validarNivelYGrado(nivel, grado)) {
+        throw new Error(`Grado ${grado} no válido para nivel ${nivel}`);
       }
 
-      // Limpiar tablas de secundaria (1-5)
-      for (let grado = 1; grado <= 5; grado++) {
-        try {
-          await this.clear(NivelEducativo.SECUNDARIA, grado);
-          tablasLimpiadas.push(`${NivelEducativo.SECUNDARIA}-${grado}`);
-        } catch (error) {
-          console.error(
-            `Error limpiando tabla secundaria grado ${grado}:`,
-            error
-          );
-        }
-      }
-
-      this.handleSuccess(
-        `${tablasLimpiadas.length} tablas de asistencias limpiadas exitosamente`
+      const nombreTabla = this.obtenerNombreTabla(nivel, grado);
+      const store = await IndexedDBConnection.getStore(
+        nombreTabla,
+        "readwrite"
       );
-      return true;
+      const claveCompuesta = this.generarClaveCompuesta(idEstudiante, mes);
+
+      return new Promise<AsistenciaOperationResult>((resolve, reject) => {
+        const request = store.delete(claveCompuesta);
+
+        request.onsuccess = () => {
+          resolve({
+            success: true,
+            message: "Registro de asistencia eliminado exitosamente",
+          });
+        };
+
+        request.onerror = () => {
+          reject(request.error);
+        };
+      });
     } catch (error) {
-      console.error("Error al limpiar todas las tablas de asistencias:", error);
       this.handleIndexedDBError(
         error,
-        "limpiar todas las tablas de asistencias"
+        `eliminar registro ${idEstudiante}-${mes}`
       );
-      return false;
+      return {
+        success: false,
+        message: `Error al eliminar registro: ${
+          error instanceof Error ? error.message : "Error desconocido"
+        }`,
+      };
     }
   }
+
+  // =====================================================================================
+  // MÉTODOS DE CONSULTA AVANZADA
+  // =====================================================================================
+
+  /**
+   * Busca asistencias con filtros personalizados
+   */
+  public async buscarAsistenciasConFiltros(
+    filtros: IAsistenciaEscolarFilter
+  ): Promise<IAsistenciaEscolarLocal[]> {
+    try {
+      const resultados: IAsistenciaEscolarLocal[] = [];
+
+      // Determinar qué tablas consultar
+      const tablasAConsultar: TablasLocal[] = [];
+
+      if (filtros.NivelEducativo && filtros.Grado) {
+        // Consultar tabla específica
+        if (this.validarNivelYGrado(filtros.NivelEducativo, filtros.Grado)) {
+          tablasAConsultar.push(
+            this.obtenerNombreTabla(filtros.NivelEducativo, filtros.Grado)
+          );
+        }
+      } else if (filtros.NivelEducativo) {
+        // Consultar todas las tablas del nivel
+        tablasAConsultar.push(
+          ...this.obtenerTablasDeNivel(filtros.NivelEducativo)
+        );
+      } else {
+        // Consultar todas las tablas
+        tablasAConsultar.push(...Object.values(MAPEO_TABLA_ASISTENCIAS));
+      }
+
+      // Ejecutar búsquedas en paralelo
+      const promesasBusqueda = tablasAConsultar.map(async (nombreTabla) => {
+        return this.buscarEnTablaEspecifica(nombreTabla, filtros);
+      });
+
+      const resultadosPorTabla = await Promise.all(promesasBusqueda);
+
+      // Combinar resultados
+      resultadosPorTabla.forEach((registros) => {
+        resultados.push(...registros);
+      });
+
+      return resultados;
+    } catch (error) {
+      this.handleIndexedDBError(error, "buscar asistencias con filtros");
+      return [];
+    }
+  }
+
+  /**
+   * Busca registros en una tabla específica aplicando filtros
+   */
+  private async buscarEnTablaEspecifica(
+    nombreTabla: TablasLocal,
+    filtros: IAsistenciaEscolarFilter
+  ): Promise<IAsistenciaEscolarLocal[]> {
+    const store = await IndexedDBConnection.getStore(nombreTabla);
+
+    return new Promise<IAsistenciaEscolarLocal[]>((resolve, reject) => {
+      const registros: IAsistenciaEscolarLocal[] = [];
+      let request: IDBRequest;
+
+      // Optimizar consulta usando índices o clave primaria compuesta
+      if (filtros.Id_Estudiante && filtros.Mes) {
+        // Usar clave primaria compuesta directamente (más eficiente)
+        const claveCompuesta = [filtros.Id_Estudiante, filtros.Mes];
+        request = store.openCursor(IDBKeyRange.only(claveCompuesta));
+      } else if (filtros.Id_Estudiante) {
+        // Usar índice por estudiante
+        const index = store.index("por_estudiante");
+        request = index.openCursor(IDBKeyRange.only(filtros.Id_Estudiante));
+      } else if (filtros.Mes) {
+        // Usar índice por mes
+        const index = store.index("por_mes");
+        request = index.openCursor(IDBKeyRange.only(filtros.Mes));
+      } else {
+        // Scan completo (menos eficiente)
+        request = store.openCursor();
+      }
+
+      request.onsuccess = (event) => {
+        const cursor = (event.target as IDBRequest)
+          .result as IDBCursorWithValue;
+
+        if (cursor) {
+          const registro = cursor.value as IAsistenciaEscolarLocal;
+
+          // Aplicar filtros adicionales
+          if (this.aplicarFiltrosAdicionales(registro, filtros)) {
+            registros.push(registro);
+          }
+
+          cursor.continue();
+        } else {
+          resolve(registros);
+        }
+      };
+
+      request.onerror = () => {
+        reject(request.error);
+      };
+    });
+  }
+
+  /**
+   * Aplica filtros que no pueden ser optimizados con índices
+   */
+  private aplicarFiltrosAdicionales(
+    registro: IAsistenciaEscolarLocal,
+    filtros: IAsistenciaEscolarFilter
+  ): boolean {
+    // Filtro por rango de meses
+    if (filtros.rangoMeses) {
+      if (
+        registro.Mes < filtros.rangoMeses.inicio ||
+        registro.Mes > filtros.rangoMeses.fin
+      ) {
+        return false;
+      }
+    }
+
+    // Filtro por rango de fechas (usando ultima_fecha_actualizacion)
+    if (filtros.rangoFechas) {
+      if (
+        registro.ultima_fecha_actualizacion < filtros.rangoFechas.inicio ||
+        registro.ultima_fecha_actualizacion > filtros.rangoFechas.fin
+      ) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  // =====================================================================================
+  // MÉTODOS DE SINCRONIZACIÓN
+  // =====================================================================================
+
+  /**
+   * Verifica si un registro necesita sincronización basándose en la fecha de modificación
+   */
+  protected async necesitaSincronizacion(
+    registro: IAsistenciaEscolarLocal,
+    fechaModificacionRemota: number
+  ): Promise<boolean> {
+    return registro.ultima_fecha_actualizacion < fechaModificacionRemota;
+  }
+
+  /**
+   * Actualiza múltiples registros desde datos del servidor
+   */
+  protected async actualizarRegistrosDesdeServidor(
+    nivel: NivelEducativo,
+    grado: number,
+    registrosServidor: Omit<
+      IAsistenciaEscolarLocal,
+      "ultima_fecha_actualizacion"
+    >[]
+  ): Promise<{ actualizados: number; creados: number; errores: number }> {
+    const resultado = { actualizados: 0, creados: 0, errores: 0 };
+
+    try {
+      const nombreTabla = this.obtenerNombreTabla(nivel, grado);
+      const BATCH_SIZE = 50; // Procesar en lotes para evitar bloqueos
+
+      for (let i = 0; i < registrosServidor.length; i += BATCH_SIZE) {
+        const lote = registrosServidor.slice(i, i + BATCH_SIZE);
+
+        for (const registroServidor of lote) {
+          try {
+            const registroExistente = await this.obtenerRegistroPorClave(
+              nivel,
+              grado,
+              registroServidor.Id_Estudiante,
+              registroServidor.Mes
+            );
+
+            const resultadoOperacion = await this.guardarRegistroAsistencia(
+              nivel,
+              grado,
+              registroServidor
+            );
+
+            if (resultadoOperacion.success) {
+              if (registroExistente) {
+                resultado.actualizados++;
+              } else {
+                resultado.creados++;
+              }
+            } else {
+              resultado.errores++;
+            }
+          } catch (error) {
+            console.error(
+              `Error procesando registro ${registroServidor.Id_Estudiante}-${registroServidor.Mes}:`,
+              error
+            );
+            resultado.errores++;
+          }
+        }
+
+        // Pausa entre lotes para no saturar IndexedDB
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      }
+    } catch (error) {
+      console.error("Error en actualización masiva desde servidor:", error);
+      resultado.errores++;
+    }
+
+    return resultado;
+  }
+
+  // =====================================================================================
+  // MÉTODOS DE UTILIDAD Y MANEJO DE ERRORES
+  // =====================================================================================
 
   /**
    * Establece un mensaje de éxito
    */
-  protected handleSuccess(message: string): void {
+  protected handleSuccess(message: string, data?: any): void {
     const successResponse: MessageProperty = { message };
     this.setSuccessMessage?.(successResponse);
   }
@@ -535,6 +668,79 @@ export abstract class AsistenciasEscolaresBaseIDB {
       success: false,
       message: message,
       errorType: errorType,
+      details: {
+        origen: "AsistenciasEscolaresBaseIDB",
+        timestamp: Date.now(),
+      },
     });
+  }
+
+  /**
+   * Obtiene estadísticas básicas de una tabla específica
+   */
+  public async obtenerEstadisticasTabla(
+    nivel: NivelEducativo,
+    grado: number
+  ): Promise<{
+    totalRegistros: number;
+    ultimaActualizacion: number | null;
+    mesesConDatos: number[];
+  }> {
+    try {
+      if (!this.validarNivelYGrado(nivel, grado)) {
+        throw new Error(`Grado ${grado} no válido para nivel ${nivel}`);
+      }
+
+      const nombreTabla = this.obtenerNombreTabla(nivel, grado);
+      const store = await IndexedDBConnection.getStore(nombreTabla);
+
+      return new Promise((resolve, reject) => {
+        const stats = {
+          totalRegistros: 0,
+          ultimaActualizacion: null as number | null,
+          mesesConDatos: [] as number[],
+        };
+
+        const mesesSet = new Set<number>();
+        let ultimaFecha = 0;
+
+        const request = store.openCursor();
+
+        request.onsuccess = (event: any) => {
+          const cursor = (event.target as IDBRequest)
+            .result as IDBCursorWithValue;
+
+          if (cursor) {
+            const registro = cursor.value as IAsistenciaEscolarLocal;
+            stats.totalRegistros++;
+            mesesSet.add(registro.Mes);
+
+            if (registro.ultima_fecha_actualizacion > ultimaFecha) {
+              ultimaFecha = registro.ultima_fecha_actualizacion;
+            }
+
+            cursor.continue();
+          } else {
+            stats.mesesConDatos = Array.from(mesesSet).sort((a, b) => a - b);
+            stats.ultimaActualizacion = ultimaFecha > 0 ? ultimaFecha : null;
+            resolve(stats);
+          }
+        };
+
+        request.onerror = () => {
+          reject(request.error);
+        };
+      });
+    } catch (error) {
+      this.handleIndexedDBError(
+        error,
+        `obtener estadísticas de ${nivel}-${grado}`
+      );
+      return {
+        totalRegistros: 0,
+        ultimaActualizacion: null,
+        mesesConDatos: [],
+      };
+    }
   }
 }

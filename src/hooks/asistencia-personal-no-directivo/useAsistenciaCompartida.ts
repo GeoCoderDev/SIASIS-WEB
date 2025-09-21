@@ -11,7 +11,7 @@ import { HandlerAuxiliarAsistenciaResponse } from "@/lib/utils/local/db/models/D
 import { HandlerProfesorTutorSecundariaAsistenciaResponse } from "@/lib/utils/local/db/models/DatosAsistenciaHoy/handlers/HandlerProfesorTutorSecundariaAsistenciaResponse";
 import { HandlerPersonalAdministrativoAsistenciaResponse } from "@/lib/utils/local/db/models/DatosAsistenciaHoy/handlers/HandlerPersonalAdministrativoAsistenciaResponse";
 import { HorarioTomaAsistencia } from "@/interfaces/shared/Asistencia/DatosAsistenciaHoyIE20935";
-import { ModoRegistro } from "@/interfaces/shared/ModoRegistroPersonal";
+import { ModoRegistro } from "@/interfaces/shared/ModoRegistro";
 import {
   HORAS_ANTES_INICIO_ACTIVACION,
   HORAS_ANTES_SALIDA_CAMBIO_MODO_PARA_PERSONAL,

@@ -224,9 +224,7 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
   }
 
   /**
-   * Obtiene un estudiante por su ID desde la tabla común
-   * @param idEstudiante ID del estudiante
-   * @returns Estudiante encontrado o null
+   * Obtiene un estudiante por su ID - SIMPLE como AuxiliaresIDB
    */
   public async getEstudiantePorId(idEstudiante: string): Promise<T | null> {
     try {
@@ -234,14 +232,8 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
 
       return new Promise<T | null>((resolve, reject) => {
         const request = store.get(idEstudiante);
-
-        request.onsuccess = () => {
-          resolve(request.result || null);
-        };
-
-        request.onerror = () => {
-          reject(request.error);
-        };
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = () => reject(request.error);
       });
     } catch (error) {
       console.error(
@@ -257,9 +249,7 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
   }
 
   /**
-   * Obtiene todos los estudiantes de la tabla común
-   * @param includeInactive Si incluir estudiantes inactivos
-   * @returns Array de estudiantes
+   * Obtiene todos los estudiantes CON SYNC automático
    */
   public async getTodosLosEstudiantes(
     includeInactive: boolean = false
@@ -269,25 +259,19 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
     this.setSuccessMessage?.(null);
 
     try {
-      // Solo sincronizar si está habilitado
+      // SIMPLE: Solo ejecutar sync antes de consultar
       if (this.isSyncEnabled) {
         await this.sync();
-      } else {
-        console.log(
-          "getTodosLosEstudiantes: Sincronización deshabilitada, obteniendo datos locales únicamente"
-        );
       }
 
       const store = await IndexedDBConnection.getStore(this.tablaEstudiantes);
 
       const result = await new Promise<T[]>((resolve, reject) => {
         const request = store.getAll();
-
         request.onsuccess = () => resolve(request.result as T[]);
         request.onerror = () => reject(request.error);
       });
 
-      // Filtrar por estado si es necesario
       const estudiantes = includeInactive
         ? result
         : result.filter((est) => est.Estado === true);
@@ -308,10 +292,7 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
   }
 
   /**
-   * Busca estudiantes por nombre (búsqueda parcial en nombres y apellidos)
-   * @param nombreBusqueda Texto a buscar
-   * @param includeInactive Si incluir estudiantes inactivos
-   * @returns Array de estudiantes que coinciden con la búsqueda
+   * Busca estudiantes por nombre CON SYNC automático
    */
   public async buscarPorNombre(
     nombreBusqueda: string,
@@ -321,13 +302,9 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
     this.setError?.(null);
 
     try {
-      // Solo sincronizar si está habilitado
+      // SIMPLE: Solo ejecutar sync antes de consultar
       if (this.isSyncEnabled) {
         await this.sync();
-      } else {
-        console.log(
-          "buscarPorNombre: Sincronización deshabilitada, buscando en datos locales únicamente"
-        );
       }
 
       const store = await IndexedDBConnection.getStore(this.tablaEstudiantes);
@@ -343,13 +320,11 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
           if (cursor) {
             const estudiante = cursor.value as T;
 
-            // Filtrar por estado si es necesario
             if (!includeInactive && !estudiante.Estado) {
               cursor.continue();
               return;
             }
 
-            // Buscar en nombres, apellidos y nombre completo
             const nombreCompleto =
               `${estudiante.Nombres} ${estudiante.Apellidos}`.toLowerCase();
             if (

@@ -6,7 +6,6 @@ import {
   TablasLocal,
 } from "../../../../../interfaces/shared/TablasSistema";
 import {
-  ApiResponseBase,
   ErrorResponseAPIBase,
   MessageProperty,
 } from "@/interfaces/shared/apis/types";
@@ -39,8 +38,8 @@ export class PersonalAdministrativoIDB {
 
   constructor(
     private siasisAPI: SiasisAPIS = "API01",
-    private setIsSomethingLoading: (isLoading: boolean) => void,
-    private setError: (error: ErrorResponseAPIBase | null) => void,
+    private setIsSomethingLoading?: (isLoading: boolean) => void,
+    private setError?: (error: ErrorResponseAPIBase | null) => void,
     private setSuccessMessage?: (message: MessageProperty | null) => void
   ) {}
 
@@ -130,7 +129,7 @@ export class PersonalAdministrativoIDB {
       }
 
       // Establecer el error en el estado global
-      this.setError({
+      this.setError?.({
         success: false,
         message: message,
         errorType: errorType,
@@ -153,8 +152,8 @@ export class PersonalAdministrativoIDB {
   public async getAll(
     includeInactive: boolean = true
   ): Promise<IPersonalAdministrativoLocal[]> {
-    this.setIsSomethingLoading(true);
-    this.setError(null); // Limpiar errores anteriores
+    this.setIsSomethingLoading?.(true);
+    this.setError?.(null); // Limpiar errores anteriores
     this.setSuccessMessage?.(null); // Limpiar mensajes anteriores
 
     try {
@@ -189,14 +188,14 @@ export class PersonalAdministrativoIDB {
         this.handleSuccess("No se encontró personal administrativo");
       }
 
-      this.setIsSomethingLoading(false);
+      this.setIsSomethingLoading?.(false);
       return personalAdministrativo;
     } catch (error) {
       this.handleIndexedDBError(
         error,
         "obtener lista de personal administrativo"
       );
-      this.setIsSomethingLoading(false);
+      this.setIsSomethingLoading?.(false);
       return []; // Devolvemos array vacío en caso de error
     }
   }
@@ -495,7 +494,7 @@ export class PersonalAdministrativoIDB {
       }
     }
 
-    this.setError({
+    this.setError?.({
       success: false,
       message: message,
       errorType: errorType,

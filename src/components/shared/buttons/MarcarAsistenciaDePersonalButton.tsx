@@ -11,7 +11,7 @@ import { AsistenciaDePersonalIDB } from "@/lib/utils/local/db/models/AsistenciaD
 import {
   ModoRegistro,
   modoRegistroTextos,
-} from "@/interfaces/shared/ModoRegistroPersonal";
+} from "@/interfaces/shared/ModoRegistro";
 import ConfirmacionAsistenciaMarcadaModal from "@/components/modals/AsistenciaPropiaPersonal/ConfirmacionAsistenciaMarcadaModal";
 import ActivarGPSoBrindarPermisosGPSModal from "@/components/modals/AsistenciaPropiaPersonal/ActivarGPSAsistenciaPropia";
 import FalloConexionAInternetAlMarcarAsistenciaPropiaModal from "@/components/modals/AsistenciaPropiaPersonal/ConexionInternetMarcarAsistenciaPropia";

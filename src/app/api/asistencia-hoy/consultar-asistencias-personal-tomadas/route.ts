@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
-import { ModoRegistro } from "@/interfaces/shared/ModoRegistroPersonal";
+import { ModoRegistro } from "@/interfaces/shared/ModoRegistro";
 import { redisClient } from "../../../../../config/Redis/RedisClient";
 import { verifyAuthToken } from "@/lib/utils/backend/auth/functions/jwtComprobations";
 import { obtenerFechaActualPeru } from "../../_helpers/obtenerFechaActualPeru";

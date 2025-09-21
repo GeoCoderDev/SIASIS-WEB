@@ -1,6 +1,6 @@
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import { SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935 } from "./SalasTomaAsistenciaDePersonal";
-import { ModoRegistro } from "@/interfaces/shared/ModoRegistroPersonal";
+import { ModoRegistro } from "@/interfaces/shared/ModoRegistro";
 import { RegistroEntradaSalida } from "../../../../../lib/utils/local/db/models/AsistenciaDePersonal/services/AsistenciaDePersonalMapper";
 import { Genero } from "@/interfaces/shared/Genero";
 

@@ -8,7 +8,7 @@ import { Speaker } from "@/lib/utils/voice/Speaker";
 import EstudianteSecundariaParaTomaAsistenciaCard from "./EstudianteSecundariaParaTomaAsistenciaCard";
 import { Asistencias_Escolares_QUEUE } from "@/lib/utils/queues/AsistenciasEscolaresQueue";
 import { ActoresSistema } from "@/interfaces/shared/ActoresSistema";
-import { ModoRegistro } from "@/interfaces/shared/ModoRegistroPersonal";
+import { ModoRegistro } from "@/interfaces/shared/ModoRegistro";
 import { TipoAsistencia } from "@/interfaces/shared/AsistenciaRequests";
 import { HORAS_ANTES_SALIDA_CAMBIO_MODO_PARA_ESTUDIANTES_DE_SECUNDARIA } from "@/constants/INTERVALOS_ASISTENCIAS_ESCOLARES";
 import { alterarUTCaZonaPeruana } from "@/lib/helpers/alteradores/alterarUTCaZonaPeruana";
@@ -720,8 +720,8 @@ const RegistroEstudiantesSecundariaManual: React.FC<
                 {aulaSeleccionada ? (
                   <div>
                     <h3 className="text-base font-bold text-green-800">
-                      {aulaSeleccionada.Grado}° "{aulaSeleccionada.Seccion}" |
-                       {" "}{estudiantesFiltrados.length} Estudiantes
+                      {aulaSeleccionada.Grado}° "{aulaSeleccionada.Seccion}" |{" "}
+                      {estudiantesFiltrados.length} Estudiantes
                     </h3>
                   </div>
                 ) : (

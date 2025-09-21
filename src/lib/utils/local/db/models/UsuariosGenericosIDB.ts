@@ -42,8 +42,8 @@ export class UsuariosGenericosIDB {
 
   constructor(
     private siasisAPI: SiasisAPIS,
-    private setIsSomethingLoading: (isLoading: boolean) => void,
-    private setError: (error: ErrorResponseAPIBase | null) => void,
+    private setIsSomethingLoading?: (isLoading: boolean) => void,
+    private setError?: (error: ErrorResponseAPIBase | null) => void,
     private setSuccessMessage?: (message: MessageProperty | null) => void
   ) {}
 
@@ -140,7 +140,7 @@ export class UsuariosGenericosIDB {
         }
       }
 
-      this.setError({
+      this.setError?.({
         success: false,
         message: message,
         errorType: errorType,
@@ -217,18 +217,18 @@ export class UsuariosGenericosIDB {
     criterio: string,
     limite: number
   ): Promise<{ resultados: GenericUser[]; total: number }> {
-    this.setIsSomethingLoading(true);
-    this.setError(null);
+    this.setIsSomethingLoading?.(true);
+    this.setError?.(null);
     this.setSuccessMessage?.(null);
 
     try {
       // Validar parámetros
       if (criterio.trim().length > 0 && criterio.trim().length < 2) {
-        this.setError({
+        this.setError?.({
           success: false,
           message: "El criterio de búsqueda debe tener al menos 2 caracteres",
         });
-        this.setIsSomethingLoading(false);
+        this.setIsSomethingLoading?.(false);
         return { resultados: [], total: 0 };
       }
 
@@ -247,7 +247,7 @@ export class UsuariosGenericosIDB {
           this.setSuccessMessage?.({
             message: `Se encontraron ${registroCache.resultados.length} usuarios (desde cache)`,
           });
-          this.setIsSomethingLoading(false);
+          this.setIsSomethingLoading?.(false);
           return {
             resultados: registroCache.resultados,
             total: registroCache.total,
@@ -280,11 +280,11 @@ export class UsuariosGenericosIDB {
         message: `Se encontraron ${resultados.length} usuarios`,
       });
 
-      this.setIsSomethingLoading(false);
+      this.setIsSomethingLoading?.(false);
       return { resultados, total };
     } catch (error) {
       this.handleIndexedDBError(error, "buscar usuarios");
-      this.setIsSomethingLoading(false);
+      this.setIsSomethingLoading?.(false);
       return { resultados: [], total: 0 };
     }
   }
@@ -372,7 +372,7 @@ export class UsuariosGenericosIDB {
       }
     }
 
-    this.setError({
+    this.setError?.({
       success: false,
       message: message,
       errorType: errorType,

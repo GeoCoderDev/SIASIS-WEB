@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { EstadosAsistenciaPersonal } from "@/interfaces/shared/EstadosAsistenciaPersonal";
 import { Meses } from "@/interfaces/shared/Meses";
-import { ModoRegistro } from "@/interfaces/shared/ModoRegistroPersonal";
+import { ModoRegistro } from "@/interfaces/shared/ModoRegistro";
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import { ActoresSistema } from "@/interfaces/shared/ActoresSistema";
 import { TipoAsistencia } from "../../../../../../interfaces/shared/AsistenciaRequests";
 
 // Re-exportar tipos existentes para facilitar el acceso
-export { ModoRegistro } from "@/interfaces/shared/ModoRegistroPersonal";
+export { ModoRegistro } from "@/interfaces/shared/ModoRegistro";
 export { EstadosAsistenciaPersonal } from "@/interfaces/shared/EstadosAsistenciaPersonal";
 export { RolesSistema } from "@/interfaces/shared/RolesSistema";
 export { ActoresSistema } from "@/interfaces/shared/ActoresSistema";

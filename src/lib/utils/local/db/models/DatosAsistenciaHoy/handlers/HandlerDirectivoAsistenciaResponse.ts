@@ -11,7 +11,7 @@ import { HandlerAsistenciaBase } from "./HandlerDatosAsistenciaBase";
 import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
 import { Genero } from "@/interfaces/shared/Genero";
 import { PersonalParaTomarAsistencia } from "@/components/asistencia-personal/ItemTomaAsistencia";
-import { ModoRegistro } from "@/interfaces/shared/ModoRegistroPersonal";
+import { ModoRegistro } from "@/interfaces/shared/ModoRegistro";
 import { ActoresSistema } from "@/interfaces/shared/ActoresSistema";
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 

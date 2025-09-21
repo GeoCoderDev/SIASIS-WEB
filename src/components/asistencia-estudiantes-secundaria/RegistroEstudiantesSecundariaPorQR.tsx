@@ -12,7 +12,7 @@ import { dameCualquieraDeEstos } from "@/lib/helpers/randomizers/dameCualquieraD
 import { Asistencias_Escolares_QUEUE } from "@/lib/utils/queues/AsistenciasEscolaresQueue";
 import { ActoresSistema } from "@/interfaces/shared/ActoresSistema";
 import { EstudianteConAula } from "@/interfaces/shared/Estudiantes";
-import { ModoRegistro } from "@/interfaces/shared/ModoRegistroPersonal";
+import { ModoRegistro } from "@/interfaces/shared/ModoRegistro";
 import { TipoAsistencia } from "@/interfaces/shared/AsistenciaRequests";
 import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
 import { BaseAulasIDB } from "@/lib/utils/local/db/models/Aulas/AulasBase";

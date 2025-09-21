@@ -1,4 +1,4 @@
-import { ModoRegistro } from "@/interfaces/shared/ModoRegistroPersonal";
+import { ModoRegistro } from "@/interfaces/shared/ModoRegistro";
 import { PersonalDelColegio } from "@/interfaces/shared/PersonalDelColegio";
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 

@@ -9,7 +9,12 @@
  * @param fechaUTC Fecha en formato ISO con Z al final
  * @returns La misma fecha pero con indicador -05:00 en lugar de Z
  */
-export function alterarUTCaZonaPeruana(fechaUTC: string): string {
+export function alterarUTCaZonaPeruana(fechaUTC: string | Date): string {
+
+  if(fechaUTC instanceof Date) {
+    return fechaUTC.toISOString().replace("Z", "-05:00");
+  }
+  
   // Verificar si la fecha tiene 'Z' al final
   if (!fechaUTC.endsWith("Z")) {
     // Si no tiene 'Z', asumimos que ya está en formato local

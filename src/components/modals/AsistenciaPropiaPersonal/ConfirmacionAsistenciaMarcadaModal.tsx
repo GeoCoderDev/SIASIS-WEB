@@ -2,7 +2,7 @@ import ModalContainer from "../ModalContainer";
 import {
   ModoRegistro,
   modoRegistroTextos,
-} from "@/interfaces/shared/ModoRegistroPersonal";
+} from "@/interfaces/shared/ModoRegistro";
 
 interface ConfirmacionAsistenciaMarcadaModalProps {
   eliminateModal: () => void;

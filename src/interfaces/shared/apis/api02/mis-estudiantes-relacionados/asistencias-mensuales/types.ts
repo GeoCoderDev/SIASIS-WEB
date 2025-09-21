@@ -1,8 +1,11 @@
-import { AsistenciaEscolarDeUnDia } from "@/interfaces/shared/AsistenciasEscolares";
+import { AsistenciaEscolarDeUnDia } from "../../../../AsistenciasEscolares";
 
-export interface MisEstudianteRelacionadoAsistenciasMensuales {
+export interface MisEstudianteRelacionadoAsistenciasMensualesSuccessResponse {
   success: true;
-  data: Record<number, AsistenciaEscolarDeUnDia>;
+  data: {
+    Mes: number;
+    Asistencias: Record<number, AsistenciaEscolarDeUnDia | null>;
+  };
   total: number;
 }
 

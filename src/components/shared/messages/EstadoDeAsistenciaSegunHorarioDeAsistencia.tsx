@@ -3,7 +3,7 @@
 import { useCallback } from "react";
 import { useSelector } from "react-redux";
 import store, { RootState } from "@/global/store";
-import { ModoRegistro } from "@/interfaces/shared/ModoRegistroPersonal";
+import { ModoRegistro } from "@/interfaces/shared/ModoRegistro";
 import { DiasSemana, diasSemanaTextos } from "@/interfaces/shared/DiasSemana";
 import { Meses, mesesTextos } from "@/interfaces/shared/Meses";
 import { formatearISOaFormato12Horas } from "@/lib/helpers/formatters/fechas-hora/formatearAFormato12Horas";

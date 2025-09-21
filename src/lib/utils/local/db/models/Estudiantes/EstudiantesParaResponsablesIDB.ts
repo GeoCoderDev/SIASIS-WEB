@@ -660,6 +660,59 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
   }
 
   /**
+   * MÉTODO SIMPLE: Obtiene un estudiante del responsable con sync automático
+   */
+  public async obtenerMiEstudiantePorId(
+    idEstudiante: string,
+    forzarActualizacion: boolean = false
+  ): Promise<EstudianteDelResponsable | null> {
+    this.setIsSomethingLoading?.(true);
+    this.setError?.(null);
+    this.setSuccessMessage?.(null);
+
+    try {
+      // SIMPLE: Solo ejecutar sync antes de consultar (como AuxiliaresIDB)
+      await this.sync();
+
+      // Obtener el estudiante
+      const estudiante = await this.getEstudiantePorId(idEstudiante);
+
+      if (!estudiante) {
+        this.setError?.({
+          success: false,
+          message: `No se encontró el estudiante con ID: ${idEstudiante}`,
+          errorType: "USER_NOT_FOUND" as any,
+        });
+        this.setIsSomethingLoading?.(false);
+        return null;
+      }
+
+      // Verificar que tiene Tipo_Relacion (pertenece al responsable)
+      const estudianteDelResponsable = estudiante as EstudianteDelResponsable;
+
+      if (!estudianteDelResponsable.Tipo_Relacion) {
+        this.setError?.({
+          success: false,
+          message: "El estudiante no está relacionado con su cuenta",
+          errorType: "UNAUTHORIZED_ACCESS" as any,
+        });
+        this.setIsSomethingLoading?.(false);
+        return null;
+      }
+
+      this.handleSuccess(
+        `Datos de ${estudianteDelResponsable.Nombres} ${estudianteDelResponsable.Apellidos} obtenidos exitosamente`
+      );
+      this.setIsSomethingLoading?.(false);
+      return estudianteDelResponsable;
+    } catch (error) {
+      this.handleIndexedDBError(error, "obtener mi estudiante por ID");
+      this.setIsSomethingLoading?.(false);
+      return null;
+    }
+  }
+
+  /**
    * Obtiene un resumen de estudiantes agrupados por tipo de relación
    * @param includeInactive Si incluir estudiantes inactivos
    * @returns Objeto con conteo por tipo de relación
@@ -741,3 +794,6 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
     }
   }
 }
+
+export const estudiantesParaResponsablesIDB =
+  new EstudiantesParaResponsablesIDB();

@@ -8,7 +8,7 @@ import {
   TipoAsistencia,
 } from "@/interfaces/shared/AsistenciaRequests";
 import { AsistenciaEscolarDeUnDia } from "@/interfaces/shared/AsistenciasEscolares";
-import { ModoRegistro } from "@/interfaces/shared/ModoRegistroPersonal";
+import { ModoRegistro } from "@/interfaces/shared/ModoRegistro";
 import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import { redisClient } from "../../../../../../config/Redis/RedisClient";
@@ -25,6 +25,14 @@ import {
 } from "@/constants/ASISTENCIA_ENTRADA_SALIDA_ESCOLAR";
 import { ENTORNO } from "@/constants/ENTORNO";
 import { Entorno } from "@/interfaces/shared/Entornos";
+import {
+  INTERVALO_ACTUALIZACION_LISTAS_ESTUDIANTES_HORAS_PICO_EN_MINUTOS_PRIMARIA,
+  INTERVALO_ACTUALIZACION_LISTAS_ESTUDIANTES_HORAS_PICO_EN_MINUTOS_SECUNDARIA,
+} from "@/constants/INTERVALO_ACTUALIZACION_LISTAS_ESTUDIANTES_RDP01";
+import {
+  HORAS_ANTES_SALIDA_CAMBIO_MODO_PARA_ESTUDIANTES_DE_PRIMARIA,
+  HORAS_ANTES_SALIDA_CAMBIO_MODO_PARA_ESTUDIANTES_DE_SECUNDARIA,
+} from "@/constants/INTERVALOS_ASISTENCIAS_ESCOLARES";
 
 // =====================================
 // CONSTANTES DE CONFIGURACIÓN
@@ -58,8 +66,10 @@ export const PROBABILIDAD_FALLBACK_POR_ROL: Record<RolesSistema, number> = {
  */
 export const HORAS_ANTES_SALIDA_PARA_CONSULTA: Record<NivelEducativo, number> =
   {
-    [NivelEducativo.PRIMARIA]: 1, // 1 hora antes de la salida
-    [NivelEducativo.SECUNDARIA]: 1, // 1 hora antes de la salida
+    [NivelEducativo.PRIMARIA]:
+      HORAS_ANTES_SALIDA_CAMBIO_MODO_PARA_ESTUDIANTES_DE_SECUNDARIA, // 1 hora antes de la salida
+    [NivelEducativo.SECUNDARIA]:
+      HORAS_ANTES_SALIDA_CAMBIO_MODO_PARA_ESTUDIANTES_DE_PRIMARIA, // 1 hora antes de la salida
   };
 
 /**
@@ -101,11 +111,6 @@ export const ROLES_CON_GOOGLE_DRIVE: Record<RolesSistema, boolean> = {
   [RolesSistema.Responsable]: true,
   [RolesSistema.PersonalAdministrativo]: false, // No tienen acceso al endpoint
 };
-
-/**
- * Intervalo de actualización de listas en minutos
- */
-export const INTERVALO_ACTUALIZACION_LISTAS_MINUTOS = 10;
 
 /**
  * Variables de entorno para GitHub Actions
@@ -214,6 +219,15 @@ function debeUsarFallbackPorProbabilidad(rol: RolesSistema): boolean {
   return usarFallback;
 }
 
+/**
+ * Obtiene el intervalo de actualización según el nivel educativo
+ */
+function obtenerIntervaloActualizacion(nivel: NivelEducativo): number {
+  return nivel === NivelEducativo.PRIMARIA
+    ? INTERVALO_ACTUALIZACION_LISTAS_ESTUDIANTES_HORAS_PICO_EN_MINUTOS_PRIMARIA
+    : INTERVALO_ACTUALIZACION_LISTAS_ESTUDIANTES_HORAS_PICO_EN_MINUTOS_SECUNDARIA;
+}
+
 // =====================================
 // CACHE SIMPLIFICADO BASADO EN FECHA DE ARCHIVO CON NUEVA ESTRUCTURA
 // =====================================
@@ -302,21 +316,22 @@ class CacheListasAsistencia {
    * Verifica si los datos están actualizados internamente
    */
   private static async estaActualizadaInternamente(
-    datos: AsistenciasEscolaresArchivo
+    datos: AsistenciasEscolaresArchivo,
+    nivel: NivelEducativo
   ): Promise<{ estaActualizada: boolean; razon: string }> {
     const ahoraFecha = await obtenerFechaHoraActualPeru();
     const diferenciaMinutos =
       (await calcularDiferenciaMillis(datos.Fecha_Actualizacion, ahoraFecha)) /
       (1000 * 60);
 
-    const estaActualizada =
-      diferenciaMinutos <= INTERVALO_ACTUALIZACION_LISTAS_MINUTOS;
+    const intervaloMaximo = obtenerIntervaloActualizacion(nivel);
+    const estaActualizada = diferenciaMinutos <= intervaloMaximo;
 
     return {
       estaActualizada,
       razon: `Diferencia: ${diferenciaMinutos.toFixed(
         2
-      )} min vs límite: ${INTERVALO_ACTUALIZACION_LISTAS_MINUTOS} min`,
+      )} min vs límite (${nivel}): ${intervaloMaximo} min`,
     };
   }
 
@@ -449,6 +464,7 @@ class CacheListasAsistencia {
       datos: AsistenciasEscolaresArchivo;
       fechaActualizacionArchivo: number;
     },
+    nivel: NivelEducativo,
     consultaEspecifica?: {
       idEstudiante: string;
       seccion: string;
@@ -514,7 +530,8 @@ class CacheListasAsistencia {
 
       // Para consultas de aula, SIEMPRE actualizar si está vencido (como solicitó el usuario)
       const datosActualizados = await this.estaActualizadaInternamente(
-        entrada.datos
+        entrada.datos,
+        nivel
       );
       const datosInternosDesactualizados = !datosActualizados.estaActualizada;
 
@@ -572,7 +589,8 @@ class CacheListasAsistencia {
 
     // 3. Verificar si los datos internos están desactualizados (sin fetch)
     const datosActualizados = await this.estaActualizadaInternamente(
-      entrada.datos
+      entrada.datos,
+      nivel
     );
     const datosInternosDesactualizados = !datosActualizados.estaActualizada;
 
@@ -658,6 +676,7 @@ class CacheListasAsistencia {
    */
   static async obtener(
     clave: string,
+    nivel: NivelEducativo,
     googleDriveId?: string,
     consultaEspecifica?: {
       idEstudiante: string;
@@ -701,7 +720,8 @@ class CacheListasAsistencia {
     // Si no se proporciona googleDriveId, solo verificar datos internos
     if (!googleDriveId) {
       const datosActualizados = await this.estaActualizadaInternamente(
-        entrada.datos
+        entrada.datos,
+        nivel
       );
 
       if (!datosActualizados.estaActualizada) {
@@ -723,6 +743,7 @@ class CacheListasAsistencia {
       clave,
       googleDriveId,
       entrada,
+      nivel,
       consultaEspecifica,
       consultaAula
     );
@@ -774,8 +795,11 @@ class CacheListasAsistencia {
     const stats: Record<string, any> = {};
 
     for (const [clave, entrada] of this.cache.entries()) {
+      // Para estadísticas, usar PRIMARIA como default ya que no tenemos el nivel en la clave
+      const nivelDefault = NivelEducativo.PRIMARIA;
       const datosInternos = await this.estaActualizadaInternamente(
-        entrada.datos
+        entrada.datos,
+        nivelDefault
       );
 
       // Contar total de estudiantes en todas las secciones
@@ -1082,7 +1106,8 @@ export class AsistenciasEscolaresHoyRepository {
    * Verifica si una lista está actualizada
    */
   private async estaActualizada(
-    datos: AsistenciasEscolaresArchivo
+    datos: AsistenciasEscolaresArchivo,
+    nivel: NivelEducativo
   ): Promise<boolean> {
     const ahoraFecha = await obtenerFechaHoraActualPeru();
     let diferenciaMinutos =
@@ -1093,8 +1118,8 @@ export class AsistenciasEscolaresHoyRepository {
       diferenciaMinutos = Math.abs(diferenciaMinutos);
     }
 
-    const estaActualizada =
-      diferenciaMinutos <= INTERVALO_ACTUALIZACION_LISTAS_MINUTOS;
+    const intervaloMaximo = obtenerIntervaloActualizacion(nivel);
+    const estaActualizada = diferenciaMinutos <= intervaloMaximo;
 
     console.log(
       `${this.logPrefix} 📅 Fecha actualización archivo: ${datos.Fecha_Actualizacion}`
@@ -1108,7 +1133,7 @@ export class AsistenciasEscolaresHoyRepository {
       )}`
     );
     console.log(
-      `${this.logPrefix} ⚙️ Intervalo máximo configurado: ${INTERVALO_ACTUALIZACION_LISTAS_MINUTOS} min`
+      `${this.logPrefix} ⚙️ Intervalo máximo configurado para ${nivel}: ${intervaloMaximo} min`
     );
     console.log(
       `${this.logPrefix} ✅ ¿Está actualizada? (usando hora Perú): ${estaActualizada}`
@@ -1466,6 +1491,7 @@ export class AsistenciasEscolaresHoyRepository {
       // Obtener datos del cache (con verificación automática optimizada por disponibilidad)
       let datosLista = await CacheListasAsistencia.obtener(
         cacheKey,
+        nivel,
         googleDriveId,
         consultaEspecifica
       );
@@ -1520,7 +1546,7 @@ export class AsistenciasEscolaresHoyRepository {
             tipoAsistencia
           );
 
-          const estaActualizada = await this.estaActualizada(datosLista);
+          const estaActualizada = await this.estaActualizada(datosLista, nivel);
 
           if (!estaActualizada) {
             console.log(`${this.logPrefix} ⚠️ Lista NO está actualizada`);
@@ -1657,7 +1683,7 @@ export class AsistenciasEscolaresHoyRepository {
         `${this.logPrefix} ✅ Resultado construido exitosamente desde Google Drive`
       );
 
-      const estadoActualizacion = await this.estaActualizada(datosLista);
+      const estadoActualizacion = await this.estaActualizada(datosLista, nivel);
 
       return {
         datos: resultado,
@@ -1764,6 +1790,7 @@ export class AsistenciasEscolaresHoyRepository {
 
       let datosLista = await CacheListasAsistencia.obtener(
         cacheKey,
+        nivel,
         googleDriveId,
         undefined,
         consultaAula
@@ -1818,7 +1845,7 @@ export class AsistenciasEscolaresHoyRepository {
             tipoAsistencia
           );
 
-          if (!(await this.estaActualizada(datosLista))) {
+          if (!(await this.estaActualizada(datosLista, nivel))) {
             console.log(
               `${this.logPrefix} ⚠️ Lista de aula NO está actualizada, gatillando actualización`
             );

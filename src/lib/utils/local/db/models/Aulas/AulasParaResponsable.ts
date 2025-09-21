@@ -30,6 +30,50 @@ export class AulasParaResponsablesIDB extends BaseAulasIDB<T_Aulas> {
   }
 
   /**
+   * MÉTODO SIMPLE: Obtiene un aula por ID con sync automático
+   */
+  public async obtenerAulaPorId(idAula: string): Promise<T_Aulas | null> {
+    this.setIsSomethingLoading?.(true);
+    this.setError?.(null);
+    this.setSuccessMessage?.(null);
+
+    try {
+      // SIMPLE: Solo ejecutar sync antes de consultar
+      await this.sync();
+
+      // Consultar localmente primero
+      let aula = await this.getAulaPorId(idAula);
+
+      // Si no existe localmente, consultar API específica
+      if (!aula) {
+        const aulasDesdeAPI = await this.solicitarAulasDesdeAPI([idAula]);
+
+        if (aulasDesdeAPI.length > 0) {
+          await this.upsertFromServer(aulasDesdeAPI);
+          aula = aulasDesdeAPI[0];
+        }
+      }
+
+      if (aula) {
+        this.handleSuccess(`Datos del aula ${idAula} obtenidos exitosamente`);
+      } else {
+        this.setError?.({
+          success: false,
+          message: `No se encontró el aula con ID: ${idAula}`,
+          errorType: "USER_NOT_FOUND" as any,
+        });
+      }
+
+      this.setIsSomethingLoading?.(false);
+      return aula;
+    } catch (error) {
+      this.handleIndexedDBError(error, `obtener aula ${idAula}`);
+      this.setIsSomethingLoading?.(false);
+      return null;
+    }
+  }
+
+  /**
    * Solicita aulas desde la API
    */
   protected async solicitarAulasDesdeAPI(

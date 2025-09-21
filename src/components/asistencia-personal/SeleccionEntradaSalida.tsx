@@ -1,4 +1,4 @@
-import { ModoRegistro } from "@/interfaces/shared/ModoRegistroPersonal";
+import { ModoRegistro } from "@/interfaces/shared/ModoRegistro";
 import EntradaIcon from "../icons/EntradaIcon";
 import SalidaIcon from "../icons/SalidaIcon";
 import { RolBoton } from "../shared/buttons/RolButton";

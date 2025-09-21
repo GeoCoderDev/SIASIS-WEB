@@ -44,6 +44,7 @@ export enum UserErrorTypes {
   USER_ROLE_MISMATCH = "USER_ROLE_MISMATCH",
   USER_SUSPENDED = "USER_SUSPENDED", // 🆕 Usuario suspendido
   USER_DELETED = "USER_DELETED", // 🆕 Usuario eliminado
+  UNAUTHORIZED_ACCESS = "UNAUTHORIZED_ACCESS", // 🆕 Acceso no autorizado
 }
 
 /**
