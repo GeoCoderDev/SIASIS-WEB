@@ -558,7 +558,7 @@ const RegistrosAsistenciasEscolares = () => {
 
       {/* Contenido principal - Área fija para tabla/loader/placeholder */}
       <div className="flex-1 p-4 overflow-hidden w-full">
-        <div className="h-full w-full">
+        <div className="h-full w-full overflow-auto">
           {isLoading ? (
             <div className="h-full flex items-center justify-center bg-white rounded-lg shadow-sm">
               <div className="text-center">
@@ -613,7 +613,7 @@ const TablaAsistencias = ({ datos }: { datos: DatosTablaAsistencias }) => {
     esMesActual && diaSemanaActual >= 1 && diaSemanaActual <= 5;
 
   return (
-    <div className="bg-white rounded-lg shadow-sm h-full flex flex-col overflow-hidden w-full">
+    <div className="bg-white rounded-lg shadow-sm h-full flex flex-col overflow-hidden w-full max-w-full max-h-[500px]">
       {/* Header de la tabla */}
       <div className="p-4 border-b border-gray-200 flex-shrink-0">
         <div className="flex justify-between items-center">
@@ -628,7 +628,7 @@ const TablaAsistencias = ({ datos }: { datos: DatosTablaAsistencias }) => {
       </div>
 
       {/* Contenedor de tabla con scroll propio */}
-      <div className="flex-1 overflow-auto max-h-[600px]">
+      <div className="flex-1 overflow-auto">
         <table className="min-w-full relative border-collapse">
           <thead className="bg-gray-50">
             <tr>
