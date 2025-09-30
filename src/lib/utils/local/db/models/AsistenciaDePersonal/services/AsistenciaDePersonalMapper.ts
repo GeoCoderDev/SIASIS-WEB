@@ -116,8 +116,8 @@ export class AsistenciaDePersonalMapper {
     const baseNames = {
       [TipoPersonal.DIRECTIVO]:
         modoRegistro === ModoRegistro.Entrada
-          ? "control_entrada_mensual_directivos"
-          : "control_salida_mensual_directivos",
+          ? "control_entrada_directivos"
+          : "control_salida_directivos",
       [TipoPersonal.PROFESOR_PRIMARIA]:
         modoRegistro === ModoRegistro.Entrada
           ? "control_entrada_profesores_primaria"

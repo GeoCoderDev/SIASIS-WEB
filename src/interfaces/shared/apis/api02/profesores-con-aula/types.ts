@@ -1,7 +1,7 @@
 import {
   ProfesorPrimariaGenericoConCelular,
   ProfesorSecundariaGenericoConCelular,
-} from "@/interfaces/shared/Profesores";
+} from "../../../Profesores";
 import { ErrorResponseAPIBase } from "../../types";
 
 export interface ProfesorConAulaSuccessResponse {
@@ -11,4 +11,5 @@ export interface ProfesorConAulaSuccessResponse {
     | ProfesorSecundariaGenericoConCelular;
 }
 
-export interface ProfesorConAulaErrorAPI02 extends ErrorResponseAPIBase {}
+export interface ProfesorConAulaErrorAPI02 extends ErrorResponseAPIBase {
+}
