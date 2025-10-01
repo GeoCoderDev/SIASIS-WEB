@@ -7,7 +7,7 @@ import {
 } from "@/interfaces/shared/AsistenciaRequests";
 import { Meses } from "@/interfaces/shared/Meses";
 import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
-import { AsistenciasEscolaresHoyRepository } from "./_utils/AsistenciasTomadasHoyRepository";
+import { AsistenciasEscolaresHoyRepository } from "./_utils/AsistenciasEscolaresTomadasHoyRepository";
 
 /**
  * Interfaz para la respuesta del endpoint de consulta de asistencias de estudiantes

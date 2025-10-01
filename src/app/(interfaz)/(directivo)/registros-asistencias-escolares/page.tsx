@@ -10,7 +10,7 @@ import {
   MessageProperty,
 } from "@/interfaces/shared/apis/types";
 import Loader from "@/components/shared/loaders/Loader";
-import { AsistenciasEscolaresPorAulaIDB } from "@/lib/utils/local/db/models/AsistenciasEscolares/Para Responsables/AsistenciasEscolaresPorAulaIDB";
+import { AsistenciasEscolaresPorAulaParaDirectivosIDB } from "@/lib/utils/local/db/models/AsistenciasEscolares/Para Responsables/AsistenciasEscolaresPorAulaParaDirectivosIDB";
 import {
   COLORES_ESTADOS,
   MESES,
@@ -76,7 +76,7 @@ const RegistrosAsistenciasEscolares = () => {
   const [estudiantesIDB] = useState(() => new BaseEstudiantesIDB());
   const [asistenciasIDB] = useState(
     () =>
-      new AsistenciasEscolaresPorAulaIDB(
+      new AsistenciasEscolaresPorAulaParaDirectivosIDB(
         setIsLoading,
         setError,
         setSuccessMessage
@@ -632,7 +632,7 @@ const TablaAsistencias = ({ datos }: { datos: DatosTablaAsistencias }) => {
         <table className="min-w-full relative border-collapse">
           <thead className="bg-gray-50">
             <tr>
-              <th className="sticky left-0 top-0 bg-gray-50 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-b-0 border-gray-200 z-30 min-w-[200px] h-10">
+              <th className="md:sticky md:left-0 sticky top-0 bg-gray-50 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-b-0 border-gray-200 md:z-30 z-20 min-w-[200px] h-10">
                 {/* Espacio para el nombre */}
               </th>
               {datos.diasDelMes.map(({ dia, diaSemana }) => (
@@ -643,18 +643,18 @@ const TablaAsistencias = ({ datos }: { datos: DatosTablaAsistencias }) => {
                   {diaSemana}
                 </th>
               ))}
-              <th className="sticky right-[120px] top-0 bg-gray-50 px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-b-0 border-gray-200 z-30 min-w-[60px] h-10">
+              <th className="md:sticky md:right-[120px] sticky top-0 bg-gray-50 px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-b-0 border-gray-200 md:z-30 z-20 min-w-[60px] h-10">
                 {/* Espacio para F */}
               </th>
-              <th className="sticky right-[60px] top-0 bg-gray-50 px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-b-0 border-gray-200 z-30 min-w-[60px] h-10">
+              <th className="md:sticky md:right-[60px] sticky top-0 bg-gray-50 px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-b-0 border-gray-200 md:z-30 z-20 min-w-[60px] h-10">
                 {/* Espacio para T */}
               </th>
-              <th className="sticky right-0 top-0 bg-gray-50 px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-b-0 border-gray-200 z-30 min-w-[60px] h-10">
+              <th className="md:sticky md:right-0 sticky top-0 bg-gray-50 px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-b-0 border-gray-200 md:z-30 z-20 min-w-[60px] h-10">
                 {/* Espacio para A */}
               </th>
             </tr>
             <tr>
-              <th className="sticky left-0 top-10 bg-gray-50 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-b border-gray-200 z-30 h-12">
+              <th className="md:sticky md:left-0 sticky top-10 bg-gray-50 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-b border-gray-200 md:z-30 z-20 h-12">
                 Apellidos y Nombres
               </th>
               {datos.diasDelMes.map(({ dia }) => (
@@ -672,13 +672,13 @@ const TablaAsistencias = ({ datos }: { datos: DatosTablaAsistencias }) => {
                   </div>
                 </th>
               ))}
-              <th className="sticky right-[120px] top-10 bg-gray-50 px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-b border-gray-200 z-30 h-12">
+              <th className="md:sticky md:right-[120px] sticky top-10 bg-gray-50 px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-b border-gray-200 md:z-30 z-20 h-12">
                 F
               </th>
-              <th className="sticky right-[60px] top-10 bg-gray-50 px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 z-30 h-12">
+              <th className="md:sticky md:right-[60px] sticky top-10 bg-gray-50 px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 md:z-30 z-20 h-12">
                 T
               </th>
-              <th className="sticky right-0 top-10 bg-gray-50 px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-b border-gray-200 z-30 h-12">
+              <th className="md:sticky md:right-0 sticky top-10 bg-gray-50 px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-b border-gray-200 md:z-30 z-20 h-12">
                 A
               </th>
             </tr>
@@ -690,7 +690,7 @@ const TablaAsistencias = ({ datos }: { datos: DatosTablaAsistencias }) => {
                 key={item.estudiante.Id_Estudiante}
                 className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
               >
-                <td className="sticky left-0 bg-inherit px-4 py-3 text-sm font-medium text-gray-900 border-r border-gray-200 z-10 min-w-[200px]">
+                <td className="md:sticky md:left-0 bg-inherit px-4 py-3 text-sm font-medium text-gray-900 border-r border-gray-200 md:z-10 min-w-[200px]">
                   <div className="truncate">
                     {item.estudiante.Apellidos}, {item.estudiante.Nombres}
                   </div>
@@ -708,13 +708,13 @@ const TablaAsistencias = ({ datos }: { datos: DatosTablaAsistencias }) => {
                   </td>
                 ))}
 
-                <td className="sticky right-[120px] bg-inherit px-4 py-3 text-center text-sm font-medium text-red-600 border-l border-gray-200 z-10">
+                <td className="md:sticky md:right-[120px] bg-inherit px-4 py-3 text-center text-sm font-medium text-red-600 border-l border-gray-200 md:z-10">
                   {item.totales.faltas}
                 </td>
-                <td className="sticky right-[60px] bg-inherit px-4 py-3 text-center text-sm font-medium text-orange-600 z-10">
+                <td className="md:sticky md:right-[60px] bg-inherit px-4 py-3 text-center text-sm font-medium text-orange-600 md:z-10">
                   {item.totales.tardanzas}
                 </td>
-                <td className="sticky right-0 bg-inherit px-4 py-3 text-center text-sm font-medium text-green-600 border-l border-gray-200 z-10">
+                <td className="md:sticky md:right-0 bg-inherit px-4 py-3 text-center text-sm font-medium text-green-600 border-l border-gray-200 md:z-10">
                   {item.totales.asistencias}
                 </td>
               </tr>
