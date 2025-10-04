@@ -25,11 +25,11 @@ import {
 // Constante para controlar si se muestran mensajes de éxito
 const MOSTRAR_MENSAJES_EXITO = false;
 import { AsistenciaProcessor } from "../../../../../../lib/utils/asistencia/AsistenciasEscolaresProcessor";
-import AsistenciaLeyendaDrawer from "../../../../../../components/asistencias-escolares/AsistenciaEscolarLegendDrawer";
+import AsistenciaLeyendaDrawer from "../../../../../../components/asistencias-escolares/por-estudiante/AsistenciaEscolarLegendDrawer";
 import MiEstudianteRelacionadoCard from "../../_components/MiEstudianteRelacionadoCard";
-import DatosProfesorCard from "../../../../../../components/asistencias-escolares/DatosProfesorDeAulaCard";
-import CalendarioAsistencias from "../../../../../../components/asistencias-escolares/CalendarioAsistenciaEscolarMensual";
-import EstadisticasMensuales from "../../../../../../components/asistencias-escolares/EstadisticasMensualesDeEstudiante";
+import DatosProfesorCard from "../../../../../../components/asistencias-escolares/por-estudiante/DatosProfesorDeAulaCard";
+import CalendarioAsistencias from "../../../../../../components/asistencias-escolares/por-estudiante/CalendarioAsistenciaEscolarMensual";
+import EstadisticasMensuales from "../../../../../../components/asistencias-escolares/por-estudiante/EstadisticasMensualesDeEstudiante";
 import VolverIcon from "@/components/icons/VolverIcon";
 
 // Interfaces para el profesor

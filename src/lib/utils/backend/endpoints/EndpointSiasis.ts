@@ -4,6 +4,7 @@ import {
   SuccessResponseAPIBase,
 } from "@/interfaces/shared/apis/types";
 import { SiasisAPIS } from "@/interfaces/shared/SiasisComponents";
+import { CustomApiError } from "@/lib/errors/custom/ApiError";
 
 // ============================================
 // UTILITY TYPES AVANZADAS
@@ -309,9 +310,17 @@ export class EndpointSiasis<
       const response = await fetchCancelable.fetch();
 
       if (!response.ok) {
-        throw new Error(
-          `Error HTTP ${response.status}: ${response.statusText} en ${metodoHttp} ${rutaCompleta}`
+        const errorPersonalizado = new CustomApiError(
+          `Error HTTP ${response.status}: ${response.statusText} en ${metodoHttp} ${rutaCompleta}`,
+          {
+            metodoHttp,
+            ruta: rutaCompleta,
+            statusCode: response.status,
+            statusText: response.statusText,
+          }
         );
+
+        throw errorPersonalizado;
       }
 
       // Procesar la respuesta

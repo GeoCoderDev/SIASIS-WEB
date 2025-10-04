@@ -2,8 +2,8 @@
 "use client";
 
 import { EstadosAsistenciaEscolar } from "@/interfaces/shared/EstadosAsistenciaEstudiantes";
-import { COLORES_ESTADOS } from "../../app/(interfaz)/(responsable)/mis-estudiantes-relacionados/[Id_Estudiante]/asistencias-mensuales/types";
-import { AsistenciaProcessor } from "../../lib/utils/asistencia/AsistenciasEscolaresProcessor";
+import { COLORES_ESTADOS } from "../../../app/(interfaz)/(responsable)/mis-estudiantes-relacionados/[Id_Estudiante]/asistencias-mensuales/types";
+import { AsistenciaProcessor } from "../../../lib/utils/asistencia/AsistenciasEscolaresProcessor";
 
 interface AsistenciaEscolarLeyendaDrawerProps {
   isOpen: boolean;

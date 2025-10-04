@@ -4,7 +4,7 @@ import { EstadosAsistenciaEscolar } from "@/interfaces/shared/EstadosAsistenciaE
 import {
   COLORES_ESTADOS,
   EstadisticasMes,
-} from "../../app/(interfaz)/(responsable)/mis-estudiantes-relacionados/[Id_Estudiante]/asistencias-mensuales/types";
+} from "../../../app/(interfaz)/(responsable)/mis-estudiantes-relacionados/[Id_Estudiante]/asistencias-mensuales/types";
 
 interface EstadisticasMensualesDeEstudianteProps {
   estadisticas: EstadisticasMes;

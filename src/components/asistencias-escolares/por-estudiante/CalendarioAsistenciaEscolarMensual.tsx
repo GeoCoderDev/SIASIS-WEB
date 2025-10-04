@@ -5,8 +5,8 @@ import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
 import {
   COLORES_ESTADOS,
   DiaCalendario,
-} from "../../app/(interfaz)/(responsable)/mis-estudiantes-relacionados/[Id_Estudiante]/asistencias-mensuales/types";
-import { AsistenciaProcessor } from "../../lib/utils/asistencia/AsistenciasEscolaresProcessor";
+} from "../../../app/(interfaz)/(responsable)/mis-estudiantes-relacionados/[Id_Estudiante]/asistencias-mensuales/types";
+import { AsistenciaProcessor } from "../../../lib/utils/asistencia/AsistenciasEscolaresProcessor";
 import { EstadosAsistenciaEscolar } from "@/interfaces/shared/EstadosAsistenciaEstudiantes";
 
 interface CalendarioAsistenciaEscolarMensualProps {
