@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { EstadosAsistenciaEscolar } from "@/interfaces/shared/EstadosAsistenciaEstudiantes";
 import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
 import * as ExcelJS from "exceljs";
-import { DatosTablaAsistencias } from "@/app/(interfaz)/(directivo)/registros-asistencias-escolares/page";
+
 import { EstadosAsistenciaEscolarParaExcel } from "@/Assets/asistencia/EstadosEscolaresParaExcel";
 import { COLORES_ESTADOS_ASISTENCIA_ESCOLAR } from "@/app/(interfaz)/(responsable)/mis-estudiantes-relacionados/[Id_Estudiante]/asistencias-mensuales/types";
+import { DatosTablaAsistencias } from "./ConsultaAsistenciasEscolaresPorRol";
 
 interface TablaAsistenciasEscolaresProps {
   datos: DatosTablaAsistencias;
