@@ -2,7 +2,7 @@
 "use client";
 
 import { EstadosAsistenciaEscolar } from "@/interfaces/shared/EstadosAsistenciaEstudiantes";
-import { COLORES_ESTADOS } from "../../../app/(interfaz)/(responsable)/mis-estudiantes-relacionados/[Id_Estudiante]/asistencias-mensuales/types";
+import { COLORES_ESTADOS_ASISTENCIA_ESCOLAR } from "../../../app/(interfaz)/(responsable)/mis-estudiantes-relacionados/[Id_Estudiante]/asistencias-mensuales/types";
 import { AsistenciaProcessor } from "../../../lib/utils/asistencia/AsistenciasEscolaresProcessor";
 
 interface AsistenciaEscolarLeyendaDrawerProps {
@@ -103,7 +103,7 @@ const AsistenciaEscolarLeyendaDrawer = ({
             </h3>
 
             {estadosInfo.map((info) => {
-              const colores = COLORES_ESTADOS[info.estado];
+              const colores = COLORES_ESTADOS_ASISTENCIA_ESCOLAR[info.estado];
               const texto = AsistenciaProcessor.obtenerTextoEstado(info.estado);
 
               return (

@@ -10,18 +10,20 @@ import {
   MessageProperty,
 } from "@/interfaces/shared/apis/types";
 import Loader from "@/components/shared/loaders/Loader";
-
 import { MESES } from "../../(responsable)/mis-estudiantes-relacionados/[Id_Estudiante]/asistencias-mensuales/types";
 import { AsistenciaEscolarDeUnDia } from "@/interfaces/shared/AsistenciasEscolares";
-
 import {
   EventosIDB,
   IEventoLocal,
 } from "@/lib/utils/local/db/models/EventosLocal/EventosIDB";
 import { AsistenciasEscolaresPorAulaParaDirectivosIDB } from "@/lib/utils/local/db/models/AsistenciasEscolares/Para Directivos/AsistenciasEscolaresPorAulaParaDirectivosIDB";
-import FiltrosConsultaAsistencias from "@/components/asistencias-escolares/por-aula/FiltrosConsultaAsistencias";
+
 import MensajesNotificacion from "@/components/asistencias-escolares/por-aula/MensajeNotificacion";
 import TablaAsistenciasEscolares from "@/components/asistencias-escolares/por-aula/TablaAsistenciasEscolares";
+import FiltrosConsultaAsistenciasEscolares from "@/components/asistencias-escolares/por-aula/FiltrosConsultaAsistenciasEscolares";
+
+// Constante para controlar mensajes de éxito
+const MOSTRAR_MENSAJES_EXITO = false;
 
 export interface EstudianteConAsistencias {
   estudiante: T_Estudiantes;
@@ -43,7 +45,6 @@ export interface DatosTablaAsistencias {
 }
 
 const RegistrosAsistenciasEscolares = () => {
-  // Estados temporales (antes de consultar)
   const [nivelTemporal, setNivelTemporal] = useState<NivelEducativo | "">("");
   const [gradoTemporal, setGradoTemporal] = useState<number | "">("");
   const [seccionTemporal, setSeccionTemporal] = useState<string>("");
@@ -51,7 +52,6 @@ const RegistrosAsistenciasEscolares = () => {
     new Date().getMonth() + 1
   );
 
-  // Estados confirmados (después de consultar)
   const [nivelSeleccionado, setNivelSeleccionado] = useState<
     NivelEducativo | ""
   >("");
@@ -61,7 +61,6 @@ const RegistrosAsistenciasEscolares = () => {
     new Date().getMonth() + 1
   );
 
-  // Estados de UI
   const [gradosDisponibles, setGradosDisponibles] = useState<number[]>([]);
   const [seccionesDisponibles, setSeccionesDisponibles] = useState<string[]>(
     []
@@ -80,7 +79,6 @@ const RegistrosAsistenciasEscolares = () => {
     null
   );
 
-  // Instancias de modelos
   const [aulasIDB] = useState(() => new BaseAulasIDB());
   const [estudiantesIDB] = useState(() => new BaseEstudiantesIDB());
   const [asistenciasIDB] = useState(
@@ -88,11 +86,10 @@ const RegistrosAsistenciasEscolares = () => {
       new AsistenciasEscolaresPorAulaParaDirectivosIDB(
         setIsLoading,
         setError,
-        setSuccessMessage
+        MOSTRAR_MENSAJES_EXITO ? setSuccessMessage : undefined
       )
   );
 
-  // Cargar grados cuando cambia el nivel
   useEffect(() => {
     if (nivelTemporal) {
       cargarGradosDisponibles(nivelTemporal);
@@ -102,7 +99,6 @@ const RegistrosAsistenciasEscolares = () => {
     }
   }, [nivelTemporal]);
 
-  // Cargar secciones cuando cambia el grado
   useEffect(() => {
     if (nivelTemporal && gradoTemporal) {
       cargarSeccionesDisponibles(nivelTemporal, gradoTemporal);
@@ -111,25 +107,6 @@ const RegistrosAsistenciasEscolares = () => {
       setSeccionTemporal("");
     }
   }, [nivelTemporal, gradoTemporal]);
-
-  // Cargar aula cuando cambian los filtros seleccionados
-  useEffect(() => {
-    if (nivelSeleccionado && gradoSeleccionado && seccionSeleccionada) {
-      cargarAulaSeleccionada();
-    } else {
-      setAulaSeleccionada(null);
-      setDatosTabla(null);
-    }
-  }, [nivelSeleccionado, gradoSeleccionado, seccionSeleccionada]);
-
-  // Cargar asistencias cuando cambia el aula o mes
-  useEffect(() => {
-    if (aulaSeleccionada && mesSeleccionado) {
-      cargarAsistenciasAula();
-    } else {
-      setDatosTabla(null);
-    }
-  }, [aulaSeleccionada, mesSeleccionado]);
 
   const cargarGradosDisponibles = async (nivel: NivelEducativo) => {
     try {
@@ -164,31 +141,15 @@ const RegistrosAsistenciasEscolares = () => {
     }
   };
 
-  const cargarAulaSeleccionada = async () => {
-    try {
-      const todasLasAulas = await aulasIDB.getTodasLasAulas();
-      const aula = todasLasAulas.find(
-        (aula) =>
-          aula.Nivel === nivelSeleccionado &&
-          aula.Grado === gradoSeleccionado &&
-          aula.Seccion === seccionSeleccionada
-      );
-      setAulaSeleccionada(aula || null);
-    } catch (error) {
-      console.error("Error cargando aula:", error);
-    }
-  };
-
-  // Función para obtener eventos del mes
   const obtenerEventos = async (mes: number): Promise<IEventoLocal[]> => {
     try {
-      console.log(`🔍 Obteniendo eventos para mes ${mes}...`);
-      const eventosIDB = new EventosIDB("API01", setLoadingEventos);
+      console.log(`Obteniendo eventos para mes ${mes}...`);
+      const eventosIDB = new EventosIDB("API01");
       const eventosDelMes = await eventosIDB.getEventosPorMes(mes);
-      console.log(`✅ Eventos obtenidos: ${eventosDelMes.length}`);
+      console.log(`Eventos obtenidos: ${eventosDelMes.length}`);
       eventosDelMes.forEach((evento) => {
         console.log(
-          `   🎉 ${evento.Nombre}: ${evento.Fecha_Inicio} a ${evento.Fecha_Conclusion}`
+          `   ${evento.Nombre}: ${evento.Fecha_Inicio} a ${evento.Fecha_Conclusion}`
         );
       });
       setEventos(eventosDelMes);
@@ -199,7 +160,6 @@ const RegistrosAsistenciasEscolares = () => {
     }
   };
 
-  // Función para verificar si una fecha es un evento
   const esEvento = (
     año: number,
     mes: number,
@@ -224,101 +184,11 @@ const RegistrosAsistenciasEscolares = () => {
 
     if (resultado.esEvento) {
       console.log(
-        `🎉 EVENTO DETECTADO para ${fechaConsulta}: ${resultado.nombreEvento}`
+        `EVENTO DETECTADO para ${fechaConsulta}: ${resultado.nombreEvento}`
       );
     }
 
     return resultado;
-  };
-
-  const cargarAsistenciasAula = async () => {
-    if (!aulaSeleccionada) return;
-
-    try {
-      // 1. Primero obtener eventos del mes
-      console.log(`🔍 Obteniendo eventos para mes ${mesSeleccionado}...`);
-      const eventosDelMes = await obtenerEventos(mesSeleccionado);
-      console.log(`✅ Eventos obtenidos: ${eventosDelMes.length}`);
-
-      // 2. Obtener estudiantes del aula
-      const todosEstudiantes = await estudiantesIDB.getTodosLosEstudiantes(
-        false
-      );
-      const estudiantesAula = todosEstudiantes.filter(
-        (estudiante) =>
-          estudiante.Id_Aula === aulaSeleccionada.Id_Aula && estudiante.Estado
-      );
-
-      if (estudiantesAula.length === 0) {
-        setDatosTabla(null);
-        setError({
-          success: false,
-          message: "No se encontraron estudiantes activos en esta aula",
-        });
-        return;
-      }
-
-      // 3. Obtener asistencias
-      const resultado = await asistenciasIDB.consultarAsistenciasMensualesAula(
-        aulaSeleccionada.Id_Aula,
-        mesSeleccionado
-      );
-
-      if (resultado.success && resultado.data) {
-        const estudiantesConAsistencias = procesarAsistenciasEstudiantes(
-          estudiantesAula,
-          resultado.data.Asistencias_Escolares,
-          aulaSeleccionada.Nivel as NivelEducativo,
-          eventosDelMes
-        );
-
-        const diasDelMes = obtenerDiasDelMes(mesSeleccionado);
-
-        setDatosTabla({
-          aula: aulaSeleccionada,
-          mes: mesSeleccionado,
-          estudiantes: estudiantesConAsistencias,
-          diasDelMes,
-          fechaConsulta: new Date().toLocaleString(),
-        });
-
-        setError(null);
-      } else if (resultado.requiereEspera && resultado.data) {
-        const estudiantesConAsistencias = procesarAsistenciasEstudiantes(
-          estudiantesAula,
-          resultado.data.Asistencias_Escolares,
-          aulaSeleccionada.Nivel as NivelEducativo,
-          eventosDelMes
-        );
-
-        const diasDelMes = obtenerDiasDelMes(mesSeleccionado);
-
-        setDatosTabla({
-          aula: aulaSeleccionada,
-          mes: mesSeleccionado,
-          estudiantes: estudiantesConAsistencias,
-          diasDelMes,
-          fechaConsulta: new Date().toLocaleString(),
-        });
-
-        setError(null);
-      } else {
-        setDatosTabla(null);
-        if (!resultado.requiereEspera) {
-          setError({
-            success: false,
-            message:
-              resultado.message || "No se pudieron cargar las asistencias",
-          });
-        }
-      }
-    } catch (error) {
-      console.error("Error cargando asistencias:", error);
-      setError({
-        success: false,
-        message: "Error inesperado al cargar las asistencias",
-      });
-    }
   };
 
   const procesarAsistenciasEstudiantes = (
@@ -328,10 +198,11 @@ const RegistrosAsistenciasEscolares = () => {
       Record<number, AsistenciaEscolarDeUnDia | null>
     >,
     nivel: NivelEducativo,
-    eventosDelMes: IEventoLocal[]
+    eventosDelMes: IEventoLocal[],
+    mes: number // ← AÑADE ESTE PARÁMETRO
   ): EstudianteConAsistencias[] => {
-    const TOLERANCIA_SEGUNDOS_PRIMARIA = 900; // 15 minutos
-    const TOLERANCIA_SEGUNDOS_SECUNDARIA = 300; // 5 minutos
+    const TOLERANCIA_SEGUNDOS_PRIMARIA = 900;
+    const TOLERANCIA_SEGUNDOS_SECUNDARIA = 300;
 
     const toleranciaSegundos =
       nivel === NivelEducativo.PRIMARIA
@@ -354,7 +225,7 @@ const RegistrosAsistenciasEscolares = () => {
           inactivos: 0,
         };
 
-        const diasEscolares = obtenerDiasDelMes(mesSeleccionado);
+        const diasEscolares = obtenerDiasDelMes(mes); // ← USA EL PARÁMETRO mes
         const diasEscolaresSet = new Set(diasEscolares.map((d) => d.dia));
 
         for (let dia = 1; dia <= 31; dia++) {
@@ -362,11 +233,10 @@ const RegistrosAsistenciasEscolares = () => {
             continue;
           }
 
-          // ✅ PRIORIDAD ABSOLUTA: Verificar si es evento PRIMERO
-          const eventoInfo = esEvento(año, mesSeleccionado, dia, eventosDelMes);
+          const eventoInfo = esEvento(año, mes, dia, eventosDelMes); // ← USA EL PARÁMETRO mes
           if (eventoInfo.esEvento) {
             asistenciasProcesadas[dia] = EstadosAsistenciaEscolar.Evento;
-            continue; // Saltar procesamiento de asistencias
+            continue;
           }
 
           const asistenciaDia = asistenciasEstudiante[dia];
@@ -438,11 +308,141 @@ const RegistrosAsistenciasEscolares = () => {
     return MESES.filter((mes) => mes.value >= 3 && mes.value <= mesActual);
   };
 
-  const handleConsultar = () => {
+  const handleConsultar = async () => {
+    setIsLoading(true);
+    setError(null);
+    if (MOSTRAR_MENSAJES_EXITO) {
+      setSuccessMessage(null);
+    }
+
     setNivelSeleccionado(nivelTemporal);
     setGradoSeleccionado(gradoTemporal);
     setSeccionSeleccionada(seccionTemporal);
     setMesSeleccionado(mesTemporal);
+
+    try {
+      const todasLasAulas = await aulasIDB.getTodasLasAulas();
+      const aula = todasLasAulas.find(
+        (aula) =>
+          aula.Nivel === nivelTemporal &&
+          aula.Grado === gradoTemporal &&
+          aula.Seccion === seccionTemporal
+      );
+
+      if (!aula) {
+        setIsLoading(false);
+        setError({
+          success: false,
+          message: "No se encontró el aula seleccionada",
+        });
+        return;
+      }
+
+      setAulaSeleccionada(aula);
+      await cargarAsistenciasDirectamente(aula, mesTemporal);
+    } catch (error) {
+      console.error("Error en handleConsultar:", error);
+      setError({
+        success: false,
+        message: "Error al consultar los datos",
+      });
+      setIsLoading(false);
+    }
+  };
+
+  const cargarAsistenciasDirectamente = async (aula: T_Aulas, mes: number) => {
+    try {
+      console.log(`Obteniendo eventos para mes ${mes}...`);
+      const eventosDelMes = await obtenerEventos(mes);
+      console.log(`Eventos obtenidos: ${eventosDelMes.length}`);
+
+      const todosEstudiantes = await estudiantesIDB.getTodosLosEstudiantes(
+        false
+      );
+      const estudiantesAula = todosEstudiantes.filter(
+        (estudiante) => estudiante.Id_Aula === aula.Id_Aula && estudiante.Estado
+      );
+
+      if (estudiantesAula.length === 0) {
+        setDatosTabla(null);
+        setError({
+          success: false,
+          message: "No se encontraron estudiantes activos en esta aula",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      const resultado = await asistenciasIDB.consultarAsistenciasMensualesAula(
+        aula.Id_Aula,
+        mes
+      );
+
+      if (resultado.success && resultado.data) {
+        const estudiantesConAsistencias = procesarAsistenciasEstudiantes(
+          estudiantesAula,
+          resultado.data.Asistencias_Escolares,
+          aula.Nivel as NivelEducativo,
+          eventosDelMes,
+          mes // ← PASA EL PARÁMETRO mes
+        );
+
+        const diasDelMes = obtenerDiasDelMes(mes);
+
+        setDatosTabla({
+          aula: aula,
+          mes: mes,
+          estudiantes: estudiantesConAsistencias,
+          diasDelMes,
+          fechaConsulta: new Date().toLocaleString(),
+        });
+
+        setError(null);
+
+        if (MOSTRAR_MENSAJES_EXITO) {
+          setSuccessMessage({
+            message: `Asistencias cargadas exitosamente: ${estudiantesConAsistencias.length} estudiantes`,
+          });
+        }
+      } else if (resultado.requiereEspera && resultado.data) {
+        const estudiantesConAsistencias = procesarAsistenciasEstudiantes(
+          estudiantesAula,
+          resultado.data.Asistencias_Escolares,
+          aula.Nivel as NivelEducativo,
+          eventosDelMes,
+          mes // ← PASA EL PARÁMETRO mes
+        );
+
+        const diasDelMes = obtenerDiasDelMes(mes);
+
+        setDatosTabla({
+          aula: aula,
+          mes: mes,
+          estudiantes: estudiantesConAsistencias,
+          diasDelMes,
+          fechaConsulta: new Date().toLocaleString(),
+        });
+
+        setError(null);
+      } else {
+        setDatosTabla(null);
+        if (!resultado.requiereEspera) {
+          setError({
+            success: false,
+            message:
+              resultado.message || "No se pudieron cargar las asistencias",
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error cargando asistencias:", error);
+      setError({
+        success: false,
+        message: "Error inesperado al cargar las asistencias",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const limpiarFiltros = () => {
@@ -461,13 +461,12 @@ const RegistrosAsistenciasEscolares = () => {
 
   return (
     <div className="w-full h-full bg-gray-50 flex flex-col overflow-hidden">
-      {/* Header - Siempre visible */}
       <div className="bg-white border-b border-gray-200 p-4 flex-shrink-0 w-full">
         <h1 className="text-2xl font-bold text-gray-900 mb-4">
           REGISTROS DE ASISTENCIA ESCOLAR
         </h1>
 
-        <FiltrosConsultaAsistencias
+        <FiltrosConsultaAsistenciasEscolares
           nivelTemporal={nivelTemporal}
           setNivelTemporal={setNivelTemporal}
           gradoTemporal={gradoTemporal}
@@ -481,6 +480,7 @@ const RegistrosAsistenciasEscolares = () => {
           mesesDisponibles={obtenerMesesDisponibles()}
           onConsultar={handleConsultar}
           onLimpiar={limpiarFiltros}
+          isLoading={isLoading || loadingEventos}
         />
 
         {aulaSeleccionada && (
@@ -504,15 +504,13 @@ const RegistrosAsistenciasEscolares = () => {
         )}
       </div>
 
-      {/* Mensajes */}
       <MensajesNotificacion
         error={error}
-        successMessage={successMessage}
+        successMessage={MOSTRAR_MENSAJES_EXITO ? successMessage : null}
         onCloseError={() => setError(null)}
         onCloseSuccess={() => setSuccessMessage(null)}
       />
 
-      {/* Contenido principal */}
       <div className="flex-1 p-4 overflow-hidden w-full">
         <div className="h-full w-full overflow-auto">
           {isLoading ? (

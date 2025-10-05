@@ -2,7 +2,7 @@
 
 import { EstadosAsistenciaEscolar } from "@/interfaces/shared/EstadosAsistenciaEstudiantes";
 import {
-  COLORES_ESTADOS,
+  COLORES_ESTADOS_ASISTENCIA_ESCOLAR,
   EstadisticasMes,
 } from "../../../app/(interfaz)/(responsable)/mis-estudiantes-relacionados/[Id_Estudiante]/asistencias-mensuales/types";
 
@@ -70,7 +70,7 @@ const EstadisticasMensualesDeEstudiante = ({
       };
     }
 
-    const colores = COLORES_ESTADOS[estado];
+    const colores = COLORES_ESTADOS_ASISTENCIA_ESCOLAR[estado];
     return {
       background: colores.background.replace("bg-", "bg-") + "/10",
       text: colores.text

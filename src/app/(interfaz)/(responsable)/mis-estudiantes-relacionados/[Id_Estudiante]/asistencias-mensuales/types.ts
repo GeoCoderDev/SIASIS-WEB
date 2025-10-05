@@ -66,39 +66,41 @@ export interface ColoresEstado {
 }
 
 // Mapeo de colores para estados
-export const COLORES_ESTADOS: Record<EstadosAsistenciaEscolar, ColoresEstado> =
-  {
-    [EstadosAsistenciaEscolar.Temprano]: {
-      background: "bg-blue-500",
-      text: "text-white",
-      border: "border-blue-500",
-    },
-    [EstadosAsistenciaEscolar.Tarde]: {
-      background: "bg-orange-500",
-      text: "text-white",
-      border: "border-orange-500",
-    },
-    [EstadosAsistenciaEscolar.Falta]: {
-      background: "bg-red-700",
-      text: "text-white",
-      border: "border-red-700",
-    },
-    [EstadosAsistenciaEscolar.Inactivo]: {
-      background: "bg-gray-400",
-      text: "text-white",
-      border: "border-gray-400",
-    },
-    [EstadosAsistenciaEscolar.Evento]: {
-      background: "bg-purple-600",
-      text: "text-white",
-      border: "border-purple-600",
-    },
-    [EstadosAsistenciaEscolar.Vacaciones]: {
-      background: "bg-yellow-400",
-      text: "text-black",
-      border: "border-yellow-400",
-    },
-  };
+export const COLORES_ESTADOS_ASISTENCIA_ESCOLAR: Record<
+  EstadosAsistenciaEscolar,
+  ColoresEstado
+> = {
+  [EstadosAsistenciaEscolar.Temprano]: {
+    background: "bg-blue-500",
+    text: "text-white",
+    border: "border-blue-500",
+  },
+  [EstadosAsistenciaEscolar.Tarde]: {
+    background: "bg-orange-500",
+    text: "text-white",
+    border: "border-orange-500",
+  },
+  [EstadosAsistenciaEscolar.Falta]: {
+    background: "bg-red-700",
+    text: "text-white",
+    border: "border-red-700",
+  },
+  [EstadosAsistenciaEscolar.Inactivo]: {
+    background: "bg-gray-400",
+    text: "text-white",
+    border: "border-gray-400",
+  },
+  [EstadosAsistenciaEscolar.Evento]: {
+    background: "bg-purple-600",
+    text: "text-white",
+    border: "border-purple-600",
+  },
+  [EstadosAsistenciaEscolar.Vacaciones]: {
+    background: "bg-yellow-400",
+    text: "text-black",
+    border: "border-yellow-400",
+  },
+};
 
 // Interface para información de meses - optimizada
 export interface MesInfo {

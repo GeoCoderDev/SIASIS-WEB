@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
 import {
-  COLORES_ESTADOS,
+  COLORES_ESTADOS_ASISTENCIA_ESCOLAR,
   DiaCalendario,
 } from "../../../app/(interfaz)/(responsable)/mis-estudiantes-relacionados/[Id_Estudiante]/asistencias-mensuales/types";
 import { AsistenciaProcessor } from "../../../lib/utils/asistencia/AsistenciasEscolaresProcessor";
@@ -63,7 +63,7 @@ const CalendarioAsistenciaEscolarMensual = ({
       };
     }
 
-    const colores = COLORES_ESTADOS[dia.asistencia.estado];
+    const colores = COLORES_ESTADOS_ASISTENCIA_ESCOLAR[dia.asistencia.estado];
     return {
       container: `${colores.background}/10 ${colores.border}/30 border-2`,
       content: "text-gray-800",
@@ -131,9 +131,10 @@ const CalendarioAsistenciaEscolarMensual = ({
           <div className="flex items-center gap-1">
             <div
               className={`w-5 h-5 ${
-                COLORES_ESTADOS[dia.asistencia.estado].background
+                COLORES_ESTADOS_ASISTENCIA_ESCOLAR[dia.asistencia.estado]
+                  .background
               } ${
-                COLORES_ESTADOS[dia.asistencia.estado].text
+                COLORES_ESTADOS_ASISTENCIA_ESCOLAR[dia.asistencia.estado].text
               } rounded flex items-center justify-center`}
             >
               <span className="font-bold text-xs">{textoEstado}</span>
@@ -165,9 +166,10 @@ const CalendarioAsistenciaEscolarMensual = ({
           <div className="text-sm font-semibold text-gray-700">{dia.dia}</div>
           <div
             className={`w-4 h-4 ${
-              COLORES_ESTADOS[dia.asistencia.estado].background
+              COLORES_ESTADOS_ASISTENCIA_ESCOLAR[dia.asistencia.estado]
+                .background
             } ${
-              COLORES_ESTADOS[dia.asistencia.estado].text
+              COLORES_ESTADOS_ASISTENCIA_ESCOLAR[dia.asistencia.estado].text
             } rounded flex items-center justify-center`}
           >
             <span className="font-bold text-xs">{textoEstado}</span>
@@ -222,7 +224,7 @@ const CalendarioAsistenciaEscolarMensual = ({
       ? AsistenciaProcessor.obtenerTextoEstado(dia.asistencia.estado)
       : "-";
     const colores = dia.asistencia
-      ? COLORES_ESTADOS[dia.asistencia.estado]
+      ? COLORES_ESTADOS_ASISTENCIA_ESCOLAR[dia.asistencia.estado]
       : {
           background: "bg-gray-100",
           text: "text-gray-400",
@@ -272,7 +274,7 @@ const CalendarioAsistenciaEscolarMensual = ({
               ? AsistenciaProcessor.obtenerTextoEstado(dia.asistencia.estado)
               : "-";
             const colores = dia.asistencia
-              ? COLORES_ESTADOS[dia.asistencia.estado]
+              ? COLORES_ESTADOS_ASISTENCIA_ESCOLAR[dia.asistencia.estado]
               : {
                   background: "bg-gray-100",
                   text: "text-gray-400",

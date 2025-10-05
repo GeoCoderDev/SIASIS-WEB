@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import { EstadosAsistenciaEscolar } from "@/interfaces/shared/EstadosAsistenciaEstudiantes";
 import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
-import { FileDown, Loader2 } from "lucide-react";
 import * as ExcelJS from "exceljs";
 import { DatosTablaAsistencias } from "@/app/(interfaz)/(directivo)/registros-asistencias-escolares/page";
 import { EstadosAsistenciaEscolarParaExcel } from "@/Assets/asistencia/EstadosEscolaresParaExcel";
-import { COLORES_ESTADOS } from "@/app/(interfaz)/(responsable)/mis-estudiantes-relacionados/[Id_Estudiante]/asistencias-mensuales/types";
+import { COLORES_ESTADOS_ASISTENCIA_ESCOLAR } from "@/app/(interfaz)/(responsable)/mis-estudiantes-relacionados/[Id_Estudiante]/asistencias-mensuales/types";
 
 interface TablaAsistenciasEscolaresProps {
   datos: DatosTablaAsistencias;
@@ -70,11 +69,49 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
   const mostrarIndicadorDiaActual =
     esMesActual && diaSemanaActual >= 1 && diaSemanaActual <= 5;
 
+  // Función auxiliar para convertir número a letra de columna Excel
+  const numberToExcelColumn = (num: number): string => {
+    let column = "";
+    while (num > 0) {
+      const remainder = (num - 1) % 26;
+      column = String.fromCharCode(65 + remainder) + column;
+      num = Math.floor((num - 1) / 26);
+    }
+    return column;
+  };
+
+  // Función auxiliar para aplicar bordes a TODAS las celdas de un rango fusionado
+  const aplicarBordesACeldasFusionadas = (
+    worksheet: ExcelJS.Worksheet,
+    rango: string,
+    estilo: any
+  ) => {
+    const [inicio, fin] = rango.split(":");
+    const colInicio = inicio.match(/[A-Z]+/)?.[0] || "";
+    const filaInicio = parseInt(inicio.match(/\d+/)?.[0] || "0");
+    const colFin = fin.match(/[A-Z]+/)?.[0] || "";
+    const filaFin = parseInt(fin.match(/\d+/)?.[0] || "0");
+
+    const colInicioNum = colInicio
+      .split("")
+      .reduce((acc, char) => acc * 26 + char.charCodeAt(0) - 64, 0);
+    const colFinNum = colFin
+      .split("")
+      .reduce((acc, char) => acc * 26 + char.charCodeAt(0) - 64, 0);
+
+    for (let fila = filaInicio; fila <= filaFin; fila++) {
+      for (let col = colInicioNum; col <= colFinNum; col++) {
+        const celda = worksheet.getCell(fila, col);
+        celda.style = { ...celda.style, ...estilo };
+      }
+    }
+  };
+
   const renderCeldaAsistencia = (
     estado: EstadosAsistenciaEscolar,
     dia: number
   ) => {
-    const colores = COLORES_ESTADOS[estado];
+    const colores = COLORES_ESTADOS_ASISTENCIA_ESCOLAR[estado];
     const simbolo =
       estado === EstadosAsistenciaEscolar.Temprano
         ? "A"
@@ -122,223 +159,369 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
         },
       });
 
-      // ENCABEZADO INSTITUCIONAL
-      worksheet.mergeCells("A1:Z1");
-      const tituloCell = worksheet.getCell("A1");
-      tituloCell.value = "I.E. 20935 ASUNCIÓN 8 - IMPERIAL, CAÑETE";
-      tituloCell.style = {
+      // PASO 1: CALCULAR ESTRUCTURA DEL CALENDARIO (Lunes a Viernes)
+      const año = new Date().getFullYear();
+      const mes = datos.mes;
+      const primerDia = new Date(año, mes - 1, 1);
+      const ultimoDia = new Date(año, mes, 0);
+      const diasEnMes = ultimoDia.getDate();
+
+      let diaSemanaInicio = primerDia.getDay();
+      if (diaSemanaInicio === 0) diaSemanaInicio = 7;
+
+      const estructuraCalendario: Array<{
+        dia: number | null;
+        diaSemana: string;
+      }> = [];
+
+      let diaActualMes = 1;
+
+      while (diaActualMes <= diasEnMes) {
+        const diasSemanaTextos = ["", "L", "M", "M", "J", "V"];
+
+        for (let diaSemana = 1; diaSemana <= 5; diaSemana++) {
+          if (diaActualMes === 1 && diaSemana < diaSemanaInicio) {
+            estructuraCalendario.push({
+              dia: null,
+              diaSemana: diasSemanaTextos[diaSemana],
+            });
+          } else if (diaActualMes <= diasEnMes) {
+            const fechaActual = new Date(año, mes - 1, diaActualMes);
+            const diaSemanaActual = fechaActual.getDay();
+
+            if (diaSemanaActual >= 1 && diaSemanaActual <= 5) {
+              estructuraCalendario.push({
+                dia: diaActualMes,
+                diaSemana: diasSemanaTextos[diaSemanaActual],
+              });
+              diaActualMes++;
+            } else {
+              diaActualMes++;
+              diaSemana--;
+            }
+          } else {
+            estructuraCalendario.push({
+              dia: null,
+              diaSemana: diasSemanaTextos[diaSemana],
+            });
+          }
+        }
+      }
+
+      // PASO 2: CALCULAR TOTAL DE COLUMNAS
+      // 1 (nombres) + días calendario + 3 (F, T, A)
+      const totalColumnas = 1 + estructuraCalendario.length + 3;
+
+      // PASO 3: ENCABEZADO INSTITUCIONAL
+      const rangoTitulo = `A1:${numberToExcelColumn(totalColumnas)}1`;
+      worksheet.mergeCells(rangoTitulo);
+
+      const estiloTitulo = {
         font: { size: 16, bold: true, color: { argb: "FFFFFF" } },
         fill: {
-          type: "pattern",
-          pattern: "solid",
+          type: "pattern" as const,
+          pattern: "solid" as const,
           fgColor: { argb: "1E40AF" },
         },
-        alignment: { horizontal: "center", vertical: "middle" },
+        alignment: {
+          horizontal: "center" as const,
+          vertical: "middle" as const,
+        },
         border: {
-          top: { style: "medium" },
-          left: { style: "medium" },
-          bottom: { style: "medium" },
-          right: { style: "medium" },
+          top: { style: "medium" as const },
+          left: { style: "medium" as const },
+          bottom: { style: "medium" as const },
+          right: { style: "medium" as const },
         },
       };
+
+      aplicarBordesACeldasFusionadas(worksheet, rangoTitulo, estiloTitulo);
+      worksheet.getCell("A1").value =
+        "I.E. 20935 ASUNCIÓN 8 - IMPERIAL, CAÑETE";
       worksheet.getRow(1).height = 25;
 
-      worksheet.mergeCells("A2:Z2");
-      const subtituloCell = worksheet.getCell("A2");
-      subtituloCell.value = "REGISTRO MENSUAL DE ASISTENCIA ESCOLAR";
-      subtituloCell.style = {
+      const rangoSubtitulo = `A2:${numberToExcelColumn(totalColumnas)}2`;
+      worksheet.mergeCells(rangoSubtitulo);
+
+      const estiloSubtitulo = {
         font: { size: 14, bold: true, color: { argb: "FFFFFF" } },
         fill: {
-          type: "pattern",
-          pattern: "solid",
+          type: "pattern" as const,
+          pattern: "solid" as const,
           fgColor: { argb: "3B82F6" },
         },
-        alignment: { horizontal: "center", vertical: "middle" },
+        alignment: {
+          horizontal: "center" as const,
+          vertical: "middle" as const,
+        },
         border: {
-          top: { style: "medium" },
-          left: { style: "medium" },
-          bottom: { style: "medium" },
-          right: { style: "medium" },
+          top: { style: "medium" as const },
+          left: { style: "medium" as const },
+          bottom: { style: "medium" as const },
+          right: { style: "medium" as const },
         },
       };
+
+      aplicarBordesACeldasFusionadas(
+        worksheet,
+        rangoSubtitulo,
+        estiloSubtitulo
+      );
+      worksheet.getCell("A2").value = "REGISTRO MENSUAL DE ASISTENCIA ESCOLAR";
       worksheet.getRow(2).height = 20;
 
-      worksheet.getRow(3).height = 5;
+      // PASO 4: INFORMACIÓN DEL AULA (distribuir en 50%-50%)
+      let filaActual = 3;
 
-      // INFORMACIÓN DEL AULA
-      let filaActual = 4;
+      const colsPorSeccion = Math.floor(totalColumnas / 3);
+      const col1Inicio = 1;
+      const col1Fin = colsPorSeccion;
+      const col2Inicio = colsPorSeccion + 1;
+      const col2Fin = colsPorSeccion * 2;
+      const col3Inicio = colsPorSeccion * 2 + 1;
+      const col3Fin = totalColumnas;
 
-      worksheet.mergeCells(`A${filaActual}:C${filaActual}`);
-      worksheet.mergeCells(`D${filaActual}:F${filaActual}`);
-      worksheet.mergeCells(`G${filaActual}:I${filaActual}`);
-      worksheet.mergeCells(`J${filaActual}:L${filaActual}`);
-
-      const nivelLabelCell = worksheet.getCell(`A${filaActual}`);
-      nivelLabelCell.value = "NIVEL:";
-      nivelLabelCell.style = {
+      const estiloLabel = {
         font: { bold: true, size: 10 },
         fill: {
-          type: "pattern",
-          pattern: "solid",
+          type: "pattern" as const,
+          pattern: "solid" as const,
           fgColor: { argb: "E5E7EB" },
         },
-        alignment: { horizontal: "left", vertical: "middle", indent: 1 },
+        alignment: {
+          horizontal: "left" as const,
+          vertical: "middle" as const,
+          indent: 1,
+        },
         border: {
-          top: { style: "thin" },
-          left: { style: "thin" },
-          bottom: { style: "thin" },
-          right: { style: "thin" },
+          top: { style: "thin" as const },
+          left: { style: "thin" as const },
+          bottom: { style: "thin" as const },
+          right: { style: "thin" as const },
         },
       };
 
-      const nivelValueCell = worksheet.getCell(`D${filaActual}`);
-      nivelValueCell.value =
+      const estiloValor = {
+        font: { size: 10 },
+        alignment: {
+          horizontal: "left" as const,
+          vertical: "middle" as const,
+          indent: 1,
+        },
+        border: {
+          top: { style: "thin" as const },
+          left: { style: "thin" as const },
+          bottom: { style: "thin" as const },
+          right: { style: "thin" as const },
+        },
+      };
+
+      // Fila 1: NIVEL | GRADO Y SECCIÓN
+      const labelCol1Fin =
+        Math.floor((col1Fin - col1Inicio) * 0.4) + col1Inicio;
+      const labelCol2Fin =
+        Math.floor((col2Fin - col2Inicio) * 0.4) + col2Inicio;
+
+      worksheet.mergeCells(
+        `${numberToExcelColumn(col1Inicio)}${filaActual}:${numberToExcelColumn(
+          labelCol1Fin
+        )}${filaActual}`
+      );
+      aplicarBordesACeldasFusionadas(
+        worksheet,
+        `${numberToExcelColumn(col1Inicio)}${filaActual}:${numberToExcelColumn(
+          labelCol1Fin
+        )}${filaActual}`,
+        {
+          ...estiloLabel,
+          border: { ...estiloLabel.border, left: { style: "medium" as const } },
+        }
+      );
+      worksheet.getCell(
+        `${numberToExcelColumn(col1Inicio)}${filaActual}`
+      ).value = "NIVEL:";
+
+      worksheet.mergeCells(
+        `${numberToExcelColumn(
+          labelCol1Fin + 1
+        )}${filaActual}:${numberToExcelColumn(col1Fin)}${filaActual}`
+      );
+      aplicarBordesACeldasFusionadas(
+        worksheet,
+        `${numberToExcelColumn(
+          labelCol1Fin + 1
+        )}${filaActual}:${numberToExcelColumn(col1Fin)}${filaActual}`,
+        estiloValor
+      );
+      worksheet.getCell(
+        `${numberToExcelColumn(labelCol1Fin + 1)}${filaActual}`
+      ).value =
         datos.aula.Nivel === NivelEducativo.PRIMARIA
           ? "Primaria"
           : "Secundaria";
-      nivelValueCell.style = {
-        font: { size: 10 },
-        alignment: { horizontal: "left", vertical: "middle", indent: 1 },
-        border: {
-          top: { style: "thin" },
-          left: { style: "thin" },
-          bottom: { style: "thin" },
-          right: { style: "thin" },
-        },
-      };
 
-      const gradoLabelCell = worksheet.getCell(`G${filaActual}`);
-      gradoLabelCell.value = "GRADO Y SECCIÓN:";
-      gradoLabelCell.style = {
-        font: { bold: true, size: 10 },
-        fill: {
-          type: "pattern",
-          pattern: "solid",
-          fgColor: { argb: "E5E7EB" },
-        },
-        alignment: { horizontal: "left", vertical: "middle", indent: 1 },
-        border: {
-          top: { style: "thin" },
-          left: { style: "thin" },
-          bottom: { style: "thin" },
-          right: { style: "thin" },
-        },
-      };
+      worksheet.mergeCells(
+        `${numberToExcelColumn(col2Inicio)}${filaActual}:${numberToExcelColumn(
+          labelCol2Fin
+        )}${filaActual}`
+      );
+      aplicarBordesACeldasFusionadas(
+        worksheet,
+        `${numberToExcelColumn(col2Inicio)}${filaActual}:${numberToExcelColumn(
+          labelCol2Fin
+        )}${filaActual}`,
+        estiloLabel
+      );
+      worksheet.getCell(
+        `${numberToExcelColumn(col2Inicio)}${filaActual}`
+      ).value = "GRADO Y SECCIÓN:";
 
-      const gradoValueCell = worksheet.getCell(`J${filaActual}`);
-      gradoValueCell.value = `${datos.aula.Grado}° "${datos.aula.Seccion}"`;
-      gradoValueCell.style = {
-        font: { size: 10 },
-        alignment: { horizontal: "left", vertical: "middle", indent: 1 },
-        border: {
-          top: { style: "thin" },
-          left: { style: "thin" },
-          bottom: { style: "thin" },
-          right: { style: "thin" },
-        },
-      };
+      worksheet.mergeCells(
+        `${numberToExcelColumn(
+          labelCol2Fin + 1
+        )}${filaActual}:${numberToExcelColumn(col2Fin)}${filaActual}`
+      );
+      aplicarBordesACeldasFusionadas(
+        worksheet,
+        `${numberToExcelColumn(
+          labelCol2Fin + 1
+        )}${filaActual}:${numberToExcelColumn(col2Fin)}${filaActual}`,
+        {
+          ...estiloValor,
+          border: {
+            ...estiloValor.border,
+            right: { style: "medium" as const },
+          },
+        }
+      );
+      worksheet.getCell(
+        `${numberToExcelColumn(labelCol2Fin + 1)}${filaActual}`
+      ).value = `${datos.aula.Grado}° "${datos.aula.Seccion}"`;
 
       filaActual++;
 
-      worksheet.mergeCells(`A${filaActual}:C${filaActual}`);
-      worksheet.mergeCells(`D${filaActual}:F${filaActual}`);
-      worksheet.mergeCells(`G${filaActual}:I${filaActual}`);
-      worksheet.mergeCells(`J${filaActual}:L${filaActual}`);
+      // Fila 2: MES | TOTAL ESTUDIANTES
+      worksheet.mergeCells(
+        `${numberToExcelColumn(col1Inicio)}${filaActual}:${numberToExcelColumn(
+          labelCol1Fin
+        )}${filaActual}`
+      );
+      aplicarBordesACeldasFusionadas(
+        worksheet,
+        `${numberToExcelColumn(col1Inicio)}${filaActual}:${numberToExcelColumn(
+          labelCol1Fin
+        )}${filaActual}`,
+        {
+          ...estiloLabel,
+          border: { ...estiloLabel.border, left: { style: "medium" as const } },
+        }
+      );
+      worksheet.getCell(
+        `${numberToExcelColumn(col1Inicio)}${filaActual}`
+      ).value = "MES:";
 
-      const mesLabelCell = worksheet.getCell(`A${filaActual}`);
-      mesLabelCell.value = "MES:";
-      mesLabelCell.style = {
-        font: { bold: true, size: 10 },
-        fill: {
-          type: "pattern",
-          pattern: "solid",
-          fgColor: { argb: "E5E7EB" },
-        },
-        alignment: { horizontal: "left", vertical: "middle", indent: 1 },
-        border: {
-          top: { style: "thin" },
-          left: { style: "thin" },
-          bottom: { style: "thin" },
-          right: { style: "thin" },
-        },
-      };
+      worksheet.mergeCells(
+        `${numberToExcelColumn(
+          labelCol1Fin + 1
+        )}${filaActual}:${numberToExcelColumn(col1Fin)}${filaActual}`
+      );
+      aplicarBordesACeldasFusionadas(
+        worksheet,
+        `${numberToExcelColumn(
+          labelCol1Fin + 1
+        )}${filaActual}:${numberToExcelColumn(col1Fin)}${filaActual}`,
+        estiloValor
+      );
+      worksheet.getCell(
+        `${numberToExcelColumn(labelCol1Fin + 1)}${filaActual}`
+      ).value = mesInfo?.label || "";
 
-      const mesValueCell = worksheet.getCell(`D${filaActual}`);
-      mesValueCell.value = mesInfo?.label || "";
-      mesValueCell.style = {
-        font: { size: 10 },
-        alignment: { horizontal: "left", vertical: "middle", indent: 1 },
-        border: {
-          top: { style: "thin" },
-          left: { style: "thin" },
-          bottom: { style: "thin" },
-          right: { style: "thin" },
-        },
-      };
+      worksheet.mergeCells(
+        `${numberToExcelColumn(col2Inicio)}${filaActual}:${numberToExcelColumn(
+          labelCol2Fin
+        )}${filaActual}`
+      );
+      aplicarBordesACeldasFusionadas(
+        worksheet,
+        `${numberToExcelColumn(col2Inicio)}${filaActual}:${numberToExcelColumn(
+          labelCol2Fin
+        )}${filaActual}`,
+        estiloLabel
+      );
+      worksheet.getCell(
+        `${numberToExcelColumn(col2Inicio)}${filaActual}`
+      ).value = "TOTAL ESTUDIANTES:";
 
-      const totalLabelCell = worksheet.getCell(`G${filaActual}`);
-      totalLabelCell.value = "TOTAL ESTUDIANTES:";
-      totalLabelCell.style = {
-        font: { bold: true, size: 10 },
-        fill: {
-          type: "pattern",
-          pattern: "solid",
-          fgColor: { argb: "E5E7EB" },
-        },
-        alignment: { horizontal: "left", vertical: "middle", indent: 1 },
-        border: {
-          top: { style: "thin" },
-          left: { style: "thin" },
-          bottom: { style: "thin" },
-          right: { style: "thin" },
-        },
-      };
+      worksheet.mergeCells(
+        `${numberToExcelColumn(
+          labelCol2Fin + 1
+        )}${filaActual}:${numberToExcelColumn(col2Fin)}${filaActual}`
+      );
+      aplicarBordesACeldasFusionadas(
+        worksheet,
+        `${numberToExcelColumn(
+          labelCol2Fin + 1
+        )}${filaActual}:${numberToExcelColumn(col2Fin)}${filaActual}`,
+        {
+          ...estiloValor,
+          border: {
+            ...estiloValor.border,
+            right: { style: "medium" as const },
+          },
+        }
+      );
+      worksheet.getCell(
+        `${numberToExcelColumn(labelCol2Fin + 1)}${filaActual}`
+      ).value = datos.estudiantes.length;
 
-      const totalValueCell = worksheet.getCell(`J${filaActual}`);
-      totalValueCell.value = datos.estudiantes.length;
-      totalValueCell.style = {
-        font: { size: 10 },
-        alignment: { horizontal: "left", vertical: "middle", indent: 1 },
-        border: {
-          top: { style: "thin" },
-          left: { style: "thin" },
-          bottom: { style: "thin" },
-          right: { style: "thin" },
-        },
-      };
+      filaActual++;
 
-      filaActual += 2;
+      // Fila de separación entre información y tabla
+      worksheet.getRow(filaActual).height = 8;
+      filaActual++;
 
-      // TABLA DE ASISTENCIAS
+      // PASO 5: TABLA DE ASISTENCIAS
       const filaEncabezados = filaActual;
 
       worksheet.getColumn(1).width = 30;
 
-      const nombreCell = worksheet.getCell(filaEncabezados, 1);
-      nombreCell.value = "APELLIDOS Y NOMBRES";
-      nombreCell.style = {
+      // Nombre (fusionar 2 filas verticalmente)
+      worksheet.mergeCells(`A${filaEncabezados}:A${filaEncabezados + 1}`);
+      const estiloNombreHeader = {
         font: { bold: true, size: 9, color: { argb: "FFFFFF" } },
         fill: {
-          type: "pattern",
-          pattern: "solid",
+          type: "pattern" as const,
+          pattern: "solid" as const,
           fgColor: { argb: "374151" },
         },
-        alignment: { horizontal: "center", vertical: "middle", wrapText: true },
+        alignment: {
+          horizontal: "center" as const,
+          vertical: "middle" as const,
+          wrapText: true,
+        },
         border: {
-          top: { style: "medium" },
-          left: { style: "thin" },
-          bottom: { style: "medium" },
-          right: { style: "thin" },
+          top: { style: "medium" as const },
+          left: { style: "medium" as const },
+          bottom: { style: "medium" as const },
+          right: { style: "thin" as const },
         },
       };
 
-      datos.diasDelMes.forEach(({ dia }, index) => {
+      aplicarBordesACeldasFusionadas(
+        worksheet,
+        `A${filaEncabezados}:A${filaEncabezados + 1}`,
+        estiloNombreHeader
+      );
+      worksheet.getCell(`A${filaEncabezados}`).value = "APELLIDOS Y NOMBRES";
+
+      // Días del mes (2 filas: letra día y número)
+      estructuraCalendario.forEach((diaInfo, index) => {
         const col = index + 2;
         worksheet.getColumn(col).width = 4;
 
-        const cell = worksheet.getCell(filaEncabezados, col);
-        cell.value = dia;
-        cell.style = {
+        const cellDiaSemana = worksheet.getCell(filaEncabezados, col);
+        cellDiaSemana.value = diaInfo.diaSemana;
+        cellDiaSemana.style = {
           font: { bold: true, size: 9, color: { argb: "FFFFFF" } },
           fill: {
             type: "pattern",
@@ -349,40 +532,78 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
           border: {
             top: { style: "medium" },
             left: { style: "thin" },
+            bottom: { style: "thin" },
+            right: { style: "thin" },
+          },
+        };
+
+        const cellNumDia = worksheet.getCell(filaEncabezados + 1, col);
+        cellNumDia.value = diaInfo.dia || "";
+        cellNumDia.style = {
+          font: { bold: true, size: 9, color: { argb: "FFFFFF" } },
+          fill: {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "374151" },
+          },
+          alignment: { horizontal: "center", vertical: "middle" },
+          border: {
+            top: { style: "thin" },
+            left: { style: "thin" },
             bottom: { style: "medium" },
             right: { style: "thin" },
           },
         };
       });
 
-      const colTotales = datos.diasDelMes.length + 2;
+      // Totales (F, T, A) - fusionar verticalmente
+      const colTotales = estructuraCalendario.length + 2;
       ["F", "T", "A"].forEach((label, index) => {
         const col = colTotales + index;
         worksheet.getColumn(col).width = 6;
 
-        const cell = worksheet.getCell(filaEncabezados, col);
-        cell.value = label;
-        cell.style = {
+        worksheet.mergeCells(
+          `${numberToExcelColumn(col)}${filaEncabezados}:${numberToExcelColumn(
+            col
+          )}${filaEncabezados + 1}`
+        );
+        const estiloTotal = {
           font: { bold: true, size: 9, color: { argb: "FFFFFF" } },
           fill: {
-            type: "pattern",
-            pattern: "solid",
+            type: "pattern" as const,
+            pattern: "solid" as const,
             fgColor: { argb: "374151" },
           },
-          alignment: { horizontal: "center", vertical: "middle" },
+          alignment: {
+            horizontal: "center" as const,
+            vertical: "middle" as const,
+          },
           border: {
-            top: { style: "medium" },
-            left: { style: "thin" },
-            bottom: { style: "medium" },
-            right: { style: "thin" },
+            top: { style: "medium" as const },
+            left: { style: "thin" as const },
+            bottom: { style: "medium" as const },
+            right:
+              index === 2
+                ? { style: "medium" as const }
+                : { style: "thin" as const },
           },
         };
+
+        aplicarBordesACeldasFusionadas(
+          worksheet,
+          `${numberToExcelColumn(col)}${filaEncabezados}:${numberToExcelColumn(
+            col
+          )}${filaEncabezados + 1}`,
+          estiloTotal
+        );
+        worksheet.getCell(filaEncabezados, col).value = label;
       });
 
-      worksheet.getRow(filaEncabezados).height = 20;
+      worksheet.getRow(filaEncabezados).height = 15;
+      worksheet.getRow(filaEncabezados + 1).height = 15;
 
-      // DATOS DE ESTUDIANTES
-      let filaData = filaEncabezados + 1;
+      // PASO 6: DATOS DE ESTUDIANTES
+      let filaData = filaEncabezados + 2;
 
       datos.estudiantes.forEach((item, index) => {
         const fila = worksheet.getRow(filaData);
@@ -400,18 +621,19 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
           alignment: { horizontal: "left", vertical: "middle", indent: 1 },
           border: {
             top: { style: "thin" },
-            left: { style: "thin" },
+            left: { style: "medium" },
             bottom: { style: "thin" },
             right: { style: "thin" },
           },
         };
 
-        datos.diasDelMes.forEach(({ dia }, index) => {
-          const col = index + 2;
+        estructuraCalendario.forEach((diaInfo, idx) => {
+          const col = idx + 2;
           const cell = fila.getCell(col);
-          const estado = item.asistencias[dia];
+          const dia = diaInfo.dia;
 
-          if (estado) {
+          if (dia && item.asistencias[dia]) {
+            const estado = item.asistencias[dia];
             const simbolo = EstadosAsistenciaEscolarParaExcel[estado];
             const colores = COLORES_ESTADOS_EXCEL[estado];
 
@@ -449,13 +671,12 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
           }
         });
 
-        const colTotales = datos.diasDelMes.length + 2;
         [
           item.totales.faltas,
           item.totales.tardanzas,
           item.totales.asistencias,
-        ].forEach((valor, index) => {
-          const col = colTotales + index;
+        ].forEach((valor, idx) => {
+          const col = colTotales + idx;
           const cell = fila.getCell(col);
           cell.value = valor;
           cell.style = {
@@ -470,7 +691,7 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
               top: { style: "thin" },
               left: { style: "thin" },
               bottom: { style: "thin" },
-              right: { style: "thin" },
+              right: idx === 2 ? { style: "medium" } : { style: "thin" },
             },
           };
         });
@@ -479,9 +700,11 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
         filaData++;
       });
 
-      // RESUMEN ESTADÍSTICO
-      filaData += 1;
+      // Fila de separación antes del resumen
+      worksheet.getRow(filaData).height = 8;
+      filaData++;
 
+      // PASO 7: RESUMEN ESTADÍSTICO
       const totalAsistencias = datos.estudiantes.reduce(
         (sum, e) => sum + e.totales.asistencias,
         0
@@ -494,126 +717,371 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
         (sum, e) => sum + e.totales.faltas,
         0
       );
-      const totalDiasEscolares = datos.diasDelMes.length;
-      const totalOportunidades = datos.estudiantes.length * totalDiasEscolares;
-      const porcentajeAsistencia =
+
+      const diasEscolaresReales = estructuraCalendario.filter(
+        (d) => d.dia !== null
+      ).length;
+      const totalOportunidades = datos.estudiantes.length * diasEscolaresReales;
+
+      // Calcular porcentajes
+      const porcentajeAsistencias =
         totalOportunidades > 0
           ? ((totalAsistencias / totalOportunidades) * 100).toFixed(2)
           : "0.00";
+      const porcentajeTardanzas =
+        totalOportunidades > 0
+          ? ((totalTardanzas / totalOportunidades) * 100).toFixed(2)
+          : "0.00";
+      const porcentajeFaltas =
+        totalOportunidades > 0
+          ? ((totalFaltas / totalOportunidades) * 100).toFixed(2)
+          : "0.00";
 
-      const colMax = datos.diasDelMes.length + 4;
-      worksheet.mergeCells(`A${filaData}:${numberToExcelColumn(colMax)}${filaData}`);
-      const resumenTituloCell = worksheet.getCell(`A${filaData}`);
-      resumenTituloCell.value = "RESUMEN ESTADÍSTICO";
-      resumenTituloCell.style = {
+      // TÍTULO DEL RESUMEN
+      const rangoResumenTitulo = `A${filaData}:${numberToExcelColumn(
+        totalColumnas
+      )}${filaData}`;
+      worksheet.mergeCells(rangoResumenTitulo);
+
+      const estiloResumenTitulo = {
         font: { size: 12, bold: true, color: { argb: "FFFFFF" } },
         fill: {
-          type: "pattern",
-          pattern: "solid",
+          type: "pattern" as const,
+          pattern: "solid" as const,
           fgColor: { argb: "059669" },
         },
-        alignment: { horizontal: "center", vertical: "middle" },
+        alignment: {
+          horizontal: "center" as const,
+          vertical: "middle" as const,
+        },
         border: {
-          top: { style: "medium" },
-          left: { style: "medium" },
-          bottom: { style: "medium" },
-          right: { style: "medium" },
+          top: { style: "medium" as const },
+          left: { style: "medium" as const },
+          bottom: { style: "medium" as const },
+          right: { style: "medium" as const },
         },
       };
+
+      aplicarBordesACeldasFusionadas(
+        worksheet,
+        rangoResumenTitulo,
+        estiloResumenTitulo
+      );
+      worksheet.getCell(`A${filaData}`).value = "RESUMEN ESTADÍSTICO";
       worksheet.getRow(filaData).height = 20;
       filaData++;
 
-      const datosResumen = [
-        {
-          concepto: "Total Asistencias:",
-          valor: totalAsistencias,
-          color: "D4F7D4",
-        },
-        {
-          concepto: "Total Tardanzas:",
-          valor: totalTardanzas,
-          color: "FED7BA",
-        },
-        { concepto: "Total Faltas:", valor: totalFaltas, color: "FECACA" },
-        {
-          concepto: "Porcentaje de Asistencia:",
-          valor: `${porcentajeAsistencia}%`,
-          color: "BFDBFE",
-        },
-      ];
+      // DISTRIBUCIÓN EN 3 COLUMNAS
 
-      const colResumenConcepto = Math.floor(colMax / 2);
-      
-      datosResumen.forEach((dato, indexResumen) => {
-        const filaActualResumen = filaData + indexResumen;
-        
-        const rangoConcepto = `A${filaActualResumen}:${numberToExcelColumn(colResumenConcepto)}${filaActualResumen}`;
-        const rangoValor = `${numberToExcelColumn(colResumenConcepto + 1)}${filaActualResumen}:${numberToExcelColumn(colMax)}${filaActualResumen}`;
-        
-        worksheet.mergeCells(rangoConcepto);
-        worksheet.mergeCells(rangoValor);
+      // Fila 1: Etiquetas
+      const rangoLabelAsistencias = `${numberToExcelColumn(
+        col1Inicio
+      )}${filaData}:${numberToExcelColumn(col1Fin)}${filaData}`;
+      const rangoLabelTardanzas = `${numberToExcelColumn(
+        col2Inicio
+      )}${filaData}:${numberToExcelColumn(col2Fin)}${filaData}`;
+      const rangoLabelFaltas = `${numberToExcelColumn(
+        col3Inicio
+      )}${filaData}:${numberToExcelColumn(col3Fin)}${filaData}`;
 
-        const conceptoCell = worksheet.getCell(`A${filaActualResumen}`);
-        conceptoCell.value = dato.concepto;
-        conceptoCell.style = {
-          font: { bold: true, size: 10 },
-          fill: {
-            type: "pattern",
-            pattern: "solid",
-            fgColor: { argb: "F3F4F6" },
-          },
-          alignment: { horizontal: "left", vertical: "middle", indent: 1 },
-          border: {
-            top: { style: "thin" },
-            left: { style: "thin" },
-            bottom: { style: "thin" },
-            right: { style: "thin" },
-          },
-        };
+      worksheet.mergeCells(rangoLabelAsistencias);
+      worksheet.mergeCells(rangoLabelTardanzas);
+      worksheet.mergeCells(rangoLabelFaltas);
 
-        const valorCell = worksheet.getCell(`${numberToExcelColumn(colResumenConcepto + 1)}${filaActualResumen}`);
-        valorCell.value = dato.valor;
-        valorCell.style = {
-          font: { bold: true, size: 10 },
-          fill: {
-            type: "pattern",
-            pattern: "solid",
-            fgColor: { argb: dato.color },
-          },
-          alignment: { horizontal: "center", vertical: "middle" },
-          border: {
-            top: { style: "thin" },
-            left: { style: "thin" },
-            bottom: { style: "thin" },
-            right: { style: "thin" },
-          },
-        };
-      });
-      
-      filaData += datosResumen.length;
-
-      // Información de generación
-      filaData += 1;
-      worksheet.mergeCells(`A${filaData}:${numberToExcelColumn(colMax)}${filaData}`);
-      const infoGenCell = worksheet.getCell(`A${filaData}`);
-      infoGenCell.value = `Documento generado automáticamente el ${new Date().toLocaleString(
-        "es-ES"
-      )} | Sistema SIASIS - I.E. 20935 Asunción 8`;
-      infoGenCell.style = {
-        font: { size: 8, italic: true },
+      const estiloLabelAsistencias = {
+        font: { bold: true, size: 10, color: { argb: "FFFFFF" } },
         fill: {
-          type: "pattern",
-          pattern: "solid",
-          fgColor: { argb: "F9FAFB" },
+          type: "pattern" as const,
+          pattern: "solid" as const,
+          fgColor: { argb: "16A34A" },
         },
-        alignment: { horizontal: "center", vertical: "middle" },
+        alignment: {
+          horizontal: "center" as const,
+          vertical: "middle" as const,
+        },
         border: {
-          top: { style: "thin" },
-          left: { style: "thin" },
-          bottom: { style: "thin" },
-          right: { style: "thin" },
+          top: { style: "thin" as const },
+          left: { style: "medium" as const },
+          bottom: { style: "thin" as const },
+          right: { style: "thin" as const },
         },
       };
+
+      const estiloLabelTardanzas = {
+        ...estiloLabelAsistencias,
+        fill: {
+          type: "pattern" as const,
+          pattern: "solid" as const,
+          fgColor: { argb: "EA580C" },
+        },
+        border: {
+          top: { style: "thin" as const },
+          left: { style: "thin" as const },
+          bottom: { style: "thin" as const },
+          right: { style: "thin" as const },
+        },
+      };
+
+      const estiloLabelFaltas = {
+        ...estiloLabelAsistencias,
+        fill: {
+          type: "pattern" as const,
+          pattern: "solid" as const,
+          fgColor: { argb: "DC2626" },
+        },
+        border: {
+          top: { style: "thin" as const },
+          left: { style: "thin" as const },
+          bottom: { style: "thin" as const },
+          right: { style: "medium" as const },
+        },
+      };
+
+      aplicarBordesACeldasFusionadas(
+        worksheet,
+        rangoLabelAsistencias,
+        estiloLabelAsistencias
+      );
+      aplicarBordesACeldasFusionadas(
+        worksheet,
+        rangoLabelTardanzas,
+        estiloLabelTardanzas
+      );
+      aplicarBordesACeldasFusionadas(
+        worksheet,
+        rangoLabelFaltas,
+        estiloLabelFaltas
+      );
+
+      worksheet.getCell(`${numberToExcelColumn(col1Inicio)}${filaData}`).value =
+        "ASISTENCIAS";
+      worksheet.getCell(`${numberToExcelColumn(col2Inicio)}${filaData}`).value =
+        "TARDANZAS";
+      worksheet.getCell(`${numberToExcelColumn(col3Inicio)}${filaData}`).value =
+        "FALTAS";
+
+      worksheet.getRow(filaData).height = 18;
+      filaData++;
+
+      // Fila 2: Totales
+      const rangoTotalAsistencias = `${numberToExcelColumn(
+        col1Inicio
+      )}${filaData}:${numberToExcelColumn(col1Fin)}${filaData}`;
+      const rangoTotalTardanzas = `${numberToExcelColumn(
+        col2Inicio
+      )}${filaData}:${numberToExcelColumn(col2Fin)}${filaData}`;
+      const rangoTotalFaltas = `${numberToExcelColumn(
+        col3Inicio
+      )}${filaData}:${numberToExcelColumn(col3Fin)}${filaData}`;
+
+      worksheet.mergeCells(rangoTotalAsistencias);
+      worksheet.mergeCells(rangoTotalTardanzas);
+      worksheet.mergeCells(rangoTotalFaltas);
+
+      const estiloValorAsistencias = {
+        font: { bold: true, size: 11 },
+        fill: {
+          type: "pattern" as const,
+          pattern: "solid" as const,
+          fgColor: { argb: "D4F7D4" },
+        },
+        alignment: {
+          horizontal: "center" as const,
+          vertical: "middle" as const,
+        },
+        border: {
+          top: { style: "thin" as const },
+          left: { style: "medium" as const },
+          bottom: { style: "thin" as const },
+          right: { style: "thin" as const },
+        },
+      };
+
+      const estiloValorTardanzas = {
+        ...estiloValorAsistencias,
+        fill: {
+          type: "pattern" as const,
+          pattern: "solid" as const,
+          fgColor: { argb: "FED7BA" },
+        },
+        border: {
+          top: { style: "thin" as const },
+          left: { style: "thin" as const },
+          bottom: { style: "thin" as const },
+          right: { style: "thin" as const },
+        },
+      };
+
+      const estiloValorFaltas = {
+        ...estiloValorAsistencias,
+        fill: {
+          type: "pattern" as const,
+          pattern: "solid" as const,
+          fgColor: { argb: "FECACA" },
+        },
+        border: {
+          top: { style: "thin" as const },
+          left: { style: "thin" as const },
+          bottom: { style: "thin" as const },
+          right: { style: "medium" as const },
+        },
+      };
+
+      aplicarBordesACeldasFusionadas(
+        worksheet,
+        rangoTotalAsistencias,
+        estiloValorAsistencias
+      );
+      aplicarBordesACeldasFusionadas(
+        worksheet,
+        rangoTotalTardanzas,
+        estiloValorTardanzas
+      );
+      aplicarBordesACeldasFusionadas(
+        worksheet,
+        rangoTotalFaltas,
+        estiloValorFaltas
+      );
+
+      worksheet.getCell(
+        `${numberToExcelColumn(col1Inicio)}${filaData}`
+      ).value = `Total: ${totalAsistencias}`;
+      worksheet.getCell(
+        `${numberToExcelColumn(col2Inicio)}${filaData}`
+      ).value = `Total: ${totalTardanzas}`;
+      worksheet.getCell(
+        `${numberToExcelColumn(col3Inicio)}${filaData}`
+      ).value = `Total: ${totalFaltas}`;
+
+      worksheet.getRow(filaData).height = 18;
+      filaData++;
+
+      // Fila 3: Porcentajes
+      const rangoPorcentajeAsistencias = `${numberToExcelColumn(
+        col1Inicio
+      )}${filaData}:${numberToExcelColumn(col1Fin)}${filaData}`;
+      const rangoPorcentajeTardanzas = `${numberToExcelColumn(
+        col2Inicio
+      )}${filaData}:${numberToExcelColumn(col2Fin)}${filaData}`;
+      const rangoPorcentajeFaltas = `${numberToExcelColumn(
+        col3Inicio
+      )}${filaData}:${numberToExcelColumn(col3Fin)}${filaData}`;
+
+      worksheet.mergeCells(rangoPorcentajeAsistencias);
+      worksheet.mergeCells(rangoPorcentajeTardanzas);
+      worksheet.mergeCells(rangoPorcentajeFaltas);
+
+      const estiloPorcentajeAsistencias = {
+        font: { bold: true, size: 12, color: { argb: "16A34A" } },
+        fill: {
+          type: "pattern" as const,
+          pattern: "solid" as const,
+          fgColor: { argb: "DCFCE7" },
+        },
+        alignment: {
+          horizontal: "center" as const,
+          vertical: "middle" as const,
+        },
+        border: {
+          top: { style: "thin" as const },
+          left: { style: "medium" as const },
+          bottom: { style: "medium" as const },
+          right: { style: "thin" as const },
+        },
+      };
+
+      const estiloPorcentajeTardanzas = {
+        ...estiloPorcentajeAsistencias,
+        font: { bold: true, size: 12, color: { argb: "EA580C" } },
+        fill: {
+          type: "pattern" as const,
+          pattern: "solid" as const,
+          fgColor: { argb: "FFEDD5" },
+        },
+        border: {
+          top: { style: "thin" as const },
+          left: { style: "thin" as const },
+          bottom: { style: "medium" as const },
+          right: { style: "thin" as const },
+        },
+      };
+
+      const estiloPorcentajeFaltas = {
+        ...estiloPorcentajeAsistencias,
+        font: { bold: true, size: 12, color: { argb: "DC2626" } },
+        fill: {
+          type: "pattern" as const,
+          pattern: "solid" as const,
+          fgColor: { argb: "FEE2E2" },
+        },
+        border: {
+          top: { style: "thin" as const },
+          left: { style: "thin" as const },
+          bottom: { style: "medium" as const },
+          right: { style: "medium" as const },
+        },
+      };
+
+      aplicarBordesACeldasFusionadas(
+        worksheet,
+        rangoPorcentajeAsistencias,
+        estiloPorcentajeAsistencias
+      );
+      aplicarBordesACeldasFusionadas(
+        worksheet,
+        rangoPorcentajeTardanzas,
+        estiloPorcentajeTardanzas
+      );
+      aplicarBordesACeldasFusionadas(
+        worksheet,
+        rangoPorcentajeFaltas,
+        estiloPorcentajeFaltas
+      );
+
+      worksheet.getCell(
+        `${numberToExcelColumn(col1Inicio)}${filaData}`
+      ).value = `${porcentajeAsistencias}%`;
+      worksheet.getCell(
+        `${numberToExcelColumn(col2Inicio)}${filaData}`
+      ).value = `${porcentajeTardanzas}%`;
+      worksheet.getCell(
+        `${numberToExcelColumn(col3Inicio)}${filaData}`
+      ).value = `${porcentajeFaltas}%`;
+
+      worksheet.getRow(filaData).height = 20;
+      filaData++;
+
+      // Información de generación
+      const rangoInfoGen = `A${filaData}:${numberToExcelColumn(
+        totalColumnas
+      )}${filaData}`;
+      worksheet.mergeCells(rangoInfoGen);
+
+      const estiloInfoGen = {
+        font: { size: 8, italic: true },
+        fill: {
+          type: "pattern" as const,
+          pattern: "solid" as const,
+          fgColor: { argb: "F9FAFB" },
+        },
+        alignment: {
+          horizontal: "center" as const,
+          vertical: "middle" as const,
+        },
+        border: {
+          top: { style: "thin" as const },
+          left: { style: "medium" as const },
+          bottom: { style: "medium" as const },
+          right: { style: "medium" as const },
+        },
+      };
+
+      aplicarBordesACeldasFusionadas(worksheet, rangoInfoGen, estiloInfoGen);
+      worksheet.getCell(
+        `A${filaData}`
+      ).value = `Documento generado automáticamente el ${new Date().toLocaleString(
+        "es-ES"
+      )} | Sistema SIASIS - I.E. 20935 Asunción 8`;
 
       // GENERAR Y GUARDAR ARCHIVO
       const nivel =
@@ -624,12 +1092,16 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
         datos.aula.Seccion
       }_${mesInfo?.label}_${new Date().getFullYear()}`;
 
+      console.log("📊 Generando buffer del archivo Excel...");
       const buffer = await workbook.xlsx.writeBuffer();
+      console.log(`✅ Buffer generado: ${buffer.byteLength} bytes`);
 
       const tieneFileSystemAPI = "showSaveFilePicker" in window;
 
       if (tieneFileSystemAPI) {
         try {
+          console.log("💾 Mostrando diálogo de guardado...");
+
           const fileHandle = await (window as any).showSaveFilePicker({
             suggestedName: `${nombreFinal}.xlsx`,
             types: [
@@ -643,41 +1115,48 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
             ],
           });
 
+          console.log(
+            "📁 Usuario seleccionó ubicación, escribiendo archivo..."
+          );
+
           const writable = await fileHandle.createWritable();
           await writable.write(buffer);
           await writable.close();
 
+          console.log("✅ Archivo escrito exitosamente");
           setMensajeExportacion("✅ Archivo Excel guardado exitosamente");
         } catch (error: any) {
+          console.error("❌ Error durante la exportación:", error);
+          console.error("   Nombre del error:", error.name);
+          console.error("   Mensaje:", error.message);
+
           if (error.name === "AbortError") {
-            setMensajeExportacion("❌ Operación cancelada por el usuario");
+            console.log("👤 Usuario canceló el diálogo");
+            setMensajeExportacion("⚠️ Operación cancelada");
+          } else if (error.name === "NotAllowedError") {
+            console.log("🚫 Permiso denegado");
+            setMensajeExportacion("❌ Permiso denegado para guardar archivo");
           } else {
+            // Cualquier otro error: intentar descarga tradicional
+            console.log("🔄 Intentando descarga tradicional como fallback...");
             downloadTraditional(buffer, nombreFinal);
           }
         }
       } else {
+        console.log(
+          "📥 API de guardado no disponible, usando descarga tradicional"
+        );
         downloadTraditional(buffer, nombreFinal);
       }
 
       setTimeout(() => setMensajeExportacion(""), 4000);
     } catch (error) {
-      console.error("Error al exportar a Excel:", error);
+      console.error("❌ Error crítico al exportar a Excel:", error);
       setMensajeExportacion("❌ Error al generar el archivo Excel");
       setTimeout(() => setMensajeExportacion(""), 4000);
     } finally {
       setExportandoExcel(false);
     }
-  };
-
-  // Función auxiliar para convertir número a letra de columna Excel
-  const numberToExcelColumn = (num: number): string => {
-    let column = "";
-    while (num > 0) {
-      const remainder = (num - 1) % 26;
-      column = String.fromCharCode(65 + remainder) + column;
-      num = Math.floor((num - 1) / 26);
-    }
-    return column;
   };
 
   const downloadTraditional = (buffer: ArrayBuffer, nombreFinal: string) => {
@@ -708,21 +1187,30 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
             <button
               onClick={exportarAExcel}
               disabled={exportandoExcel}
-              className={`px-4 py-2 rounded-md font-medium flex items-center gap-2 transition-all duration-200 ${
+              title="Exportar a Excel"
+              className={`px-5 py-3 rounded-lg font-medium text-sm transition-all duration-200 flex items-center justify-center space-x-2.5 min-w-[140px] shadow-sm hover:shadow-md ${
                 exportandoExcel
-                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                  : "bg-green-600 text-white hover:bg-green-700 shadow-md hover:shadow-lg"
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-300"
+                  : "bg-white border border-gray-300 hover:border-green-400 hover:bg-green-50 text-gray-700 hover:text-green-700"
               }`}
             >
               {exportandoExcel ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Exportando...
+                  <img
+                    className="w-6 flex-shrink-0 animate-bounce"
+                    src="/images/svg/Aplicaciones Relacionadas/ExcelLogo.svg"
+                    alt="Logo de Excel"
+                  />
+                  <span className="truncate">Generando...</span>
                 </>
               ) : (
                 <>
-                  <FileDown className="w-5 h-5" />
-                  Exportar a Excel
+                  <img
+                    className="w-6 flex-shrink-0"
+                    src="/images/svg/Aplicaciones Relacionadas/ExcelLogo.svg"
+                    alt="Logo de Excel"
+                  />
+                  <span className="truncate">Exportar</span>
                 </>
               )}
             </button>
