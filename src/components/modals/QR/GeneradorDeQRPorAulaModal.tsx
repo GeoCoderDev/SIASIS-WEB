@@ -20,7 +20,8 @@ declare global {
 
 interface Props {
   eliminarModal: () => void;
-  restriccion?: NivelEducativo | number;
+  restriccionNivel?: NivelEducativo;
+  idAulaRestringida?: string;
 }
 
 // Estados del modal
@@ -101,7 +102,11 @@ const ESTILOS_POR_NAVEGADORES: Record<
   },
 };
 
-const GeneradorQRParametrizado = ({ eliminarModal, restriccion }: Props) => {
+const GeneradorQRParametrizado = ({
+  eliminarModal,
+  restriccionNivel,
+  idAulaRestringida,
+}: Props) => {
   const {
     hiddenCardsRef,
     grados,
@@ -130,10 +135,9 @@ const GeneradorQRParametrizado = ({ eliminarModal, restriccion }: Props) => {
   const [estadoModal, setEstadoModal] = useState<EstadosModal>(
     EstadosModal.INICIAL
   );
-  const [nivelRestringido, setNivelRestringido] = useState<
-    NivelEducativo | undefined
-  >();
-  const [aulaRestringida, setAulaRestringida] = useState<any>(null);
+  const [nivelSeleccionado, setNivelSeleccionado] = useState<NivelEducativo>(
+    restriccionNivel || NivelEducativo.PRIMARIA
+  );
 
   // Detectar navegador
   const navegador = useDetectorNavegador();
@@ -167,20 +171,6 @@ const GeneradorQRParametrizado = ({ eliminarModal, restriccion }: Props) => {
     estilos.AspectRatioVisualizadorDePdf,
   ].join(" ");
 
-  // Lógica de restricciones
-  useEffect(() => {
-    if (restriccion) {
-      if (typeof restriccion === "string") {
-        // Restricción por nivel educativo
-        setNivelRestringido(restriccion);
-      } else if (typeof restriccion === "number") {
-        // Restricción por ID de aula específica
-        // TODO: Buscar el aula por ID y configurar aulaRestringida
-        // setAulaRestringida(buscarAulaPorId(restriccion));
-      }
-    }
-  }, [restriccion]);
-
   // Control de estados del modal
   useEffect(() => {
     if (currentPdfBlob) {
@@ -206,8 +196,11 @@ const GeneradorQRParametrizado = ({ eliminarModal, restriccion }: Props) => {
   // Inicialización
   useEffect(() => {
     initializeShareSupport();
-    cargarGradosDisponibles();
-  }, [initializeShareSupport, cargarGradosDisponibles]);
+    // Cargar grados según restricciones o nivel por defecto
+    const nivelInicial = restriccionNivel || nivelSeleccionado;
+    cargarGradosDisponibles(nivelInicial, idAulaRestringida);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initializeShareSupport]);
 
   useEffect(() => {
     return cleanup;
@@ -218,16 +211,19 @@ const GeneradorQRParametrizado = ({ eliminarModal, restriccion }: Props) => {
     aulaSeleccionada && estudiantesDelAula.length > 0 && !isGeneratingPDF;
   const estudiantesCount = estudiantesDelAula.length;
 
-  // Filtrar grados según restricciones
-  const gradosFiltrados = aulaRestringida ? [aulaRestringida.Grado] : grados;
+  // Determinar si mostrar selector de nivel
+  const mostrarSelectorNivel = !restriccionNivel && !idAulaRestringida;
 
-  // Filtrar secciones según restricciones
-  const seccionesFiltradas = aulaRestringida
-    ? [aulaRestringida.Seccion]
-    : secciones;
+  // Determinar si mostrar selectores de grado/sección
+  const mostrarSelectoresGradoSeccion = !idAulaRestringida;
 
-  // Determinar si el nivel está restringido
-  const nivelDeshabilitado = !!restriccion;
+  // Handler para cambio de nivel (solo para Directivos)
+  const handleNivelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const nuevoNivel = e.target.value as NivelEducativo;
+    setNivelSeleccionado(nuevoNivel);
+    limpiarSelecciones();
+    cargarGradosDisponibles(nuevoNivel);
+  };
 
   return (
     <>
@@ -349,7 +345,7 @@ const GeneradorQRParametrizado = ({ eliminarModal, restriccion }: Props) => {
               </div>
             </div>
 
-            {/* Panel de configuración - Mejor espaciado */}
+            {/* Panel de configuración */}
             <div
               className="p-4
                             sxs-only:p-2
@@ -359,7 +355,7 @@ const GeneradorQRParametrizado = ({ eliminarModal, restriccion }: Props) => {
                             landscape-small:p-[0.9rem]
                             landscape-tablet-sm:p-[0.9rem]"
             >
-              {/* Título - Mayor separación */}
+              {/* Título */}
               <div
                 className="mb-4
                               sxs-only:mb-1.5
@@ -416,141 +412,142 @@ const GeneradorQRParametrizado = ({ eliminarModal, restriccion }: Props) => {
                                   landscape-small:gap-[0.55rem]
                                   landscape-tablet-sm:gap-[0.55rem]"
                   >
-                    {/* Selector de Nivel */}
-                    <div>
-                      <label
-                        className="block text-xs font-medium text-gray-700 mb-1
-                                      sxs-only:text-[9px] sxs-only:mb-0.5
-                                      xs-only:text-[10px] xs-only:mb-0.5
-                                      sm-only:text-xs sm-only:mb-0.5
-                                      lg-only:text-sm lg-only:mb-1.5
-                                      xl-only:text-base xl-only:mb-2
-                                      landscape-small:text-[11px] landscape-small:mb-[0.2rem]
-                                      landscape-tablet-sm:text-[11px] landscape-tablet-sm:mb-[0.2rem]"
-                      >
-                        Nivel
-                      </label>
-                      <select
-                        value={nivelRestringido}
-                        disabled={nivelDeshabilitado}
-                        className={`w-full p-2 border border-gray-300 rounded-md ${
-                          nivelDeshabilitado
-                            ? "bg-gray-100 text-gray-600 cursor-not-allowed"
-                            : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    {/* Selector de Nivel - solo si no hay restricciones */}
+                    {mostrarSelectorNivel && (
+                      <div>
+                        <label
+                          className="block text-xs font-medium text-gray-700 mb-1
+                                        sxs-only:text-[9px] sxs-only:mb-0.5
+                                        xs-only:text-[10px] xs-only:mb-0.5
+                                        sm-only:text-xs sm-only:mb-0.5
+                                        lg-only:text-sm lg-only:mb-1.5
+                                        xl-only:text-base xl-only:mb-2
+                                        landscape-small:text-[11px] landscape-small:mb-[0.2rem]
+                                        landscape-tablet-sm:text-[11px] landscape-tablet-sm:mb-[0.2rem]"
+                        >
+                          Nivel
+                        </label>
+                        <select
+                          value={nivelSeleccionado}
+                          onChange={handleNivelChange}
+                          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                                   sxs-only:p-1 sxs-only:text-[9px] sxs-only:rounded
+                                   xs-only:p-1 xs-only:text-[10px] xs-only:rounded
+                                   sm-only:p-1.5 sm-only:text-xs sm-only:rounded-sm
+                                   lg-only:p-2.5 lg-only:text-sm
+                                   xl-only:p-3 xl-only:text-base
+                                   landscape-small:p-[0.35rem] landscape-small:text-[11px] landscape-small:rounded-[0.35rem]
+                                   landscape-tablet-sm:p-[0.35rem] landscape-tablet-sm:text-[11px] landscape-tablet-sm:rounded-[0.35rem]"
+                        >
+                          {Object.values(NivelEducativo).map((nivel) => (
+                            <option key={nivel} value={nivel}>
+                              {NivelEducativoTextos[nivel]}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Grid para Grado y Sección - solo si no hay restricción de aula */}
+                    {mostrarSelectoresGradoSeccion && (
+                      <div
+                        className={`grid grid-cols-2 gap-3 ${
+                          mostrarSelectorNivel
+                            ? "md:col-span-2 lg:col-span-1"
+                            : ""
                         }
-                                 sxs-only:p-1 sxs-only:text-[9px] sxs-only:rounded
-                                 xs-only:p-1 xs-only:text-[10px] xs-only:rounded
-                                 sm-only:p-1.5 sm-only:text-xs sm-only:rounded-sm
-                                 lg-only:p-2.5 lg-only:text-sm
-                                 xl-only:p-3 xl-only:text-base
-                                 landscape-small:p-[0.35rem] landscape-small:text-[11px] landscape-small:rounded-[0.35rem]
-                                 landscape-tablet-sm:p-[0.35rem] landscape-tablet-sm:text-[11px] landscape-tablet-sm:rounded-[0.35rem]`}
+                                    sxs-only:gap-1.5
+                                    xs-only:gap-1.5
+                                    sm-only:gap-2
+                                    lg-only:gap-4
+                                    xl-only:gap-5
+                                    landscape-small:gap-[0.55rem]
+                                    landscape-tablet-sm:gap-[0.55rem]`}
                       >
-                        {Object.values(NivelEducativo).map((nivel) => (
-                          <option key={nivel} value={nivel}>
-                            {NivelEducativoTextos[nivel]}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                        {/* Selector de Grado */}
+                        <div>
+                          <label
+                            className="block text-xs font-medium text-gray-700 mb-1
+                                          sxs-only:text-[9px] sxs-only:mb-0.5
+                                          xs-only:text-[10px] xs-only:mb-0.5
+                                          sm-only:text-xs sm-only:mb-0.5
+                                          lg-only:text-sm lg-only:mb-1.5
+                                          xl-only:text-base xl-only:mb-2
+                                          landscape-small:text-[11px] landscape-small:mb-[0.2rem]
+                                          landscape-tablet-sm:text-[11px] landscape-tablet-sm:mb-[0.2rem]"
+                          >
+                            Grado
+                          </label>
+                          <select
+                            value={gradoSeleccionado || ""}
+                            onChange={(e) =>
+                              handleGradoChange(Number(e.target.value))
+                            }
+                            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                                       sxs-only:p-1 sxs-only:text-[9px] sxs-only:rounded
+                                       xs-only:p-1 xs-only:text-[10px] xs-only:rounded
+                                       sm-only:p-1.5 sm-only:text-xs sm-only:rounded-sm
+                                       lg-only:p-2.5 lg-only:text-sm
+                                       xl-only:p-3 xl-only:text-base
+                                       landscape-small:p-[0.35rem] landscape-small:text-[11px] landscape-small:rounded-[0.35rem]
+                                       landscape-tablet-sm:p-[0.35rem] landscape-tablet-sm:text-[11px] landscape-tablet-sm:rounded-[0.35rem]"
+                          >
+                            <option value="">Grado</option>
+                            {grados.map((grado) => (
+                              <option key={grado} value={grado}>
+                                {grado}°
+                              </option>
+                            ))}
+                          </select>
+                        </div>
 
-                    {/* Grid para Grado y Sección */}
-                    <div
-                      className="grid grid-cols-2 gap-3 md:col-span-2 lg:col-span-1
-                                  sxs-only:gap-1.5
-                                  xs-only:gap-1.5
-                                  sm-only:gap-2
-                                  lg-only:gap-4
-                                  xl-only:gap-5
-                                  landscape-small:gap-[0.55rem]
-                                  landscape-tablet-sm:gap-[0.55rem]"
-                    >
-                      {/* Selector de Grado */}
-                      <div>
-                        <label
-                          className="block text-xs font-medium text-gray-700 mb-1
-                                        sxs-only:text-[9px] sxs-only:mb-0.5
-                                        xs-only:text-[10px] xs-only:mb-0.5
-                                        sm-only:text-xs sm-only:mb-0.5
-                                        lg-only:text-sm lg-only:mb-1.5
-                                        xl-only:text-base xl-only:mb-2
-                                        landscape-small:text-[11px] landscape-small:mb-[0.2rem]
-                                        landscape-tablet-sm:text-[11px] landscape-tablet-sm:mb-[0.2rem]"
-                        >
-                          Grado
-                        </label>
-                        <select
-                          value={gradoSeleccionado || ""}
-                          onChange={(e) =>
-                            handleGradoChange(Number(e.target.value))
-                          }
-                          disabled={aulaRestringida}
-                          className={`w-full p-2 border border-gray-300 rounded-md ${
-                            aulaRestringida
-                              ? "bg-gray-100 cursor-not-allowed"
-                              : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          }
-                                     sxs-only:p-1 sxs-only:text-[9px] sxs-only:rounded
-                                     xs-only:p-1 xs-only:text-[10px] xs-only:rounded
-                                     sm-only:p-1.5 sm-only:text-xs sm-only:rounded-sm
-                                     lg-only:p-2.5 lg-only:text-sm
-                                     xl-only:p-3 xl-only:text-base
-                                     landscape-small:p-[0.35rem] landscape-small:text-[11px] landscape-small:rounded-[0.35rem]
-                                     landscape-tablet-sm:p-[0.35rem] landscape-tablet-sm:text-[11px] landscape-tablet-sm:rounded-[0.35rem]`}
-                        >
-                          <option value="">Grado</option>
-                          {gradosFiltrados.map((grado) => (
-                            <option key={grado} value={grado}>
-                              {grado}°
-                            </option>
-                          ))}
-                        </select>
+                        {/* Selector de Sección */}
+                        <div>
+                          <label
+                            className="block text-xs font-medium text-gray-700 mb-1
+                                          sxs-only:text-[9px] sxs-only:mb-0.5
+                                          xs-only:text-[10px] xs-only:mb-0.5
+                                          sm-only:text-xs sm-only:mb-0.5
+                                          lg-only:text-sm lg-only:mb-1.5
+                                          xl-only:text-base xl-only:mb-2
+                                          landscape-small:text-[11px] landscape-small:mb-[0.2rem]
+                                          landscape-tablet-sm:text-[11px] landscape-tablet-sm:mb-[0.2rem]"
+                          >
+                            Sección
+                          </label>
+                          <select
+                            value={seccionSeleccionada || ""}
+                            onChange={(e) =>
+                              handleSeccionChange(e.target.value)
+                            }
+                            disabled={!gradoSeleccionado}
+                            className={`w-full p-2 border border-gray-300 rounded-md ${
+                              !gradoSeleccionado
+                                ? "bg-gray-100 cursor-not-allowed"
+                                : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            }
+                                       sxs-only:p-1 sxs-only:text-[9px] sxs-only:rounded
+                                       xs-only:p-1 xs-only:text-[10px] xs-only:rounded
+                                       sm-only:p-1.5 sm-only:text-xs sm-only:rounded-sm
+                                       lg-only:p-2.5 lg-only:text-sm
+                                       xl-only:p-3 xl-only:text-base
+                                       landscape-small:p-[0.35rem] landscape-small:text-[11px] landscape-small:rounded-[0.35rem]
+                                       landscape-tablet-sm:p-[0.35rem] landscape-tablet-sm:text-[11px] landscape-tablet-sm:rounded-[0.35rem]`}
+                          >
+                            <option value="">Sección</option>
+                            {secciones.map((seccion) => (
+                              <option key={seccion} value={seccion}>
+                                {seccion}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
                       </div>
-
-                      {/* Selector de Sección */}
-                      <div>
-                        <label
-                          className="block text-xs font-medium text-gray-700 mb-1
-                                        sxs-only:text-[9px] sxs-only:mb-0.5
-                                        xs-only:text-[10px] xs-only:mb-0.5
-                                        sm-only:text-xs sm-only:mb-0.5
-                                        lg-only:text-sm lg-only:mb-1.5
-                                        xl-only:text-base xl-only:mb-2
-                                        landscape-small:text-[11px] landscape-small:mb-[0.2rem]
-                                        landscape-tablet-sm:text-[11px] landscape-tablet-sm:mb-[0.2rem]"
-                        >
-                          Sección
-                        </label>
-                        <select
-                          value={seccionSeleccionada || ""}
-                          onChange={(e) => handleSeccionChange(e.target.value)}
-                          disabled={!gradoSeleccionado || aulaRestringida}
-                          className={`w-full p-2 border border-gray-300 rounded-md ${
-                            !gradoSeleccionado || aulaRestringida
-                              ? "bg-gray-100 cursor-not-allowed"
-                              : "focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          }
-                                     sxs-only:p-1 sxs-only:text-[9px] sxs-only:rounded
-                                     xs-only:p-1 xs-only:text-[10px] xs-only:rounded
-                                     sm-only:p-1.5 sm-only:text-xs sm-only:rounded-sm
-                                     lg-only:p-2.5 lg-only:text-sm
-                                     xl-only:p-3 xl-only:text-base
-                                     landscape-small:p-[0.35rem] landscape-small:text-[11px] landscape-small:rounded-[0.35rem]
-                                     landscape-tablet-sm:p-[0.35rem] landscape-tablet-sm:text-[11px] landscape-tablet-sm:rounded-[0.35rem]`}
-                        >
-                          <option value="">Sección</option>
-                          {seccionesFiltradas.map((seccion) => (
-                            <option key={seccion} value={seccion}>
-                              {seccion}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 )}
 
-                {/* ESTADO SELECCIONADO O GENERADO: Mostrar información del aula - Aumentada 10% */}
+                {/* ESTADO SELECCIONADO O GENERADO: Mostrar información del aula */}
                 {(estadoModal === EstadosModal.SELECCIONADO ||
                   estadoModal === EstadosModal.GENERADO) &&
                   aulaSeleccionada && (
@@ -619,7 +616,7 @@ const GeneradorQRParametrizado = ({ eliminarModal, restriccion }: Props) => {
                     </div>
                   )}
 
-                {/* Botones de acción según estado - Mayor espaciado */}
+                {/* Botones de acción según estado */}
                 <div
                   className="mt-4 space-y-2
                                 sxs-only:mt-2.5 sxs-only:space-y-1

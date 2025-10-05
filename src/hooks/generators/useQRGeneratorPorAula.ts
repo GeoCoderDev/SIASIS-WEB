@@ -37,21 +37,58 @@ export const useQRGeneratorPorAula = () => {
     setShareSupported(checkWebShareApiSupport());
   }, []); // Cargar grados disponibles
 
-  const cargarGradosDisponibles = useCallback(async () => {
-    try {
-      const todasLasAulas = await aulasIDB.getTodasLasAulas();
-      const aulasSecundaria = todasLasAulas.filter(
-        (aula) => aula.Nivel === NivelEducativo.SECUNDARIA
-      );
+  const cargarGradosDisponibles = useCallback(
+    async (nivelRestringido?: NivelEducativo, idAulaRestringida?: string) => {
+      try {
+        const todasLasAulas = await aulasIDB.getTodasLasAulas();
 
-      const gradosUnicos = [
-        ...new Set(aulasSecundaria.map((aula) => aula.Grado)),
-      ].sort();
-      setGrados(gradosUnicos);
-    } catch (error) {
-      console.error("Error al cargar grados:", error);
-    }
-  }, [aulasIDB]); // Cargar secciones de un grado específico
+        // Si hay restricción de aula, cargar automáticamente
+        if (idAulaRestringida) {
+          const aulaRestringida = todasLasAulas.find(
+            (aula) => aula.Id_Aula === idAulaRestringida
+          );
+
+          if (aulaRestringida) {
+            setGrados([aulaRestringida.Grado]);
+            setGradoSeleccionado(aulaRestringida.Grado);
+            setSecciones([aulaRestringida.Seccion]);
+            setSeccionSeleccionada(aulaRestringida.Seccion);
+            setAulaSeleccionada(aulaRestringida);
+
+            const todosLosEstudiantes =
+              await estudiantesIDB.getTodosLosEstudiantes(false);
+            const estudiantesAula = todosLosEstudiantes.filter(
+              (estudiante) =>
+                estudiante.Id_Aula === aulaRestringida.Id_Aula &&
+                estudiante.Estado
+            );
+
+            estudiantesAula.sort((a, b) =>
+              `${a.Apellidos} ${a.Nombres}`.localeCompare(
+                `${b.Apellidos} ${b.Nombres}`
+              )
+            );
+
+            setEstudiantesDelAula(estudiantesAula);
+          }
+          return;
+        }
+
+        const aulasSecundaria = todasLasAulas.filter(
+          (aula) =>
+            aula.Nivel === (nivelRestringido || NivelEducativo.SECUNDARIA)
+        );
+
+        const gradosUnicos = [
+          ...new Set(aulasSecundaria.map((aula) => aula.Grado)),
+        ].sort();
+        setGrados(gradosUnicos);
+      } catch (error) {
+        console.error("Error al cargar grados:", error);
+      }
+    },
+    [aulasIDB, estudiantesIDB]
+  ); // Cargar secciones de un grado específico
 
   const cargarSeccionesDelGrado = useCallback(
     async (grado: number) => {

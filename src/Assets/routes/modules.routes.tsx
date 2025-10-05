@@ -211,6 +211,7 @@ const allSiasisModules: SiasisModule[] = [
     },
     allowedRoles: [RolesSistema.Auxiliar],
     active: true,
+    detallesEstadoAsistenciaNavbarInactivo: true,
   },
   {
     route: "/aula-a-cargo",

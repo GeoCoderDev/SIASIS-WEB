@@ -16,6 +16,9 @@ interface FiltrosConsultaAsistenciasEscolaresProps {
   onConsultar: () => void;
   onLimpiar: () => void;
   isLoading?: boolean;
+  // Nuevas props para parametrización
+  ocultarNivelEducativo?: boolean;
+  nivelEducativoFijo?: NivelEducativo;
 }
 
 const FiltrosConsultaAsistenciasEscolares: React.FC<
@@ -35,30 +38,41 @@ const FiltrosConsultaAsistenciasEscolares: React.FC<
   onConsultar,
   onLimpiar,
   isLoading = false,
+  ocultarNivelEducativo = false,
+  nivelEducativoFijo,
 }) => {
   const puedeConsultar =
     nivelTemporal && gradoTemporal && seccionTemporal && !isLoading;
 
+  // Si hay nivel fijo, usarlo automáticamente
+  React.useEffect(() => {
+    if (nivelEducativoFijo && !nivelTemporal) {
+      setNivelTemporal(nivelEducativoFijo);
+    }
+  }, [nivelEducativoFijo, nivelTemporal, setNivelTemporal]);
+
   return (
     <div className="flex flex-wrap gap-3">
-      {/* Nivel Educativo */}
-      <div className="flex-1 min-w-[150px]">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Nivel Educativo
-        </label>
-        <select
-          value={nivelTemporal}
-          onChange={(e) =>
-            setNivelTemporal(e.target.value as NivelEducativo | "")
-          }
-          disabled={isLoading}
-          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-        >
-          <option value="">Seleccionar</option>
-          <option value={NivelEducativo.PRIMARIA}>Primaria</option>
-          <option value={NivelEducativo.SECUNDARIA}>Secundaria</option>
-        </select>
-      </div>
+      {/* Nivel Educativo - Condicional */}
+      {!ocultarNivelEducativo && (
+        <div className="flex-1 min-w-[150px]">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Nivel Educativo
+          </label>
+          <select
+            value={nivelTemporal}
+            onChange={(e) =>
+              setNivelTemporal(e.target.value as NivelEducativo | "")
+            }
+            disabled={isLoading || !!nivelEducativoFijo}
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          >
+            <option value="">Seleccionar</option>
+            <option value={NivelEducativo.PRIMARIA}>Primaria</option>
+            <option value={NivelEducativo.SECUNDARIA}>Secundaria</option>
+          </select>
+        </div>
+      )}
 
       {/* Grado */}
       <div className="flex-1 min-w-[150px]">

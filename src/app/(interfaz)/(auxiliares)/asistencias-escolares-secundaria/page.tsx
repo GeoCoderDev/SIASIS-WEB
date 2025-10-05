@@ -1,35 +1,24 @@
 "use client";
 
-import GeneradorTarjetaQRPorAulaModal from "@/components/modals/QR/GeneradorDeQRPorAulaModal";
+import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
-import React, { useState } from "react";
+import ConsultaAsistenciasPorRol from "@/components/asistencias-escolares/por-aula/ConsultaAsistenciasEscolaresPorRol";
 
-const AsistenciasEscolaresSecundaria = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
+/**
+ * Página de consulta de asistencias escolares para Auxiliares
+ *
+ * Características:
+ * - Solo acceso a aulas de Secundaria
+ * - Restricción de nivel educativo fija
+ * - Puede generar QRs solo para aulas de Secundaria
+ */
+const AsistenciasEscolaresAuxiliares = () => {
   return (
-    <>
-      {isModalOpen && (
-        <GeneradorTarjetaQRPorAulaModal
-          restriccion={NivelEducativo.SECUNDARIA}
-          eliminarModal={() => {
-            setIsModalOpen(false);
-          }}
-        />
-      )}
-      <div>
-        <button
-          className="bg-azul-principal text-white p-4 py-2 rounded-[1rem] outline-none"
-          onClick={() => setIsModalOpen(true)}
-        >
-          Generar Tarjetas QR para estudiantes de Secundaria por Aula
-        </button>
-        <button className="bg-azul-principal text-white p-4 py-2 rounded-[1rem] outline-none">
-          TEST QUEUES
-        </button>
-      </div>
-    </>
+    <ConsultaAsistenciasPorRol
+      rol={RolesSistema.Auxiliar}
+      nivelEducativoRestringido={NivelEducativo.SECUNDARIA}
+    />
   );
 };
 
-export default AsistenciasEscolaresSecundaria;
+export default AsistenciasEscolaresAuxiliares;
