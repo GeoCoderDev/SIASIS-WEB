@@ -1,17 +1,17 @@
-import { MisEstudianteRelacionadoAsistenciasMensualesSuccessResponse } from "@/interfaces/shared/apis/api02/mis-estudiantes-relacionados/asistencias-mensuales/types";
+import { GetAsistenciasEscolaresMensualesDeMiAulaSuccessResponse } from "@/interfaces/shared/apis/api02/mi-aula/asistencias-escolares-mensuales/types";
 import { EndpointSiasis } from "../EndpointSiasis";
 
-export interface GetAsistenciasMensualesEscolaresParaResponsablesAPI02QueryParams {
+export interface GetAsistenciasMensualesEscolaresDeMiAulaAPI02QueryParams {
   Mes: string;
 }
 
-export const Endpoint_Get_Asistencias_Mensuales_Escolares_Para_Responsables_API02 =
+export const Endpoint_Get_Asistencias_Mensuales_Escolares_De_Mi_Aula_API02 =
   new EndpointSiasis<
-    "/api/mis-estudiantes-relacionados/:Id_Estudiante/asistencias-mensuales",
-    MisEstudianteRelacionadoAsistenciasMensualesSuccessResponse,
-    GetAsistenciasMensualesEscolaresParaResponsablesAPI02QueryParams
+    "/api/mi-aula/asistencias-escolares-mensuales",
+    GetAsistenciasEscolaresMensualesDeMiAulaSuccessResponse,
+    GetAsistenciasMensualesEscolaresDeMiAulaAPI02QueryParams
   >({
     siasisApi: "API02",
     metodoHttp: "GET",
-    ruta: "/api/mis-estudiantes-relacionados/:Id_Estudiante/asistencias-mensuales",
+    ruta: "/api/mi-aula/asistencias-escolares-mensuales",
   });

@@ -26,6 +26,7 @@ import {
 } from "@/constants/EXTENSION_HORARIOS_ESCOLARES";
 import { Endpoint_Get_Asistencias_Mensuales_Escolares_Para_Responsables_API02 } from "@/lib/utils/backend/endpoints/api02/AsistenciasMensualesEscolaresParaResponsables";
 
+
 // Constantes específicas para responsables
 const HORA_CONSOLIDACION_REDIS_A_MONGODB = 22; // 10 PM
 

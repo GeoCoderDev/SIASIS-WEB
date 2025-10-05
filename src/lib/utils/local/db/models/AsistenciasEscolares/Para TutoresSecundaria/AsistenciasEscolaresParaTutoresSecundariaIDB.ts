@@ -13,8 +13,9 @@ import {
   AsistenciasEscolaresBaseIDB,
   IAsistenciaEscolarLocal,
 } from "../AsistenciasEscolaresBaseIDB";
-import { Endpoint_Get_Asistencias_Mensuales_Escolares_De_Mi_Aula_API02 } from "@/lib/utils/backend/endpoints/api02/AsistenciasMensualesEscolaresParaResponsables";
+
 import { alterarUTCaZonaPeruana } from "@/lib/helpers/alteradores/alterarUTCaZonaPeruana";
+import { Endpoint_Get_Asistencias_Mensuales_Escolares_De_Mi_Aula_API02 } from "@/lib/utils/backend/endpoints/api02/AsistenciasMensualesEscolaresDeMiAula";
 
 // Constantes
 const INTERVALO_ACTUALIZACION_MINUTOS = 10;
