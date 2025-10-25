@@ -1,6 +1,6 @@
 "use client";
 
-import ConsultaAsistenciasPorRol from "@/components/asistencias-escolares/por-aula/ConsultaAsistenciasEscolaresPorRol";
+import ConsultaAsistenciasEscolaresPorRol from "@/components/asistencias-escolares/por-aula/ConsultaAsistenciasEscolaresPorRol";
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 
 /**
@@ -12,12 +12,7 @@ import { RolesSistema } from "@/interfaces/shared/RolesSistema";
  * - Puede generar QRs para cualquier aula
  */
 const AsistenciasEscolaresDirectivos = () => {
-  return (
-    <ConsultaAsistenciasPorRol
-      rol={RolesSistema.Directivo}
-      
-    />
-  );
+  return <ConsultaAsistenciasEscolaresPorRol rol={RolesSistema.Directivo} />;
 };
 
 export default AsistenciasEscolaresDirectivos;

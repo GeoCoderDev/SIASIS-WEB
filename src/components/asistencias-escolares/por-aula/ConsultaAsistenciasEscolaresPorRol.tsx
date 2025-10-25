@@ -53,7 +53,7 @@ export interface DatosTablaAsistencias {
   fechaConsulta: string;
 }
 
-interface ConsultaAsistenciasPorRolProps {
+interface ConsultaAsistenciasEscolaresPorRolProps {
   rol:
     | RolesSistema.Directivo
     | RolesSistema.Auxiliar
@@ -64,7 +64,7 @@ interface ConsultaAsistenciasPorRolProps {
   idAulaRestringida?: string; // Para profesores y tutores
 }
 
-const ConsultaAsistenciasPorRol: React.FC<ConsultaAsistenciasPorRolProps> = ({
+const ConsultaAsistenciasEscolaresPorRol: React.FC<ConsultaAsistenciasEscolaresPorRolProps> = ({
   rol,
   nivelEducativoRestringido,
   idAulaRestringida,
@@ -687,4 +687,4 @@ const ConsultaAsistenciasPorRol: React.FC<ConsultaAsistenciasPorRolProps> = ({
   );
 };
 
-export default ConsultaAsistenciasPorRol;
+export default ConsultaAsistenciasEscolaresPorRol;

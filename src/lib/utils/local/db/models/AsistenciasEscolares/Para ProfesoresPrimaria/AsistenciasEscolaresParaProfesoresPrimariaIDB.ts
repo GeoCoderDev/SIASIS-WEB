@@ -17,7 +17,7 @@ import {
 import { alterarUTCaZonaPeruana } from "@/lib/helpers/alteradores/alterarUTCaZonaPeruana";
 import { Endpoint_Get_Asistencias_Mensuales_Escolares_De_Mi_Aula_API02 } from "@/lib/utils/backend/endpoints/api02/AsistenciasMensualesEscolaresDeMiAula";
 
-// Constantes
+// Constantesw
 const INTERVALO_ACTUALIZACION_MINUTOS = 10;
 const HORA_DISPONIBILIDAD_MONGODB = 22;
 

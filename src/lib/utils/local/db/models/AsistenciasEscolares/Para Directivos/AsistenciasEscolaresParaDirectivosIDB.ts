@@ -829,6 +829,10 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
     }
   }
 
+  /**
+   * Verifica el control de frecuencia para consultas de asistencias por aula
+   * Implementa lógica especial para fines de semana
+   */
   private async verificarControlFrecuenciaAula(
     idAula: string,
     mes: number
@@ -869,7 +873,8 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
       const tiempoTranscurrido =
         fechaActual - registroMasReciente.ultima_fecha_actualizacion;
 
-      const diaActual = new Date().getDay();
+      const ahora = new Date(fechaActual);
+      const diaActual = ahora.getDay();
       const fechaUltimoRegistro = new Date(
         registroMasReciente.ultima_fecha_actualizacion
       );
@@ -878,13 +883,33 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
       const esFinDeSemanaActual = diaActual === 0 || diaActual === 6;
       const eraFinDeSemana = diaUltimoRegistro === 0 || diaUltimoRegistro === 6;
 
-      // Fin de semana: bloquear si ya se consultó
+      // === LÓGICA ESPECIAL PARA FIN DE SEMANA ===
       if (esFinDeSemanaActual && eraFinDeSemana) {
-        const minutosHastaLunes = this.calcularMinutosHastaLunes(diaActual);
-        return { puedeConsultar: false, minutosEspera: minutosHastaLunes };
+        // Calcular la fecha límite de consolidación (último día laboral a la hora configurada)
+        const fechaLimiteConsolidacion =
+          this.calcularFechaLimiteConsolidacionDatos(ahora);
+
+        // Si el registro es anterior a la consolidación, los datos están desactualizados
+        if (
+          registroMasReciente.ultima_fecha_actualizacion <
+          fechaLimiteConsolidacion.getTime()
+        ) {
+          return {
+            puedeConsultar: true,
+            minutosEspera: 0,
+          };
+        }
+
+        // Si el registro es posterior a la consolidación, ya tiene datos actualizados
+        const minutosHastaProximoDiaLaboral =
+          this.calcularMinutosHastaProximoDiaLaboral(diaActual);
+        return {
+          puedeConsultar: false,
+          minutosEspera: minutosHastaProximoDiaLaboral,
+        };
       }
 
-      // Día laboral: control de 10 minutos
+      // === LÓGICA PARA DÍAS LABORALES ===
       if (!esFinDeSemanaActual && !eraFinDeSemana) {
         const intervaloMs = INTERVALO_ACTUALIZACION_MINUTOS * 60 * 1000;
         if (tiempoTranscurrido < intervaloMs) {
@@ -902,15 +927,59 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
     }
   }
 
-  private calcularMinutosHastaLunes(diaActual: number): number {
+  /**
+   * Calcula la fecha límite de consolidación de datos
+   * Esto es el último día laboral (viernes) a la hora configurada en HORA_DISPONIBILIDAD_MONGODB
+   * @param fechaReferencia Fecha actual desde la cual calcular
+   * @returns Date objeto representando la fecha límite de consolidación
+   */
+  private calcularFechaLimiteConsolidacionDatos(fechaReferencia: Date): Date {
+    const ultimoDiaLaboral = new Date(fechaReferencia);
+    const diaActual = ultimoDiaLaboral.getDay();
+
+    // Calcular cuántos días retroceder hasta el último día laboral
+    let diasRetroceso: number;
+
+    if (diaActual === 0) {
+      // Domingo
+      diasRetroceso = 2; // Retroceder al viernes
+    } else if (diaActual === 6) {
+      // Sábado
+      diasRetroceso = 1; // Retroceder al viernes
+    } else if (diaActual === 5) {
+      // Último día laboral de la semana
+      // Si es el último día laboral, verificar si ya pasó la hora de consolidación
+      const horaActual = fechaReferencia.getHours();
+      diasRetroceso = horaActual >= HORA_DISPONIBILIDAD_MONGODB ? 0 : 7;
+    } else {
+      // Lunes a Jueves
+      // Calcular días hasta el último día laboral anterior
+      diasRetroceso = diaActual + 2; // L(1)+2=3, M(2)+2=4, Mi(3)+2=5, J(4)+2=6
+    }
+
+    ultimoDiaLaboral.setDate(ultimoDiaLaboral.getDate() - diasRetroceso);
+    ultimoDiaLaboral.setHours(HORA_DISPONIBILIDAD_MONGODB, 0, 0, 0);
+
+    return ultimoDiaLaboral;
+  }
+
+  /**
+   * Calcula los minutos que faltan hasta el próximo día laboral (lunes) a las 00:00
+   * @param diaActual Día de la semana actual (0 = domingo, 6 = sábado)
+   * @returns Minutos hasta el inicio del próximo día laboral
+   */
+  private calcularMinutosHastaProximoDiaLaboral(diaActual: number): number {
     const ahora = new Date();
-    const proximoLunes = new Date(ahora);
+    const proximoDiaLaboral = new Date(ahora);
 
-    const diasHastaLunes = diaActual === 6 ? 2 : diaActual === 0 ? 1 : 0;
-    proximoLunes.setDate(ahora.getDate() + diasHastaLunes);
-    proximoLunes.setHours(0, 0, 0, 0);
+    // Calcular días hasta el lunes
+    const diasHastaProximoDiaLaboral =
+      diaActual === 6 ? 2 : diaActual === 0 ? 1 : 0;
+    proximoDiaLaboral.setDate(ahora.getDate() + diasHastaProximoDiaLaboral);
+    proximoDiaLaboral.setHours(0, 0, 0, 0);
 
-    const diferenciaMilisegundos = proximoLunes.getTime() - ahora.getTime();
+    const diferenciaMilisegundos =
+      proximoDiaLaboral.getTime() - ahora.getTime();
     const minutos = Math.ceil(diferenciaMilisegundos / (60 * 1000));
 
     return minutos > 0 ? minutos : 0;
