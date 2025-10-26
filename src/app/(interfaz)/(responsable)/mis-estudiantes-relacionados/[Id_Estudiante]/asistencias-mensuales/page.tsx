@@ -16,7 +16,7 @@ import { HandlerResponsableAsistenciaResponse } from "@/lib/utils/local/db/model
 import { AsistenciasEscolaresParaResponsablesIDB } from "@/lib/utils/local/db/models/AsistenciasEscolares/Para Responsables/AsistenciasEscolaresParaResponsablesIDB";
 import { DatosAsistenciaHoyIDB } from "@/lib/utils/local/db/models/DatosAsistenciaHoy/DatosAsistenciaHoyIDB";
 import {
-  AsistenciaProcesada,
+  AsistenciaEscolarProcesada,
   DiaCalendario,
   EstadisticasMes,
   MESES,
@@ -94,7 +94,7 @@ const AsistenciasMensualesEstudiantesRelacionados = () => {
   // Estados para asistencias
   const [mesSeleccionado, setMesSeleccionado] = useState<number | null>(null);
   const [asistenciasDelMes, setAsistenciasDelMes] = useState<{
-    [dia: number]: AsistenciaProcesada;
+    [dia: number]: AsistenciaEscolarProcesada;
   }>({});
 
   // Estados para UI
