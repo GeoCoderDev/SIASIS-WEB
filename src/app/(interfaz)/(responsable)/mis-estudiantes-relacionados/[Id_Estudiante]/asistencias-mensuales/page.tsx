@@ -31,6 +31,11 @@ import DatosProfesorCard from "../../../../../../components/asistencias-escolare
 import CalendarioAsistencias from "../../../../../../components/asistencias-escolares/por-estudiante/CalendarioAsistenciaEscolarMensual";
 import EstadisticasMensuales from "../../../../../../components/asistencias-escolares/por-estudiante/EstadisticasMensualesDeEstudiante";
 import VolverIcon from "@/components/icons/VolverIcon";
+import {
+  EventosIDB,
+  IEventoLocal,
+} from "@/lib/utils/local/db/models/EventosLocal/EventosIDB";
+import { T_Eventos } from "@prisma/client";
 
 // Interfaces para el profesor
 interface ProfesorPrimariaGenericoConCelular {
@@ -73,6 +78,7 @@ const AsistenciasMensualesEstudiantesRelacionados = () => {
   const [isLoadingProfesor, setIsLoadingProfesor] = useState(false);
   const [isLoadingHandler, setIsLoadingHandler] = useState(true);
   const [isLoadingAsistencias, setIsLoadingAsistencias] = useState(false);
+  const [eventosDelMes, setEventosDelMes] = useState<IEventoLocal[]>([]);
 
   // Estados separados para estudiante y profesor
   const [estudiante, setEstudiante] =
@@ -296,65 +302,6 @@ const AsistenciasMensualesEstudiantesRelacionados = () => {
     }
   }, [mesSeleccionado, estudiante, asistenciasIDB]);
 
-  const cargarAsistenciasMes = async () => {
-    if (!mesSeleccionado || !estudiante?.aula || !asistenciasIDB) return;
-
-    try {
-      setIsLoadingAsistencias(true);
-      setAsistenciasDelMes({});
-
-      const resultado = await asistenciasIDB.consultarAsistenciasMensuales(
-        estudiante,
-        mesSeleccionado
-      );
-
-      if (resultado.data && resultado.data.Asistencias) {
-        const asistenciasProcesadas =
-          AsistenciaProcessor.procesarAsistenciasDelServidor(
-            resultado.data.Asistencias,
-            nivel,
-            handlerAsistencia!
-          );
-        setAsistenciasDelMes(asistenciasProcesadas);
-
-        if (Object.keys(asistenciasProcesadas).length > 0) {
-          setError(null);
-        }
-      }
-
-      if (resultado.requiereEspera && resultado.data) {
-        setSuccessMessage({
-          message: `Datos mostrados desde cache. ${
-            resultado.message ||
-            "Próxima actualización disponible en unos minutos."
-          }`,
-        });
-      } else if (!resultado.success && !resultado.data) {
-        setError({
-          success: false,
-          message: resultado.message || "No se pudieron cargar las asistencias",
-          errorType: "NETWORK_ERROR" as any,
-        });
-      }
-    } catch (error) {
-      console.error("Error al cargar asistencias:", error);
-
-      if (Object.keys(asistenciasDelMes).length === 0) {
-        setError({
-          success: false,
-          message: "Error de conexión. Verifique su internet.",
-          errorType: "NETWORK_ERROR" as any,
-        });
-      } else {
-        setSuccessMessage({
-          message: "Mostrando datos guardados. Error de conexión temporal.",
-        });
-      }
-    } finally {
-      setIsLoadingAsistencias(false);
-    }
-  };
-
   // Funciones utilitarias
   const obtenerMesInfo = (valor: number) => {
     return MESES.find((m: any) => m.value === valor);
@@ -388,6 +335,102 @@ const AsistenciasMensualesEstudiantesRelacionados = () => {
         ? NivelEducativo.PRIMARIA
         : NivelEducativo.SECUNDARIA;
     return AsistenciaProcessor.obtenerHorarioEscolar(nivel, handlerAsistencia);
+  };
+
+  const cargarAsistenciasMes = async () => {
+    if (!mesSeleccionado || !estudiante?.aula || !asistenciasIDB) return;
+
+    try {
+      setIsLoadingAsistencias(true);
+      setAsistenciasDelMes({});
+
+      console.log(
+        `\n[ASISTENCIAS] ========== CARGANDO MES ${mesSeleccionado} ==========`
+      );
+
+      // 1️⃣ OBTENER EVENTOS DEL MES PRIMERO
+      console.log(`[ASISTENCIAS] 🎯 Consultando eventos...`);
+      const eventosIDB = new EventosIDB(
+        "API02",
+        setIsLoadingAsistencias,
+        setError,
+        setSuccessMessage
+      );
+
+      const eventos = await eventosIDB.getEventosPorMes(
+        mesSeleccionado,
+        new Date().getFullYear()
+      );
+
+      console.log(`[ASISTENCIAS] ✅ Eventos obtenidos: ${eventos.length}`);
+      setEventosDelMes(eventos);
+
+      // 2️⃣ OBTENER ASISTENCIAS DEL SERVIDOR
+      console.log(`[ASISTENCIAS] 📡 Consultando asistencias del servidor...`);
+      const resultado = await asistenciasIDB.consultarAsistenciasMensuales(
+        estudiante,
+        mesSeleccionado
+      );
+
+      if (resultado.data && resultado.data.Asistencias) {
+        console.log(`[ASISTENCIAS] ✅ Asistencias recibidas, procesando...`);
+
+        // 3️⃣ PROCESAR ASISTENCIAS CON EVENTOS
+        const asistenciasProcesadas =
+          AsistenciaProcessor.procesarAsistenciasDelServidor(
+            resultado.data.Asistencias,
+            nivel,
+            handlerAsistencia!,
+            eventos, // ← PASAR EVENTOS
+            mesSeleccionado, // ← PASAR MES
+            new Date().getFullYear() // ← PASAR AÑO
+          );
+
+        console.log(`[ASISTENCIAS] ✅ Procesamiento completado`);
+        console.log(
+          `[ASISTENCIAS] 📊 Días procesados:`,
+          Object.keys(asistenciasProcesadas).length
+        );
+
+        setAsistenciasDelMes(asistenciasProcesadas);
+
+        if (Object.keys(asistenciasProcesadas).length > 0) {
+          setError(null);
+        }
+      }
+
+      if (resultado.requiereEspera && resultado.data) {
+        setSuccessMessage({
+          message: `Datos mostrados desde cache. ${
+            resultado.message ||
+            "Próxima actualización disponible en unos minutos."
+          }`,
+        });
+      } else if (!resultado.success && !resultado.data) {
+        setError({
+          success: false,
+          message: resultado.message || "No se pudieron cargar las asistencias",
+          errorType: "NETWORK_ERROR" as any,
+        });
+      }
+
+      console.log(`[ASISTENCIAS] ========== CARGA COMPLETADA ==========\n`);
+    } catch (error) {
+      console.error("❌ Error al cargar asistencias:", error);
+      if (Object.keys(asistenciasDelMes).length === 0) {
+        setError({
+          success: false,
+          message: "Error de conexión. Verifique su internet.",
+          errorType: "NETWORK_ERROR" as any,
+        });
+      } else {
+        setSuccessMessage({
+          message: "Mostrando datos guardados. Error de conexión temporal.",
+        });
+      }
+    } finally {
+      setIsLoadingAsistencias(false);
+    }
   };
 
   // Verificar si hay error crítico

@@ -90,6 +90,7 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
 
   /**
    * Consulta asistencias mensuales de un estudiante individual
+   * FLUJO UNIFICADO: Sigue exactamente la misma lógica que consultarAsistenciasMensualesAula
    */
   public async consultarAsistenciasMensualesEstudiante(
     idEstudiante: string,
@@ -102,38 +103,460 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
     this.setSuccessMessage?.(null);
 
     try {
+      // 1. Validar mes
       const validacion = this.validarMesConsulta(mes);
       if (!validacion.esValido) {
         return this.crearResultadoError(validacion.mensaje);
       }
 
-      // Intentar obtener desde caché
-      const cacheResult = await this.obtenerDatosDesdeCache(
+      // 2. Validar nivel y grado
+      if (!this.validarNivelYGrado(nivel, grado)) {
+        return this.crearResultadoError(
+          `Nivel ${nivel} y grado ${grado} no son válidos`
+        );
+      }
+
+      // 3. Seguir el mismo flujo que consultarAsistenciasMensualesAula
+      return await this.consultarAsistenciasImplementacionEstudiante(
+        idEstudiante,
+        mes,
+        nivel,
+        grado
+      );
+    } catch (error) {
+      return this.manejarErrorGeneral(error, idEstudiante, mes);
+    } finally {
+      this.setIsSomethingLoading?.(false);
+    }
+  }
+
+  /**
+   * Implementación del flujo unificado para estudiante individual
+   * Idéntico a consultarAsistenciasImplementacion pero para un estudiante
+   */
+  private async consultarAsistenciasImplementacionEstudiante(
+    idEstudiante: string,
+    mes: number,
+    nivel: NivelEducativo,
+    grado: number
+  ): Promise<AsistenciaOperationResult> {
+    const mesActual = this.dateHelper.obtenerMesActual();
+    const esConsultaMesActual = mes === mesActual;
+
+    if (!esConsultaMesActual) {
+      return await this.manejarMesAnteriorEstudiante(
+        idEstudiante,
+        mes,
+        nivel,
+        grado
+      );
+    }
+
+    return await this.manejarMesActualEstudiante(
+      idEstudiante,
+      mes,
+      nivel,
+      grado
+    );
+  }
+
+  /**
+   * Maneja consulta de mes anterior para estudiante
+   */
+  private async manejarMesAnteriorEstudiante(
+    idEstudiante: string,
+    mes: number,
+    nivel: NivelEducativo,
+    grado: number
+  ): Promise<AsistenciaOperationResult> {
+    // Intentar desde caché
+    const datosCache = await this.obtenerDatosDesdeCache(
+      nivel,
+      grado,
+      idEstudiante,
+      mes
+    );
+
+    if (datosCache.success) {
+      return datosCache;
+    }
+
+    // Consultar API y guardar
+    return await this.consultarYGuardarMesAnteriorEstudiante(
+      idEstudiante,
+      mes,
+      nivel,
+      grado
+    );
+  }
+
+  /**
+   * Consulta y guarda datos de mes anterior para estudiante
+   */
+  private async consultarYGuardarMesAnteriorEstudiante(
+    idEstudiante: string,
+    mes: number,
+    nivel: NivelEducativo,
+    grado: number
+  ): Promise<AsistenciaOperationResult> {
+    try {
+      // Obtener información del aula del estudiante
+      const infoEstudiante = await this.obtenerInfoEstudiante(idEstudiante);
+      if (!infoEstudiante) {
+        return this.crearResultadoError(
+          "No se pudo determinar el aula del estudiante"
+        );
+      }
+
+      // Consultar a API02 con parámetros del estudiante
+      const response =
+        await Endpoint_Get_Asistencias_Mensuales_Escolares_Por_Aula_API02.realizarPeticion(
+          {
+            routeParams: { Id_Aula: infoEstudiante.idAula },
+            queryParams: { Mes: mes },
+          }
+        );
+
+      // Guardar TODOS los estudiantes del aula (incluyendo el consultado)
+      await this.procesarRespuestaAPI(response, infoEstudiante.idAula, mes);
+
+      // Extraer solo los datos del estudiante consultado
+      const asistenciasEstudiante =
+        response.data.Asistencias_Escolares[idEstudiante];
+
+      if (!asistenciasEstudiante) {
+        return this.crearResultadoError(
+          `Estudiante ${idEstudiante} no encontrado en la respuesta del servidor`
+        );
+      }
+
+      this.handleSuccess(
+        `Asistencias de ${this.obtenerNombreMes(mes)} obtenidas exitosamente.`
+      );
+
+      return {
+        success: true,
+        message: "Asistencias obtenidas exitosamente",
+        data: {
+          Mes: mes,
+          Asistencias: asistenciasEstudiante,
+          Id_Estudiante: idEstudiante,
+        },
+        origen: "api",
+      };
+    } catch (error) {
+      if (error instanceof CustomApiError) {
+        return this.manejarCustomApiError(error, idEstudiante, mes);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Maneja consulta de mes actual para estudiante
+   */
+  private async manejarMesActualEstudiante(
+    idEstudiante: string,
+    mes: number,
+    nivel: NivelEducativo,
+    grado: number
+  ): Promise<AsistenciaOperationResult> {
+    // Obtener información del aula
+    const infoEstudiante = await this.obtenerInfoEstudiante(idEstudiante);
+    if (!infoEstudiante) {
+      return this.crearResultadoError(
+        "No se pudo determinar el aula del estudiante"
+      );
+    }
+
+    // Determinar estrategia (igual que para aula)
+    const { estrategia } = await this.determinarEstrategiaConsulta(
+      mes,
+      infoEstudiante.idAula
+    );
+
+    switch (estrategia) {
+      case "solo_api_mensual":
+        return await this.consultarSoloAPI02Estudiante(
+          idEstudiante,
+          mes,
+          nivel,
+          grado
+        );
+
+      case "solo_api_diaria":
+        return await this.consultarSoloDiaActualEstudiante(
+          idEstudiante,
+          mes,
+          nivel,
+          grado
+        );
+
+      case "api_paralelo":
+        return await this.consultarAPI02YDiaActualParaleloEstudiante(
+          idEstudiante,
+          mes,
+          nivel,
+          grado
+        );
+
+      default:
+        const datosCache = await this.obtenerDatosDesdeCache(
+          nivel,
+          grado,
+          idEstudiante,
+          mes
+        );
+        return datosCache.success
+          ? datosCache
+          : this.crearResultadoError("No hay datos disponibles.");
+    }
+  }
+
+  /**
+   * Consulta solo API02 para estudiante
+   */
+  private async consultarSoloAPI02Estudiante(
+    idEstudiante: string,
+    mes: number,
+    nivel: NivelEducativo,
+    grado: number
+  ): Promise<AsistenciaOperationResult> {
+    try {
+      // Verificar control de frecuencia
+      const registroExistente = await this.obtenerRegistroPorClave(
         nivel,
         grado,
         idEstudiante,
         mes
       );
 
-      if (cacheResult.success) {
-        this.handleSuccess(
-          `Asistencias de ${this.obtenerNombreMes(mes)} obtenidas.`
-        );
-        return cacheResult;
+      if (registroExistente) {
+        const controlFrecuencia =
+          this.verificarControlFrecuenciaRol(registroExistente);
+
+        if (!controlFrecuencia.puedeConsultar) {
+          const datosCache = await this.obtenerDatosDesdeCache(
+            nivel,
+            grado,
+            idEstudiante,
+            mes
+          );
+          if (datosCache.success) {
+            return {
+              ...datosCache,
+              requiereEspera: true,
+              minutosEspera: controlFrecuencia.minutosEspera,
+            };
+          }
+        }
       }
 
-      // Si no hay caché, el estudiante debe tener un aula asignada
-      // Se debe consultar por aula completa primero
-      return this.crearResultadoError(
-        "No hay datos disponibles. Intente consultar por aula primero."
+      // Obtener información del aula
+      const infoEstudiante = await this.obtenerInfoEstudiante(idEstudiante);
+      if (!infoEstudiante) {
+        return this.crearResultadoError(
+          "No se pudo determinar el aula del estudiante"
+        );
+      }
+
+      // Consultar API02
+      const response =
+        await Endpoint_Get_Asistencias_Mensuales_Escolares_Por_Aula_API02.realizarPeticion(
+          {
+            routeParams: { Id_Aula: infoEstudiante.idAula },
+            queryParams: { Mes: mes },
+          }
+        );
+
+      // Guardar todos los datos
+      await this.procesarRespuestaAPI(response, infoEstudiante.idAula, mes);
+
+      // Extraer datos del estudiante
+      const asistenciasEstudiante =
+        response.data.Asistencias_Escolares[idEstudiante];
+
+      if (!asistenciasEstudiante) {
+        return this.crearResultadoError(
+          `Estudiante ${idEstudiante} no encontrado en respuesta`
+        );
+      }
+
+      this.handleSuccess(
+        `Asistencias de ${this.obtenerNombreMes(mes)} obtenidas.`
       );
+
+      return {
+        success: true,
+        message: "Asistencias obtenidas exitosamente",
+        data: {
+          Mes: mes,
+          Asistencias: asistenciasEstudiante,
+          Id_Estudiante: idEstudiante,
+        },
+        origen: "api",
+      };
     } catch (error) {
-      this.handleIndexedDBError(error, "consultar asistencias de estudiante");
-      return this.crearResultadoError(
-        "Error al consultar asistencias del estudiante."
+      if (error instanceof CustomApiError) {
+        return this.manejarCustomApiError(error, idEstudiante, mes);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Consulta solo día actual para estudiante
+   */
+  private async consultarSoloDiaActualEstudiante(
+    idEstudiante: string,
+    mes: number,
+    nivel: NivelEducativo,
+    grado: number
+  ): Promise<AsistenciaOperationResult> {
+    try {
+      const infoEstudiante = await this.obtenerInfoEstudiante(idEstudiante);
+      if (!infoEstudiante) {
+        return this.crearResultadoError(
+          "No se pudo determinar el aula del estudiante"
+        );
+      }
+
+      const infoAula = await this.obtenerInformacionAula(infoEstudiante.idAula);
+      if (!infoAula) {
+        return this.crearResultadoError("No se encontró información del aula.");
+      }
+
+      const estudiantesDelAula = await this.obtenerEstudiantesDelAula(
+        infoEstudiante.idAula
       );
-    } finally {
-      this.setIsSomethingLoading?.(false);
+
+      const datosDiaActual = await this.consultarAPIAsistenciasDiaActual(
+        infoAula.nivel,
+        infoAula.grado,
+        infoAula.seccion,
+        estudiantesDelAula.length
+      );
+
+      if (!datosDiaActual.success) {
+        return this.crearResultadoError(
+          datosDiaActual.mensaje || "No hay asistencias del día actual"
+        );
+      }
+
+      // Extraer solo el estudiante consultado
+      const asistenciaDiaActual = datosDiaActual.asistencias[idEstudiante];
+      if (!asistenciaDiaActual) {
+        return this.crearResultadoError(
+          "Estudiante no tiene asistencia registrada hoy"
+        );
+      }
+
+      const diaActual = this.dateHelper.obtenerDiaActual()!;
+      const asistenciaMensual = {
+        [diaActual]: asistenciaDiaActual,
+      };
+
+      this.handleSuccess(
+        `Asistencia del día ${diaActual} de ${this.obtenerNombreMes(mes)}.`
+      );
+
+      return {
+        success: true,
+        message: "Asistencia del día actual obtenida",
+        data: {
+          Mes: mes,
+          Asistencias: asistenciaMensual,
+          Id_Estudiante: idEstudiante,
+          incluyeDiaActual: true,
+        },
+        origen: "api",
+      };
+    } catch (error) {
+      console.error("Error consultando día actual:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Consulta API02 y día actual en paralelo para estudiante
+   */
+  private async consultarAPI02YDiaActualParaleloEstudiante(
+    idEstudiante: string,
+    mes: number,
+    nivel: NivelEducativo,
+    grado: number
+  ): Promise<AsistenciaOperationResult> {
+    try {
+      const infoEstudiante = await this.obtenerInfoEstudiante(idEstudiante);
+      if (!infoEstudiante) {
+        return this.crearResultadoError(
+          "No se pudo determinar el aula del estudiante"
+        );
+      }
+
+      const infoAula = await this.obtenerInformacionAula(infoEstudiante.idAula);
+      if (!infoAula) {
+        return this.crearResultadoError("No se encontró información del aula.");
+      }
+
+      const estudiantesDelAula = await this.obtenerEstudiantesDelAula(
+        infoEstudiante.idAula
+      );
+
+      const [resultadoAPI02, datosDiaActual] = await Promise.all([
+        this.consultarSoloAPI02Estudiante(idEstudiante, mes, nivel, grado),
+        this.consultarAPIAsistenciasDiaActual(
+          infoAula.nivel,
+          infoAula.grado,
+          infoAula.seccion,
+          estudiantesDelAula.length
+        ),
+      ]);
+
+      if (!resultadoAPI02.success || !resultadoAPI02.data) {
+        if (
+          datosDiaActual.success &&
+          datosDiaActual.asistencias[idEstudiante]
+        ) {
+          return await this.consultarSoloDiaActualEstudiante(
+            idEstudiante,
+            mes,
+            nivel,
+            grado
+          );
+        }
+        return resultadoAPI02;
+      }
+
+      // Fusionar datos
+      const asistenciasMensuales = resultadoAPI02.data.Asistencias;
+      const asistenciaDiaActual = datosDiaActual.success
+        ? datosDiaActual.asistencias[idEstudiante]
+        : null;
+
+      if (asistenciaDiaActual) {
+        const diaActual = this.dateHelper.obtenerDiaActual()!;
+        asistenciasMensuales[diaActual] = asistenciaDiaActual;
+      }
+
+      this.handleSuccess(
+        `Asistencias de ${this.obtenerNombreMes(mes)} incluyendo el día actual.`
+      );
+
+      return {
+        success: true,
+        message: "Asistencias con día actual obtenidas",
+        data: {
+          Mes: mes,
+          Asistencias: asistenciasMensuales,
+          Id_Estudiante: idEstudiante,
+          incluyeDiaActual: datosDiaActual.success && !!asistenciaDiaActual,
+        },
+        origen: "mixto",
+      };
+    } catch (error) {
+      console.error("Error en consulta paralela:", error);
+      throw error;
     }
   }
 
@@ -1019,13 +1442,14 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
     return this.crearResultadoError(mensajeAmigable);
   }
 
+  // Sobrescribir el método de manejo de errores para estudiantes
   private manejarErrorGeneral(
     error: unknown,
-    idAula: string,
+    idEstudianteOrAula: string,
     mes: number
-  ): AsistenciaAulaOperationResult {
+  ): AsistenciaOperationResult {
     if (error instanceof CustomApiError) {
-      return this.manejarCustomApiError(error, idAula, mes);
+      return this.manejarCustomApiError(error, idEstudianteOrAula, mes);
     }
 
     console.error("Error general:", error);

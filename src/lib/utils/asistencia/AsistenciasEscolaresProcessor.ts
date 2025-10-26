@@ -4,7 +4,7 @@ import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
 import { AsistenciaEscolarDeUnDia } from "@/interfaces/shared/AsistenciasEscolares";
 import { HandlerResponsableAsistenciaResponse } from "@/lib/utils/local/db/models/DatosAsistenciaHoy/handlers/HandlerResponsableAsistenciaResponse";
 import {
-  AsistenciaProcesada,
+  AsistenciaEscolarProcesada,
   DiaCalendario,
   EstadisticasMes,
   HorarioEscolar,
@@ -17,23 +17,33 @@ import {
 } from "@/constants/ASISTENCIA_ENTRADA_SALIDA_ESCOLAR";
 import { HorarioTomaAsistencia } from "@/interfaces/shared/Asistencia/DatosAsistenciaHoyIE20935";
 import { alterarUTCaZonaPeruana } from "@/lib/helpers/alteradores/alterarUTCaZonaPeruana";
+import { IEventoLocal } from "../local/db/models/EventosLocal/EventosIDB";
+
+// 🆕 Interfaz para mapear días con sus eventos
+interface DiaConEvento {
+  dia: number;
+  evento: IEventoLocal;
+}
 
 export class AsistenciaProcessor {
   /**
    * Procesa las asistencias del servidor para mostrar en el calendario
+   * ⚠️ IMPORTANTE: Los eventos tienen PRIORIDAD ABSOLUTA sobre cualquier dato de asistencia
    */
   static procesarAsistenciasDelServidor(
     asistencias: Record<number, AsistenciaEscolarDeUnDia | null>,
     nivel: NivelEducativo,
-    handlerAsistencia?: HandlerResponsableAsistenciaResponse
-  ): { [dia: number]: AsistenciaProcesada } {
+    handlerAsistencia?: HandlerResponsableAsistenciaResponse,
+    eventosDelMes?: IEventoLocal[],
+    mes?: number,
+    año?: number
+  ): { [dia: number]: AsistenciaEscolarProcesada } {
     try {
-      const asistenciasProcesadas: { [dia: number]: AsistenciaProcesada } = {};
+      const asistenciasProcesadas: { [dia: number]: AsistenciaEscolarProcesada } = {};
       const toleranciaSegundos =
         nivel === NivelEducativo.PRIMARIA
           ? TOLERANCIA_SEGUNDOS_PRIMARIA
           : TOLERANCIA_SEGUNDOS_SECUNDARIA;
-
       const controlaEntrada = true; // Siempre activo
       const controlaSalida =
         nivel === NivelEducativo.PRIMARIA
@@ -43,6 +53,7 @@ export class AsistenciaProcessor {
       // Obtener horario real si está disponible
       const horarioEscolar = handlerAsistencia?.getHorarioEscolar(nivel)!;
 
+      // 1️⃣ PROCESAR ASISTENCIAS NORMALMENTE
       Object.entries(asistencias).forEach(([diaStr, datosAsistencia]) => {
         const dia = parseInt(diaStr);
 
@@ -55,7 +66,7 @@ export class AsistenciaProcessor {
         }
 
         const datosObjeto = datosAsistencia as any;
-        const asistenciaProcesada: AsistenciaProcesada = {
+        const asistenciaProcesada: AsistenciaEscolarProcesada = {
           estado: EstadosAsistenciaEscolar.Inactivo, // Default
         };
 
@@ -103,11 +114,115 @@ export class AsistenciaProcessor {
         asistenciasProcesadas[dia] = asistenciaProcesada;
       });
 
+      // 2️⃣ APLICAR EVENTOS (PRIORIDAD ABSOLUTA)
+      // Si hay eventos y tenemos mes/año, reemplazar los días con eventos
+      if (eventosDelMes && eventosDelMes.length > 0 && mes && año) {
+        console.log(
+          `[EVENTOS] 🎯 Aplicando ${eventosDelMes.length} eventos al mes ${mes}/${año}`
+        );
+
+        // 🆕 Obtener mapa de días con sus eventos (incluyendo información completa)
+        const diasConEventos = this.obtenerDiasConEventosDetallado(
+          eventosDelMes,
+          mes,
+          año
+        );
+
+        console.log(
+          `[EVENTOS] 📅 Días con eventos:`,
+          Array.from(diasConEventos.keys()).sort((a, b) => a - b)
+        );
+
+        // Reemplazar TODOS los días con eventos, incluyendo información del evento
+        diasConEventos.forEach((evento, dia) => {
+          asistenciasProcesadas[dia] = {
+            estado: EstadosAsistenciaEscolar.Evento,
+            // 🆕 Agregar información del evento
+            eventoInfo: {
+              nombre: evento.Nombre,
+              fechaInicio: evento.Fecha_Inicio,
+              fechaConclusion: evento.Fecha_Conclusion,
+            },
+          };
+        });
+
+        console.log(
+          `[EVENTOS] ✅ ${diasConEventos.size} días marcados como eventos`
+        );
+      }
+
       return asistenciasProcesadas;
     } catch (error) {
       console.error("Error al procesar asistencias:", error);
       return {};
     }
+  }
+
+  /**
+   * 🆕 Obtiene todos los días que están dentro de eventos CON INFORMACIÓN COMPLETA
+   * Retorna un Map donde la clave es el día y el valor es el evento completo
+   */
+  private static obtenerDiasConEventosDetallado(
+    eventos: IEventoLocal[],
+    mes: number,
+    año: number
+  ): Map<number, IEventoLocal> {
+    const diasConEventos = new Map<number, IEventoLocal>();
+
+    eventos.forEach((evento) => {
+      try {
+        // Crear fechas con zona horaria peruana (sin hora para evitar problemas de timezone)
+        const fechaInicio = new Date(evento.Fecha_Inicio + "T00:00:00");
+        const fechaFin = new Date(evento.Fecha_Conclusion + "T00:00:00");
+
+        console.log(
+          `[EVENTO] 📌 "${evento.Nombre}": ${evento.Fecha_Inicio} → ${evento.Fecha_Conclusion}`
+        );
+
+        // Iterar día por día desde inicio hasta fin
+        let fechaActual = new Date(fechaInicio);
+
+        while (fechaActual <= fechaFin) {
+          // Solo agregar días que pertenecen al mes consultado
+          const mesActual = fechaActual.getMonth() + 1;
+          const añoActual = fechaActual.getFullYear();
+
+          if (mesActual === mes && añoActual === año) {
+            const dia = fechaActual.getDate();
+
+            // Solo días escolares (lunes a viernes)
+            const diaSemana = fechaActual.getDay();
+            if (diaSemana >= 1 && diaSemana <= 5) {
+              // Guardar el evento completo asociado a este día
+              diasConEventos.set(dia, evento);
+              console.log(`[EVENTO] ✓ Día ${dia} marcado: "${evento.Nombre}"`);
+            } else {
+              console.log(`[EVENTO] ⊗ Día ${dia} es fin de semana, omitido`);
+            }
+          }
+
+          // Avanzar al siguiente día
+          fechaActual.setDate(fechaActual.getDate() + 1);
+        }
+      } catch (error) {
+        console.error(`[EVENTO] ❌ Error procesando evento:`, evento, error);
+      }
+    });
+
+    return diasConEventos;
+  }
+
+  /**
+   * 🆕 Método alternativo si necesitas solo el Set de números (sin info del evento)
+   * Mantener por compatibilidad pero usa obtenerDiasConEventosDetallado
+   */
+  private static obtenerDiasConEventos(
+    eventos: IEventoLocal[],
+    mes: number,
+    año: number
+  ): Set<number> {
+    const diasMap = this.obtenerDiasConEventosDetallado(eventos, mes, año);
+    return new Set(diasMap.keys());
   }
 
   /**
@@ -128,6 +243,7 @@ export class AsistenciaProcessor {
         modoRegistro === ModoRegistro.Entrada
           ? horarioEscolar.Inicio
           : horarioEscolar.Fin;
+
       const fecha = new Date(alterarUTCaZonaPeruana(horarioBase));
       console.log("%c" + fecha, "color: green; font-size:1rem;");
 
@@ -177,16 +293,18 @@ export class AsistenciaProcessor {
    */
   static obtenerDiasDelMes(
     mes: number,
-    asistenciasDelMes: { [dia: number]: AsistenciaProcesada }
+    asistenciasDelMes: { [dia: number]: AsistenciaEscolarProcesada }
   ): DiaCalendario[] {
     const fechaActual = new Date();
     const año = fechaActual.getFullYear();
     const diasEnMes = new Date(año, mes, 0).getDate();
+
     const dias: DiaCalendario[] = [];
 
     for (let dia = 1; dia <= diasEnMes; dia++) {
       const fecha = new Date(año, mes - 1, dia);
       const diaSemana = fecha.getDay(); // 0=domingo, 1=lunes, ..., 6=sábado
+
       const esDiaEscolar = diaSemana >= 1 && diaSemana <= 5; // Solo lunes a viernes
 
       if (esDiaEscolar) {
@@ -205,7 +323,7 @@ export class AsistenciaProcessor {
    * Calcula las estadísticas del mes
    */
   static calcularEstadisticasMes(asistenciasDelMes: {
-    [dia: number]: AsistenciaProcesada;
+    [dia: number]: AsistenciaEscolarProcesada;
   }): EstadisticasMes {
     const valores = Object.values(asistenciasDelMes);
 

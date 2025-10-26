@@ -166,6 +166,47 @@ export abstract class AsistenciasEscolaresBaseIDB {
     return { esValido: true, mensaje: "" };
   }
 
+  /**
+   * Obtiene información básica de un estudiante (su aula)
+   */
+  protected async obtenerInfoEstudiante(
+    idEstudiante: string
+  ): Promise<{ nivel: NivelEducativo; grado: number; idAula: string } | null> {
+    try {
+      const { BaseEstudiantesIDB } = await import(
+        "@/lib/utils/local/db/models/Estudiantes/EstudiantesBaseIDB"
+      );
+      const estudiantesIDB = new BaseEstudiantesIDB();
+      const todosEstudiantes = await estudiantesIDB.getTodosLosEstudiantes(
+        false
+      );
+      const estudiante = todosEstudiantes.find(
+        (e) => e.Id_Estudiante === idEstudiante
+      );
+
+      if (!estudiante || !estudiante.Id_Aula) return null;
+
+      // Obtener información del aula
+      const { BaseAulasIDB } = await import(
+        "@/lib/utils/local/db/models/Aulas/AulasBase"
+      );
+      const aulasIDB = new BaseAulasIDB();
+      const todasLasAulas = await aulasIDB.getTodasLasAulas();
+      const aula = todasLasAulas.find((a) => a.Id_Aula === estudiante.Id_Aula);
+
+      if (!aula) return null;
+
+      return {
+        nivel: aula.Nivel as NivelEducativo,
+        grado: aula.Grado,
+        idAula: aula.Id_Aula,
+      };
+    } catch (error) {
+      console.error("Error obteniendo información de estudiante:", error);
+      return null;
+    }
+  }
+
   // =====================================================================================
   // OPERACIONES CON INDEXEDDB (compartidas)
   // =====================================================================================

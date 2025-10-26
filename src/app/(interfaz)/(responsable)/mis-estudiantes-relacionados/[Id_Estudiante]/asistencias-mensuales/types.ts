@@ -21,17 +21,33 @@ export interface RegistroAsistenciaBase {
   esValido: boolean;
 }
 
+export interface EventoInfo {
+  nombre: string;
+  fechaInicio: string;
+  fechaConclusion: string;
+}
+
 // Interface para asistencias procesadas - optimizada
-export interface AsistenciaProcesada {
+export interface AsistenciaEscolarProcesada {
   estado: EstadosAsistenciaEscolar;
-  entrada?: RegistroAsistenciaBase;
-  salida?: RegistroAsistenciaBase;
+  entrada?: {
+    desfaseSegundos: number | null;
+    esValido: boolean;
+    hora?: string;
+  };
+  salida?: {
+    desfaseSegundos: number | null;
+    esValido: boolean;
+    hora?: string;
+  };
+  // 🆕 AGREGAR esta propiedad opcional para eventos
+  eventoInfo?: EventoInfo;
 }
 
 // Interface para datos del calendario - simplificada
 export interface DiaCalendario {
   dia: number;
-  asistencia?: AsistenciaProcesada;
+  asistencia?: AsistenciaEscolarProcesada;
   esDiaEscolar: boolean;
 }
 
