@@ -62,7 +62,7 @@ export class IndexedDBConnection {
    * Setter para el PostfixIDBFromUserData
    */
   public static set PostfixIDBFromUserData(username: string) {
-    IndexedDBConnection._PostfixIDB = `${username.substring(0, 3)}`;
+    IndexedDBConnection._PostfixIDB = `U${username.substring(0, 3)}`;
     // Guardar en localStorage si estamos en el cliente
     if (typeof window !== "undefined" && window.localStorage) {
       localStorage.setItem(
