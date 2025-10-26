@@ -120,6 +120,11 @@ const CalendarioAsistenciaEscolarMensual = ({
       ? AsistenciaProcessor.obtenerTextoEstado(dia.asistencia.estado)
       : "";
 
+    // 🆕 Verificar si es evento
+    const esEvento = dia.asistencia?.estado === EstadosAsistenciaEscolar.Evento;
+    const eventoInfo = dia.asistencia?.eventoInfo;
+
+    // Si es falta, renderizado especial
     if (dia.asistencia?.estado === EstadosAsistenciaEscolar.Falta) {
       return (
         <div
@@ -145,6 +150,42 @@ const CalendarioAsistenciaEscolarMensual = ({
       );
     }
 
+    // 🆕 Si es EVENTO, renderizado especial
+    if (esEvento && eventoInfo) {
+      return (
+        <div
+          className={`${estilos.container} rounded-lg p-2 h-[50px] flex flex-col items-center justify-center`}
+          title={eventoInfo.nombre} // Tooltip con nombre completo
+        >
+          <div className="text-sm font-semibold text-gray-700 mb-0.5">
+            {dia.dia}
+          </div>
+          <div className="flex flex-col items-center gap-0.5">
+            <div
+              className={`w-5 h-5 ${
+                COLORES_ESTADOS_ASISTENCIA_ESCOLAR[
+                  EstadosAsistenciaEscolar.Evento
+                ].background
+              } ${
+                COLORES_ESTADOS_ASISTENCIA_ESCOLAR[
+                  EstadosAsistenciaEscolar.Evento
+                ].text
+              } rounded flex items-center justify-center`}
+            >
+              <span className="font-bold text-xs">E</span>
+            </div>
+            {/* Mostrar nombre truncado del evento */}
+            <div className="text-[9px] text-purple-700 font-medium truncate max-w-full px-1">
+              {eventoInfo.nombre.length > 12
+                ? eventoInfo.nombre.substring(0, 12) + "..."
+                : eventoInfo.nombre}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Sin datos
     if (!dia.asistencia) {
       return (
         <div
@@ -281,6 +322,11 @@ const CalendarioAsistenciaEscolarMensual = ({
                 };
             const nombreDia = obtenerNombreDia(dia.dia, mesActual);
 
+            // 🆕 Verificar si es un evento y extraer información
+            const esEvento =
+              dia.asistencia?.estado === EstadosAsistenciaEscolar.Evento;
+            const eventoInfo = dia.asistencia?.eventoInfo;
+
             return (
               <div
                 key={index}
@@ -310,7 +356,10 @@ const CalendarioAsistenciaEscolarMensual = ({
                           </span>
                         </div>
                         <span className="text-xs font-medium text-gray-600">
-                          {dia.asistencia
+                          {/* 🆕 Mostrar nombre del evento si está disponible */}
+                          {esEvento && eventoInfo
+                            ? eventoInfo.nombre
+                            : dia.asistencia
                             ? obtenerTextoEstadoCompleto(dia.asistencia.estado)
                             : "Sin datos"}
                         </span>
@@ -322,9 +371,59 @@ const CalendarioAsistenciaEscolarMensual = ({
                 {/* Detalles de asistencia más compactos */}
                 {dia.asistencia && (
                   <div className="space-y-2">
-                    {/* Para faltas: mensaje especial más compacto */}
-                    {dia.asistencia.estado ===
-                    EstadosAsistenciaEscolar.Falta ? (
+                    {/* 🆕 Para EVENTOS: mostrar información especial */}
+                    {esEvento && eventoInfo ? (
+                      <div className="bg-purple-50 p-3 rounded border border-purple-200">
+                        <div className="space-y-2">
+                          {/* Nombre del evento destacado */}
+                          <div className="text-center">
+                            <div className="text-lg font-bold text-purple-800 mb-1">
+                              🎉 {eventoInfo.nombre}
+                            </div>
+                            <div className="text-xs text-purple-600">
+                              Evento Institucional
+                            </div>
+                          </div>
+
+                          {/* Información de fechas si el evento dura más de 1 día */}
+                          {eventoInfo.fechaInicio !==
+                            eventoInfo.fechaConclusion && (
+                            <div className="pt-2 border-t border-purple-200">
+                              <div className="text-xs text-purple-700 text-center">
+                                <div className="font-medium mb-1">
+                                  Duración del evento:
+                                </div>
+                                <div className="flex items-center justify-center gap-2">
+                                  <span>
+                                    {new Date(
+                                      eventoInfo.fechaInicio + "T00:00:00"
+                                    ).toLocaleDateString("es-PE", {
+                                      day: "2-digit",
+                                      month: "short",
+                                    })}
+                                  </span>
+                                  <span>→</span>
+                                  <span>
+                                    {new Date(
+                                      eventoInfo.fechaConclusion + "T00:00:00"
+                                    ).toLocaleDateString("es-PE", {
+                                      day: "2-digit",
+                                      month: "short",
+                                    })}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Mensaje informativo */}
+                          <div className="text-xs text-center text-purple-600 mt-2 italic">
+                            No hay clases este día
+                          </div>
+                        </div>
+                      </div>
+                    ) : /* Para FALTAS: mensaje especial más compacto */
+                    dia.asistencia.estado === EstadosAsistenciaEscolar.Falta ? (
                       <div className="bg-red-50 p-2 rounded border border-red-200">
                         <div className="text-center">
                           <div className="text-sm font-medium text-red-800 mb-1">
@@ -354,7 +453,6 @@ const CalendarioAsistenciaEscolarMensual = ({
                             </div>
                           </div>
                         )}
-
                         {/* Salida (si está habilitada) */}
                         {mostrarSalida && dia.asistencia.salida && (
                           <div className="bg-gray-50 p-2 rounded border border-gray-200">
@@ -371,21 +469,15 @@ const CalendarioAsistenciaEscolarMensual = ({
                             </div>
                           </div>
                         )}
-
-                        {/* Estados especiales sin horas */}
+                        {/* Estados especiales sin horas (Vacaciones, Inactivo) */}
                         {!dia.asistencia.entrada &&
                           (dia.asistencia.estado ===
-                            EstadosAsistenciaEscolar.Evento ||
-                            dia.asistencia.estado ===
-                              EstadosAsistenciaEscolar.Vacaciones ||
+                            EstadosAsistenciaEscolar.Vacaciones ||
                             dia.asistencia.estado ===
                               EstadosAsistenciaEscolar.Inactivo) && (
                             <div className="bg-amber-50 p-2 rounded border border-amber-200">
                               <div className="text-center">
                                 <div className="text-sm font-medium text-amber-800">
-                                  {dia.asistencia.estado ===
-                                    EstadosAsistenciaEscolar.Evento &&
-                                    "Día de evento especial"}
                                   {dia.asistencia.estado ===
                                     EstadosAsistenciaEscolar.Vacaciones &&
                                     "Día de vacaciones"}
@@ -400,7 +492,6 @@ const CalendarioAsistenciaEscolarMensual = ({
                     )}
                   </div>
                 )}
-
                 {/* Sin datos */}
                 {!dia.asistencia && (
                   <div className="bg-gray-50 p-2 rounded border border-gray-200 text-center">
