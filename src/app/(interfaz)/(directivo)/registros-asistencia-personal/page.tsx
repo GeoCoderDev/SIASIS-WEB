@@ -34,6 +34,8 @@ import {
   EventosIDB,
   IEventoLocal,
 } from "@/lib/utils/local/db/models/EventosLocal/EventosIDB";
+import { getMesesDisponibles } from "@/lib/getters/getMesesDisponibles";
+import useFechaReduxActual from "@/hooks/system-time/useFechaReduxActual";
 
 // 🔧 CONSTANTE DE CONFIGURACIÓN PARA DESARROLLO
 const CONSIDERAR_DIAS_NO_ESCOLARES = false; // false = solo días laborales, true = incluir sábados y domingos
@@ -66,42 +68,7 @@ const RegistrosAsistenciaDePersonal = () => {
   const [error, setError] = useState<ErrorResponseAPIBase | null>(null);
   const [successMessage, setSuccessMessage] = useState("");
 
-  // ✅ Usar useSelector para obtener fecha de Redux reactivamente
-  const fechaHoraRedux = useSelector(
-    (state: RootState) => state.others.fechaHoraActualReal.fechaHora
-  );
-
-  // ✅ Función helper para obtener fecha Redux con manejo de errores
-  const obtenerFechaRedux = () => {
-    if (!fechaHoraRedux) {
-      return null;
-    }
-
-    try {
-      const fechaObj = new Date(fechaHoraRedux);
-      if (isNaN(fechaObj.getTime())) {
-        console.error("❌ Fecha inválida desde Redux:", fechaHoraRedux);
-        return null;
-      }
-
-      return {
-        fechaActual: fechaObj,
-        mesActual: fechaObj.getMonth() + 1,
-        diaActual: fechaObj.getDate(),
-        añoActual: fechaObj.getFullYear(),
-        timestamp: fechaObj.getTime(),
-        esHoy: true,
-      };
-    } catch (error) {
-      console.error("❌ Error al procesar fecha de Redux:", error);
-      return null;
-    }
-  };
-
-  const fechaRedux = obtenerFechaRedux();
-  const mesActual = fechaRedux?.mesActual || new Date().getMonth() + 1;
-  const diaActual = fechaRedux?.diaActual || new Date().getDate();
-  const añoActual = fechaRedux?.añoActual || new Date().getFullYear();
+  const { diaActual, mesActual, añoActual } = useFechaReduxActual();
 
   // ✅ Roles disponibles
   const roles = [
@@ -148,22 +115,6 @@ const RegistrosAsistenciaDePersonal = () => {
       limpiarResultados();
     }
   }, [usuarioSeleccionado?.ID_Usuario]);
-
-  // Función para obtener meses disponibles (hasta mayo o mes actual)
-  const getMesesDisponibles = () => {
-    const mesesDisponibles: { value: string; label: string }[] = [];
-    const limiteMaximo = mesActual;
-
-    for (let mes = 3; mes <= limiteMaximo; mes++) {
-      // Empezar desde marzo (3)
-      mesesDisponibles.push({
-        value: mes.toString(),
-        label: mesesTextos[mes as Meses],
-      });
-    }
-
-    return mesesDisponibles;
-  };
 
   // Función para verificar si una fecha debe mostrarse (no futura)
   const esFechaValida = (fecha: string): boolean => {
@@ -1604,7 +1555,7 @@ const RegistrosAsistenciaDePersonal = () => {
                         : "Seleccionar mes"}
                     </option>
                     {usuarioEstaSeleccionado &&
-                      getMesesDisponibles().map(({ value, label }) => (
+                      getMesesDisponibles(mesActual).map(({ value, label }) => (
                         <option key={value} value={value}>
                           {label}
                         </option>

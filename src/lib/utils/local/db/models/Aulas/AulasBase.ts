@@ -25,6 +25,7 @@ import AllErrorTypes, {
 } from "@/interfaces/shared/errors";
 import { T_Aulas, T_Estudiantes } from "@prisma/client";
 import { EstudianteConAula } from "@/interfaces/shared/Estudiantes";
+import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
 
 // Filtros básicos para búsqueda
 export interface IAulaBaseFilter {
@@ -330,6 +331,58 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
     } catch (error) {
       this.handleIndexedDBError(error, "obtener todas las aulas");
       this.setIsSomethingLoading?.(false);
+      return [];
+    }
+  }
+
+  /**
+   * Obtiene las secciones disponibles para un nivel y grado específicos
+   * @param nivel Nivel educativo ("PRIMARIA" o "SECUNDARIA")
+   * @param grado Grado (1-6 para primaria, 1-5 para secundaria)
+   * @returns Promise<string[]> Array con las secciones disponibles ordenadas alfabéticamente
+   */
+  public async getSeccionesPorNivelYGrado(
+    nivel: NivelEducativo,
+    grado: number
+  ): Promise<string[]> {
+    try {
+      const store = await IndexedDBConnection.getStore(this.tablaAulas);
+
+      return new Promise<string[]>((resolve, reject) => {
+        const secciones = new Set<string>();
+        const request = store.openCursor();
+
+        request.onsuccess = (event) => {
+          const cursor = (event.target as IDBRequest)
+            .result as IDBCursorWithValue;
+
+          if (cursor) {
+            const aula = cursor.value as T;
+
+            // Verificar que coincida nivel y grado
+            if (aula.Nivel == nivel && aula.Grado == grado) {
+              secciones.add(aula.Seccion);
+            }
+
+            cursor.continue();
+          } else {
+            // Convertir Set a Array y ordenar alfabéticamente
+            const seccionesArray = Array.from(secciones).sort();
+            resolve(seccionesArray);
+          }
+        };
+
+        request.onerror = () => reject(request.error);
+      });
+    } catch (error) {
+      console.error(
+        `Error al obtener secciones para ${nivel} - Grado ${grado}:`,
+        error
+      );
+      this.handleIndexedDBError(
+        error,
+        `obtener secciones para ${nivel} - Grado ${grado}`
+      );
       return [];
     }
   }

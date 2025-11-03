@@ -31,6 +31,8 @@ import { IAsistenciasEscolaresIDB } from "@/lib/utils/local/db/models/Asistencia
 import { AsistenciasEscolaresParaProfesoresPrimariaIDB } from "@/lib/utils/local/db/models/AsistenciasEscolares/Para ProfesoresPrimaria/AsistenciasEscolaresParaProfesoresPrimariaIDB";
 import { AsistenciasEscolaresParaTutoresIDB } from "@/lib/utils/local/db/models/AsistenciasEscolares/Para TutoresSecundaria/AsistenciasEscolaresParaTutoresSecundariaIDB";
 import GeneradorTarjetaQRPorAulaModal from "@/components/modals/QR/GeneradorDeQRPorAulaModal";
+import useFechaHoraReal from "@/hooks/useFechaHoraReal";
+import useFechaReduxActual from "@/hooks/system-time/useFechaReduxActual";
 
 const MOSTRAR_MENSAJES_EXITO = false;
 
@@ -64,26 +66,22 @@ interface ConsultaAsistenciasEscolaresPorRolProps {
   idAulaRestringida?: string; // Para profesores y tutores
 }
 
-const ConsultaAsistenciasEscolaresPorRol: React.FC<ConsultaAsistenciasEscolaresPorRolProps> = ({
-  rol,
-  nivelEducativoRestringido,
-  idAulaRestringida,
-}) => {
+const ConsultaAsistenciasEscolaresPorRol: React.FC<
+  ConsultaAsistenciasEscolaresPorRolProps
+> = ({ rol, nivelEducativoRestringido, idAulaRestringida }) => {
+  const { mesActual } = useFechaReduxActual();
+
   const [nivelTemporal, setNivelTemporal] = useState<NivelEducativo | "">("");
   const [gradoTemporal, setGradoTemporal] = useState<number | "">("");
   const [seccionTemporal, setSeccionTemporal] = useState<string>("");
-  const [mesTemporal, setMesTemporal] = useState<number>(
-    new Date().getMonth() + 1
-  );
+  const [mesTemporal, setMesTemporal] = useState<number>(mesActual);
 
   const [nivelSeleccionado, setNivelSeleccionado] = useState<
     NivelEducativo | ""
   >("");
   const [gradoSeleccionado, setGradoSeleccionado] = useState<number | "">("");
   const [seccionSeleccionada, setSeccionSeleccionada] = useState<string>("");
-  const [mesSeleccionado, setMesSeleccionado] = useState<number>(
-    new Date().getMonth() + 1
-  );
+  const [mesSeleccionado, setMesSeleccionado] = useState<number>(mesActual);
 
   const [gradosDisponibles, setGradosDisponibles] = useState<number[]>([]);
   const [seccionesDisponibles, setSeccionesDisponibles] = useState<string[]>(
@@ -405,7 +403,6 @@ const ConsultaAsistenciasEscolaresPorRol: React.FC<ConsultaAsistenciasEscolaresP
   };
 
   const obtenerMesesDisponibles = () => {
-    const mesActual = new Date().getMonth() + 1;
     return MESES.filter((mes) => mes.value >= 3 && mes.value <= mesActual);
   };
 

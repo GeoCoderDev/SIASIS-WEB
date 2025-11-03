@@ -21,13 +21,13 @@ const SiasisSelect: React.FC<SiasisSelectProps> = ({
   selectAttributes,
 }) => {
   return (
-    <div className="relative inline-block w-full">
+    <div className="relative inline-block w-max">
       <select
         {...selectAttributes}
         className={`appearance-none w-full font-normal
          px-2 py-1 rounded-md 
         shadow-sm focus:ring-2 focus:ring-negro
-        bg-color-interfaz transition-colors pl-3 pr-8 cursor-pointer text-center text-white ${className}`}
+        bg-color-interfaz transition-colors pl-3 pr-8 cursor-pointer text-center text-white disabled:cursor-not-allowed disabled:grayscale-[0.4] ${className}`}
         name={name}
         value={value}
         onChange={onChange}
@@ -37,8 +37,12 @@ const SiasisSelect: React.FC<SiasisSelectProps> = ({
         </option>
         {children}
       </select>
-      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-        <DespliegueIcon className="w-[1rem] text-white" title="" />
+      <div
+        className={`pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 ${
+          selectAttributes?.disabled ? "opacity-50" : ""
+        }`}
+      >
+        <DespliegueIcon className="w-[0.9rem] text-white" title="" />
       </div>
     </div>
   );

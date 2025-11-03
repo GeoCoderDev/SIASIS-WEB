@@ -69,7 +69,6 @@ select::-webkit-listbox {
          cursor-pointer;
 }
 
-
 /* LOADER */
 .loader {
   aspect-ratio: 1;
@@ -87,6 +86,10 @@ select::-webkit-listbox {
   }
 }
 
+/* ============================================================================== */
+/*                            ANIMACIONES DE KEYFRAMES                            */
+/* ============================================================================== */
+
 /* ANIMACION DE SKELETO */
 .skeleton {
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
@@ -101,6 +104,29 @@ select::-webkit-listbox {
   }
   100% {
     background-position: -200% 0;
+  }
+}
+
+/* ANIMACION DE RECORRIMIENTO HORIZONTAL */
+
+@keyframes slideFromLeft {
+  from {
+    left: 0;
+    transform: translateX(0%) translateY(-50%);
+  }
+  to {
+    left: 100%;
+    transform: translateX(-100%) translateY(-50%);
+  }
+}
+@keyframes slideFromRight {
+  from {
+    left: 100%;
+    transform: translateX(-100%) translateY(-50%);
+  }
+  to {
+    left: 0;
+    transform: translateX(0%) translateY(-50%);
   }
 }
 

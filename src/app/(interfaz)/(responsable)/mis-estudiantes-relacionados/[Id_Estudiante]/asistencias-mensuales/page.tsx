@@ -36,6 +36,8 @@ import {
   IEventoLocal,
 } from "@/lib/utils/local/db/models/EventosLocal/EventosIDB";
 import { T_Eventos } from "@prisma/client";
+import useFechaReduxActual from "@/hooks/system-time/useFechaReduxActual";
+import { getMesesDisponibles } from "@/lib/getters/getMesesDisponibles";
 
 // Interfaces para el profesor
 interface ProfesorPrimariaGenericoConCelular {
@@ -72,6 +74,8 @@ const AsistenciasMensualesEstudiantesRelacionados = () => {
   const [successMessage, setSuccessMessage] = useState<MessageProperty | null>(
     null
   );
+
+  const { mesActual } = useFechaReduxActual();
 
   // Estados de carga individuales
   const [isLoadingEstudiante, setIsLoadingEstudiante] = useState(true);
@@ -305,14 +309,6 @@ const AsistenciasMensualesEstudiantesRelacionados = () => {
   // Funciones utilitarias
   const obtenerMesInfo = (valor: number) => {
     return MESES.find((m: any) => m.value === valor);
-  };
-
-  const obtenerMesesDisponibles = () => {
-    const fechaActual = new Date();
-    const mesActual = fechaActual.getMonth() + 1; // getMonth() retorna 0-11, necesitamos 1-12
-
-    // Filtrar meses desde marzo (3) hasta el mes actual
-    return MESES.filter((mes: any) => mes.value >= 3 && mes.value <= mesActual);
   };
 
   const obtenerDias = (): DiaCalendario[] => {
@@ -583,7 +579,7 @@ const AsistenciasMensualesEstudiantesRelacionados = () => {
                     className="px-3 py-2 border border-gray-300 rounded-md text-sm min-w-36 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">Seleccionar mes</option>
-                    {obtenerMesesDisponibles().map((mes: any) => (
+                    {getMesesDisponibles(mesActual).map((mes: any) => (
                       <option key={mes.value} value={mes.value}>
                         {mes.label}
                       </option>
@@ -784,7 +780,7 @@ const AsistenciasMensualesEstudiantesRelacionados = () => {
                     className="px-3 py-2 border border-gray-300 rounded-md text-sm min-w-36 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">Seleccionar mes</option>
-                    {obtenerMesesDisponibles().map((mes: any) => (
+                    {getMesesDisponibles(mesActual).map((mes: any) => (
                       <option key={mes.value} value={mes.value}>
                         {mes.short}
                       </option>
