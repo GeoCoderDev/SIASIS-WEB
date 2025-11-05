@@ -19,6 +19,7 @@ import {
   IniciarTomaAsistenciaRequestBody,
   TipoAsistencia,
 } from "@/interfaces/shared/AsistenciaRequests";
+import { GrupoInstaciasDeRedisPorTipoAsistencia } from "../marcar/route";
 
 /**
  * Calcula los segundos que faltan hasta las 23:59:59 del día actual en hora peruana
@@ -133,7 +134,9 @@ export async function POST(req: NextRequest) {
     );
 
     // Obtener la instancia de Redis correspondiente al tipo de asistencia
-    const redisClientInstance = redisClient(tipoAsistencia);
+    const redisClientInstance = redisClient(
+      GrupoInstaciasDeRedisPorTipoAsistencia[tipoAsistencia]
+    );
 
     // Almacenar en Redis con expiración al final del día peruano
     const valorGuardado = await redisClientInstance.set(

@@ -1,27 +1,25 @@
 import SiasisSelect from "@/components/inputs/SiasisSelect";
 import SiasisSwitch from "@/components/inputs/SiasisSwitch";
+import { MAX_DIAS_HABILES_REPORTE_ASISTENCIAS_ESCOLARES_POR_DIA } from "@/constants/REPORTES_ASISTENCIA";
 import useFechaReduxActual from "@/hooks/system-time/useFechaReduxActual";
+import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
+import {
+  RangoTiempoReporteAsistenciasEscolares,
+  TipoReporteAsistenciaEscolar,
+} from "@/interfaces/shared/ReporteAsistenciaEscolar";
 import { getDiasDisponiblesPorMes } from "@/lib/getters/getDiasDisponiblesPorMes";
 import { getMesesDisponibles } from "@/lib/getters/getMesesDisponibles";
 import React, { Dispatch, SetStateAction, useMemo, useEffect } from "react";
 
-export type TipoReporteAsistenciasEscolares = "POR DIAS" | "POR MESES";
-
 export interface SelectorTipoReporteAsistenciasEscolaresProps {
-  tipoReporteSeleccionado: TipoReporteAsistenciasEscolares;
-  setTipoReporteSeleccionado: (tipo: TipoReporteAsistenciasEscolares) => void;
+  tipoReporteSeleccionado: TipoReporteAsistenciaEscolar;
+  setTipoReporteSeleccionado: (tipo: TipoReporteAsistenciaEscolar) => void;
   rangoTiempoSeleccionado: RangoTiempoReporteAsistenciasEscolares;
   setRangoTiempoSeleccionado: Dispatch<
     SetStateAction<RangoTiempoReporteAsistenciasEscolares>
   >;
-}
-
-export interface RangoTiempoReporteAsistenciasEscolares {
-  DesdeMes: number;
-  DesdeDia: number | null;
-
-  HastaMes: number;
-  HastaDia: number | null;
+  onExcedeLimite?: (excede: boolean) => void;
+  nivelEducativoSeleccionado?: NivelEducativo;
 }
 
 const SelectorTipoReporteAsistenciasEscolares = ({
@@ -29,23 +27,27 @@ const SelectorTipoReporteAsistenciasEscolares = ({
   setTipoReporteSeleccionado,
   rangoTiempoSeleccionado,
   setRangoTiempoSeleccionado,
+  onExcedeLimite,
+  nivelEducativoSeleccionado = NivelEducativo.SECUNDARIA,
 }: SelectorTipoReporteAsistenciasEscolaresProps) => {
   const { mesActual, diaActual, horaActual } = useFechaReduxActual();
 
   const mesesDisponibles = getMesesDisponibles(
     mesActual,
-    tipoReporteSeleccionado === "POR DIAS"
+    tipoReporteSeleccionado === TipoReporteAsistenciaEscolar.POR_DIA
   );
 
   const diasDisponiblesDesdeMes = getDiasDisponiblesPorMes(
     rangoTiempoSeleccionado.DesdeMes,
     diaActual,
-    horaActual
+    horaActual,
+    nivelEducativoSeleccionado
   );
   const diasDisponiblesHastaMes = getDiasDisponiblesPorMes(
     rangoTiempoSeleccionado.HastaMes,
     diaActual,
-    horaActual
+    horaActual,
+    nivelEducativoSeleccionado
   );
 
   // Función para contar días hábiles (lunes a viernes) entre dos fechas
@@ -84,7 +86,7 @@ const SelectorTipoReporteAsistenciasEscolares = ({
 
   // Filtrar días disponibles para "Hasta" según restricciones
   const diasDisponiblesHastaFiltrados = useMemo(() => {
-    if (tipoReporteSeleccionado === "POR MESES") {
+    if (tipoReporteSeleccionado === TipoReporteAsistenciaEscolar.POR_MES) {
       return diasDisponiblesHastaMes;
     }
 
@@ -95,7 +97,7 @@ const SelectorTipoReporteAsistenciasEscolares = ({
       );
     }
 
-    // Si los meses son diferentes, verificar el límite de 20 días hábiles
+    // Si los meses son diferentes, verificar el límite de días hábiles
     return diasDisponiblesHastaMes.filter((dia) => {
       const diasHabiles = contarDiasHabiles(
         rangoTiempoSeleccionado.DesdeMes,
@@ -103,7 +105,9 @@ const SelectorTipoReporteAsistenciasEscolares = ({
         rangoTiempoSeleccionado.HastaMes,
         dia.numeroDiaDelMes
       );
-      return diasHabiles <= 20;
+      return (
+        diasHabiles <= MAX_DIAS_HABILES_REPORTE_ASISTENCIAS_ESCOLARES_POR_DIA
+      );
     });
   }, [
     tipoReporteSeleccionado,
@@ -111,6 +115,25 @@ const SelectorTipoReporteAsistenciasEscolares = ({
     rangoTiempoSeleccionado.DesdeMes,
     rangoTiempoSeleccionado.DesdeDia,
     rangoTiempoSeleccionado.HastaMes,
+  ]);
+
+  // Inicializar días cuando el componente se monta o cambia el tipo de reporte
+  useEffect(() => {
+    if (
+      tipoReporteSeleccionado === TipoReporteAsistenciaEscolar.POR_DIA &&
+      (rangoTiempoSeleccionado.DesdeDia === null ||
+        rangoTiempoSeleccionado.HastaDia === null)
+    ) {
+      setRangoTiempoSeleccionado((prev) => ({
+        ...prev,
+        DesdeDia: diasDisponiblesDesdeMes[0]?.numeroDiaDelMes || 1,
+        HastaDia: diasDisponiblesHastaMes[0]?.numeroDiaDelMes || 1,
+      }));
+    }
+  }, [
+    tipoReporteSeleccionado,
+    diasDisponiblesDesdeMes,
+    diasDisponiblesHastaMes,
   ]);
 
   // Validar y ajustar automáticamente si la selección excede los límites
@@ -127,7 +150,7 @@ const SelectorTipoReporteAsistenciasEscolares = ({
 
     // 2. Si son el mismo mes, validar días
     if (
-      tipoReporteSeleccionado === "POR DIAS" &&
+      tipoReporteSeleccionado === TipoReporteAsistenciaEscolar.POR_DIA &&
       nuevoEstado.HastaMes === nuevoEstado.DesdeMes &&
       nuevoEstado.HastaDia &&
       nuevoEstado.DesdeDia &&
@@ -137,9 +160,9 @@ const SelectorTipoReporteAsistenciasEscolares = ({
       necesitaActualizacion = true;
     }
 
-    // 3. Validar límite de 20 días hábiles
+    // 3. Validar límite de días hábiles
     if (
-      tipoReporteSeleccionado === "POR DIAS" &&
+      tipoReporteSeleccionado === TipoReporteAsistenciaEscolar.POR_DIA &&
       nuevoEstado.DesdeDia &&
       nuevoEstado.HastaDia
     ) {
@@ -150,8 +173,11 @@ const SelectorTipoReporteAsistenciasEscolares = ({
         nuevoEstado.HastaDia
       );
 
-      // Si excede 20 días hábiles, ajustar automáticamente
-      if (diasHabiles > 20 && diasDisponiblesHastaFiltrados.length > 0) {
+      // Si excede días hábiles, ajustar automáticamente
+      if (
+        diasHabiles > MAX_DIAS_HABILES_REPORTE_ASISTENCIAS_ESCOLARES_POR_DIA &&
+        diasDisponiblesHastaFiltrados.length > 0
+      ) {
         const ultimoDiaValido =
           diasDisponiblesHastaFiltrados[
             diasDisponiblesHastaFiltrados.length - 1
@@ -178,21 +204,53 @@ const SelectorTipoReporteAsistenciasEscolares = ({
 
   // Calcular días hábiles seleccionados para mostrar al usuario
   const diasHabilesSeleccionados = useMemo(() => {
-    if (
-      tipoReporteSeleccionado === "POR MESES" ||
-      !rangoTiempoSeleccionado.DesdeDia ||
-      !rangoTiempoSeleccionado.HastaDia
-    ) {
+    if (tipoReporteSeleccionado === TipoReporteAsistenciaEscolar.POR_MES) {
+      return null;
+    }
+
+    // Usar valores por defecto si son null
+    const diaDesde =
+      rangoTiempoSeleccionado.DesdeDia ||
+      diasDisponiblesDesdeMes[0]?.numeroDiaDelMes;
+    const diaHasta =
+      rangoTiempoSeleccionado.HastaDia ||
+      diasDisponiblesHastaMes[0]?.numeroDiaDelMes;
+
+    if (!diaDesde || !diaHasta) {
       return null;
     }
 
     return contarDiasHabiles(
       rangoTiempoSeleccionado.DesdeMes,
-      rangoTiempoSeleccionado.DesdeDia,
+      diaDesde,
       rangoTiempoSeleccionado.HastaMes,
-      rangoTiempoSeleccionado.HastaDia
+      diaHasta
     );
-  }, [tipoReporteSeleccionado, rangoTiempoSeleccionado]);
+  }, [
+    tipoReporteSeleccionado,
+    rangoTiempoSeleccionado,
+    diasDisponiblesDesdeMes,
+    diasDisponiblesHastaMes,
+  ]);
+
+  // Notificar al padre cuando cambia si se excede el límite
+  useEffect(() => {
+    if (
+      onExcedeLimite &&
+      tipoReporteSeleccionado === TipoReporteAsistenciaEscolar.POR_DIA
+    ) {
+      const excede =
+        diasHabilesSeleccionados !== null &&
+        diasHabilesSeleccionados >
+          MAX_DIAS_HABILES_REPORTE_ASISTENCIAS_ESCOLARES_POR_DIA;
+      onExcedeLimite(excede);
+    } else if (
+      onExcedeLimite &&
+      tipoReporteSeleccionado === TipoReporteAsistenciaEscolar.POR_MES
+    ) {
+      onExcedeLimite(false); // En modo meses no hay límite
+    }
+  }, [diasHabilesSeleccionados, tipoReporteSeleccionado, onExcedeLimite]);
 
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = event.target;
@@ -202,7 +260,8 @@ const SelectorTipoReporteAsistenciasEscolares = ({
       const diasDisponiblesNuevoMes = getDiasDisponiblesPorMes(
         nuevoMesDesde,
         diaActual,
-        horaActual
+        horaActual,
+        nivelEducativoSeleccionado
       );
 
       setRangoTiempoSeleccionado((prev) => {
@@ -227,7 +286,8 @@ const SelectorTipoReporteAsistenciasEscolares = ({
       const diasDisponiblesNuevoMes = getDiasDisponiblesPorMes(
         nuevoMesHasta,
         diaActual,
-        horaActual
+        horaActual,
+        nivelEducativoSeleccionado
       );
 
       setRangoTiempoSeleccionado((prev) => ({
@@ -277,26 +337,33 @@ const SelectorTipoReporteAsistenciasEscolares = ({
       </h3>
 
       {/* Switch Días/Meses */}
-      <SiasisSwitch<TipoReporteAsistenciasEscolares>
+      <SiasisSwitch<TipoReporteAsistenciaEscolar>
         className="w-full 
           sxs-only:h-10 xs-only:h-10 
           sm-only:h-9 md-only:h-9 lg-only:h-9 xl-only:h-9"
-        values={["POR DIAS", "POR MESES"]}
+        values={[
+          TipoReporteAsistenciaEscolar.POR_DIA,
+          TipoReporteAsistenciaEscolar.POR_MES,
+        ]}
         texts={["Días", "Meses"]}
         selectedValue={tipoReporteSeleccionado}
         handleSwitch={() => {
           setRangoTiempoSeleccionado((prev) => ({
             DesdeMes: Number(mesesDisponibles[0].value),
             DesdeDia:
-              tipoReporteSeleccionado === "POR MESES" ? null : prev.DesdeDia,
+              tipoReporteSeleccionado === TipoReporteAsistenciaEscolar.POR_MES
+                ? diasDisponiblesDesdeMes[0]?.numeroDiaDelMes || null
+                : null,
             HastaMes: Number(mesesDisponibles[0].value),
             HastaDia:
-              tipoReporteSeleccionado === "POR MESES" ? null : prev.HastaDia,
+              tipoReporteSeleccionado === TipoReporteAsistenciaEscolar.POR_MES
+                ? diasDisponiblesHastaMes[0]?.numeroDiaDelMes || null
+                : null,
           }));
-          if (tipoReporteSeleccionado == "POR DIAS") {
-            setTipoReporteSeleccionado("POR MESES");
+          if (tipoReporteSeleccionado == TipoReporteAsistenciaEscolar.POR_DIA) {
+            setTipoReporteSeleccionado(TipoReporteAsistenciaEscolar.POR_MES);
           } else {
-            setTipoReporteSeleccionado("POR DIAS");
+            setTipoReporteSeleccionado(TipoReporteAsistenciaEscolar.POR_DIA);
           }
         }}
       />
@@ -311,7 +378,7 @@ const SelectorTipoReporteAsistenciasEscolares = ({
         sxs-only:min-h-[180px] xs-only:min-h-[180px]
         sm-only:min-h-[162px] md-only:min-h-[162px] lg-only:min-h-[162px] xl-only:min-h-[162px]"
       >
-        {tipoReporteSeleccionado === "POR DIAS" ? (
+        {tipoReporteSeleccionado === TipoReporteAsistenciaEscolar.POR_DIA ? (
           <>
             {/* Desde - Por Días */}
             <div
@@ -369,7 +436,7 @@ const SelectorTipoReporteAsistenciasEscolares = ({
                     xl-only:text-[0.765rem] xl-only:max-w-[7.2rem]"
                   value={
                     rangoTiempoSeleccionado.DesdeDia ||
-                    diasDisponiblesDesdeMes[0].numeroDiaDelMes
+                    diasDisponiblesDesdeMes[0]?.numeroDiaDelMes
                   }
                   onChange={handleChange}
                 >
@@ -479,14 +546,18 @@ const SelectorTipoReporteAsistenciasEscolares = ({
                   sm-only:text-[0.675rem] md-only:text-[0.675rem] lg-only:text-[0.675rem] xl-only:text-[0.675rem]
                   font-medium
                   ${
-                    diasHabilesSeleccionados > 20
+                    diasHabilesSeleccionados >
+                    MAX_DIAS_HABILES_REPORTE_ASISTENCIAS_ESCOLARES_POR_DIA
                       ? "text-rojo-principal"
                       : "text-verde-principal"
                   }
                 `}
                 >
                   {diasHabilesSeleccionados} días hábiles{" "}
-                  {diasHabilesSeleccionados > 20 ? "(máximo: 20)" : ""}
+                  {diasHabilesSeleccionados >
+                  MAX_DIAS_HABILES_REPORTE_ASISTENCIAS_ESCOLARES_POR_DIA
+                    ? `(máximo: ${MAX_DIAS_HABILES_REPORTE_ASISTENCIAS_ESCOLARES_POR_DIA})`
+                    : ""}
                 </span>
               </div>
             )}

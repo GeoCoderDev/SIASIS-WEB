@@ -7,7 +7,10 @@ import {
   RequestErrorTypes,
   SystemErrorTypes,
 } from "@/interfaces/shared/errors";
-import { redisClient } from "../../../../../config/Redis/RedisClient";
+import {
+  GruposIntanciasDeRedis,
+  redisClient,
+} from "../../../../../config/Redis/RedisClient";
 import { ErrorResponseAPIBase } from "@/interfaces/shared/apis/types";
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import {
@@ -21,6 +24,18 @@ import {
   obtenerFechaHoraActualPeru,
 } from "../../_helpers/obtenerFechaActualPeru";
 import { verifyAuthToken } from "@/lib/utils/backend/auth/functions/jwtComprobations";
+
+export const GrupoInstaciasDeRedisPorTipoAsistencia: Record<
+  TipoAsistencia,
+  GruposIntanciasDeRedis
+> = {
+  [TipoAsistencia.ParaPersonal]:
+    GruposIntanciasDeRedis.ParaAsistenciasDePersonal,
+  [TipoAsistencia.ParaEstudiantesSecundaria]:
+    GruposIntanciasDeRedis.ParaAsistenciasDeEstudiantesSecundaria,
+  [TipoAsistencia.ParaEstudiantesPrimaria]:
+    GruposIntanciasDeRedis.ParaAsistenciasDeEstudiantesPrimaria,
+};
 
 /**
  * Mapea un rol del sistema al actor correspondiente para registro de asistencia personal
@@ -523,7 +538,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Usar el TipoAsistencia determinado
-    const redisClientInstance = redisClient(tipoAsistenciaFinal);
+    const redisClientInstance = redisClient(
+      GrupoInstaciasDeRedisPorTipoAsistencia[tipoAsistenciaFinal]
+    );
 
     // Verificar si ya existe un registro en Redis
     const registroExistente = await redisClientInstance.get(clave);

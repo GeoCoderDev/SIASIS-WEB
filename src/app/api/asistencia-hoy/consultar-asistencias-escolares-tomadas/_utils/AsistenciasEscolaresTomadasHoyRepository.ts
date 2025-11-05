@@ -33,6 +33,7 @@ import {
   HORAS_ANTES_SALIDA_CAMBIO_MODO_PARA_ESTUDIANTES_DE_PRIMARIA,
   HORAS_ANTES_SALIDA_CAMBIO_MODO_PARA_ESTUDIANTES_DE_SECUNDARIA,
 } from "@/constants/INTERVALOS_ASISTENCIAS_ESCOLARES";
+import { GrupoInstaciasDeRedisPorTipoAsistencia } from "../../marcar/route";
 
 // =====================================
 // CONSTANTES DE CONFIGURACIÓN
@@ -1155,7 +1156,13 @@ export class AsistenciasEscolaresHoyRepository {
         `${this.logPrefix} 🔄 Verificando job en ejecución para ${nivel} grado ${grado}`
       );
 
-      const redisInstance = redisClient(tipoAsistencia);
+      const redisInstance = redisClient(
+        GrupoInstaciasDeRedisPorTipoAsistencia[tipoAsistencia]
+      );
+      
+      console.log(
+        `${this.logPrefix} 🔗 Cliente Redis obtenido para: ${tipoAsistencia}`
+      );
       const jobsString = await redisInstance.get(
         NOMBRE_CLAVE_JOBS_EN_EJECUCION_LISTAS_ASISTENCIAS_ESCOLARES_HOY
       );
@@ -1306,7 +1313,12 @@ export class AsistenciasEscolaresHoyRepository {
       );
 
       // Obtener instancia de Redis según el tipo de asistencia
-      const redisInstance = redisClient(tipoAsistencia);
+      const redisInstance = redisClient(
+        GrupoInstaciasDeRedisPorTipoAsistencia[tipoAsistencia]
+      );
+      console.log(
+        `${this.logPrefix} 🔗 Cliente Redis obtenido para: ${tipoAsistencia}`
+      );
       console.log(
         `${this.logPrefix} 🔗 Cliente Redis obtenido para: ${tipoAsistencia}`
       );
@@ -1453,7 +1465,12 @@ export class AsistenciasEscolaresHoyRepository {
       const cacheKey = `${nivel}_${grado}`;
 
       // Obtener el Google Drive ID para verificación de fecha
-      const redisInstance = redisClient(tipoAsistencia);
+      const redisInstance = redisClient(
+        GrupoInstaciasDeRedisPorTipoAsistencia[tipoAsistencia]
+      );
+      console.log(
+        `${this.logPrefix} 🔗 Cliente Redis obtenido para: ${tipoAsistencia}`
+      );
       const idsString = await redisInstance.get(
         NOMBRE_CLAVE_GOOGLE_DRIVE_IDs_LISTAS_ASISTENCIAS_ESCOLARES_HOY
       );
@@ -1760,7 +1777,12 @@ export class AsistenciasEscolaresHoyRepository {
       const cacheKey = `${nivel}_${grado}`;
 
       // Obtener el Google Drive ID para verificación de fecha
-      const redisInstance = redisClient(tipoAsistencia);
+      const redisInstance = redisClient(
+        GrupoInstaciasDeRedisPorTipoAsistencia[tipoAsistencia]
+      );
+      console.log(
+        `${this.logPrefix} 🔗 Cliente Redis obtenido para: ${tipoAsistencia}`
+      );
       const idsString = await redisInstance.get(
         NOMBRE_CLAVE_GOOGLE_DRIVE_IDs_LISTAS_ASISTENCIAS_ESCOLARES_HOY
       );
@@ -1969,7 +1991,12 @@ export class AsistenciasEscolaresHoyRepository {
     );
 
     const fechaActual = await this.obtenerFechaActual();
-    const redisClientInstance = redisClient(tipoAsistencia);
+    const redisClientInstance = redisClient(
+      GrupoInstaciasDeRedisPorTipoAsistencia[tipoAsistencia]
+    );
+    console.log(
+      `${this.logPrefix} 🔗 Cliente Redis obtenido para: ${tipoAsistencia}`
+    );
 
     // Determinar nivel si no se proporciona
     const nivelDeducido =
@@ -2132,7 +2159,12 @@ export class AsistenciasEscolaresHoyRepository {
     );
 
     const fechaActual = await this.obtenerFechaActual();
-    const redisClientInstance = redisClient(tipoAsistencia);
+    const redisClientInstance = redisClient(
+      GrupoInstaciasDeRedisPorTipoAsistencia[tipoAsistencia]
+    );
+    console.log(
+      `${this.logPrefix} 🔗 Cliente Redis obtenido para: ${tipoAsistencia}`
+    );
 
     // Consultar entradas
     const patronBusquedaEntrada = `${fechaActual}:${ModoRegistro.Entrada}:${ActoresSistema.Estudiante}:${nivel}:${grado}:${seccion}:*`;

@@ -555,8 +555,19 @@ model T_Modificaciones_Especificas {
   Valores_Campos_Identificadores String   @db.Text //Separados por comas
   Id_Registro_Modificado         String   @db.Text
   Fecha_Modificacion             DateTime @default(now())
-  Ultima_Operacion               String // INSERT, UPDATE, DELETE
+  Ultima_Operacion               String
   Contador_Modificaciones        Int      @default(1)
 
   @@map("T_Modificaciones_Especificas")
+}
+
+model T_Reportes_Asistencia_Escolar {
+  Combinacion_Parametros_Reporte String   @id @db.VarChar(40)
+  Estado_Reporte                 String   @db.VarChar(20)
+  Datos_Google_Drive_Id          String?   @db.Text
+  Fecha_Generacion               DateTime @default(now())
+  Rol_Usuario                    String   @db.VarChar(2)
+  Id_Usuario                     String   @db.VarChar(20)
+
+  @@map("T_Reportes_Asistencia_Escolar")
 }

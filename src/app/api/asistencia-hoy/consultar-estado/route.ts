@@ -15,6 +15,7 @@ import {
   NOMBRE_BANDERA_INICIO_TOMA_ASISTENCIA_PRIMARIA,
   NOMBRE_BANDERA_INICIO_TOMA_ASISTENCIA_SECUNDARIA,
 } from "@/constants/NOMBRES_BANDERAS_INICIO_TOMA_ASISTENCIAS";
+import { GrupoInstaciasDeRedisPorTipoAsistencia } from "../marcar/route";
 
 export async function GET(req: NextRequest) {
   try {
@@ -87,7 +88,9 @@ export async function GET(req: NextRequest) {
     }
 
     // Obtener la instancia de Redis correspondiente al tipo de asistencia
-    const redisClientInstance = redisClient(tipoAsistencia);
+    const redisClientInstance = redisClient(
+      GrupoInstaciasDeRedisPorTipoAsistencia[tipoAsistencia]
+    );
 
     // Consultar el valor en Redis
     const valor = await redisClientInstance.get(redisKey);

@@ -15,6 +15,7 @@ import {
   RequestErrorTypes,
   SystemErrorTypes,
 } from "@/interfaces/shared/errors";
+import { GrupoInstaciasDeRedisPorTipoAsistencia } from "../marcar/route";
 
 // Función para validar permisos según rol
 const validarPermisosEliminacion = (
@@ -266,7 +267,9 @@ export async function DELETE(req: NextRequest) {
     }
 
     // Obtener la instancia de Redis correspondiente
-    const redisClientInstance = redisClient(tipoAsistencia);
+    const redisClientInstance = redisClient(
+      GrupoInstaciasDeRedisPorTipoAsistencia[tipoAsistencia]
+    );
 
     // Construir la clave o buscarla
     let claveAEliminar: string | null = null;

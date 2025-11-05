@@ -15,8 +15,10 @@ export enum RequestErrorTypes {
   INVALID_PARAMETERS = "INVALID_PARAMETERS",
   MISSING_PARAMETERS = "MISSING_PARAMETERS",
   REQUEST_FAILED = "REQUEST_FAILED",
-  MALFORMED_REQUEST = "MALFORMED_REQUEST", // 🆕 Solicitud mal formada
-  PAYLOAD_TOO_LARGE = "PAYLOAD_TOO_LARGE", // 🆕 Carga útil demasiado grande
+  MALFORMED_REQUEST = "MALFORMED_REQUEST",
+  PAYLOAD_TOO_LARGE = "PAYLOAD_TOO_LARGE",
+  RESOURCE_NOT_FOUND = "RESOURCE_NOT_FOUND", // Recurso solicitado no encontrado
+  METHOD_NOT_ALLOWED = "METHOD_NOT_ALLOWED", // Método HTTP no permitido
 }
 
 /**
@@ -88,7 +90,7 @@ export enum ValidationErrorTypes {
   REQUIRED_FIELDS = "REQUIRED_FIELDS",
   INVALID_REFERENCE = "INVALID_REFERENCE",
   VALUE_ALREADY_EXISTS = "VALUE_ALREADY_EXISTS",
-  INVALID_DNI="INVALID_DNI",
+  INVALID_DNI = "INVALID_DNI",
   INVALID_DATE_FORMAT = "INVALID_DATE_FORMAT", // 🆕 Formato de fecha inválido
   DATE_OUT_OF_RANGE = "DATE_OUT_OF_RANGE", // 🆕 Fecha fuera de rango
   INVALID_TIME_FORMAT = "INVALID_TIME_FORMAT", // 🆕 Formato de hora inválido
@@ -237,8 +239,6 @@ export default AllErrorTypes;
 // ================================================================
 // 🔄 EXPORTACIONES PARA RETROCOMPATIBILIDAD
 // ================================================================
-
-
 
 /**
  * 🆕 Grupos de errores para facilitar el manejo

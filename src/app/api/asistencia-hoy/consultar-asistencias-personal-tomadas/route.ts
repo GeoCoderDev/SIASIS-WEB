@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import { ModoRegistro } from "@/interfaces/shared/ModoRegistro";
-import { redisClient } from "../../../../../config/Redis/RedisClient";
+import {
+  GruposIntanciasDeRedis,
+  redisClient,
+} from "../../../../../config/Redis/RedisClient";
 import { verifyAuthToken } from "@/lib/utils/backend/auth/functions/jwtComprobations";
 import { obtenerFechaActualPeru } from "../../_helpers/obtenerFechaActualPeru";
 import {
@@ -169,7 +172,9 @@ export async function GET(req: NextRequest) {
     );
 
     // Obtener la instancia de Redis para personal
-    const redisClientInstance = redisClient(TipoAsistencia.ParaPersonal);
+    const redisClientInstance = redisClient(
+      GruposIntanciasDeRedis.ParaAsistenciasDePersonal
+    );
 
     // Buscar claves
     let claves: string[];

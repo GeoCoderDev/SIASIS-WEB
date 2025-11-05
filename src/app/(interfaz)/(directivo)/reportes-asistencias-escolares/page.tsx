@@ -1,15 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import SelectorTipoReporteAsistenciasEscolares, {
-  RangoTiempoReporteAsistenciasEscolares,
-  TipoReporteAsistenciasEscolares,
-} from "./_components/SelectorTipoReporteAsistenciasEscolares";
+import SelectorTipoReporteAsistenciasEscolares from "./_components/SelectorTipoReporteAsistenciasEscolares";
 import SiasisSelect from "@/components/inputs/SiasisSelect";
 import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
 import { NivelEducativoTextos } from "@/Assets/NivelEducativoTextos";
 import getGradosDisponiblesPorNivel from "@/lib/getters/getGradosDisponiblesPorNivel";
 import getSeccionesDisponiblesPorNivelYPorGrado from "@/lib/getters/getSeccionesDisponiblesPorGrado";
+import {
+  AulasSeleccionadasParaReporteAsistenciaEscolar,
+  RangoTiempoReporteAsistenciasEscolares,
+  TipoReporteAsistenciaEscolar,
+} from "@/interfaces/shared/ReporteAsistenciaEscolar";
+import codificarCombinacionParametrosParaReporteEscolar from "@/lib/helpers/encoders/reportes-asistencia-escolares/codificarCombinacionParametrosParaReporteEscolar";
 
 const rangoTiempoSeleccionadoinicial: RangoTiempoReporteAsistenciasEscolares = {
   DesdeMes: 3,
@@ -17,12 +20,6 @@ const rangoTiempoSeleccionadoinicial: RangoTiempoReporteAsistenciasEscolares = {
   HastaMes: 3,
   HastaDia: null,
 };
-
-interface AulasSeleccionadasParaReporteAsistenciaEscolar {
-  Nivel: NivelEducativo;
-  Grado: number | "T" | "";
-  Seccion: `${string}` | "T" | "";
-}
 
 const aulasSeleccionadasIniciales: AulasSeleccionadasParaReporteAsistenciaEscolar =
   {
@@ -33,7 +30,9 @@ const aulasSeleccionadasIniciales: AulasSeleccionadasParaReporteAsistenciaEscola
 
 const ReportesAsistenciasEscolares = () => {
   const [tipoReporteSeleccionado, setTipoReporteSeleccionado] =
-    useState<TipoReporteAsistenciasEscolares>("POR DIAS");
+    useState<TipoReporteAsistenciaEscolar>(
+      TipoReporteAsistenciaEscolar.POR_DIA
+    );
 
   const [rangoTiempoSeleccionado, setRangoTiempoSeleccionado] =
     useState<RangoTiempoReporteAsistenciasEscolares>(
@@ -50,6 +49,9 @@ const ReportesAsistenciasEscolares = () => {
   );
 
   const [seccionesCargando, setSeccionesCargando] = useState<boolean>(false);
+
+  // Nuevo estado para saber si se excede el límite de días
+  const [excedeLimiteDias, setExcedeLimiteDias] = useState<boolean>(false);
 
   const handleChangeAulasSeleccionadas = (
     event: React.ChangeEvent<HTMLSelectElement>
@@ -95,6 +97,14 @@ const ReportesAsistenciasEscolares = () => {
       ...prev,
       [name]: value,
     }));
+
+    console.log(
+      codificarCombinacionParametrosParaReporteEscolar({
+        aulasSeleccionadas: aulasSeleccionadas,
+        rangoTiempo: rangoTiempoSeleccionado,
+        tipoReporte: tipoReporteSeleccionado,
+      })
+    );
   };
 
   useEffect(() => {
@@ -130,6 +140,18 @@ const ReportesAsistenciasEscolares = () => {
     obtenerSecciones();
   }, [aulasSeleccionadas.Grado, aulasSeleccionadas.Nivel]);
 
+  // Callback para recibir notificación si se excede el límite
+  const handleExcedeLimite = (excede: boolean) => {
+    setExcedeLimiteDias(excede);
+  };
+
+  // Determinar si el botón debe estar deshabilitado
+  const botonDeshabilitado =
+    !aulasSeleccionadas.Grado ||
+    !aulasSeleccionadas.Seccion ||
+    seccionesCargando ||
+    excedeLimiteDias;
+
   return (
     <div className="w-full h-max -bg-gris-claro px-4">
       <div className="max-w-[1600px] mx-auto">
@@ -147,10 +169,12 @@ const ReportesAsistenciasEscolares = () => {
               {/* Selector de tipo de reporte */}
               <div className="w-full sm-only:w-auto md-only:w-auto">
                 <SelectorTipoReporteAsistenciasEscolares
+                  nivelEducativoSeleccionado={aulasSeleccionadas.Nivel}
                   rangoTiempoSeleccionado={rangoTiempoSeleccionado}
                   setRangoTiempoSeleccionado={setRangoTiempoSeleccionado}
                   tipoReporteSeleccionado={tipoReporteSeleccionado}
                   setTipoReporteSeleccionado={setTipoReporteSeleccionado}
+                  onExcedeLimite={handleExcedeLimite}
                 />
               </div>
 
@@ -374,11 +398,7 @@ const ReportesAsistenciasEscolares = () => {
                     aulas: aulasSeleccionadas,
                   });
                 }}
-                disabled={
-                  !aulasSeleccionadas.Grado ||
-                  !aulasSeleccionadas.Seccion ||
-                  seccionesCargando
-                }
+                disabled={botonDeshabilitado}
                 className="bg-azul-principal text-white px-8 py-3 rounded-md font-semibold text-base md:text-lg transition-all shadow-md hover:opacity-90 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Generar Reporte
@@ -399,6 +419,13 @@ const ReportesAsistenciasEscolares = () => {
                       : "Seleccione una sección para continuar"}
                   </p>
                 )}
+
+              {/* Mensaje si se excede el límite de días */}
+              {excedeLimiteDias && (
+                <p className="text-xs text-rojo-principal mt-4 font-medium">
+                  El rango de días seleccionado excede el límite permitido
+                </p>
+              )}
             </div>
           </div>
         </div>
