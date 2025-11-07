@@ -20,11 +20,15 @@ import { verifyAuthToken } from "@/lib/utils/backend/auth/functions/jwtComprobat
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import { DatosAsistenciaHoyHelper } from "../../_utils/DatosAsistenciaHoyHelper";
 
+// ✅ Cambio principal: params ahora es Promise y debe ser awaited
 export async function GET(
   req: NextRequest,
-  { params }: { params: { Combinacion_Parametros: string } }
+  { params }: { params: Promise<{ Combinacion_Parametros: string }> }
 ) {
   try {
+    // ✅ Await params antes de usarlos
+    const { Combinacion_Parametros } = await params;
+
     // ✅ AUTENTICACIÓN
     const { error, rol, decodedToken } = await verifyAuthToken(req, [
       RolesSistema.Directivo,
@@ -37,8 +41,6 @@ export async function GET(
     if (error && !rol && !decodedToken) return error;
 
     console.log(`🔐 Usuario autenticado: ${rol} - ${decodedToken.ID_Usuario}`);
-
-    const { Combinacion_Parametros } = params;
 
     // Validar que se recibió el parámetro
     if (!Combinacion_Parametros) {
