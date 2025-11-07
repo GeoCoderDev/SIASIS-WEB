@@ -1,6 +1,5 @@
-import { RangoTiempoReporteAsistenciasEscolares } from "@/app/(interfaz)/(directivo)/reportes-asistencias-escolares/_components/SelectorTipoReporteAsistenciasEscolares";
-import { AulasSeleccionadasParaReporteAsistenciaEscolar } from "@/app/(interfaz)/(directivo)/reportes-asistencias-escolares/page";
-import { TipoReporteAsistenciaEscolar } from "@/interfaces/shared/ReporteAsistenciaEscolar";
+
+import { AulasSeleccionadasParaReporteAsistenciaEscolar, RangoTiempoReporteAsistenciasEscolares, TipoReporteAsistenciaEscolar } from "@/interfaces/shared/ReporteAsistenciaEscolar";
 import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
 import { decodificarCaracterANumero } from "../decodificarCaracterANumero";
 

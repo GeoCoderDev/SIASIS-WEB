@@ -1,8 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
-import { RootState } from "@/global/store";
 import { Calendar, Search, Loader2 } from "lucide-react";
 import { EstadosAsistenciaPersonal } from "@/interfaces/shared/EstadosAsistenciaPersonal";
 import { Meses, mesesTextos } from "@/interfaces/shared/Meses";

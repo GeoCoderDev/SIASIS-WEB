@@ -6,6 +6,7 @@ import {
 } from "@/interfaces/shared/ReporteAsistenciaEscolar";
 import { T_Reportes_Asistencia_Escolar } from "@prisma/client";
 import {
+  PermissionErrorTypes,
   RequestErrorTypes,
   SystemErrorTypes,
 } from "@/interfaces/shared/errors";
@@ -15,12 +16,28 @@ import {
   GruposIntanciasDeRedis,
   redisClient,
 } from "../../../../../config/Redis/RedisClient";
+import { verifyAuthToken } from "@/lib/utils/backend/auth/functions/jwtComprobations";
+import { RolesSistema } from "@/interfaces/shared/RolesSistema";
+import { DatosAsistenciaHoyHelper } from "../../_utils/DatosAsistenciaHoyHelper";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: { Combinacion_Parametros: string } }
 ) {
   try {
+    // ✅ AUTENTICACIÓN
+    const { error, rol, decodedToken } = await verifyAuthToken(req, [
+      RolesSistema.Directivo,
+      RolesSistema.Auxiliar,
+      RolesSistema.ProfesorPrimaria,
+      RolesSistema.ProfesorSecundaria,
+      RolesSistema.Tutor,
+    ]);
+
+    if (error && !rol && !decodedToken) return error;
+
+    console.log(`🔐 Usuario autenticado: ${rol} - ${decodedToken.ID_Usuario}`);
+
     const { Combinacion_Parametros } = params;
 
     // Validar que se recibió el parámetro
@@ -68,8 +85,36 @@ export async function GET(
 
     console.log(
       `🔍 Consultando reporte con parámetros decodificados:`,
-      parametrosDecodificados
+      JSON.stringify(parametrosDecodificados, null, 2)
     );
+
+    // ✅ VALIDAR PERMISOS usando el helper
+    const helperAsistencia = await DatosAsistenciaHoyHelper.obtenerInstancia();
+    const validacionPermisos = helperAsistencia.validarPermisosReporte(
+      rol!,
+      decodedToken.ID_Usuario,
+      parametrosDecodificados.aulasSeleccionadas.Nivel,
+      parametrosDecodificados.aulasSeleccionadas.Grado,
+      parametrosDecodificados.aulasSeleccionadas.Seccion
+    );
+
+    if (!validacionPermisos.tienePermiso) {
+      console.log(
+        `❌ Permiso denegado para ${rol}: ${validacionPermisos.mensaje}`
+      );
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            validacionPermisos.mensaje ||
+            "No tiene permisos para consultar este reporte",
+          errorType: PermissionErrorTypes.INSUFFICIENT_PERMISSIONS,
+        } as ErrorResponseAPIBase,
+        { status: 403 }
+      );
+    }
+
+    console.log(`✅ Permisos validados correctamente para rol ${rol}`);
 
     // Obtener instancia de Redis para reportes de asistencia escolar
     const redisClientInstance = redisClient(

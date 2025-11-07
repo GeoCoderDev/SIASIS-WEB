@@ -7,6 +7,9 @@ import {
 } from "@/interfaces/shared/AsistenciaRequests";
 import { useState } from "react";
 import { CANTIDAD_MINUTOS_MAXIMO_PARA_DESCARTAR_ASISTENCIA_DE_PERSONAL } from "@/constants/CANTIDAD_MINUTOS_MAXIMO_PARA_DESCARTE_ASISTENCIAS";
+import { T_Aulas } from "@prisma/client";
+import { NivelEducativoTextos } from "@/Assets/NivelEducativoTextos";
+import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
 
 export interface PersonalParaTomarAsistencia {
   idUsuario: string;
@@ -15,6 +18,10 @@ export interface PersonalParaTomarAsistencia {
   Apellidos: string;
   Genero: Genero;
   Cargo?: string;
+  Aula?: Pick<
+    T_Aulas,
+    "Id_Aula" | "Color" | "Grado" | "Nivel" | "Seccion"
+  > | null;
 }
 
 const ItemTomaAsistencia = ({
@@ -228,6 +235,21 @@ const ItemTomaAsistencia = ({
             {personal.Cargo}
           </div>
         )}
+        {personal.Aula && (
+          <div
+            className={`italic text-xs ${
+              globalLoading
+                ? "text-gray-500"
+                : mostrarConfirmacion
+                ? "text-red-600"
+                : "text-gris-oscuro"
+            }`}
+          >
+            {NivelEducativoTextos[personal.Aula.Nivel as NivelEducativo]} -{" "}
+            {personal.Aula.Grado}
+            {personal.Aula.Seccion}
+          </div>
+        )}
       </div>
 
       {/* ✅ ESTADO: Check verde */}
@@ -329,8 +351,22 @@ const ItemTomaAsistencia = ({
         !mostrarConfirmacion &&
         !asistenciaRegistrada?.AsistenciaMarcada && (
           <div className="absolute right-2 top-2">
-            <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse shadow-md">
-              <div className="w-3 h-3 bg-blue-400 rounded-full animate-ping"></div>
+            <div
+              style={{
+                backgroundColor: personal.Aula
+                  ? personal.Aula.Color
+                  : "rgb(59,130,246)",
+              }}
+              className="w-3 h-3 -bg-blue-500 rounded-full animate-pulse shadow-md"
+            >
+              <div
+                style={{
+                  backgroundColor: personal.Aula
+                    ? personal.Aula.Color
+                    : "rgb(59,130,246)",
+                }}
+                className="w-3 h-3 -bg-blue-400 rounded-full animate-ping"
+              ></div>
             </div>
           </div>
         )}

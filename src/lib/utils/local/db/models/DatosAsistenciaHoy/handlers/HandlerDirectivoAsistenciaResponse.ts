@@ -261,6 +261,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
           Nombres: profesor.Nombres,
           Apellidos: profesor.Apellidos,
           Genero: profesor.Genero as Genero,
+          Aula: profesor.Aula,
         }));
 
       case ActoresSistema.ProfesorSecundaria:
@@ -271,6 +272,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
           Nombres: profesor.Nombres,
           Apellidos: profesor.Apellidos,
           Genero: profesor.Genero as Genero,
+          Aula: profesor.Aula,
         }));
 
       case ActoresSistema.Auxiliar:
