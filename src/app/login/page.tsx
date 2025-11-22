@@ -17,36 +17,36 @@ const SeleccionRoles = () => {
   const router = useTransitionRouter();
 
   useEffect(() => {
-    // Obtener los parámetros de la URL
+    // Get URL parameters
     const logoutType = searchParams.get("LOGOUT_TYPE");
     const errorDetailsParam = searchParams.get("ERROR_DETAILS");
 
-    // Si hay un tipo de logout, procesarlo
+    // If there's a logout type, process it
     if (logoutType) {
-      console.log("Tipo de logout:", logoutType);
+      console.log("Logout type:", logoutType);
 
-      // Si hay detalles del error, decodificarlos y mostrarlos
+      // If there are error details, decode and display them
       if (errorDetailsParam) {
         try {
           const errorDetails = JSON.parse(
             decodeURIComponent(errorDetailsParam)
           ) as ErrorDetailsForLogout;
-          console.log("Detalles del error:", errorDetails);
+          console.log("Error details:", errorDetails);
 
-          // Loguear información detallada para debug
+          // Log detailed information for debugging
           console.log(`
-            Error en: ${errorDetails.origen || "Desconocido"}
-            Mensaje: ${errorDetails.mensaje || "No disponible"}
-            Código: ${errorDetails.codigo || "N/A"}
+            Error at: ${errorDetails.origen || "Unknown"}
+            Message: ${errorDetails.mensaje || "Not available"}
+            Code: ${errorDetails.codigo || "N/A"}
             Timestamp: ${new Date(
               errorDetails.timestamp || Date.now()
             ).toLocaleString()}
-            Contexto: ${errorDetails.contexto || "No disponible"}
+            Context: ${errorDetails.contexto || "Not available"}
           `);
 
-          // TODO: Aquí se podría implementar la lógica para enviar estos datos a la BD
+          // TODO: Here could implement logic to send this data to the database
         } catch (error) {
-          console.error("Error al decodificar los detalles del error:", error);
+          console.error("Error decoding error details:", error);
         }
       }
     }

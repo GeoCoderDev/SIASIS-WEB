@@ -1,30 +1,30 @@
-// Define el enum para los períodos del día
+// Define the enum for day periods
 
 import { PeriodoDia } from "@/Assets/voice/others/SaludosDelDia";
 
 
 /**
- * Determina si un timestamp corresponde a la mañana, tarde o noche según los siguientes rangos:
- * - Mañana: 00:00 a 11:59 horas
- * - Tarde: 12:00 a 17:59 horas
- * - Noche: 18:00 a 23:59 horas
+ * Determines if a timestamp corresponds to morning, afternoon or night according to the following ranges:
+ * - Morning: 00:00 to 11:59 hours
+ * - Afternoon: 12:00 to 17:59 hours
+ * - Night: 18:00 to 23:59 hours
  *
- * @param fechaHora - Timestamp en formato ISO o instancia de Date
- * @returns El período del día (Mañana, Tarde o Noche)
+ * @param fechaHora - Timestamp in ISO format or Date instance
+ * @returns The day period (Morning, Afternoon or Night)
  */
 
 export const determinarPeriodoDia = (
   fechaHora: string | Date | number
 ): PeriodoDia => {
-  // Convertir el parámetro a objeto Date
+  // Convert the parameter to Date object
 
   const fecha = new Date(fechaHora);
 
-  // Obtener la hora (0-23)
+  // Get the hour (0-23)
 
   const hora = fecha.getHours();
 
-  // Clasificar según el rango horario
+  // Classify according to time range
 
   if (hora >= 0 && hora < 12) {
     return PeriodoDia.MAÑANA;

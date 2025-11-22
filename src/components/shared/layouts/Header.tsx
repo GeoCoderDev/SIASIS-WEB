@@ -40,7 +40,7 @@ import {
 } from "@/constants/INTERVALO_MINUTOS_SINCRONIZACION_HORA_REAL";
 
 /**
- * Componente Header - Barra superior con información del usuario y controles del sidebar
+ * Header Component - Top bar with user information and sidebar controls
  */
 const Header = ({
   Nombres,
@@ -67,7 +67,7 @@ const Header = ({
     }
   );
 
-  // Estados
+  // States
   const [menuVisible, setMenuVisible] = useState(false);
   const isLoginPage = pathname.startsWith("/login");
 
@@ -86,14 +86,14 @@ const Header = ({
   useEffect(() => {
     if (!inicializado) return;
 
-    // Obtener datos de asistencia de hoy para Auxiliar
+    // Get today's attendance data for Auxiliary
     const obtenerDatosAsistenciaHoy = async () => {
       const datosAsistenciaHoy = new DatosAsistenciaHoyIDB();
       await datosAsistenciaHoy.obtenerDatos();
     };
     obtenerDatosAsistenciaHoy();
 
-    //Obtener listas de estudiantes
+    // Get student lists
     const obtenerListasEstudiantes = async () => {
       const { ListasEstudiantesPorGradosHoyIDB } = await import(
         "@/lib/utils/local/db/models/ListasEstudiantesPorGradosHoy/ListasEstudiantesPorGradosHoyIDB"
@@ -104,11 +104,11 @@ const Header = ({
       );
 
       await listasEstudiantesIDB.actualizarTodasLasListasDisponibles();
-      // Inicializar COLA DE ASISTENCIAS en caso hayan items pendientes
+      // Initialize ATTENDANCE QUEUE in case there are pending items
       inicializarColaDeAsistencias();
     };
 
-    //Solicitar todas las listas de estudiantes de manera secuencial
+    // Request all student lists sequentially
     if (
       Rol !== RolesSistema.PersonalAdministrativo &&
       Rol !== RolesSistema.Responsable
@@ -117,17 +117,17 @@ const Header = ({
     }
   }, [inicializado]);
 
-  // Efecto para obtener datos de asistencia al cargar el componente
+  // Effect to get attendance data when component loads
   useEffect(() => {
-    // Sincronizar la hora cuando la ventana vuelve a ser visible
+    // Sync time when window becomes visible again
     sincronizarConServidor();
 
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "visible") {
-        // Inicializar COLA DE ASISTENCIAS en caso hayan items pendientes
+        // Initialize ATTENDANCE QUEUE in case there are pending items
         inicializarColaDeAsistencias();
 
-        // Comprobar si ha pasado el tiempo mínimo antes de sincronizar
+        // Check if minimum time has passed before syncing
         const ultimaConsulta = localStorage.getItem(
           NOMBRE_TIMESTAMP_ULTIMA_CONSULTA_LOCAL_STORAGE
         );
@@ -141,7 +141,7 @@ const Header = ({
           sincronizarConServidor();
         }
       } else {
-        // Cuando la página deja de ser visible, guardar el timestamp
+        // When the page is no longer visible, save the timestamp
         localStorage.setItem(
           NOMBRE_TIMESTAMP_ULTIMA_CONSULTA_LOCAL_STORAGE,
           Date.now().toString()
@@ -150,11 +150,11 @@ const Header = ({
     });
   }, []);
 
-  // Efecto para manejar dimensiones y eventos del header
+  // Effect to handle header dimensions and events
   useEffect(() => {
     if (!delegarEvento) return;
 
-    // Observer para actualizar la altura del header en el store
+    // Observer to update header height in store
     const resizeObserverHeader = new ResizeObserver((entries) => {
       entries.forEach((entry) => {
         dispatch(
@@ -165,16 +165,16 @@ const Header = ({
       });
     });
 
-    // Establecer sidebar abierto por defecto en desktop
+    // Set sidebar open by default on desktop
     if (window.innerWidth > 768) {
       dispatch(setSidebarIsOpen({ value: true }));
     }
 
-    // Inicializar dimensiones de ventana
+    // Initialize window dimensions
     dispatch(setWindowHeight({ value: window.innerHeight }));
     dispatch(setWindowWidth({ value: window.innerWidth }));
 
-    // Actualizar dimensiones en redimensionamiento
+    // Update dimensions on resize
     const handleResize = () => {
       dispatch(setWindowHeight({ value: window.innerHeight }));
       dispatch(setWindowWidth({ value: window.innerWidth }));
@@ -187,7 +187,7 @@ const Header = ({
 
     resizeObserverHeader.observe(headerHTML);
 
-    // Cerrar menú desplegable al hacer clic fuera
+    // Close dropdown menu when clicking outside
     delegarEvento(
       "mousedown",
       "#Menu-deplegable, #Menu-deplegable *, #despliegue-icon, #despliegue-icon *",
@@ -203,12 +203,12 @@ const Header = ({
     };
   }, [delegarEvento, dispatch]);
 
-  // No mostrar el header en la página de login
+  // Don't show header on login page
   if (isLoginPage) {
     return null;
   }
 
-  // Verificar que los datos necesarios están disponibles
+  // Verify that required data is available
   if (!Nombres || !Apellidos) {
     return null;
   }
@@ -230,7 +230,7 @@ const Header = ({
                  text-xs sm:text-base
                  landscape-small:text-[0.9rem] landscape-tablet-sm:text-[0.9rem]"
       >
-        {/* Control del sidebar */}
+        {/* Sidebar control */}
         <div
           className="cursor-pointer select-none"
           onClick={() => dispatch(switchSidebarIsOpen())}
@@ -262,7 +262,7 @@ const Header = ({
           )}
         </div>
 
-        {/* Logo de la cabecera */}
+        {/* Header logo */}
         <div
           className="sxs-only:scale-75 xs-only:scale-85 max-sm:scale-90
                        landscape-small:scale-90 landscape-tablet-sm:scale-90"
@@ -278,7 +278,7 @@ const Header = ({
           )}
         </div>
 
-        {/* Información del usuario y menú */}
+        {/* User information and menu */}
         <div
           className="justify-self-end flex items-center justify-center
                       sxs-only:gap-1
@@ -287,7 +287,7 @@ const Header = ({
                       gap-4
                       landscape-small:gap-[0.5rem] landscape-tablet-sm:gap-[0.5rem]"
         >
-          {/* Nombre e información del rol */}
+          {/* Name and role information */}
           <div
             className="flex flex-col items-start justify-center
                         sxs-only:gap-y-1 sxs-only:mr-1
@@ -334,7 +334,7 @@ const Header = ({
             </i>
           </div>
 
-          {/* Foto de perfil */}
+          {/* Profile photo */}
           <FotoPerfilSideServer
             className="sxs-only:w-9
                      xs-only:w-10
@@ -344,7 +344,7 @@ const Header = ({
             Google_Drive_Foto_ID={Google_Drive_Foto_ID}
           />
 
-          {/* Icono de menú desplegable */}
+          {/* Dropdown menu icon */}
           <div id="despliegue-icon" onClick={toggleMenu} className="relative">
             <DespliegueIcon
               className="text-blanco aspect-auto hover:cursor-pointer
@@ -356,7 +356,7 @@ const Header = ({
             />
           </div>
 
-          {/* Menú desplegable */}
+          {/* Dropdown menu */}
           {menuVisible && (
             <ul
               id="Menu-deplegable"

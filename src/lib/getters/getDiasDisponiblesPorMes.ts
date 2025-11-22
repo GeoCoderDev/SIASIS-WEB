@@ -5,18 +5,18 @@ import {
 import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
 
 /**
- * Devuelve los días disponibles para un mes dado.
- * Reglas:
- * - Devuelve sólo días de lunes a viernes del mes.
- * - Si es un mes FUTURO: NO devuelve ningún día (no se pueden reportar asistencias futuras).
- * - Si es el mes ACTUAL: Solo devuelve días pasados (anteriores al día actual).
- *   - El día actual se incluye SOLO si horaActual >= 22.
- * - Si es un mes PASADO: Devuelve todos los días hábiles del mes.
+ * Returns available days for a given month.
+ * Rules:
+ * - Returns only Monday to Friday days of the month.
+ * - If it's a FUTURE month: Does NOT return any day (future attendance cannot be reported).
+ * - If it's the CURRENT month: Only returns past days (before the current day).
+ *   - The current day is included ONLY if horaActual >= 22.
+ * - If it's a PAST month: Returns all business days of the month.
  *
- * Asunciones:
- * - `mesSeleccionado` es el número de mes en formato 1..12.
- * - `diaActual` es el número de día del mes (1..31).
- * - `horaActual` es entero 0..23.
+ * Assumptions:
+ * - `mesSeleccionado` is the month number in format 1..12.
+ * - `diaActual` is the day number of the month (1..31).
+ * - `horaActual` is an integer 0..23.
  */
 export const getDiasDisponiblesPorMes = (
   mesSeleccionado: number,
@@ -26,7 +26,7 @@ export const getDiasDisponiblesPorMes = (
 ): { numeroDiaDelMes: number; NombreDiaSemana: string }[] => {
   const resultados: { numeroDiaDelMes: number; NombreDiaSemana: string }[] = [];
 
-  // Validar rango de mes
+  // Validate month range
   if (mesSeleccionado < 1 || mesSeleccionado > 12) return resultados;
 
   const ahora = new Date();
@@ -38,7 +38,7 @@ export const getDiasDisponiblesPorMes = (
   const horaDisponibilidadDiaActual =
     nivelEducativo === NivelEducativo.PRIMARIA
       ? HORA_TRANSACCION_ASISTENCIAS_ESCOLARES_PRIMARIA_COMPLETADA
-      : HORA_TRANSACCION_ASISTENCIAS_ESCOLARES_SECUNDARIA_COMPLETADA; // Hora a partir de la cual el día actual es válido
+      : HORA_TRANSACCION_ASISTENCIAS_ESCOLARES_SECUNDARIA_COMPLETADA; // Hour from which the current day is valid
 
   const nombresSemana = [
     "Domingo",
@@ -50,28 +50,28 @@ export const getDiasDisponiblesPorMes = (
     "Sábado",
   ];
 
-  // ✅ VALIDACIÓN 1: Si es un mes futuro, no devolver ningún día
+  // ✅ VALIDATION 1: If it's a future month, don't return any day
   if (mesSeleccionado > mesActual) {
-    return resultados; // Array vacío
+    return resultados; // Empty array
   }
 
-  // Determinar si es el mes actual
+  // Determine if it's the current month
   const esMesActual = mesSeleccionado === mesActual;
 
   for (let dia = 1; dia <= daysInMonth; dia++) {
     const fecha = new Date(year, monthIndex, dia);
-    const dow = fecha.getDay(); // 0 domingo .. 6 sabado
+    const dow = fecha.getDay(); // 0 Sunday .. 6 Saturday
 
-    // Solo lunes(1) a viernes(5)
+    // Only Monday(1) to Friday(5)
     if (dow >= 1 && dow <= 5) {
-      // ✅ VALIDACIÓN 2: Si es el mes actual, solo incluir días pasados
+      // ✅ VALIDATION 2: If it's the current month, only include past days
       if (esMesActual) {
-        // Si es un día futuro (mayor al día actual), no incluirlo
+        // If it's a future day (greater than current day), don't include it
         if (dia > diaActual) {
-          continue; // Saltar este día
+          continue; // Skip this day
         }
 
-        // Si es el día actual, aplicar la regla de la hora
+        // If it's the current day, apply the hour rule
         if (dia === diaActual) {
           if (horaActual >= horaDisponibilidadDiaActual) {
             resultados.push({
@@ -79,16 +79,16 @@ export const getDiasDisponiblesPorMes = (
               NombreDiaSemana: nombresSemana[dow],
             });
           }
-          // Si horaActual < 22, no incluir el día actual
+          // If horaActual < 22, don't include the current day
         } else {
-          // Es un día pasado del mes actual, incluirlo
+          // It's a past day of the current month, include it
           resultados.push({
             numeroDiaDelMes: dia,
             NombreDiaSemana: nombresSemana[dow],
           });
         }
       } else {
-        // Es un mes pasado, incluir todos los días hábiles
+        // It's a past month, include all business days
         resultados.push({
           numeroDiaDelMes: dia,
           NombreDiaSemana: nombresSemana[dow],

@@ -12,7 +12,7 @@ export async function DELETE(request: NextRequest) {
     headers: borrarCookiesDeSesion(),
   });
 
-  // Si quieres redirigir automáticamente en vez de solo borrar cookies:
+  // If you want to automatically redirect instead of just deleting cookies:
   // return new Response(null, {
   //   status: 302,
   //   headers: {

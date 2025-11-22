@@ -4,7 +4,7 @@
 @tailwind utilities;
 
 :root {
-  /* PALETA DE COLORES */
+  /* COLOR PALETTE */
   --rojo-principal: #dd3524;
   --rojo-oscuro: #c82333;
   --verde-principal: #28a745;
@@ -20,7 +20,7 @@
   --negro: #000;
 }
 
-/* ESTILOS TOTALES 👁️ ============================================================================*/
+/* GLOBAL STYLES 👁️ ============================================================================*/
 
 * {
   box-sizing: border-box;
@@ -28,12 +28,12 @@
   margin: 0;
 }
 
-/* AUTOCOMPLETADO TRANSPARENTE */
+/* TRANSPARENT AUTOFILL */
 input:-webkit-autofill {
   transition: background-color 5000s ease-in-out 0s;
 }
 
-/* Esto ayuda a dar la impresión de que el dropdown tiene bordes redondeados */
+/* This helps give the impression that the dropdown has rounded borders */
 
 select option {
   padding: 12px 12px;
@@ -43,7 +43,7 @@ select option {
   font-size: 0.9rem;
 }
 
-/* Para Firefox */
+/* For Firefox */
 select option:hover {
   box-shadow: 0 0 10px 100px #f8f8f8 inset;
 }
@@ -52,13 +52,13 @@ select option:checked {
   box-shadow: 0 0 10px 100px #ffcc00 inset;
 }
 
-/* Algunos navegadores soportan esta propiedad no estándar */
+/* Some browsers support this non-standard property */
 select::-webkit-listbox {
   @apply top-4;
   border-radius: 1rem;
 }
 
-/* CLASES UTILES 🔁 ==============================================================================*/
+/* UTILITY CLASSES 🔁 ==============================================================================*/
 
 .siasis-shadow-card {
   @apply shadow-[0_0_8px_5px_rgba(0,0,0,0.2)] 
@@ -87,10 +87,10 @@ select::-webkit-listbox {
 }
 
 /* ============================================================================== */
-/*                            ANIMACIONES DE KEYFRAMES                            */
+/*                            KEYFRAME ANIMATIONS                                  */
 /* ============================================================================== */
 
-/* ANIMACION DE SKELETO */
+/* SKELETON ANIMATION */
 .skeleton {
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   background-size: 200% 100%;
@@ -107,7 +107,7 @@ select::-webkit-listbox {
   }
 }
 
-/* ANIMACION DE RECORRIMIENTO HORIZONTAL */
+/* HORIZONTAL SLIDE ANIMATION */
 
 @keyframes slideFromLeft {
   from {

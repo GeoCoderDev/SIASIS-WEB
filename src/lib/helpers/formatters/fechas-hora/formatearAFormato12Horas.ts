@@ -1,46 +1,46 @@
 /**
- * Transforma un timestamp a un formato de hora 12h (por ejemplo: "8:00am", "4:00pm")
- * @param timestamp - String que representa una fecha y hora
- * @param yaEsUTC - Booleano que indica si el timestamp ya está en UTC (default: false)
- * @returns String formateado como "8:00am"
+ * Transforms a timestamp to 12h time format (e.g.: "8:00am", "4:00pm")
+ * @param timestamp - String representing a date and time
+ * @param yaEsUTC - Boolean indicating if the timestamp is already in UTC (default: false)
+ * @returns String formatted as "8:00am"
  */
 export function formatearISOaFormato12Horas(
   timestamp: string,
   yaEsUTC: boolean = false
 ): string {
   try {
-    // Crear objeto Date a partir del timestamp
+    // Create Date object from timestamp
     const fecha = new Date(timestamp);
 
-    // Verificar si la fecha es válida
+    // Check if the date is valid
     if (isNaN(fecha.getTime())) {
-      return "Formato de fecha inválido";
+      return "Invalid date format";
     }
 
-    // Obtener horas y minutos dependiendo si ya es UTC o no
+    // Get hours and minutes depending on whether it's already UTC or not
     let horas = yaEsUTC ? fecha.getHours() : fecha.getUTCHours();
     const minutos = yaEsUTC ? fecha.getMinutes() : fecha.getUTCMinutes();
 
-    // Determinar AM o PM
+    // Determine AM or PM
     const periodo = horas >= 12 ? "pm" : "am";
 
-    // Convertir a formato 12 horas
+    // Convert to 12-hour format
     horas = horas % 12;
-    horas = horas ? horas : 12; // Si es 0, mostrar como 12
+    horas = horas ? horas : 12; // If 0, show as 12
 
-    // Formatear minutos con ceros a la izquierda si es necesario
+    // Format minutes with leading zeros if necessary
     const minutosFormateados = minutos < 10 ? `0${minutos}` : minutos;
 
-    // Construir la cadena de resultado
+    // Build the result string
     return `${horas}:${minutosFormateados}${periodo}`;
   } catch (error) {
     console.log(error);
-    // Error al procesar la fecha
+    // Error processing the date
     return "##:##";
   }
 }
 
-// Función alternativa que incluye los segundos si son diferentes de 00
+// Alternative function that includes seconds if they are different from 00
 export function convertirAFormato12Horas(
   time24: string,
   withSeconds: boolean = false
@@ -57,7 +57,7 @@ export function convertirAFormato12Horas(
   const formattedMinutes = minutes.toString().padStart(2, "0");
   const formattedSeconds = seconds.toString().padStart(2, "0");
 
-  // Solo incluir segundos si son diferentes de 00
+  // Only include seconds if they are different from 00
   if (!withSeconds) {
     return `${hours12}:${formattedMinutes} ${period}`;
   } else {

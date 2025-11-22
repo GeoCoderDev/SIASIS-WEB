@@ -4,7 +4,7 @@ import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import { obtenerDatosAsistenciaHoy } from "../_utils/obtenerDatosAsistenciaHoy";
 
 /**
- * Información del aula asignada a un profesor
+ * Information about the classroom assigned to a teacher
  */
 export interface AulaAsignada {
   nivel: NivelEducativo;
@@ -14,7 +14,7 @@ export interface AulaAsignada {
 }
 
 /**
- * Resultado de validación de permisos para reportes
+ * Permission validation result for reports
  */
 export interface ResultadoValidacionPermisos {
   tienePermiso: boolean;
@@ -23,7 +23,7 @@ export interface ResultadoValidacionPermisos {
 }
 
 /**
- * Helper para trabajar con datos de asistencia del día
+ * Helper for working with daily attendance data
  */
 export class DatosAsistenciaHoyHelper {
   private datos: DatosAsistenciaHoyIE20935;
@@ -33,7 +33,7 @@ export class DatosAsistenciaHoyHelper {
   }
 
   /**
-   * Obtiene una instancia del helper con los datos actuales
+   * Gets an instance of the helper with current data
    */
   static async obtenerInstancia(): Promise<DatosAsistenciaHoyHelper> {
     const { datos } = await obtenerDatosAsistenciaHoy();
@@ -41,7 +41,7 @@ export class DatosAsistenciaHoyHelper {
   }
 
   /**
-   * Obtiene el aula asignada a un profesor de primaria
+   * Gets the classroom assigned to an elementary school teacher
    */
   obtenerAulaProfesorPrimaria(idProfesor: string): AulaAsignada | null {
     const profesor = this.datos.ListaDeProfesoresPrimaria.find(
@@ -70,7 +70,7 @@ export class DatosAsistenciaHoyHelper {
   }
 
   /**
-   * Obtiene el aula asignada a un profesor/tutor de secundaria
+   * Gets the classroom assigned to a secondary school teacher/tutor
    */
   obtenerAulaProfesorSecundaria(idProfesor: string): AulaAsignada | null {
     const profesor = this.datos.ListaDeProfesoresSecundaria.find(
@@ -99,7 +99,7 @@ export class DatosAsistenciaHoyHelper {
   }
 
   /**
-   * Valida si un usuario tiene permiso para generar/consultar un reporte específico
+   * Validates if a user has permission to generate/query a specific report
    */
   validarPermisosReporte(
     rol: RolesSistema,
@@ -125,7 +125,7 @@ export class DatosAsistenciaHoyHelper {
         };
 
       case RolesSistema.Auxiliar:
-        // Solo puede generar reportes de secundaria
+        // Can only generate secondary school reports
         if (nivelSolicitado !== NivelEducativo.SECUNDARIA) {
           console.log(
             `[DatosAsistenciaHoyHelper] ❌ Auxiliar solo puede generar reportes de secundaria`
@@ -169,7 +169,7 @@ export class DatosAsistenciaHoyHelper {
           };
         }
 
-        // Verificar que coincida con su aula asignada
+        // Verify that it matches their assigned classroom
         const coincidePrimaria =
           nivelSolicitado === aulaProfesorPrimaria.nivel &&
           (gradoSolicitado === aulaProfesorPrimaria.grado ||
@@ -225,7 +225,7 @@ export class DatosAsistenciaHoyHelper {
           };
         }
 
-        // Verificar que coincida con su aula asignada
+        // Verify that it matches their assigned classroom
         const coincideSecundaria =
           nivelSolicitado === aulaProfesorSecundaria.nivel &&
           (gradoSolicitado === aulaProfesorSecundaria.grado ||
@@ -276,7 +276,7 @@ export class DatosAsistenciaHoyHelper {
   }
 
   /**
-   * Obtiene los datos completos de asistencia
+   * Gets the complete attendance data
    */
   obtenerDatosCompletos(): DatosAsistenciaHoyIE20935 {
     return this.datos;

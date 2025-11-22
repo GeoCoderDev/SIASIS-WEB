@@ -1,21 +1,21 @@
 /**
- * ⏰ CONSTANTES: Horarios para el flujo inteligente de consultas de asistencia
+ * ⏰ CONSTANTS: Schedules for the intelligent attendance query flow
  */
 export const HORARIOS_CONSULTA = {
-  // Horarios del día escolar
+  // School day schedules
   INICIO_DIA_ESCOLAR: 6, // 06:00 AM
   FIN_CONSOLIDACION: 22, // 10:00 PM
-  SEPARACION_ENTRADAS_SALIDAS: 12, // 12:00 PM (mediodía)
+  SEPARACION_ENTRADAS_SALIDAS: 12, // 12:00 PM (noon)
 
-  // Horarios especiales
-  VIERNES_COMPLETO: 20, // 8:00 PM - Hora a partir de la cual se considera que el viernes está "completo"
+  // Special schedules
+  VIERNES_COMPLETO: 20, // 8:00 PM - Hour from which Friday is considered "complete"
 
-  // Tolerancias
-  MINUTOS_TOLERANCIA_CONSULTA: 30, // Tolerancia para consultas cerca de cambios de hora
+  // Tolerances
+  MINUTOS_TOLERANCIA_CONSULTA: 30, // Tolerance for queries near hour changes
 };
 
 /**
- * 📅 CONSTANTES: Días de la semana
+ * 📅 CONSTANTS: Days of the week
  */
 export const DIAS_SEMANA = {
   DOMINGO: 0,
@@ -28,7 +28,7 @@ export const DIAS_SEMANA = {
 };
 
 /**
- * 🎯 TIPOS: Para mejor tipado
+ * 🎯 TYPES: For better typing
  */
 export type HoraDelDia =
   | 0

@@ -19,11 +19,11 @@ const ComunicadosInterface = () => {
   const [fechaHasta, setFechaHasta] = useState(hoy);
   const [selectedState, setSelectedState] = useState<'Todos' | EstadoEvento>('Todos');
   
-  // Estados para paginación
+  // Pagination states
   const [paginaActual, setPaginaActual] = useState(1);
   const eventosPorPagina = 5;
 
-  // Referencias a los inputs para controlar el calendario
+  // References to inputs for controlling the calendar
   const inputDesdeRef = useRef<HTMLInputElement>(null);
   const inputHastaRef = useRef<HTMLInputElement>(null);
 
@@ -118,7 +118,7 @@ const ComunicadosInterface = () => {
     }
   ];
 
-  // Filtrar eventos y calcular paginación
+  // Filter events and calculate pagination
   const eventosFiltrados = useMemo(() => {
     return eventos.filter(evento => {
       const cumpleFiltroEstado = selectedState === 'Todos' || evento.estado === selectedState;
@@ -127,18 +127,18 @@ const ComunicadosInterface = () => {
     });
   }, [eventos, selectedState, searchTerm]);
 
-  // Calcular información de paginación
+  // Calculate pagination information
   const totalPaginas = Math.ceil(eventosFiltrados.length / eventosPorPagina);
   const indiceInicio = (paginaActual - 1) * eventosPorPagina;
   const indiceFin = indiceInicio + eventosPorPagina;
   const eventosPaginaActual = eventosFiltrados.slice(indiceInicio, indiceFin);
 
-  // Resetear página cuando cambian los filtros
+  // Reset page when filters change
   React.useEffect(() => {
     setPaginaActual(1);
   }, [selectedState, searchTerm]);
 
-  // Funciones de navegación
+  // Navigation functions
   const irAPaginaAnterior = () => {
     if (paginaActual > 1) {
       setPaginaActual(paginaActual - 1);
@@ -157,7 +157,7 @@ const ComunicadosInterface = () => {
     }
   };
 
-  // Generar números de página para mostrar
+  // Generate page numbers to display
   const generarNumerosPagina = () => {
     const numeros: number[] = [];
     const rango = 2;
@@ -258,7 +258,7 @@ const ComunicadosInterface = () => {
 
   return (
     <>
-      {/* Estilos globales para ocultar el ícono del date picker */}
+      {/* Global styles to hide the date picker icon */}
       <style jsx global>{`
         .date-input-custom::-webkit-calendar-picker-indicator {
           opacity: 0;
@@ -337,12 +337,12 @@ const ComunicadosInterface = () => {
           </div>
         </div>
 
-        {/* Filtros */}
+        {/* Filters */}
         <div className="mb-4 sm:mb-5 md:mb-6 space-y-4">
           
-          {/* Nombre de evento, Desde y Hasta */}
+          {/* Event name, From and To */}
           <div className="flex flex-col lg:flex-row lg:items-end gap-3 lg:gap-4">
-            {/* Nombres de Evento */}
+            {/* Event Names */}
             <div className="flex-1">
               <label className="text-black font-medium text-sm block mb-2">Título:</label>
               <input
@@ -354,7 +354,7 @@ const ComunicadosInterface = () => {
               />
             </div>
 
-            {/* Fechas */}
+            {/* Dates */}
             <div className="flex flex-col sm:flex-row gap-3 lg:gap-4">
               <div className="flex-1">
                 <label className="text-black font-medium text-sm block mb-2">Desde:</label>
@@ -393,7 +393,7 @@ const ComunicadosInterface = () => {
             </div>
           </div>
 
-          {/* Estado */}
+          {/* State */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <label className="text-black font-medium text-sm">Estado:</label>
             <div className="relative">
@@ -412,9 +412,9 @@ const ComunicadosInterface = () => {
           </div>
         </div>
 
-        {/* Vista de Tabla/Cards Responsive */}
+        {/* Responsive Table/Cards View */}
         <div className="mb-6">
-          {/* Vista de Cards para móviles - MEJORADA */}
+          {/* Cards View for mobile - IMPROVED */}
           <div className="block lg:hidden space-y-6">
             {eventosPaginaActual.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
@@ -429,7 +429,7 @@ const ComunicadosInterface = () => {
             ) : (
               eventosPaginaActual.map((evento) => (
               <div key={evento.id} className="bg-white rounded-xl shadow-md border border-gray-100 p-6 transition-all duration-200 hover:shadow-lg">
-                {/* Header del Card con mejor espaciado */}
+                {/* Card Header with better spacing */}
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
                   <div className="flex-1">
                     <div className="flex items-center justify-between sm:justify-start sm:gap-3 mb-3">
@@ -446,7 +446,7 @@ const ComunicadosInterface = () => {
                   </div>
                 </div>
                 
-                {/* Información de fechas con mejor diseño */}
+                {/* Date information with better design */}
                 <div className="bg-gray-50 rounded-lg p-4 mb-6">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                     <div className="flex flex-col space-y-1">
@@ -460,7 +460,7 @@ const ComunicadosInterface = () => {
                   </div>
                 </div>
                 
-                {/* Acciones con mejor espaciado */}
+                {/* Actions with better spacing */}
                 {renderAcciones(evento) && (
                   <div className="flex justify-center sm:justify-start">
                     <div className="w-full sm:w-auto">
@@ -469,7 +469,7 @@ const ComunicadosInterface = () => {
                   </div>
                 )}
                 
-                {/* Línea decorativa sutil si no hay acciones */}
+                {/* Subtle decorative line if there are no actions */}
                 {!renderAcciones(evento) && (
                   <div className="w-full h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
                 )}
@@ -478,11 +478,11 @@ const ComunicadosInterface = () => {
             )}
           </div>
 
-          {/* Vista de Tabla para pantallas grandes */}
+          {/* Table View for large screens */}
           <div className="hidden lg:block bg-white rounded-lg shadow-sm border overflow-x-hidden">
             <div className="w-full">
               <table className="w-full table-auto">
-                {/* Header de tabla mejorado */}
+                {/* Improved table header */}
                 <thead>
                   <tr className="bg-red-600 text-white">
                     <th className="px-4 py-4 text-left font-semibold text-sm uppercase tracking-wider w-auto">ID</th>
@@ -494,7 +494,7 @@ const ComunicadosInterface = () => {
                   </tr>
                 </thead>
 
-                {/* Cuerpo de la tabla mejorado */}
+                {/* Improved table body */}
                 <tbody className="divide-y divide-gray-200 bg-white">
                   {eventosPaginaActual.length === 0 ? (
                     <tr>
@@ -542,7 +542,7 @@ const ComunicadosInterface = () => {
           </div>
         </div>
 
-        {/* Paginación Funcional */}
+        {/* Functional Pagination */}
         {totalPaginas > 1 && (
           <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-0">
             <div className="flex items-center border-2 border-red-600 rounded-lg overflow-hidden">
@@ -588,7 +588,7 @@ const ComunicadosInterface = () => {
           </div>
         )}
 
-        {/* Información de paginación */}
+        {/* Pagination information */}
         {eventosFiltrados.length > 0 && (
           <div className="mt-4 text-center text-sm text-gray-600">
             Mostrando {indiceInicio + 1} - {Math.min(indiceFin, eventosFiltrados.length)} de {eventosFiltrados.length} comunicados

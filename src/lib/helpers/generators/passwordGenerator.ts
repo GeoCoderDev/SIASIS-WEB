@@ -1,9 +1,9 @@
 const generatePassword = (name?: string, surname?: string): string => {
-  const length = Math.floor(Math.random() * (20 - 8 + 1)) + 8; // Longitud aleatoria entre 8 y 20 caracteres
+  const length = Math.floor(Math.random() * (20 - 8 + 1)) + 8; // Random length between 8 and 20 characters
   const chars =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"; // Caracteres permitidos
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"; // Allowed characters
   const replacements: { [key: string]: string[] } = {
-    // Reemplazos de letras por caracteres especiales
+    // Letter replacements with special characters
     a: ["@"],
     e: ["3"],
     i: ["1"],
@@ -13,50 +13,50 @@ const generatePassword = (name?: string, surname?: string): string => {
   let combinedString = "";
 
   if (name && surname) {
-    const useBoth = Math.random() < 0.5; // Determina si se usan ambos nombres o solo uno
+    const useBoth = Math.random() < 0.5; // Determines if both names are used or just one
     if (useBoth) {
-      const nameLength = Math.floor(Math.random() * (name.length - 3)) + 3; // Longitud aleatoria del fragmento del nombre
+      const nameLength = Math.floor(Math.random() * (name.length - 3)) + 3; // Random length of the name fragment
       const surnameLength =
-        Math.floor(Math.random() * (surname.length - 3)) + 3; // Longitud aleatoria del fragmento del apellido
+        Math.floor(Math.random() * (surname.length - 3)) + 3; // Random length of the surname fragment
       const randomNameStart = Math.floor(
         Math.random() * (name.length - nameLength)
-      ); // Índice aleatorio de inicio del fragmento del nombre
+      ); // Random start index of the name fragment
       const randomSurnameStart = Math.floor(
         Math.random() * (surname.length - surnameLength)
-      ); // Índice aleatorio de inicio del fragmento del apellido
+      ); // Random start index of the surname fragment
       combinedString =
         name.substring(randomNameStart, randomNameStart + nameLength) +
         surname.substring(
           randomSurnameStart,
           randomSurnameStart + surnameLength
-        ); // Fragmento aleatorio del nombre y apellido
+        ); // Random fragment of name and surname
     } else {
-      combinedString = Math.random() < 0.5 ? name : surname; // Usa solo el nombre o el apellido aleatoriamente
+      combinedString = Math.random() < 0.5 ? name : surname; // Randomly use only the name or surname
     }
   } else if (name) {
-    combinedString = name; // Usa solo el nombre si se proporciona
+    combinedString = name; // Use only the name if provided
   } else if (surname) {
-    combinedString = surname; // Usa solo el apellido si se proporciona
+    combinedString = surname; // Use only the surname if provided
   }
 
   let password = "";
 
   for (let i = 0; i < length; i++) {
     if (i < combinedString.length) {
-      // Usar caracteres del nombre o apellido si se proporciona uno solo
+      // Use characters from the name or surname if only one is provided
       const char = combinedString[i];
-      const possibleReplacements = replacements[char.toLowerCase()] || [char]; // Reemplazos posibles para el carácter
-      const shouldReplace = Math.random() < 0.5; // Determina aleatoriamente si se debe reemplazar el carácter
+      const possibleReplacements = replacements[char.toLowerCase()] || [char]; // Possible replacements for the character
+      const shouldReplace = Math.random() < 0.5; // Randomly determines if the character should be replaced
       if (shouldReplace) {
         const randomReplacementIndex = Math.floor(
           Math.random() * possibleReplacements.length
-        ); // Índice aleatorio para seleccionar el reemplazo
-        password += possibleReplacements[randomReplacementIndex]; // Caracter transformado aleatoriamente
+        ); // Random index to select the replacement
+        password += possibleReplacements[randomReplacementIndex]; // Randomly transformed character
       } else {
-        password += char; // Mantener el carácter original
+        password += char; // Keep the original character
       }
     } else {
-      // Usar caracteres aleatorios si no se proporciona nombre ni apellido o si se agotan los caracteres del nombre y apellido
+      // Use random characters if no name or surname is provided or if the name and surname characters are exhausted
       const randomIndex = Math.floor(Math.random() * chars.length);
       password += chars[randomIndex];
     }

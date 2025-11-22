@@ -25,7 +25,7 @@ const obtenerHoraAPI03 = async (): Promise<Date> => {
   );
 
   if (!response.ok) {
-    throw new Error(`Error al obtener hora de API03: ${response.status}`);
+    throw new Error(`Error getting time from API03: ${response.status}`);
   }
 
   const data = await response.json();
@@ -33,32 +33,32 @@ const obtenerHoraAPI03 = async (): Promise<Date> => {
 };
 
 /**
- * Obtiene la fecha y hora actual en Perú aplicando offsets de mockeo si es necesario
- * @returns Date object ajustado con la zona horaria de Perú y offsets de desarrollo
+ * Gets the current date and time in Peru applying mocking offsets if necessary
+ * @returns Date object adjusted with Peru timezone and development offsets
  */
 export async function obtenerFechaHoraActualPeru(): Promise<Date> {
   let fechaPerú: Date;
 
   if (USAR_API03) {
     try {
-      // Usar hora de la API03
+      // Use time from API03
       fechaPerú = await obtenerHoraAPI03();
       fechaPerú.setHours(fechaPerú.getHours() - 5);
     } catch (error) {
-      console.warn("Error al obtener hora de API03, usando hora local:", error);
-      // Fallback a hora local si falla la API
+      console.warn("Error getting time from API03, using local time:", error);
+      // Fallback to local time if API fails
       fechaPerú = new Date();
-      // Perú está en UTC-5
+      // Peru is in UTC-5
       fechaPerú.setHours(fechaPerú.getHours() - 5);
     }
   } else {
-    // Usar hora local del navegador
+    // Use browser local time
     fechaPerú = new Date();
-    // Perú está en UTC-5
+    // Peru is in UTC-5
     fechaPerú.setHours(fechaPerú.getHours() - 5);
   }
 
-  // Aplicar offsets adicionales solo en entorno local para testing/mockeo
+  // Apply additional offsets only in local environment for testing/mocking
   if (ENTORNO === Entorno.LOCAL) {
     fechaPerú.setDate(fechaPerú.getDate() + OFFSET_DIAS_ADICIONALES_SIU01);
     fechaPerú.setHours(fechaPerú.getHours() + OFFSET_HORAS_ADICIONALES_SIU01);
@@ -70,8 +70,8 @@ export async function obtenerFechaHoraActualPeru(): Promise<Date> {
 }
 
 /**
- * Función para obtener la fecha actual en Perú en formato YYYY-MM-DD
- * Mantiene retrocompatibilidad con la función original
+ * Function to get the current date in Peru in YYYY-MM-DD format
+ * Maintains backwards compatibility with the original function
  */
 export async function obtenerFechaActualPeru(): Promise<string> {
   const fechaPerú = await obtenerFechaHoraActualPeru();

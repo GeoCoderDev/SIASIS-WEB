@@ -19,7 +19,7 @@ interface FetchSiasisAPIs {
 }
 
 /**
- * Este hook recibe 2 parametros, el primero es la api a usar
+ * This hook receives 2 parameters, the first one is the API to use
  * @param siasisAPI
  * @param loggedUserRolForAPI01
  * @returns
@@ -44,7 +44,7 @@ const useSiasisAPIs = (
       queryParams,
       userAutheticated = true,
     }: FetchSiasisAPIs) => {
-      // Obtener token de manera asíncrona si el usuario debe estar autenticado
+      // Get token asynchronously if the user must be authenticated
       let token: string | null = null;
 
       if (userAutheticated) {
@@ -54,19 +54,19 @@ const useSiasisAPIs = (
           );
           token = await userStorage.getAuthToken();
 
-          // Si se requiere autenticación pero no hay token, hacer logout
+          // If authentication is required but there's no token, logout
           if (!token) {
             logout(LogoutTypes.SESION_EXPIRADA);
             return;
           }
         } catch (error) {
-          console.error("Error al obtener el token:", error);
+          console.error("Error getting the token:", error);
           logout(LogoutTypes.ERROR_SISTEMA);
           return;
         }
       }
 
-      // Preparar headers
+      // Prepare headers
       const headers: Record<string, string> = {};
 
       if (JSONBody) {
@@ -77,7 +77,7 @@ const useSiasisAPIs = (
         headers["Authorization"] = `Bearer ${token}`;
       }
 
-      // Crear la instancia FetchCancelable
+      // Create the FetchCancelable instance
       const fetchCancelable = new FetchCancelable(
         `${getRandomInstanceForAPI()}${endpoint}`,
         {
@@ -88,7 +88,7 @@ const useSiasisAPIs = (
         queryParams
       );
 
-      // Registrar la instancia para poder cancelarla posteriormente si es necesario
+      // Register the instance to be able to cancel it later if necessary
       setFetchCancelables((prev) => [...prev, fetchCancelable]);
 
       return fetchCancelable;
@@ -96,7 +96,7 @@ const useSiasisAPIs = (
     [getRandomInstanceForAPI]
   );
 
-  // Función para cancelar todas las peticiones pendientes
+  // Function to cancel all pending requests
   const cancelAllRequests = useCallback(() => {
     fetchCancelables.forEach((fetchCancelable) => fetchCancelable.cancel());
     setFetchCancelables([]);

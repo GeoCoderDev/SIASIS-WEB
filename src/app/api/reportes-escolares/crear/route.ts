@@ -24,7 +24,7 @@ import {
 import { TIEMPO_EXPIRACION_REPORTES_ASISTENCIAS_ESCOLARES_SEGUNDOS_CACHE_REDIS } from "@/constants/REPORTES_ASISTENCIA";
 
 /**
- * Configuración de GitHub Actions para reportes
+ * GitHub Actions configuration for reports
  */
 const GITHUB_CONFIG = {
   TOKEN: process.env.TGSH01_GITHUB_STATIC_PERSONAL_ACCESS_TOKEN,
@@ -33,7 +33,7 @@ const GITHUB_CONFIG = {
 } as const;
 
 /**
- * Gatilla la generación de un reporte via GitHub Actions
+ * Triggers report generation via GitHub Actions
  */
 async function gatillarGeneracionReporte(
   payload: T_Reportes_Asistencia_Escolar
@@ -41,7 +41,7 @@ async function gatillarGeneracionReporte(
   try {
     console.log(`🚀 INICIANDO GATILLADO de generación de reporte`);
 
-    // Verificar configuración de GitHub
+    // Verify GitHub configuration
     if (!GITHUB_CONFIG.TOKEN) {
       throw new Error("TOKEN de GitHub no configurado");
     }
@@ -95,7 +95,7 @@ async function gatillarGeneracionReporte(
 }
 
 /**
- * Mapea el rol del sistema al formato de 2 caracteres para almacenamiento
+ * Maps system role to 2-character format for storage
  */
 function mapearRolACodigoCorto(rol: RolesSistema): string {
   const mapeo: Record<RolesSistema, string> = {
@@ -113,7 +113,7 @@ function mapearRolACodigoCorto(rol: RolesSistema): string {
 
 export async function POST(req: NextRequest) {
   try {
-    // ✅ AUTENTICACIÓN
+    // ✅ AUTHENTICATION
     const { error, rol, decodedToken } = await verifyAuthToken(req, [
       RolesSistema.Directivo,
       RolesSistema.Auxiliar,
@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
 
     console.log(`🔐 Usuario autenticado: ${rol} - ${decodedToken.ID_Usuario}`);
 
-    // ✅ PARSEAR BODY
+    // ✅ PARSE BODY
     const body = (await req.json()) as {
       Combinacion_Parametros_Reporte?: string;
     };
@@ -148,7 +148,7 @@ export async function POST(req: NextRequest) {
       `📋 Combinación de parámetros recibida: ${Combinacion_Parametros_Reporte}`
     );
 
-    // ✅ VALIDAR FORMATO
+    // ✅ VALIDATE FORMAT
     const parametrosDecodificados =
       decodificarCombinacionParametrosParaReporteEscolar(
         Combinacion_Parametros_Reporte
@@ -171,7 +171,7 @@ export async function POST(req: NextRequest) {
       JSON.stringify(parametrosDecodificados, null, 2)
     );
 
-    // ✅ VALIDAR PERMISOS usando el helper
+    // ✅ VALIDATE PERMISSIONS using the helper
     const helperAsistencia = await DatosAsistenciaHoyHelper.obtenerInstancia();
     const validacionPermisos = helperAsistencia.validarPermisosReporte(
       rol!,
@@ -199,7 +199,7 @@ export async function POST(req: NextRequest) {
 
     console.log(`✅ Permisos validados correctamente para rol ${rol}`);
 
-    // ✅ VERIFICAR SI YA EXISTE EN REDIS
+    // ✅ VERIFY IF ALREADY EXISTS IN REDIS
     const redisClientInstance = redisClient(
       GruposIntanciasDeRedis.ParaReportesDeAsistenciasEscolares
     );
@@ -213,13 +213,13 @@ export async function POST(req: NextRequest) {
         `📋 Reporte ya existe en Redis: ${Combinacion_Parametros_Reporte}`
       );
 
-      // Parsear los datos existentes
+      // Parse existing data
       const reporteCompleto: T_Reportes_Asistencia_Escolar =
         typeof reporteExistente === "string"
           ? JSON.parse(reporteExistente)
           : reporteExistente;
 
-      // Filtrar solo los datos anónimos para la respuesta
+      // Filter only anonymous data for the response
       const datosDeEstadoDeReporte: ReporteAsistenciaEscolarAnonimo = {
         Combinacion_Parametros_Reporte:
           reporteCompleto.Combinacion_Parametros_Reporte,
@@ -247,7 +247,7 @@ export async function POST(req: NextRequest) {
       `🆕 Reporte no existe, procediendo a crear: ${Combinacion_Parametros_Reporte}`
     );
 
-    // ✅ CREAR NUEVO REPORTE
+    // ✅ CREATE NEW REPORT
     const fechaGeneracion = new Date();
     const rolCodigo = mapearRolACodigoCorto(rol!);
 
@@ -265,7 +265,7 @@ export async function POST(req: NextRequest) {
       JSON.stringify(nuevoReporte, null, 2)
     );
 
-    // ✅ GUARDAR EN REDIS CON EXPIRACIÓN DE 12 HORAS
+    // ✅ SAVE IN REDIS WITH 12 HOUR EXPIRATION
     await redisClientInstance.set(
       Combinacion_Parametros_Reporte,
       JSON.stringify(nuevoReporte),
@@ -279,7 +279,7 @@ export async function POST(req: NextRequest) {
       } horas`
     );
 
-    // ✅ GATILLAR GITHUB ACTIONS
+    // ✅ TRIGGER GITHUB ACTIONS
     try {
       await gatillarGeneracionReporte(nuevoReporte);
       console.log(`🚀 GitHub Action gatillado exitosamente`);
@@ -288,10 +288,10 @@ export async function POST(req: NextRequest) {
         `⚠️ Error al gatillar GitHub Action (reporte guardado en Redis):`,
         errorGithub
       );
-      // No fallar la petición si GitHub Actions falla, el reporte ya está en Redis
+      // Don't fail the request if GitHub Actions fails, the report is already in Redis
     }
 
-    // ✅ PREPARAR RESPUESTA ANÓNIMA
+    // ✅ PREPARE ANONYMOUS RESPONSE
     const datosDeEstadoDeReporte: ReporteAsistenciaEscolarAnonimo = {
       Combinacion_Parametros_Reporte:
         nuevoReporte.Combinacion_Parametros_Reporte,

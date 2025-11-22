@@ -7,98 +7,98 @@ export interface ResultadoPermisos {
 }
 
 /**
- * Servicio para verificar y gestionar permisos de geolocalización
+ * Service to verify and manage geolocation permissions
  */
 export class PermissionsService {
   /**
-   * Verifica si la geolocalización está soportada en el navegador
+   * Checks if geolocation is supported in the browser
    */
   static esSoportadaGeolocalizacion(): boolean {
     return 'geolocation' in navigator;
   }
 
   /**
-   * Verifica si la API de permisos está disponible
+   * Checks if the Permissions API is available
    */
   static esSoportadaAPIPermisos(): boolean {
     return 'permissions' in navigator;
   }
 
   /**
-   * Obtiene el estado actual de los permisos de geolocalización
+   * Gets the current state of geolocation permissions
    */
   static async obtenerEstadoPermisos(): Promise<ResultadoPermisos> {
     try {
-      // Verificar si la geolocalización está soportada
+      // Check if geolocation is supported
       if (!this.esSoportadaGeolocalizacion()) {
         return {
           estado: EstadoPermisos.NO_SOPORTADO,
-          mensaje: 'La geolocalización no está soportada en este navegador',
+          mensaje: 'Geolocation is not supported in this browser',
           puedeReintentar: false
         };
       }
 
-      // Si la API de permisos está disponible, usarla
+      // If the Permissions API is available, use it
       if (this.esSoportadaAPIPermisos()) {
         const permission = await navigator.permissions.query({ name: 'geolocation' });
-        
+
         switch (permission.state) {
           case 'granted':
             return {
               estado: EstadoPermisos.CONCEDIDO,
-              mensaje: 'Permisos de ubicación concedidos',
+              mensaje: 'Location permissions granted',
               puedeReintentar: false
             };
-            
+
           case 'denied':
             return {
               estado: EstadoPermisos.DENEGADO,
-              mensaje: 'Permisos de ubicación denegados. Por favor, habilite la ubicación en la configuración del navegador.',
+              mensaje: 'Location permissions denied. Please enable location in browser settings.',
               puedeReintentar: true
             };
-            
+
           case 'prompt':
             return {
               estado: EstadoPermisos.SOLICITADO,
-              mensaje: 'Se solicitarán permisos de ubicación',
+              mensaje: 'Location permissions will be requested',
               puedeReintentar: true
             };
-            
+
           default:
             return {
               estado: EstadoPermisos.NO_SOPORTADO,
-              mensaje: 'Estado de permisos desconocido',
+              mensaje: 'Unknown permission state',
               puedeReintentar: true
             };
         }
       }
 
-      // Si no hay API de permisos, retornamos que se puede solicitar
+      // If there is no Permissions API, return that it can be requested
       return {
         estado: EstadoPermisos.SOLICITADO,
-        mensaje: 'Los permisos se verificarán al intentar obtener la ubicación',
+        mensaje: 'Permissions will be verified when attempting to get location',
         puedeReintentar: true
       };
 
     } catch (error) {
-      console.error('Error al verificar permisos de geolocalización:', error);
+      console.error('Error verifying geolocation permissions:', error);
       return {
         estado: EstadoPermisos.NO_SOPORTADO,
-        mensaje: 'Error al verificar permisos de ubicación',
+        mensaje: 'Error verifying location permissions',
         puedeReintentar: true
       };
     }
   }
 
   /**
-   * Solicita permisos de geolocalización realizando una consulta de ubicación
+   * Requests geolocation permissions by performing a location query
    */
   static async solicitarPermisos(): Promise<ResultadoPermisos> {
     return new Promise((resolve) => {
       if (!this.esSoportadaGeolocalizacion()) {
         resolve({
           estado: EstadoPermisos.NO_SOPORTADO,
-          mensaje: 'La geolocalización no está soportada en este dispositivo',
+          mensaje: 'Geolocation is not supported on this device',
           puedeReintentar: false
         });
         return;
@@ -106,97 +106,97 @@ export class PermissionsService {
 
       navigator.geolocation.getCurrentPosition(
         () => {
-          // Éxito - permisos concedidos
+          // Success - permissions granted
           resolve({
             estado: EstadoPermisos.CONCEDIDO,
-            mensaje: 'Permisos de ubicación concedidos correctamente',
+            mensaje: 'Location permissions granted successfully',
             puedeReintentar: false
           });
         },
         (error) => {
-          // Error - permisos denegados o error
+          // Error - permissions denied or error
           switch (error.code) {
             case 1: // PERMISSION_DENIED
               resolve({
                 estado: EstadoPermisos.DENEGADO,
-                mensaje: 'Permisos de ubicación denegados por el usuario',
+                mensaje: 'Location permissions denied by user',
                 puedeReintentar: true
               });
               break;
-              
+
             case 2: // POSITION_UNAVAILABLE
               resolve({
-                estado: EstadoPermisos.CONCEDIDO, // Permisos OK, pero hay problema técnico
-                mensaje: 'Ubicación no disponible temporalmente',
+                estado: EstadoPermisos.CONCEDIDO, // Permissions OK, but technical issue
+                mensaje: 'Location temporarily unavailable',
                 puedeReintentar: true
               });
               break;
-              
+
             case 3: // TIMEOUT
               resolve({
-                estado: EstadoPermisos.CONCEDIDO, // Permisos OK, pero timeout
-                mensaje: 'Tiempo de espera agotado al obtener ubicación',
+                estado: EstadoPermisos.CONCEDIDO, // Permissions OK, but timeout
+                mensaje: 'Timeout while getting location',
                 puedeReintentar: true
               });
               break;
-              
+
             default:
               resolve({
                 estado: EstadoPermisos.NO_SOPORTADO,
-                mensaje: 'Error desconocido al solicitar permisos',
+                mensaje: 'Unknown error while requesting permissions',
                 puedeReintentar: true
               });
           }
         },
         {
-          timeout: 10000, // 10 segundos de timeout
-          enableHighAccuracy: false, // No requerir alta precisión para la verificación
-          maximumAge: 60000 // Aceptar ubicación de hasta 1 minuto
+          timeout: 10000, // 10 seconds timeout
+          enableHighAccuracy: false, // Do not require high accuracy for verification
+          maximumAge: 60000 // Accept location up to 1 minute old
         }
       );
     });
   }
 
   /**
-   * Proporciona instrucciones para habilitar permisos según el navegador
+   * Provides instructions to enable permissions based on browser
    */
   static obtenerInstruccionesPermisos(): { titulo: string; pasos: string[] } {
     const userAgent = navigator.userAgent.toLowerCase();
-    
+
     if (userAgent.includes('chrome')) {
       return {
-        titulo: 'Habilitar ubicación en Chrome',
+        titulo: 'Enable location in Chrome',
         pasos: [
-          'Haga clic en el ícono de candado o información junto a la URL',
-          'Seleccione "Ubicación" y cambie a "Permitir"',
-          'Recargue la página'
+          'Click the lock or info icon next to the URL',
+          'Select "Location" and change to "Allow"',
+          'Reload the page'
         ]
       };
     } else if (userAgent.includes('firefox')) {
       return {
-        titulo: 'Habilitar ubicación en Firefox',
+        titulo: 'Enable location in Firefox',
         pasos: [
-          'Haga clic en el ícono de escudo junto a la URL',
-          'Seleccione "Ubicación" y elija "Permitir"',
-          'Recargue la página'
+          'Click the shield icon next to the URL',
+          'Select "Location" and choose "Allow"',
+          'Reload the page'
         ]
       };
     } else if (userAgent.includes('safari')) {
       return {
-        titulo: 'Habilitar ubicación en Safari',
+        titulo: 'Enable location in Safari',
         pasos: [
-          'Vaya a Safari > Preferencias > Sitios web',
-          'Seleccione "Ubicación" en la barra lateral',
-          'Configure este sitio como "Permitir"'
+          'Go to Safari > Preferences > Websites',
+          'Select "Location" in the sidebar',
+          'Set this site to "Allow"'
         ]
       };
     } else {
       return {
-        titulo: 'Habilitar ubicación en el navegador',
+        titulo: 'Enable location in browser',
         pasos: [
-          'Busque el ícono de ubicación en la barra de direcciones',
-          'Haga clic y seleccione "Permitir"',
-          'Recargue la página si es necesario'
+          'Look for the location icon in the address bar',
+          'Click and select "Allow"',
+          'Reload the page if necessary'
         ]
       };
     }

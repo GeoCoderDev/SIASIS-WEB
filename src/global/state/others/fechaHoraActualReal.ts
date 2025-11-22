@@ -21,27 +21,27 @@ import {
   OFFSET_SEGUNDOS_ADICIONALES_SIU01,
 } from "@/constants/mocks/OFFSET_FECHAS_HORAS_SIU01";
 
-// Constante para el offset de tiempo (para pruebas)
-// Modificar estos valores para cambiar el offset aplicado a la hora del servidor
+// Constant for time offset (for testing)
+// Modify these values to change the offset applied to server time
 export const TIME_OFFSET = {
-  days: OFFSET_DIAS_ADICIONALES_SIU01, // Días adicionales para el offset
-  hours: OFFSET_HORAS_ADICIONALES_SIU01, // Agregar propiedad 'hours' con un valor predeterminado
+  days: OFFSET_DIAS_ADICIONALES_SIU01, // Additional days for offset
+  hours: OFFSET_HORAS_ADICIONALES_SIU01, // Add 'hours' property with a default value
   minutes: OFFSET_MINUTOS_ADICIONALES_SIU01,
   seconds: OFFSET_SEGUNDOS_ADICIONALES_SIU01,
-  enabled: ENTORNO === Entorno.LOCAL, // Habilitar/deshabilitar el offset
+  enabled: ENTORNO === Entorno.LOCAL, // Enable/disable offset
 };
 
-// Interfaces para datos de tiempo formateados y utilidades
+// Interfaces for formatted time data and utilities
 export interface FormatosHora {
   fechaCompleta: string;
   fechaCorta: string;
   horaCompleta: string;
   horaSinSegundos: string;
 
-  // Nuevos formatos
-  fechaLegible: string; // Ejemplo: "Lunes, 15 de Enero de 2024"
-  fechaNumericaCorta: string; // Ejemplo: "15/01/2024"
-  horaAmPm: string; // Ejemplo: "10:30 AM"
+  // New formats
+  fechaLegible: string; // Example: "Monday, January 15, 2024"
+  fechaNumericaCorta: string; // Example: "15/01/2024"
+  horaAmPm: string; // Example: "10:30 AM"
 }
 
 export interface UtilidadesTiempo {
@@ -49,24 +49,24 @@ export interface UtilidadesTiempo {
   minutos: number;
   segundos: number;
   esDiaEscolar: boolean;
-  diaSemana: string; // Nombre del día (Lunes, Martes, etc)
-  diaSemanaCorto: string; // Abreviatura (Lun, Mar, etc)
-  diaSemanaIndice: number; // 0-6 (0 = Domingo, 6 = Sábado)
+  diaSemana: string; // Day name (Monday, Tuesday, etc)
+  diaSemanaCorto: string; // Abbreviation (Mon, Tue, etc)
+  diaSemanaIndice: number; // 0-6 (0 = Sunday, 6 = Saturday)
   diaMes: number; // 1-31
-  mes: string; // Nombre del mes (Enero, Febrero, etc)
-  mesCorto: string; // Abreviatura (Ene, Feb, etc)
-  mesIndice: number; // 0-11 (0 = Enero, 11 = Diciembre)
-  año: number; // Año completo (ej: 2024)
-  diasEnMes: number; // Número de días en el mes actual
-  esFinDeSemana: boolean; // true si es Sábado o Domingo
-  trimestre: number; // 1-4 (trimestre del año)
+  mes: string; // Month name (January, February, etc)
+  mesCorto: string; // Abbreviation (Jan, Feb, etc)
+  mesIndice: number; // 0-11 (0 = January, 11 = December)
+  año: number; // Full year (e.g.: 2024)
+  diasEnMes: number; // Number of days in the current month
+  esFinDeSemana: boolean; // true if Saturday or Sunday
+  trimestre: number; // 1-4 (quarter of the year)
   semanaDelAño: number; // 1-53
   diaDelAño: number; // 1-366
-  esHoy: boolean; // true si la fecha es hoy (sin considerar la hora)
-  timestamp: number; // timestamp en milisegundos
+  esHoy: boolean; // true if date is today (ignoring time)
+  timestamp: number; // timestamp in milliseconds
 }
 
-// Interfaz para la fecha y hora actual con datos formateados
+// Interface for current date and time with formatted data
 export interface FechaHoraActualRealState {
   fechaHora: string | null;
   timezone: string;
@@ -88,45 +88,45 @@ const initialState: FechaHoraActualRealState = {
 };
 
 /**
- * Obtiene el número de días en un mes específico
- * @param año Año
- * @param mes Mes (0-11)
- * @returns Número de días en el mes
+ * Gets the number of days in a specific month
+ * @param año Year
+ * @param mes Month (0-11)
+ * @returns Number of days in the month
  */
 export const obtenerDiasEnMes = (año: number, mes: number): number => {
   return new Date(año, mes + 1, 0).getDate();
 };
 
 /**
- * Obtiene el número de semana del año
- * @param fecha Fecha a evaluar
- * @returns Número de semana (1-53)
+ * Gets the week number of the year
+ * @param fecha Date to evaluate
+ * @returns Week number (1-53)
  */
 export const obtenerSemanaDelAño = (fecha: Date): number => {
-  // Crear una copia de la fecha para no modificar la original
+  // Create a copy of the date to avoid modifying the original
   const fechaCopia = new Date(fecha);
 
-  // Obtener el primer día del año
+  // Get the first day of the year
   const primerDiaAño = new Date(fecha.getFullYear(), 0, 1);
 
-  // Ajustar al primer día de la semana (domingo)
+  // Adjust to the first day of the week (Sunday)
   const diaSemana = primerDiaAño.getDay();
   primerDiaAño.setDate(primerDiaAño.getDate() - diaSemana);
 
-  // Calcular días transcurridos desde el inicio del año
+  // Calculate days elapsed since the beginning of the year
   const msDiff = fechaCopia.getTime() - primerDiaAño.getTime();
   const diasDesdeInicio = Math.floor(msDiff / (24 * 60 * 60 * 1000));
 
-  // Calcular la semana
+  // Calculate the week
   const semana = Math.ceil((diasDesdeInicio + 1) / 7);
 
   return semana;
 };
 
 /**
- * Obtiene el día del año (1-366)
- * @param fecha Fecha a evaluar
- * @returns Día del año
+ * Gets the day of the year (1-366)
+ * @param fecha Date to evaluate
+ * @returns Day of the year
  */
 export const obtenerDiaDelAño = (fecha: Date): number => {
   const inicioAño = new Date(fecha.getFullYear(), 0, 0);
@@ -135,19 +135,19 @@ export const obtenerDiaDelAño = (fecha: Date): number => {
 };
 
 /**
- * Obtiene el trimestre del año (1-4)
- * @param fecha Fecha a evaluar
- * @returns Número de trimestre
+ * Gets the quarter of the year (1-4)
+ * @param fecha Date to evaluate
+ * @returns Quarter number
  */
 export const obtenerTrimestre = (fecha: Date): number => {
   return Math.ceil((fecha.getMonth() + 1) / 3);
 };
 
 /**
- * Verifica si dos fechas corresponden al mismo día (ignorando la hora)
- * @param fecha1 Primera fecha
- * @param fecha2 Segunda fecha
- * @returns true si ambas fechas son del mismo día
+ * Checks if two dates correspond to the same day (ignoring time)
+ * @param fecha1 First date
+ * @param fecha2 Second date
+ * @returns true if both dates are on the same day
  */
 export const esMismoDia = (fecha1: Date, fecha2: Date): boolean => {
   return (
@@ -157,7 +157,7 @@ export const esMismoDia = (fecha1: Date, fecha2: Date): boolean => {
   );
 };
 
-// Thunk para obtener la hora del servidor
+// Thunk to get server time
 export const fetchFechaHoraActual = createAsyncThunk(
   "fechaHoraActualReal/fetch",
   async (timezone: string = ZONA_HORARIA_LOCAL, { rejectWithValue }) => {
@@ -172,10 +172,10 @@ export const fetchFechaHoraActual = createAsyncThunk(
 
       const data = await response.json();
 
-      // Crear una fecha usando el timestamp ya ajustado a la zona horaria
+      // Create a date using the timestamp already adjusted to the timezone
       const fechaLocal = new Date(data.serverTime);
 
-      // Aplicamos el offset si está habilitado
+      // Apply the offset if enabled
       if (TIME_OFFSET.enabled) {
         fechaLocal.setDate(fechaLocal.getDate() + TIME_OFFSET.days);
         fechaLocal.setHours(fechaLocal.getHours() + TIME_OFFSET.hours);
@@ -196,7 +196,7 @@ export const fetchFechaHoraActual = createAsyncThunk(
   }
 );
 
-// Función auxiliar para actualizar formatos y utilidades
+// Helper function to update formats and utilities
 const actualizarFormatosYUtilidades = (state: FechaHoraActualRealState) => {
   if (!state.fechaHora) {
     state.formateada = null;
@@ -207,7 +207,7 @@ const actualizarFormatosYUtilidades = (state: FechaHoraActualRealState) => {
   const fechaHoraDate = new Date(state.fechaHora);
   const ahora = new Date();
 
-  // Actualizar formatos sin especificar timeZone para evitar doble ajuste
+  // Update formats without specifying timeZone to avoid double adjustment
   state.formateada = {
     fechaCompleta: new Intl.DateTimeFormat("es-PE", {
       dateStyle: "full",
@@ -233,7 +233,7 @@ const actualizarFormatosYUtilidades = (state: FechaHoraActualRealState) => {
       hour12: false,
     }).format(fechaHoraDate),
 
-    // Nuevos formatos
+    // New formats
     fechaLegible: `${
       diasSemanaTextos[fechaHoraDate.getDay() as DiasSemana]
     }, ${fechaHoraDate.getDate()} de ${
@@ -254,7 +254,7 @@ const actualizarFormatosYUtilidades = (state: FechaHoraActualRealState) => {
     }).format(fechaHoraDate),
   };
 
-  // Obtener datos adicionales de la fecha
+  // Get additional date data
   const diaSemanaIndice = fechaHoraDate.getDay() as DiasSemana;
   const diaMes = fechaHoraDate.getDate();
   const mesIndice = (fechaHoraDate.getMonth() + 1) as Meses;
@@ -263,7 +263,7 @@ const actualizarFormatosYUtilidades = (state: FechaHoraActualRealState) => {
   const minutos = fechaHoraDate.getMinutes();
   const segundos = fechaHoraDate.getSeconds();
 
-  // Calcular valores derivados
+  // Calculate derived values
   const diasEnMes = obtenerDiasEnMes(año, mesIndice);
   const esFinDeSemana = diaSemanaIndice === 0 || diaSemanaIndice === 6;
   const trimestre = obtenerTrimestre(fechaHoraDate);
@@ -272,14 +272,14 @@ const actualizarFormatosYUtilidades = (state: FechaHoraActualRealState) => {
   const esHoy = esMismoDia(fechaHoraDate, ahora);
   const timestamp = fechaHoraDate.getTime();
 
-  // Actualizar utilidades
+  // Update utilities
   state.utilidades = {
     hora,
     minutos,
     segundos,
-    esDiaEscolar: diaSemanaIndice >= 1 && diaSemanaIndice <= 5, // Lunes a Viernes
+    esDiaEscolar: diaSemanaIndice >= 1 && diaSemanaIndice <= 5, // Monday to Friday
 
-    // Nuevos campos
+    // New fields
     diaSemana: diasSemanaTextos[diaSemanaIndice],
     diaSemanaCorto: diasSemanaTextosCortos[diaSemanaIndice],
     diaSemanaIndice,
@@ -297,7 +297,7 @@ const actualizarFormatosYUtilidades = (state: FechaHoraActualRealState) => {
     timestamp,
   };
 
-  // Marcar como inicializado
+  // Mark as initialized
   state.inicializado = true;
 };
 
@@ -314,22 +314,22 @@ const fechaHoraActualRealSlice = createSlice({
     },
     updateFechaHoraActual: (state) => {
       if (state.fechaHora) {
-        // Parseamos la fecha actual
+        // Parse the current date
         const fechaActual = new Date(state.fechaHora);
 
-        // Añadimos un segundo para que el tiempo avance
+        // Add one second so time advances
         fechaActual.setSeconds(fechaActual.getSeconds() + 1);
 
-        // Actualizamos el estado con la nueva fecha
+        // Update state with the new date
         state.fechaHora = fechaActual.toISOString();
 
-        // Actualizamos formatos y utilidades
+        // Update formats and utilities
         actualizarFormatosYUtilidades(state);
       }
     },
     setTimezone: (state, action: PayloadAction<ReduxPayload<string>>) => {
       state.timezone = action.payload.value;
-      // Actualizamos formatos y utilidades con la nueva zona horaria
+      // Update formats and utilities with the new timezone
       actualizarFormatosYUtilidades(state);
     },
     avanzarHora: (state, action: PayloadAction<ReduxPayload<number>>) => {
@@ -369,7 +369,7 @@ const fechaHoraActualRealSlice = createSlice({
         state.lastSync = action.payload.lastSync;
         state.error = null;
 
-        // Actualizamos formatos y utilidades
+        // Update formats and utilities
         actualizarFormatosYUtilidades(state);
       })
       .addCase(fetchFechaHoraActual.rejected, (state, action) => {

@@ -22,30 +22,30 @@ export async function GET(req: NextRequest) {
 
     if (error) return error;
 
-    // Obtener datos usando el nuevo servicio
+    // Get data using the new service
     const {
       datos: datosCompletos,
       fuente,
       mensaje,
     } = await obtenerDatosAsistenciaHoy();
 
-    // Filtrar datos según el rol
+    // Filter data according to role
     const datosFiltrados = filtrarDatosSegunRol(
       datosCompletos,
       rol,
       decodedToken.ID_Usuario
     );
 
-    // Devolver los datos filtrados con indicador de fuente
+    // Return filtered data with source indicator
     return NextResponse.json({
       ...datosFiltrados,
       _debug: mensaje,
       _fuente: fuente,
     });
   } catch (error) {
-    console.error("Error al obtener datos de asistencia:", error);
+    console.error("Error getting attendance data:", error);
 
-    // Determinar el tipo de error
+    // Determine the type of error
     let logoutType = LogoutTypes.ERROR_SISTEMA;
     const errorDetails: ErrorDetailsForLogout = {
       mensaje: "Error al recuperar datos de asistencia",
@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
     };
 
     if (error instanceof Error) {
-      // Si es un error de red o problemas de conexión
+      // If it's a network error or connection problem
       if (
         error.message.includes("fetch") ||
         error.message.includes("network") ||
@@ -67,7 +67,7 @@ export async function GET(req: NextRequest) {
         errorDetails.mensaje =
           "Error de conexión al obtener datos de asistencia";
       }
-      // Si es un error de parseo de JSON
+      // If it's a JSON parsing error
       else if (
         error.message.includes("JSON") ||
         error.message.includes("parse") ||
@@ -77,7 +77,7 @@ export async function GET(req: NextRequest) {
         errorDetails.mensaje = "Error al procesar los datos de asistencia";
         errorDetails.contexto = "Formato de datos inválido";
       }
-      // Si falló la búsqueda en Redis
+      // If Redis lookup failed
       else if (
         error.message.includes(
           "No se encontró el ID del archivo de respaldo en Redis"
@@ -88,7 +88,7 @@ export async function GET(req: NextRequest) {
           "No se pudo encontrar la información de asistencia";
         errorDetails.siasisComponent = "RDP05"; // Error específico de Redis
       }
-      // Si falló tanto el acceso principal como el respaldo
+      // If both primary access and backup failed
       else if (
         error.message.includes("Falló el acceso principal y el respaldo")
       ) {
@@ -98,7 +98,7 @@ export async function GET(req: NextRequest) {
         errorDetails.contexto =
           "Falló tanto el acceso a blob como a Google Drive";
       }
-      // Si es un error HTTP específico
+      // If it's a specific HTTP error
       else if (
         error.message.includes("Error HTTP en blob") ||
         error.message.includes("Error HTTP en respaldo")
@@ -116,13 +116,13 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// Función para filtrar los datos según el rol
+// Function to filter data according to role
 function filtrarDatosSegunRol(
   datos: DatosAsistenciaHoyIE20935,
   rol: RolesSistema,
   idUsuario: string
 ): BaseAsistenciaResponse {
-  // Datos base para todos los roles
+  // Base data for all roles
   const datosBase: BaseAsistenciaResponse = {
     DiaEvento: datos.DiaEvento,
     FechaUTC: datos.FechaUTC,
@@ -135,7 +135,7 @@ function filtrarDatosSegunRol(
 
   switch (rol) {
     case RolesSistema.Directivo:
-      // Directivos tienen acceso a todos los datos
+      // Directors have access to all data
       return {
         ...datosBase,
         ListaDePersonalesAdministrativos:
@@ -149,7 +149,7 @@ function filtrarDatosSegunRol(
       } as DirectivoAsistenciaResponse;
 
     case RolesSistema.ProfesorPrimaria:
-      // Profesores de primaria reciben su horario y el de estudiantes de primaria
+      // Primary school teachers receive their schedule and that of primary students
       return {
         ...datosBase,
         HorarioTomaAsistenciaProfesorPrimaria:
@@ -160,7 +160,7 @@ function filtrarDatosSegunRol(
       } as ProfesorPrimariaAsistenciaResponse;
 
     case RolesSistema.Auxiliar:
-      // Auxiliares reciben su horario y el de estudiantes de secundaria
+      // Auxiliaries receive their schedule and that of secondary students
       return {
         ...datosBase,
         HorarioTomaAsistenciaAuxiliares:
@@ -172,7 +172,7 @@ function filtrarDatosSegunRol(
 
     case RolesSistema.ProfesorSecundaria:
     case RolesSistema.Tutor:
-      // Profesores de secundaria y tutores reciben su propio horario y el de estudiantes de secundaria
+      // Secondary school teachers and tutors receive their own schedule and that of secondary students
       const profesorInfo = datos.ListaDeProfesoresSecundaria.find(
         (p) => p.Id_Profesor_Secundaria === idUsuario
       );
@@ -191,14 +191,14 @@ function filtrarDatosSegunRol(
       } as ProfesorTutorSecundariaAsistenciaResponse;
 
     case RolesSistema.Responsable:
-      // Responsables reciben los horarios escolares de primaria y secundaria
+      // Guardians receive primary and secondary school schedules
       return {
         ...datosBase,
         HorariosEscolares: datos.HorariosEscolares,
       } as ResponsableAsistenciaResponse;
 
     case RolesSistema.PersonalAdministrativo:
-      // Personal administrativo recibe solo su propio horario
+      // Administrative staff receive only their own schedule
       const personalInfo = datos.ListaDePersonalesAdministrativos.find(
         (p) => p.Id_Personal_Administrativo == idUsuario
       );
@@ -214,7 +214,7 @@ function filtrarDatosSegunRol(
       } as PersonalAdministrativoAsistenciaResponse;
 
     default:
-      // Por defecto, solo devolver los datos base
+      // By default, only return base data
       return datosBase;
   }
 }

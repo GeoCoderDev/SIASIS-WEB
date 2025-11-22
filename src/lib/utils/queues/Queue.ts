@@ -1,5 +1,5 @@
 // ========================================
-// INTERFACES Y ENUMS
+// INTERFACES AND ENUMS
 // ========================================
 
 export interface QueueItem {
@@ -19,12 +19,12 @@ export enum QueueState {
 }
 
 // ========================================
-// CLASE ABSTRACTA QUEUE REPOSITORY
+// ABSTRACT QUEUE REPOSITORY CLASS
 // ========================================
 
 export abstract class QueueRepository<T extends QueueItem> {
   /**
-   * En este metodo se debe agregar el item a la cola generando el numero de orden en este mismo metodo
+   * In this method the item should be added to the queue generating the order number in this same method
    * @param item
    */
   abstract enqueue(
@@ -32,12 +32,12 @@ export abstract class QueueRepository<T extends QueueItem> {
   ): Promise<boolean>;
 
   /**
-   * Elimina el primer elemento de la cola
+   * Removes the first element from the queue
    */
   abstract dequeue(): Promise<boolean>;
 
   /**
-   * Obtiene el primer elemento sin eliminarlo
+   * Gets the first element without removing it
    */
   abstract getFirstItem(): Promise<T | null>;
 
@@ -52,25 +52,25 @@ export abstract class QueueRepository<T extends QueueItem> {
   abstract exists(numeroDeOrden: number): Promise<boolean>;
 
   /**
-   * Elimina un item específico por su número de orden
+   * Removes a specific item by its order number
    */
   abstract deleteByOrderNumber(numeroDeOrden: number): Promise<boolean>;
 
   /**
-   * Mueve un item al final de la cola (le asigna un nuevo número de orden)
+   * Moves an item to the end of the queue (assigns a new order number)
    */
   abstract moveToEnd(numeroDeOrden: number): Promise<boolean>;
 }
 
 // ========================================
-// CLASE CONCRETA PARA PROCESADOR DE ELEMENTOS
+// CONCRETE CLASS FOR ELEMENT PROCESSOR
 // ========================================
 
 export class QueueDataItemProcessor<T extends QueueItem> {
   public currentCancelProcessFunction: () => void;
 
   /**
-   * @param process este parametro es una funcion que procesa un item
+   * @param process this parameter is a function that processes an item
    */
   constructor(
     private process: (this: QueueDataItemProcessor<T>, item: T) => Promise<void>
@@ -88,7 +88,7 @@ export class QueueDataItemProcessor<T extends QueueItem> {
 }
 
 // ========================================
-// CLASE ABSTRACTA QUEUE
+// ABSTRACT QUEUE CLASS
 // ========================================
 
 export abstract class Queue<T extends QueueItem> {
@@ -109,13 +109,13 @@ export abstract class Queue<T extends QueueItem> {
 }
 
 // ========================================
-// QUEUE FOR DATA IMPLEMENTATION CORREGIDA
+// CORRECTED QUEUE FOR DATA IMPLEMENTATION
 // ========================================
 
 export class QueueForData<T extends QueueItem> extends Queue<T> {
   private processingInterval?: NodeJS.Timeout;
   private retryCount = new Map<number, number>();
-  private isProcessingItem = false; // Flag para evitar procesamiento concurrente
+  private isProcessingItem = false; // Flag to prevent concurrent processing
 
   constructor(
     protected queueRepository: QueueRepository<T>,
@@ -155,10 +155,10 @@ export class QueueForData<T extends QueueItem> extends Queue<T> {
   stop(): void {
     this._queueState = QueueState.IDLE;
 
-    // Cancelar el procesador actual si existe
+    // Cancel the current processor if it exists
     this.dataProcessor.cancel();
 
-    // Limpiar el intervalo
+    // Clear the interval
     if (this.processingInterval) {
       clearInterval(this.processingInterval);
       this.processingInterval = undefined;
@@ -170,10 +170,10 @@ export class QueueForData<T extends QueueItem> extends Queue<T> {
       return;
     }
 
-    // Procesar primer item inmediatamente
+    // Process first item immediately
     await this.processNextItem();
 
-    // Configurar intervalo para seguir procesando
+    // Set up interval to continue processing
     this.processingInterval = setInterval(async () => {
       if (
         this._queueState === QueueState.PROCESSING &&
@@ -189,7 +189,7 @@ export class QueueForData<T extends QueueItem> extends Queue<T> {
       return;
     }
 
-    // PASO 1: Obtener el primer elemento SIN eliminarlo
+    // STEP 1: Get the first element WITHOUT removing it
     const item = await this.queueRepository.getFirstItem();
     if (!item) {
       this._queueState = QueueState.IDLE;
@@ -204,22 +204,22 @@ export class QueueForData<T extends QueueItem> extends Queue<T> {
     let processingSuccessful = false;
 
     try {
-      // PASO 2: Procesar el elemento
+      // STEP 2: Process the element
       console.log(`Procesando item ${item.NumeroDeOrden}...`);
       await this.dataProcessor.processItem(item);
 
-      // PASO 3: Si el procesamiento fue exitoso, eliminar el elemento
+      // STEP 3: If processing was successful, remove the element
       processingSuccessful = true;
       await this.queueRepository.deleteByOrderNumber(item.NumeroDeOrden);
 
-      // Limpiar contador de reintentos
+      // Clear retry counter
       this.retryCount.delete(item.NumeroDeOrden);
 
       console.log(
         `Item ${item.NumeroDeOrden} procesado exitosamente y eliminado de la cola`
       );
     } catch (error) {
-      // PASO 4: Si hay error, manejar reintentos
+      // STEP 4: If there's an error, handle retries
       console.error(`Error procesando item ${item.NumeroDeOrden}:`, error);
       await this.handleProcessingError(item, error);
     } finally {
@@ -231,10 +231,10 @@ export class QueueForData<T extends QueueItem> extends Queue<T> {
     const currentRetries = this.retryCount.get(item.NumeroDeOrden) || 0;
 
     if (currentRetries < this.queueOptions.maxRetries) {
-      // Incrementar contador de reintentos
+      // Increment retry counter
       this.retryCount.set(item.NumeroDeOrden, currentRetries + 1);
 
-      // Mover el item al final de la cola para reintentarlo después
+      // Move the item to the end of the queue to retry later
       const moved = await this.queueRepository.moveToEnd(item.NumeroDeOrden);
 
       if (moved) {
@@ -249,12 +249,12 @@ export class QueueForData<T extends QueueItem> extends Queue<T> {
         console.error(
           `Error al mover item ${item.NumeroDeOrden} al final de la cola`
         );
-        // Como fallback, eliminar el item actual y crear uno nuevo al final
+        // As fallback, delete the current item and create a new one at the end
         await this.queueRepository.deleteByOrderNumber(item.NumeroDeOrden);
         await this.queueRepository.enqueue(item);
       }
     } else {
-      // Se agotaron los reintentos, eliminar el item y logear el error
+      // Retries exhausted, remove the item and log the error
       await this.queueRepository.deleteByOrderNumber(item.NumeroDeOrden);
       this.retryCount.delete(item.NumeroDeOrden);
 

@@ -3,33 +3,33 @@ import { LogoutTypes, ErrorDetailsForLogout } from "@/interfaces/LogoutTypes";
 import { formatErrorDetailsForUrl } from "@/lib/helpers/parsers/errorDetailsInURL";
 
 /**
- * Cierra la sesión del usuario y redirige a la página de login
- * @param logoutType Tipo de cierre de sesión
- * @param errorDetails Detalles adicionales del error para debugging
+ * Closes the user session and redirects to the login page
+ * @param logoutType Type of logout
+ * @param errorDetails Additional error details for debugging
  */
 export const logout = async (
   logoutType: LogoutTypes = LogoutTypes.DECISION_USUARIO,
   errorDetails?: ErrorDetailsForLogout
 ): Promise<void> => {
   try {
-    // Intentar cerrar sesión en el servidor
+    // Try to close session on the server
     await fetch("/api/auth/close", { method: "DELETE" });
 
-    // Limpiar almacenamiento local
+    // Clear local storage
     localStorage.clear();
     const { default: userStorage } = await import(
       "@/lib/utils/local/db/models/UserStorage"
     );
     await userStorage.clearUserData();
 
-    // Construir URL de redirección
+    // Build redirect URL
     let redirectUrl = "/login";
 
-    // Agregar parámetros si no es cierre voluntario
+    // Add parameters if not a voluntary logout
     if (logoutType !== LogoutTypes.DECISION_USUARIO) {
       redirectUrl += `?LOGOUT_TYPE=${logoutType}`;
 
-      // Agregar detalles de error si están disponibles
+      // Add error details if available
       if (errorDetails) {
         redirectUrl += `&ERROR_DETAILS=${formatErrorDetailsForUrl(
           errorDetails
@@ -37,12 +37,12 @@ export const logout = async (
       }
     }
 
-    // Redirigir al usuario
+    // Redirect the user
     window.location.href = redirectUrl;
   } catch (error) {
-    console.error("Error durante el cierre de sesión:", error);
+    console.error("Error during logout:", error);
 
-    // En caso de error en el proceso de cierre, forzar redirección
+    // In case of error in the logout process, force redirect
     window.location.href = `/login?LOGOUT_TYPE=${LogoutTypes.ERROR_SISTEMA}`;
   }
 };

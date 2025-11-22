@@ -8,7 +8,7 @@ export enum RedirectionTypes {
   RUTA_NO_PERMITIDA = "RUTA_NO_PERMITIDA",
 }
 
-// Función para verificar si es una ruta interna de Next.js
+// Function to check if it's an internal Next.js route
 function isNextInternalRoute(pathname: string): boolean {
   return (
     pathname.startsWith("/_next/") ||
@@ -21,7 +21,7 @@ function isNextInternalRoute(pathname: string): boolean {
   );
 }
 
-// Función simple para decodificar JWT sin verificar firma (solo para leer el payload)
+// Simple function to decode JWT without verifying signature (only for reading the payload)
 function decodeJwtPayload(token: string) {
   try {
     const parts = token.split(".");
@@ -94,7 +94,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.next();
     }
 
-    // Permitir assets estáticos
+    // Allow static assets
     if (isStaticAsset(pathname)) {
       return NextResponse.next();
     }
@@ -119,7 +119,7 @@ export async function middleware(request: NextRequest) {
       return deleteCookies();
     }
 
-    // Validar rol válido
+    // Validate valid role
     const rolValue = Rol.value as RolesSistema;
     switch (rolValue) {
       case RolesSistema.Directivo:
@@ -135,21 +135,21 @@ export async function middleware(request: NextRequest) {
         return deleteCookies();
     }
 
-    // Redirigir a home si ya está autenticado y trata de acceder a login
+    // Redirect to home if already authenticated and trying to access login
     if (token && (pathname === "/login" || pathname.startsWith("/login/"))) {
       return NextResponse.redirect(new URL("/", request.url));
     }
 
-    // === VALIDACIÓN DE ACCESO A RUTAS BASADA EN ROLES ===
+    // === ROLE-BASED ROUTE ACCESS VALIDATION ===
 
-    // Buscar la ruta en los módulos del sistema
+    // Search for the route in the system modules
     const moduleForRoute = allSiasisModules.find((module) => {
-      // Verificar coincidencia exacta de ruta
+      // Check exact route match
       if (module.route === pathname) {
         return true;
       }
 
-      // Verificar si es una subruta (por ejemplo, /estudiantes/123)
+      // Check if it's a subroute (for example, /estudiantes/123)
       if (pathname.startsWith(module.route + "/")) {
         return true;
       }
@@ -157,9 +157,9 @@ export async function middleware(request: NextRequest) {
       return false;
     });
 
-    // Si encontramos el módulo, verificar permisos
+    // If we find the module, verify permissions
     if (moduleForRoute) {
-      // Verificar si el módulo está activo
+      // Check if the module is active
       if (!moduleForRoute.active) {
         console.warn(
           `Acceso denegado: Módulo ${moduleForRoute.route} está inactivo`
@@ -167,7 +167,7 @@ export async function middleware(request: NextRequest) {
         return redirectToHomeWithError(RedirectionTypes.RUTA_NO_PERMITIDA);
       }
 
-      // Validación básica del token y rol
+      // Basic token and role validation
       const decodedPayload = decodeJwtPayload(token.value);
 
       if (!decodedPayload) {
@@ -181,14 +181,14 @@ export async function middleware(request: NextRequest) {
         return deleteCookies();
       }
 
-      // Verificar expiración del token
+      // Check token expiration
       const now = Math.floor(Date.now() / 1000);
       if (decodedPayload.exp && decodedPayload.exp < now) {
         console.error("Token expirado");
         return deleteCookies();
       }
 
-      // Verificar si el rol del usuario está en la lista de roles permitidos
+      // Check if the user's role is in the list of allowed roles
       const hasAccess = moduleForRoute.allowedRoles.includes(rolValue);
 
       if (!hasAccess) {
@@ -202,7 +202,7 @@ export async function middleware(request: NextRequest) {
         `Acceso autorizado a ${moduleForRoute.route} para rol ${rolValue}`
       );
     }
-    // Si no encontramos el módulo, permitir acceso (rutas como "/" o rutas personalizadas)
+    // If we don't find the module, allow access (routes like "/" or custom routes)
 
     return NextResponse.next();
   } catch (e) {

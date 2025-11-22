@@ -9,7 +9,7 @@ export enum GruposIntanciasDeRedis {
   ParaReportesDeAsistenciasEscolares = "ParaReportesDeAsistenciasEscolares",
 }
 
-// Inicialización de las instancias de Redis
+// Initialization of Redis instances
 const redisInstances: {
   [key in GruposIntanciasDeRedis]: Redis[];
 } = {
@@ -18,33 +18,33 @@ const redisInstances: {
       url: process.env.RDP05_INS1_REDIS_BD_BASE_URL_API!,
       token: process.env.RDP05_INS1_REDIS_BD_TOKEN_FOR_API!,
     }),
-    // Aquí puedes agregar más instancias para este tipo en el futuro
+    // You can add more instances for this type in the future
   ],
   [GruposIntanciasDeRedis.ParaAsistenciasDeEstudiantesSecundaria]: [
     new Redis({
       url: process.env.RDP05_INS2_REDIS_BD_BASE_URL_API!,
       token: process.env.RDP05_INS2_REDIS_BD_TOKEN_FOR_API!,
     }),
-    // Aquí puedes agregar más instancias para este tipo en el futuro
+    // You can add more instances for this type in the future
   ],
   [GruposIntanciasDeRedis.ParaAsistenciasDeEstudiantesPrimaria]: [
     new Redis({
       url: process.env.RDP05_INS3_REDIS_BD_BASE_URL_API!,
       token: process.env.RDP05_INS3_REDIS_BD_TOKEN_FOR_API!,
     }),
-    // Aquí puedes agregar más instancias para este tipo en el futuro
+    // You can add more instances for this type in the future
   ],
   [GruposIntanciasDeRedis.ParaReportesDeAsistenciasEscolares]: [
     new Redis({
       url: process.env.RDP05_INS1_REDIS_BD_BASE_URL_API!,
       token: process.env.RDP05_INS1_REDIS_BD_TOKEN_FOR_API!,
     }),
-    // Aquí puedes agregar más instancias para este tipo en el futuro
+    // You can add more instances for this type in the future
   ],
 };
 
 
-// Función para obtener una instancia aleatoria de Redis
+// Function to get a random Redis instance
 export const getRandomRedisClient = (
   grupoInstancias?: GruposIntanciasDeRedis
 ): Redis => {
@@ -70,7 +70,7 @@ export const getRandomRedisClient = (
   }
 };
 
-// Función para establecer un valor en todas las instancias de Redis de un tipo específico
+// Function to set a value in all Redis instances of a specific type
 export const setInAllInstancesByType = async (
   grupoInstancias: GruposIntanciasDeRedis,
   key: string,
@@ -90,7 +90,7 @@ export const setInAllInstancesByType = async (
   await Promise.all(setPromises);
 };
 
-// Función para establecer un valor en todas las instancias de Redis sin importar el tipo
+// Function to set a value in all Redis instances regardless of type
 export const setInAllInstances = async (
   key: string,
   value: any,
@@ -111,9 +111,9 @@ export const setInAllInstances = async (
   await Promise.all(allPromises);
 };
 
-// 🆕 NUEVAS FUNCIONES AGREGADAS SIN ROMPER RETROCOMPATIBILIDAD
+// 🆕 NEW FUNCTIONS ADDED WITHOUT BREAKING BACKWARDS COMPATIBILITY
 
-// Función para obtener estadísticas de todas las instancias
+// Function to get statistics from all instances
 export const getRedisStats = async (): Promise<{
   [key in TipoAsistencia]: { totalInstances: number; activeInstances: number };
 }> => {
@@ -152,7 +152,7 @@ export const getRedisStats = async (): Promise<{
   return stats;
 };
 
-// Función para realizar búsquedas en todas las instancias de un tipo y combinar resultados
+// Function to search in all instances of a type and combine results
 export const searchInAllInstancesByType = async (
   grupoInstancias: GruposIntanciasDeRedis,
   pattern: string
@@ -180,7 +180,7 @@ export const searchInAllInstancesByType = async (
   return Array.from(allKeys);
 };
 
-// Función para verificar consistencia entre instancias
+// Function to verify consistency between instances
 export const checkConsistency = async (
   grupoInstancias: GruposIntanciasDeRedis,
   key: string
@@ -220,12 +220,12 @@ export const checkConsistency = async (
   };
 };
 
-// Función compatible con tu versión anterior, pero mejorada para usar el sistema de instancias múltiples
+// Function compatible with your previous version, but enhanced to use the multiple instances system
 export const redisClient = (grupoInstancias?: GruposIntanciasDeRedis) => {
-  // Devolvemos un objeto con métodos que manejan las operaciones en múltiples instancias
+  // We return an object with methods that handle operations across multiple instances
   return {
     get: async (key: string) => {
-      // Siempre obtenemos de una instancia aleatoria (del tipo especificado o de cualquiera)
+      // We always get from a random instance (of the specified type or any)
       const redis = getRandomRedisClient(grupoInstancias);
       return await redis.get(key);
     },
@@ -246,66 +246,66 @@ export const redisClient = (grupoInstancias?: GruposIntanciasDeRedis) => {
 
     del: async (key: string) => {
       if (grupoInstancias !== undefined) {
-        // Si se especifica un grupo, primero establecemos null (con expiración rápida) en todas las instancias de ese grupo
+        // If a group is specified, first set null (with fast expiration) in all instances of that group
         await setInAllInstancesByType(grupoInstancias, key, null, 1);
-        // Luego eliminamos de una instancia aleatoria de ese grupo
+        // Then we delete from a random instance of that group
         const redis = getRandomRedisClient(grupoInstancias);
         return await redis.del(key);
       } else {
-        // Si no se especifica tipo, establecemos null en todas las instancias
+        // If no type is specified, we set null in all instances
         await setInAllInstances(key, null, 1);
-        // Luego eliminamos de una instancia aleatoria
+        // Then we delete from a random instance
         const redis = getRandomRedisClient();
         return await redis.del(key);
       }
     },
 
-    // Método keys para buscar claves según un patrón
+    // Keys method to search for keys matching a pattern
     keys: async (pattern: string) => {
-      // El método keys se ejecuta siempre en una instancia específica
-      // No es necesario ejecutarlo en todas las instancias
+      // The keys method always runs on a specific instance
+      // It's not necessary to run it on all instances
       if (grupoInstancias !== undefined) {
         const redis = getRandomRedisClient(grupoInstancias);
         return await redis.keys(pattern);
       } else {
-        // Si no se especifica tipo, buscamos en una instancia aleatoria
+        // If no type is specified, we search in a random instance
         const redis = getRandomRedisClient();
         return await redis.keys(pattern);
       }
     },
 
-    // 🆕 MÉTODOS NUEVOS AGREGADOS
+    // 🆕 NEW METHODS ADDED
 
-    // Verificar si una clave existe
+    // Check if a key exists
     exists: async (key: string) => {
       const redis = getRandomRedisClient(grupoInstancias);
       return await redis.exists(key);
     },
 
-    // Obtener TTL de una clave
+    // Get TTL of a key
     ttl: async (key: string) => {
       const redis = getRandomRedisClient(grupoInstancias);
       return await redis.ttl(key);
     },
 
-    // Ping a la instancia
+    // Ping the instance
     ping: async () => {
       const redis = getRandomRedisClient(grupoInstancias);
       return await redis.ping();
     },
 
-    // Búsqueda exhaustiva en todas las instancias del tipo (útil para debugging)
+    // Exhaustive search in all instances of the type (useful for debugging)
     searchAll: async (pattern: string) => {
       if (grupoInstancias !== undefined) {
         return await searchInAllInstancesByType(grupoInstancias, pattern);
       } else {
-        // Si no se especifica tipo, buscar en una instancia aleatoria
+        // If no type is specified, search in a random instance
         const redis = getRandomRedisClient();
         return await redis.keys(pattern);
       }
     },
 
-    // Verificar consistencia de una clave entre instancias
+    // Check consistency of a key between instances
     checkConsistency: async (key: string) => {
       if (grupoInstancias !== undefined) {
         return await checkConsistency(grupoInstancias, key);
@@ -316,7 +316,7 @@ export const redisClient = (grupoInstancias?: GruposIntanciasDeRedis) => {
       }
     },
 
-    // Establecer valor solo en una instancia específica (útil para testing)
+    // Set value only in a specific instance (useful for testing)
     setSingle: async (key: string, value: any, expireIn?: number) => {
       const redis = getRandomRedisClient(grupoInstancias);
       if (expireIn !== undefined) {
@@ -326,26 +326,26 @@ export const redisClient = (grupoInstancias?: GruposIntanciasDeRedis) => {
       }
     },
 
-    // Obtener estadísticas de las instancias
+    // Get statistics from instances
     getStats: async () => {
       return await getRedisStats();
     },
 
-    // Método para obtener múltiples claves de una vez
+    // Method to get multiple keys at once
     mget: async (keys: string[]) => {
       const redis = getRandomRedisClient(grupoInstancias);
       return await redis.mget(...keys);
     },
 
-    // Método para incrementar un valor numérico
+    // Method to increment a numeric value
     incr: async (key: string) => {
       if (grupoInstancias !== undefined) {
-        // Para operaciones de incremento, necesitamos ser más cuidadosos
-        // Incrementamos en una instancia y luego sincronizamos
+        // For increment operations, we need to be more careful
+        // We increment in one instance and then synchronize
         const redis = getRandomRedisClient(grupoInstancias);
         const result = await redis.incr(key);
 
-        // Sincronizar el nuevo valor en todas las instancias
+        // Synchronize the new value in all instances
         await setInAllInstancesByType(grupoInstancias, key, result);
         return result;
       } else {

@@ -38,7 +38,7 @@ export const GrupoInstaciasDeRedisPorTipoAsistencia: Record<
 };
 
 /**
- * Mapea un rol del sistema al actor correspondiente para registro de asistencia personal
+ * Maps a system role to the corresponding actor for personal attendance registration
  */
 const mapearRolAActorPersonal = (rol: RolesSistema): ActoresSistema | null => {
   switch (rol) {
@@ -53,7 +53,7 @@ const mapearRolAActorPersonal = (rol: RolesSistema): ActoresSistema | null => {
       return ActoresSistema.Auxiliar;
     case RolesSistema.PersonalAdministrativo:
       return ActoresSistema.PersonalAdministrativo;
-    // Responsables no tienen asistencia personal
+    // Guardians don't have personal attendance
     case RolesSistema.Responsable:
       return null;
     default:
@@ -61,7 +61,7 @@ const mapearRolAActorPersonal = (rol: RolesSistema): ActoresSistema | null => {
   }
 };
 
-// Función para validar permisos de registro según rol
+// Function to validate registration permissions by role
 const validarPermisosRegistro = (
   rol: RolesSistema,
   actor: ActoresSistema,
@@ -242,7 +242,7 @@ const calcularSegundosHastaExpiracion = async (): Promise<number> => {
   // ✅ Usar la nueva función que maneja todos los offsets
   const fechaActualPeru = await obtenerFechaHoraActualPeru();
 
-  // Crear fecha objetivo a las 20:00 del mismo día
+  // Create target date at 20:00 of the same day
   const fechaExpiracion = new Date(fechaActualPeru);
   fechaExpiracion.setHours(
     HORA_MAXIMA_EXPIRACION_PARA_REGISTROS_EN_REDIS,
@@ -251,21 +251,21 @@ const calcularSegundosHastaExpiracion = async (): Promise<number> => {
     0
   );
 
-  // Si la hora actual ya pasó las 20:00, establecer para las 20:00 del día siguiente
+  // If current time already passed 20:00, set for 20:00 of next day
   if (fechaActualPeru >= fechaExpiracion) {
     fechaExpiracion.setDate(fechaExpiracion.getDate() + 1);
   }
 
-  // Calcular diferencia en segundos
+  // Calculate difference in seconds
   const segundosHastaExpiracion = Math.floor(
     (fechaExpiracion.getTime() - fechaActualPeru.getTime()) / 1000
   );
-  return Math.max(1, segundosHastaExpiracion); // Mínimo 1 segundo para evitar valores negativos o cero
+  return Math.max(1, segundosHastaExpiracion); // Minimum 1 second to avoid negative or zero values
 };
 
 export async function POST(req: NextRequest) {
   try {
-    // Verificar autenticación
+    // Verify authentication
     const { error, rol, decodedToken } = await verifyAuthToken(req, [
       RolesSistema.Directivo,
       RolesSistema.Auxiliar,
@@ -277,9 +277,9 @@ export async function POST(req: NextRequest) {
 
     if (error && !rol && !decodedToken) return error;
 
-    const MI_idUsuario = decodedToken.ID_Usuario; // ✅ Para directivos: ID, para otros: DNI
+    const MI_idUsuario = decodedToken.ID_Usuario; // ✅ For directors: ID, for others: DNI
 
-    // Parsear el cuerpo de la solicitud como JSON
+    // Parse request body as JSON
     const body =
       (await req.json()) as Partial<RegistrarAsistenciaIndividualRequestBody>;
 
@@ -296,7 +296,7 @@ export async function POST(req: NextRequest) {
       Seccion,
     } = body;
 
-    // ✅ NUEVA LÓGICA: Determinar tipo de registro
+    // ✅ NEW LOGIC: Determine registration type
     const esRegistroEstudiante = !!(
       Id_Estudiante && typeof desfaseSegundosAsistenciaEstudiante === "number"
     );
@@ -310,7 +310,7 @@ export async function POST(req: NextRequest) {
     let timestampActual: number = 0;
 
     if (esRegistroPropio) {
-      // ✅ REGISTRO PROPIO: Solo requiere ModoRegistro y FechaHoraEsperadaISO
+      // ✅ OWN REGISTRATION: Only requires ModoRegistro and FechaHoraEsperadaISO
       console.log(`🔍 Registro propio detectado para rol: ${rol}`);
 
       if (!FechaHoraEsperadaISO) {
@@ -324,7 +324,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Mapear rol a actor
+      // Map role to actor
       const actorMapeado = mapearRolAActorPersonal(rol!);
       if (!actorMapeado) {
         return NextResponse.json(
@@ -338,20 +338,20 @@ export async function POST(req: NextRequest) {
       }
 
       actorFinal = actorMapeado;
-      idFinal = MI_idUsuario; // ✅ Usar ID/DNI del token
-      tipoAsistenciaFinal = TipoAsistencia.ParaPersonal; // ✅ Siempre Personal para registro propio
+      idFinal = MI_idUsuario; // ✅ Use ID/DNI from token
+      tipoAsistenciaFinal = TipoAsistencia.ParaPersonal; // ✅ Always Personal for own registration
 
-      // Calcular desfase para registro propio
+      // Calculate offset for own registration
       const fechaActualPeru = await obtenerFechaHoraActualPeru();
       timestampActual = fechaActualPeru.getTime();
       desfaseSegundos = Math.floor(
         (timestampActual - new Date(FechaHoraEsperadaISO).getTime()) / 1000
       );
     } else if (esRegistroEstudiante) {
-      // ✅ REGISTRO DE ESTUDIANTE: Requiere Id_Estudiante + desfaseSegundosAsistenciaEstudiante
+      // ✅ STUDENT REGISTRATION: Requires Id_Estudiante + desfaseSegundosAsistenciaEstudiante
       console.log(`🔍 Registro de estudiante detectado`);
 
-      // Validar ID del estudiante
+      // Validate student ID
       const idValidation = validateIdActor(Id_Estudiante!, true);
       if (!idValidation.isValid) {
         return NextResponse.json(
@@ -364,7 +364,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Validar datos de aula para estudiantes
+      // Validate classroom data for students
       if (!NivelDelEstudiante || !Grado || !Seccion) {
         return NextResponse.json(
           {
@@ -377,7 +377,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Validar que el grado sea numérico y esté en rango válido
+      // Validate that grade is numeric and in valid range
       if (typeof Grado !== "number" || Grado < 1 || Grado > 6) {
         return NextResponse.json(
           {
@@ -389,7 +389,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Validar que la sección sea una letra válida
+      // Validate that section is a valid letter
       if (typeof Seccion !== "string" || !/^[A-Z]$/.test(Seccion)) {
         return NextResponse.json(
           {
@@ -405,17 +405,17 @@ export async function POST(req: NextRequest) {
       idFinal = Id_Estudiante!;
       desfaseSegundos = desfaseSegundosAsistenciaEstudiante!;
 
-      // Determinar tipo de asistencia basado en nivel educativo
+      // Determine attendance type based on educational level
       if (NivelDelEstudiante.toLowerCase().includes("primaria")) {
         tipoAsistenciaFinal = TipoAsistencia.ParaEstudiantesPrimaria;
       } else {
         tipoAsistenciaFinal = TipoAsistencia.ParaEstudiantesSecundaria;
       }
     } else if (esRegistroPersonal) {
-      // ✅ REGISTRO DE PERSONAL: Requiere Id_Usuario + FechaHoraEsperadaISO
+      // ✅ STAFF REGISTRATION: Requires Id_Usuario + FechaHoraEsperadaISO
       console.log(`🔍 Registro de personal detectado`);
 
-      // Validar campos necesarios
+      // Validate required fields
       if (!Actor || !tipoAsistenciaParam) {
         return NextResponse.json(
           {
@@ -428,7 +428,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Validar Actor
+      // Validate Actor
       if (!Object.values(ActoresSistema).includes(Actor as ActoresSistema)) {
         return NextResponse.json(
           {
@@ -440,7 +440,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Validar TipoAsistencia
+      // Validate TipoAsistencia
       if (!Object.values(TipoAsistencia).includes(tipoAsistenciaParam)) {
         return NextResponse.json(
           {
@@ -452,7 +452,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // ✅ Validación de ID según el actor
+      // ✅ ID validation according to actor
       if (Actor !== ActoresSistema.Directivo) {
         const idValidation = validateIdActor(Id_Usuario!, true);
         if (!idValidation.isValid) {
@@ -471,7 +471,7 @@ export async function POST(req: NextRequest) {
       idFinal = Id_Usuario!;
       tipoAsistenciaFinal = tipoAsistenciaParam;
 
-      // Calcular desfase para registro de personal
+      // Calculate offset for staff registration
       const fechaActualPeru = await obtenerFechaHoraActualPeru();
       timestampActual = fechaActualPeru.getTime();
       desfaseSegundos = Math.floor(
@@ -489,7 +489,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validar ModoRegistro
+    // Validate ModoRegistro
     if (!ModoRegistro || !Object.values(ModoRegistro).includes(ModoRegistro)) {
       return NextResponse.json(
         {
@@ -501,7 +501,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ✅ VALIDACIÓN DE PERMISOS
+    // ✅ PERMISSIONS VALIDATION
     const validacionPermisos = validarPermisosRegistro(
       rol!,
       actorFinal,
@@ -525,37 +525,37 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Crear clave para Redis
+    // Create key for Redis
     const fechaHoy = await obtenerFechaActualPeru();
     let clave: string;
 
     if (esRegistroEstudiante) {
-      // Para estudiantes: incluir nivel, grado y sección en la clave
+      // For students: include level, grade and section in key
       clave = `${fechaHoy}:${ModoRegistro}:${actorFinal}:${NivelDelEstudiante}:${Grado}:${Seccion}:${idFinal}`;
     } else {
-      // Para personal: clave tradicional
+      // For staff: traditional key
       clave = `${fechaHoy}:${ModoRegistro}:${actorFinal}:${idFinal}`;
     }
 
-    // Usar el TipoAsistencia determinado
+    // Use the determined TipoAsistencia
     const redisClientInstance = redisClient(
       GrupoInstaciasDeRedisPorTipoAsistencia[tipoAsistenciaFinal]
     );
 
-    // Verificar si ya existe un registro en Redis
+    // Check if a record already exists in Redis
     const registroExistente = await redisClientInstance.get(clave);
     const esNuevoRegistro = !registroExistente;
 
     if (esNuevoRegistro) {
-      // Establecer la expiración
+      // Set the expiration
       const segundosHastaExpiracion = await calcularSegundosHastaExpiracion();
 
       if (esRegistroEstudiante) {
-        // ✅ Para estudiantes: Solo [desfaseSegundos]
+        // ✅ For students: Only [desfaseSegundos]
         const valor = [desfaseSegundos.toString()];
         await redisClientInstance.set(clave, valor, segundosHastaExpiracion);
       } else {
-        // ✅ Para personal: [timestamp, desfaseSegundos] (sin cambios)
+        // ✅ For staff: [timestamp, desfaseSegundos] (no changes)
         const valor = [timestampActual.toString(), desfaseSegundos.toString()];
         await redisClientInstance.set(clave, valor, segundosHastaExpiracion);
       }

@@ -65,41 +65,41 @@ const TomarAsistenciaPersonal = () => {
     }
   };
 
-  // Verificamos si ya pasó la hora de actualización de datos (5:05 AM)
+  // Check if the data update time has already passed (5:05 AM)
   const haySincronizacionDatos =
     Number(fechaHoraActual.utilidades?.hora) >=
     HORA_ACTUALIZACION_DATOS_ASISTENCIA_DIARIOS;
 
-  // Carga inicial al montar el componente
+  // Initial load when mounting the component
   useEffect(() => {
     if (!fechaHoraActual.inicializado) return;
 
     getDataAsistence();
   }, [fechaHoraActual.inicializado]);
 
-  // Efecto para verificar si necesitamos actualizar los datos cuando cambia el día
+  // Effect to check if we need to update data when the day changes
   useEffect(() => {
     if (!handlerDatosAsistenciaHoyDirectivo || !fechaHoraActual.utilidades)
       return;
 
-    // Verificamos si los datos son de un día anterior y ya pasó la hora de sincronización
+    // Check if the data is from a previous day and the sync time has passed
     const fechaDatosAsistencia = new Date(
       handlerDatosAsistenciaHoyDirectivo.getFechaLocalPeru()
     );
     const diaDatosAsistencia = fechaDatosAsistencia.getDate();
     const diaActual = fechaHoraActual.utilidades.diaMes;
 
-    // Verificar si estamos en fin de semana
+    // Check if we are on a weekend
     const esFinDeSemana = fechaHoraActual.utilidades.esFinDeSemana;
 
-    // Actualizar el estado de modo fin de semana
+    // Update weekend mode state
     setModoFinDeSemana(esFinDeSemana);
 
-    // Solo actualizamos si:
-    // - No es fin de semana, y
-    // - La hora de sincronización ha pasado, y
-    // - La fecha de los datos no coincide con la fecha actual
-    // - No es un día de evento
+    // Only update if:
+    // - It's not a weekend, and
+    // - The sync time has passed, and
+    // - The data date doesn't match the current date
+    // - It's not an event day
     if (
       haySincronizacionDatos &&
       diaDatosAsistencia !== diaActual &&
@@ -126,7 +126,7 @@ const TomarAsistenciaPersonal = () => {
     obtenerEstadoAsistencia();
   }, []);
 
-  // Procesamos las fechas y horas solo si tenemos los datos disponibles
+  // Process dates and times only if we have the data available
   const fechaHoraInicioAsistencia = handlerDatosAsistenciaHoyDirectivo
     ? new Date(
         alterarUTCaZonaPeruana(
@@ -167,7 +167,7 @@ const TomarAsistenciaPersonal = () => {
       : null
   );
 
-  // Función para formatear la fecha actual
+  // Function to format the current date
   const formatearFechaActual = () => {
     if (!fechaHoraActual?.fechaHora) return "Cargando fecha...";
 
@@ -180,7 +180,7 @@ const TomarAsistenciaPersonal = () => {
     } de ${fecha.getFullYear()}`;
   };
 
-  // Función para formatear fecha de evento
+  // Function to format event date
   const formatearFechaEvento = (fecha: Date) => {
     const fechaObj = new Date(alterarUTCaZonaPeruana(String(fecha)));
     return `${fechaObj.getDate()} de ${
@@ -211,7 +211,7 @@ const TomarAsistenciaPersonal = () => {
     }
   };
 
-  // Función para iniciar el registro de asistencia
+  // Function to start the attendance registration
   const iniciarOContinuarRegistroAsistencia = async () => {
     if (!estadoTomaAsistenciaDePersonal?.AsistenciaIniciada) {
       iniciarTomaAsistenciaDePersonalHoy();
@@ -221,8 +221,8 @@ const TomarAsistenciaPersonal = () => {
   };
 
   const determinarEstadoSistema = () => {
-    // Verificamos primero si es un día de evento (feriado, celebración, etc.)
-    // SOLO si estamos dentro del rango del evento
+    // First check if it's an event day (holiday, celebration, etc.)
+    // ONLY if we are within the event range
     if (
       handlerDatosAsistenciaHoyDirectivo &&
       handlerDatosAsistenciaHoyDirectivo.esHoyDiaDeEvento()
@@ -230,7 +230,7 @@ const TomarAsistenciaPersonal = () => {
       const eventoInfo =
         handlerDatosAsistenciaHoyDirectivo.esHoyDiaDeEvento() as T_Eventos;
 
-      // Convertir las fechas del evento a objetos Date para compararlas
+      // Convert event dates to Date objects for comparison
       const fechaInicioEvento = new Date(
         alterarUTCaZonaPeruana(String(eventoInfo.Fecha_Inicio))
       );
@@ -239,7 +239,7 @@ const TomarAsistenciaPersonal = () => {
       );
       const fechaActualObj = new Date(fechaHoraActual.fechaHora!);
 
-      // Comparar solo las fechas (sin horas)
+      // Compare only dates (without times)
       const fechaActualSinHora = new Date(
         fechaActualObj.getFullYear(),
         fechaActualObj.getMonth(),
@@ -256,7 +256,7 @@ const TomarAsistenciaPersonal = () => {
         fechaConclusionEvento.getDate()
       );
 
-      // Verificar si la fecha actual está dentro del rango del evento
+      // Check if the current date is within the event range
       const dentroDelRangoEvento =
         fechaActualSinHora >= fechaInicioSinHora &&
         fechaActualSinHora <= fechaConclusionSinHora;
@@ -277,7 +277,7 @@ const TomarAsistenciaPersonal = () => {
       }
     }
 
-    // Si estamos sincronizando
+    // If we are syncing
     if (sincronizando) {
       return {
         estado: "sincronizando",
@@ -291,7 +291,7 @@ const TomarAsistenciaPersonal = () => {
       };
     }
 
-    // Si no tenemos datos aún
+    // If we don't have data yet
     if (
       !handlerDatosAsistenciaHoyDirectivo ||
       !tiempoRestanteParaInicioAsistencia ||
@@ -309,7 +309,7 @@ const TomarAsistenciaPersonal = () => {
       };
     }
 
-    // Si no es día escolar (es fin de semana)
+    // If it's not a school day (it's a weekend)
     if (fechaHoraActual.utilidades.esFinDeSemana || modoFinDeSemana) {
       return {
         estado: "no_disponible",
@@ -323,14 +323,14 @@ const TomarAsistenciaPersonal = () => {
       };
     }
 
-    // Verificamos si la fecha de datos de asistencia es de un día anterior
+    // Check if the attendance data date is from a previous day
     const fechaActual = new Date(fechaHoraActual.fechaHora!);
     const fechaDatosAsistencia = new Date(
       handlerDatosAsistenciaHoyDirectivo.getFechaLocalPeru()
     );
     const esNuevoDia = fechaDatosAsistencia.getDate() !== fechaActual.getDate();
 
-    // Caso: Estamos en un nuevo día pero aún no es hora de sincronizar datos
+    // Case: We are on a new day but it's not time to sync data yet
     if (esNuevoDia && !haySincronizacionDatos) {
       return {
         estado: "preparando",
@@ -343,9 +343,9 @@ const TomarAsistenciaPersonal = () => {
       };
     }
 
-    // VERIFICAR HORARIOS ANTES QUE EL ESTADO DE PROCESO
+    // CHECK SCHEDULES BEFORE PROCESS STATE
 
-    // Si aún no es hora de inicio
+    // If it's not start time yet
     if (
       tiempoRestanteParaInicioAsistencia &&
       !tiempoRestanteParaInicioAsistencia.yaVencido
@@ -366,7 +366,7 @@ const TomarAsistenciaPersonal = () => {
       };
     }
 
-    // Si ya pasó la hora de cierre de asistencia
+    // If the attendance closing time has passed
     const horaActual = fechaHoraActual.utilidades.hora;
     const minutosActual = fechaHoraActual.utilidades.minutos;
     const horaCierre = fechaHoraCierreAsistencia!.getHours();
@@ -395,8 +395,8 @@ const TomarAsistenciaPersonal = () => {
       };
     }
 
-    // AHORA SÍ VERIFICAMOS EL ESTADO DE PROCESO
-    // Solo si estamos dentro del horario válido y no hay restricciones
+    // NOW WE CHECK THE PROCESS STATE
+    // Only if we are within the valid schedule and there are no restrictions
     if (estadoTomaAsistenciaDePersonal?.AsistenciaIniciada) {
       return {
         estado: "en_proceso",
@@ -411,7 +411,7 @@ const TomarAsistenciaPersonal = () => {
       };
     }
 
-    // Si estamos en horario válido para tomar asistencia (estado por defecto)
+    // If we are within valid schedule for taking attendance (default state)
     return {
       estado: "disponible",
       mensaje: "Sistema listo para registro",
@@ -430,10 +430,10 @@ const TomarAsistenciaPersonal = () => {
       tiempoDisponible: tiempoRestanteParaCierreAsistencia.formateado,
     };
   };
-  // Obtener el estado actual
+  // Get the current state
   const estadoSistema = determinarEstadoSistema();
 
-  // Función para renderizar el icono de personal adecuado según el estado
+  // Function to render the appropriate personnel icon based on state
   const renderIconoPersonal = () => {
     if (
       !estadoSistema.iconoPersonal ||
@@ -522,11 +522,11 @@ const TomarAsistenciaPersonal = () => {
           </p>
         </div>
 
-        {/* Cards de información */}
+        {/* Information Cards */}
         <div
           className={`grid grid-cols-1 sm-only:grid-cols-2 md-only:grid-cols-3 lg-only:grid-cols-3 gap-3`}
         >
-          {/* Fecha actual */}
+          {/* Current date */}
           <div className="bg-blue-50 rounded-lg p-3 flex items-center">
             <div className="bg-white p-2 rounded-full mr-2">
               <ThinCalendarIcon className="w-5 text-blue-500" />
@@ -539,7 +539,7 @@ const TomarAsistenciaPersonal = () => {
             </div>
           </div>
 
-          {/* Estado */}
+          {/* State */}
           <div
             className={`${
               estadoSistema.estado === "evento"
@@ -580,7 +580,7 @@ const TomarAsistenciaPersonal = () => {
             </div>
           </div>
 
-          {/* Personal contador condicional */}
+          {/* Conditional personnel counter */}
           {estadoSistema.mostrarContadorPersonal && (
             <div className="bg-purple-50 rounded-lg p-3 flex items-center">
               <div className="bg-white p-2 rounded-full mr-2">
@@ -603,7 +603,7 @@ const TomarAsistenciaPersonal = () => {
             </div>
           )}
 
-          {/* Card de información de evento (cuando aplica) */}
+          {/* Event information card (when applicable) */}
           {estadoSistema.estado === "evento" && (
             <div className="bg-purple-50 rounded-lg p-3 flex items-center">
               <div className="bg-white p-2 rounded-full mr-2">
@@ -632,9 +632,9 @@ const TomarAsistenciaPersonal = () => {
           )}
         </div>
 
-        {/* Panel principal */}
+        {/* Main panel */}
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mt-3">
-          {/* Encabezado de estado */}
+          {/* State header */}
           <div
             className={`p-3 ${
               estadoSistema.estado === "disponible"
@@ -675,14 +675,14 @@ const TomarAsistenciaPersonal = () => {
             <p className="opacity-90 text-sm">{estadoSistema.descripcion}</p>
           </div>
 
-          {/* Contenido principal */}
+          {/* Main content */}
           <div className="p-4">
             <div className="text-center mb-4">
               <h3 className="text-gray-500 text-sm font-medium mb-3">
                 Información importante
               </h3>
 
-              {/* Mensaje según estado */}
+              {/* Message based on state */}
               <div
                 className={`inline-flex items-start p-3 rounded-lg text-sm ${
                   estadoSistema.estado === "disponible"
@@ -821,7 +821,7 @@ const TomarAsistenciaPersonal = () => {
               </div>
             </div>
 
-            {/* Barra de progreso para estado pendiente */}
+            {/* Progress bar for pending state */}
             {estadoSistema.estado === "pendiente" &&
               estadoSistema.progreso !== undefined && (
                 <div className="mb-4">
@@ -838,7 +838,7 @@ const TomarAsistenciaPersonal = () => {
                 </div>
               )}
 
-            {/* Barra de progreso para estado en proceso */}
+            {/* Progress bar for in-process state */}
             {estadoSistema.estado === "en_proceso" &&
               estadoSistema.tiempoDisponible && (
                 <div className="mb-4">
@@ -863,7 +863,7 @@ const TomarAsistenciaPersonal = () => {
                 </div>
               )}
 
-            {/* Información adicional para eventos */}
+            {/* Additional information for events */}
             {estadoSistema.estado === "evento" && (
               <div className="mb-4 bg-purple-50 p-3 rounded-lg">
                 <div className="flex items-center mb-2">
@@ -906,7 +906,7 @@ const TomarAsistenciaPersonal = () => {
               </div>
             )}
 
-            {/* Botón de acción */}
+            {/* Action button */}
             <div className="text-center">
               {estadoTomaAsistenciaDePersonal && (
                 <button

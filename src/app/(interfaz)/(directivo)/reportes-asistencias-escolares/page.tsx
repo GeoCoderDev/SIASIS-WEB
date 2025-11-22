@@ -50,7 +50,7 @@ const ReportesAsistenciasEscolares = () => {
 
   const [seccionesCargando, setSeccionesCargando] = useState<boolean>(false);
 
-  // Nuevo estado para saber si se excede el límite de días
+  // New state to track if the day limit is exceeded
   const [excedeLimiteDias, setExcedeLimiteDias] = useState<boolean>(false);
 
   const handleChangeAulasSeleccionadas = (
@@ -140,12 +140,12 @@ const ReportesAsistenciasEscolares = () => {
     obtenerSecciones();
   }, [aulasSeleccionadas.Grado, aulasSeleccionadas.Nivel]);
 
-  // Callback para recibir notificación si se excede el límite
+  // Callback to receive notification if the limit is exceeded
   const handleExcedeLimite = (excede: boolean) => {
     setExcedeLimiteDias(excede);
   };
 
-  // Determinar si el botón debe estar deshabilitado
+  // Determine if the button should be disabled
   const botonDeshabilitado =
     !aulasSeleccionadas.Grado ||
     !aulasSeleccionadas.Seccion ||
@@ -155,18 +155,18 @@ const ReportesAsistenciasEscolares = () => {
   return (
     <div className="w-full h-max -bg-gris-claro px-4">
       <div className="max-w-[1600px] mx-auto">
-        {/* Título */}
+        {/* Title */}
         <h2 className="font-bold text-2xl sm:text-3xl md:text-4xl text-negro mb-6 md:mb-8">
           REPORTES DE ASISTENCIA ESCOLAR
         </h2>
 
-        {/* Layout principal - Responsive */}
+        {/* Main layout - Responsive */}
         <div className="grid grid-cols-1 lg-only:grid-cols-[auto_1fr] xl-only:grid-cols-[auto_1fr] gap-4 md:gap-6">
-          {/* Sección de filtros - Izquierda */}
+          {/* Filters section - Left */}
           <div className="flex flex-col gap-4 md:gap-6">
-            {/* Contenedor para el selector de tipo y los filtros de nivel/grado/sección */}
+            {/* Container for the type selector and level/grade/section filters */}
             <div className="flex flex-col sm-only:flex-row md-only:flex-row lg-only:flex-col xl-only:flex-col gap-4">
-              {/* Selector de tipo de reporte */}
+              {/* Report type selector */}
               <div className="w-full sm-only:w-auto md-only:w-auto">
                 <SelectorTipoReporteAsistenciasEscolares
                   nivelEducativoSeleccionado={aulasSeleccionadas.Nivel}
@@ -178,7 +178,7 @@ const ReportesAsistenciasEscolares = () => {
                 />
               </div>
 
-              {/* Selectores de Nivel, Grado y Sección - Escalados al 90% */}
+              {/* Level, Grade, and Section selectors - Scaled to 90% */}
               <div
                 className="flex flex-col 
                 sxs-only:gap-4 xs-only:gap-4 
@@ -187,7 +187,7 @@ const ReportesAsistenciasEscolares = () => {
                 sm-only:min-w-[200px] md-only:min-w-[200px]
                 lg-only:min-w-0 xl-only:min-w-0"
               >
-                {/* Nivel Educativo */}
+                {/* Education Level */}
                 <div className="w-full">
                   <label
                     className="block font-bold text-negro 
@@ -230,7 +230,7 @@ const ReportesAsistenciasEscolares = () => {
                   </SiasisSelect>
                 </div>
 
-                {/* Grado */}
+                {/* Grade */}
                 <div className="w-full">
                   <label
                     className="block font-bold text-negro 
@@ -288,7 +288,7 @@ const ReportesAsistenciasEscolares = () => {
                   </SiasisSelect>
                 </div>
 
-                {/* Sección */}
+                {/* Section */}
                 <div className="w-full">
                   <label
                     className="block font-bold text-negro 
@@ -359,7 +359,7 @@ const ReportesAsistenciasEscolares = () => {
                     ))}
                   </SiasisSelect>
 
-                  {/* Indicador de carga - Escalado */}
+                  {/* Loading indicator - Scaled */}
                   {seccionesCargando && (
                     <div
                       className="flex items-center text-gris-oscuro
@@ -387,7 +387,7 @@ const ReportesAsistenciasEscolares = () => {
             </div>
           </div>
 
-          {/* Área de reporte - Derecha */}
+          {/* Report area - Right */}
           <div className="bg-white rounded-lg shadow-lg border-2 border-azul-principal p-8 md:p-12 lg-only:p-16 flex items-center justify-center min-h-[400px] lg-only:min-h-[500px]">
             <div className="text-center space-y-4">
               <button
@@ -410,7 +410,7 @@ const ReportesAsistenciasEscolares = () => {
                 <span className="font-medium">2 minutos y 35 segundos</span>
               </p>
 
-              {/* Mensaje de ayuda si falta seleccionar */}
+              {/* Help message if selection is missing */}
               {(!aulasSeleccionadas.Grado || !aulasSeleccionadas.Seccion) &&
                 !seccionesCargando && (
                   <p className="text-xs text-gris-intermedio mt-4">
@@ -420,7 +420,7 @@ const ReportesAsistenciasEscolares = () => {
                   </p>
                 )}
 
-              {/* Mensaje si se excede el límite de días */}
+              {/* Message if the day limit is exceeded */}
               {excedeLimiteDias && (
                 <p className="text-xs text-rojo-principal mt-4 font-medium">
                   El rango de días seleccionado excede el límite permitido

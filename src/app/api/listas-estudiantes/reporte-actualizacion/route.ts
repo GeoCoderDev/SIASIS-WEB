@@ -13,11 +13,11 @@ import {
   ReporteActualizacionDeListasEstudiantesSecundaria,
 } from "@/interfaces/shared/Asistencia/ReporteModificacionesListasDeEstudiantes";
 
-// Cache para el reporte de actualización
+// Cache for the update report
 let reporteActualizacionCache: ReporteActualizacionDeListasEstudiantes | null =
   null;
 let ultimaActualizacionReporte = 0;
-const CACHE_DURACION_REPORTE = 1 * 60 * 60 * 1000; // 1 hora en milisegundos
+const CACHE_DURACION_REPORTE = 1 * 60 * 60 * 1000; // 1 hour in milliseconds
 
 export async function GET(req: NextRequest) {
   try {
@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
 
     const ahora = Date.now();
 
-    // Verificar si podemos usar el cache
+    // Check if we can use the cache
     if (
       reporteActualizacionCache &&
       ahora - ultimaActualizacionReporte < CACHE_DURACION_REPORTE
@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
       usandoCache = true;
     } else {
       try {
-        // Intento principal: obtener datos del blob
+        // Main attempt: get data from blob
         const response = await fetch(
           `${process.env
             .RDP04_THIS_INSTANCE_VERCEL_BLOB_BASE_URL!}/${NOMBRE_ARCHIVO_REPORTE_ACTUALIZACION_DE_LISTAS_DE_ESTUDIANTES}`
@@ -57,15 +57,15 @@ export async function GET(req: NextRequest) {
 
         reporteActualizacionListas = await response.json();
       } catch (blobError) {
-        // Plan B: Si el primer fetch falla, intentar con Google Drive
+        // Plan B: If the first fetch fails, try with Google Drive
         console.warn(
-          "Error al obtener datos del blob, usando respaldo:",
+          "Error getting data from blob, using backup:",
           blobError
         );
         usandoRespaldo = true;
 
         try {
-          // Obtener el ID de Google Drive desde Redis
+          // Get the Google Drive ID from Redis
           const archivoReporteActualizacionDeListasDeEstudiantesGoogleDriveID =
             await redisClient().get(
               NOMBRE_ARCHIVO_REPORTE_ACTUALIZACION_DE_LISTAS_DE_ESTUDIANTES
@@ -75,7 +75,7 @@ export async function GET(req: NextRequest) {
             throw new Error("No se encontró el ID del archivo en Redis");
           }
 
-          // Hacer el fetch de respaldo desde Google Drive
+          // Make backup fetch from Google Drive
           const respaldoResponse = await fetch(
             `https://drive.google.com/uc?export=download&id=${archivoReporteActualizacionDeListasDeEstudiantesGoogleDriveID}`
           );
@@ -94,9 +94,9 @@ export async function GET(req: NextRequest) {
             "Datos obtenidos exitosamente desde respaldo Google Drive"
           );
         } catch (respaldoError) {
-          // Si también falla el respaldo, lanzar un error más descriptivo
+          // If the backup also fails, throw a more descriptive error
           console.error(
-            "Error al obtener datos desde respaldo:",
+            "Error getting data from backup:",
             respaldoError
           );
           throw new Error(
@@ -107,18 +107,18 @@ export async function GET(req: NextRequest) {
         }
       }
 
-      // Actualizar cache con los nuevos datos
+      // Update cache with new data
       reporteActualizacionCache = reporteActualizacionListas;
       ultimaActualizacionReporte = ahora;
     }
 
-    // Filtrar datos según el rol
+    // Filter data according to role
     const datosFiltrados = filtrarReporteSegunRol(
       reporteActualizacionListas,
       rol
     );
 
-    // Devolver los datos filtrados con indicador de fuente
+    // Return filtered data with source indicator
     return NextResponse.json({
       ...datosFiltrados,
       _debug: usandoCache
@@ -132,7 +132,7 @@ export async function GET(req: NextRequest) {
       "Error al obtener reporte de actualización de listas:",
       error
     );
-    // Determinar el tipo de error
+    // Determine error type
     let logoutType = LogoutTypes.ERROR_SISTEMA;
     const errorDetails: ErrorDetailsForLogout = {
       mensaje: "Error al recuperar reporte de actualización de listas",
@@ -142,7 +142,7 @@ export async function GET(req: NextRequest) {
     };
 
     if (error instanceof Error) {
-      // Si es un error de red o problemas de conexión
+      // If it's a network error or connection problem
       if (
         error.message.includes("fetch") ||
         error.message.includes("network") ||
@@ -153,7 +153,7 @@ export async function GET(req: NextRequest) {
         errorDetails.mensaje =
           "Error de conexión al obtener reporte de actualización";
       }
-      // Si es un error de parseo de JSON
+      // If it's a JSON parsing error
       else if (
         error.message.includes("JSON") ||
         error.message.includes("parse") ||
@@ -163,14 +163,14 @@ export async function GET(req: NextRequest) {
         errorDetails.mensaje = "Error al procesar el reporte de actualización";
         errorDetails.contexto = "Formato de datos inválido";
       }
-      // Si falló la búsqueda en Redis
+      // If Redis lookup failed
       else if (error.message.includes("No se encontró el ID")) {
         logoutType = LogoutTypes.ERROR_DATOS_NO_DISPONIBLES;
         errorDetails.mensaje =
           "No se pudo encontrar el reporte de actualización";
         errorDetails.siasisComponent = "RDP05"; // Error específico de Redis
       }
-      // Si falló tanto el acceso principal como el respaldo
+      // If both main access and backup failed
       else if (
         error.message.includes("Falló el acceso principal y el respaldo")
       ) {
@@ -187,7 +187,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// Función para filtrar el reporte según el rol
+// Function to filter the report according to role
 function filtrarReporteSegunRol(
   reporte: ReporteActualizacionDeListasEstudiantes,
   rol: RolesSistema
@@ -197,16 +197,16 @@ function filtrarReporteSegunRol(
   | ReporteActualizacionDeListasEstudiantesSecundaria {
   switch (rol) {
     case RolesSistema.Directivo:
-      // Directivos tienen acceso a toda la información (primaria y secundaria)
+      // Directors have access to all information (primary and secondary)
       return reporte;
 
     case RolesSistema.ProfesorPrimaria:
-      // Profesores de primaria solo ven las listas de primaria
+      // Primary teachers only see primary lists
       const listasPrimaria = {} as any;
 
       Object.entries(reporte.EstadoDeListasDeEstudiantes).forEach(
         ([archivo, fecha]) => {
-          // Verificar si el archivo contiene "Estudiantes_P_" (primaria)
+          // Check if the file contains "Estudiantes_P_" (primary)
           if (archivo.includes("Estudiantes_P_")) {
             listasPrimaria[archivo] = fecha;
           }
@@ -221,12 +221,12 @@ function filtrarReporteSegunRol(
     case RolesSistema.Auxiliar:
     case RolesSistema.ProfesorSecundaria:
     case RolesSistema.Tutor:
-      // Auxiliares, profesores de secundaria y tutores solo ven las listas de secundaria
+      // Auxiliaries, secondary teachers and tutors only see secondary lists
       const listasSecundaria = {} as any;
 
       Object.entries(reporte.EstadoDeListasDeEstudiantes).forEach(
         ([archivo, fecha]) => {
-          // Verificar si el archivo contiene "Estudiantes_S_" (secundaria)
+          // Check if the file contains "Estudiantes_S_" (secondary)
           if (archivo.includes("Estudiantes_S_")) {
             listasSecundaria[archivo] = fecha;
           }
@@ -239,7 +239,7 @@ function filtrarReporteSegunRol(
       } as ReporteActualizacionDeListasEstudiantesSecundaria;
 
     default:
-      // Por defecto, devolver estructura vacía pero válida
+      // By default, return empty but valid structure
       return {
         EstadoDeListasDeEstudiantes: {} as any,
         Fecha_Actualizacion: reporte.Fecha_Actualizacion,

@@ -5,9 +5,9 @@ import { TypeEventAvailable } from "./interfaces/TypeEventAvailable";
 export const initializeDelegacion = () => {
   // const EVENTOS_USADOS = ["mousemove", "change"];
 
-  // EL "BODY" SIRVE COMO CHIVO EXPIATORIO PARA QUE NO HAGA MATCH EN CASO LO QUE SEA EL PRIMER PARAMETRO SEA UN
-  // ELEMENTO HTML , ASI QUE DARA FALSO SIEMPRE QUE SE DEA ESTE CASO YA QUE NUNCA SE PASARIA BODY COMO SELECTOR
-  // Y SE PROCEDERIA A LA SIGUIENTE PROPOSICION LA CUAL SERIA EXCLUSIVAMENTE PARA ELEMENTOS HTML
+  // THE "BODY" SERVES AS A SCAPEGOAT SO IT DOESN'T MATCH WHEN THE FIRST PARAMETER IS AN
+  // HTML ELEMENT, SO IT WILL ALWAYS RETURN FALSE IN THIS CASE SINCE BODY WOULD NEVER BE PASSED AS A SELECTOR
+  // AND WOULD PROCEED TO THE NEXT PROPOSITION WHICH WOULD BE EXCLUSIVELY FOR HTML ELEMENTS
 
   interface EventPayload {
     selectorOElementoHTML: string | HTMLElement;
@@ -15,7 +15,7 @@ export const initializeDelegacion = () => {
     except: boolean;
   }
 
-  // EVENTO CLICK
+  // CLICK EVENT
 
   const mapaDeEventosClick = new Map<number, EventPayload>();
   let eventosClickID = 0;
@@ -50,7 +50,7 @@ export const initializeDelegacion = () => {
     });
   });
 
-  // EVENTO MOUSEMOVE
+  // MOUSEMOVE EVENT
 
   const mapaDeEventosMouseMove = new Map<number, EventPayload>();
   let eventosMouseMoveID = 0;
@@ -85,7 +85,7 @@ export const initializeDelegacion = () => {
     });
   });
 
-  // EVENTO MOUSEOUT
+  // MOUSEOUT EVENT
   const mapaDeEventosMouseOut = new Map<number, EventPayload>();
   let eventosMouseOutID = 0;
 
@@ -119,7 +119,7 @@ export const initializeDelegacion = () => {
     });
   });
 
-  // EVENTO MOUSEDOWN
+  // MOUSEDOWN EVENT
   const mapaDeEventosMouseDown = new Map<number, EventPayload>();
   let eventosMouseDownID = 0;
 
@@ -153,7 +153,7 @@ export const initializeDelegacion = () => {
     });
   });
 
-  // EVENTO MOUSEUP
+  // MOUSEUP EVENT
   const mapaDeEventosMouseUp = new Map<number, EventPayload>();
   let eventosMouseUpID = 0;
 
@@ -187,7 +187,7 @@ export const initializeDelegacion = () => {
     });
   });
 
-  // EVENTO MOUSEENTER
+  // MOUSEENTER EVENT
   const mapaDeEventosMouseEnter = new Map<number, EventPayload>();
   let eventosMouseEnterID = 0;
 
@@ -221,7 +221,7 @@ export const initializeDelegacion = () => {
     });
   });
 
-  // EVENTO MOUSEOVER
+  // MOUSEOVER EVENT
   const mapaDeEventosMouseOver = new Map<number, EventPayload>();
   let eventosMouseOverID = 0;
 
@@ -255,7 +255,7 @@ export const initializeDelegacion = () => {
     });
   });
 
-  // EVENTO TOUCHSTART
+  // TOUCHSTART EVENT
   const mapaDeEventosTouchStart = new Map<number, EventPayload>();
   let eventosTouchStartID = 0;
 
@@ -289,7 +289,7 @@ export const initializeDelegacion = () => {
     });
   });
 
-  // EVENTO TOUCHMOVE
+  // TOUCHMOVE EVENT
   const mapaDeEventosTouchMove = new Map<number, EventPayload>();
   let eventosTouchMoveID = 0;
 
@@ -323,7 +323,7 @@ export const initializeDelegacion = () => {
     });
   });
 
-  // EVENTO TOUCHEND
+  // TOUCHEND EVENT
   const mapaDeEventosTouchEnd = new Map<number, EventPayload>();
   let eventosTouchEndID = 0;
 
@@ -357,7 +357,7 @@ export const initializeDelegacion = () => {
     });
   });
 
-  //EVENTO CHANGE
+  //CHANGE EVENT
   const mapaDeEventosChange = new Map<number, EventPayload>();
   let eventosChangeID = 0;
 
@@ -391,7 +391,7 @@ export const initializeDelegacion = () => {
     });
   });
 
-  //EVENTO INPUT
+  //INPUT EVENT
   const mapaDeEventosInput = new Map<number, EventPayload>();
   let eventosInputID = 0;
 
@@ -425,7 +425,7 @@ export const initializeDelegacion = () => {
     });
   });
 
-  //EVENTO KEYUP
+  //KEYUP EVENT
   const mapaDeEventosKeyup = new Map<number, EventPayload>();
   let eventosKeyupID = 0;
 
@@ -459,7 +459,7 @@ export const initializeDelegacion = () => {
     });
   });
 
-  //EVENTO KEYDOWN
+  //KEYDOWN EVENT
   const mapaDeEventosKeydown = new Map<number, EventPayload>();
   let eventosKeydownID = 0;
 
@@ -493,7 +493,7 @@ export const initializeDelegacion = () => {
     });
   });
 
-  // EVENTO ERROR (para imágenes, scripts, etc.)
+  // ERROR EVENT (for images, scripts, etc.)
   const mapaDeEventosError = new Map<number, EventPayload>();
   let eventosErrorID = 0;
 
@@ -513,8 +513,8 @@ export const initializeDelegacion = () => {
   document.addEventListener(
     "error",
     (e: Event) => {
-      // El evento error en el documento sólo se propaga cuando está en elementos que se cargan
-      // como imágenes, scripts, iframes, etc.
+      // The error event on the document only propagates when it's on elements that load
+      // like images, scripts, iframes, etc.
       mapaDeEventosError.forEach((Evento) => {
         const target = e.target as HTMLElement;
 
@@ -536,10 +536,10 @@ export const initializeDelegacion = () => {
 
   /**
    *
-   * @param {TypeEventAvailable} typeEvent aqui escoges que tipo de evento quieres agregar, ejemplo: click,mousemove,etc
-   * @param {string | HTMLElement} querySelectorOrElement este parametro solicita un selector css para el/los elemento(s) que quieres que se aplique el evento
-   * @param {(e: Event)=>void} callback funcion que se ejecutara cada vez que se dispare el evento
-   * @returns devuelve un Id del evento que añadiste, con el cual podras eliminar el evento mediante la funcion eliminarEventoDelegado
+   * @param {TypeEventAvailable} typeEvent here you choose what type of event you want to add, example: click,mousemove,etc
+   * @param {string | HTMLElement} querySelectorOrElement this parameter requests a css selector for the element(s) you want the event applied to
+   * @param {(e: Event)=>void} callback function that will be executed each time the event fires
+   * @returns returns an Id of the event you added, with which you can remove the event using the eliminarEventoDelegado function
    */
   function delegarEvento(
     typeEvent: TypeEventAvailable,
@@ -669,6 +669,6 @@ export const initializeDelegacion = () => {
     }
   }
 
-  // Exporta la función agregarEventoClick
+  // Export the agregarEventoClick function
   return { delegarEvento, eliminarEventoDelegado };
 };

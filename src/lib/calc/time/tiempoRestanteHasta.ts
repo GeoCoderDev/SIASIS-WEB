@@ -8,13 +8,13 @@ export interface TiempoRestante {
   segundos: number;
   yaVencido: boolean;
   formateado: string;
-  // Nuevos campos
-  formatoCorto: string; // Ejemplo: "2d 5h 30m"
-  porcentajeCompletado: number; // 0-100, útil para barras de progreso
-  enRango: boolean; // true si el tiempo está dentro de un rango especificado
+  // New fields
+  formatoCorto: string; // Example: "2d 5h 30m"
+  porcentajeCompletado: number; // 0-100, useful for progress bars
+  enRango: boolean; // true if time is within a specified range
 }
 
-// Función selectora para obtener tiempo restante hasta una fecha objetivo
+// Selector function to get remaining time until a target date
 export const tiempoRestanteHasta = (
   state: { fechaHoraActualReal: FechaHoraActualRealState },
   fechaObjetivoPeruana: string | Date,
@@ -22,23 +22,23 @@ export const tiempoRestanteHasta = (
 ): TiempoRestante | null => {
   if (!state.fechaHoraActualReal.fechaHora) return null;
 
-  // Usamos directamente la fecha actual sin transformaciones adicionales de zona horaria
+  // We use the current date directly without additional timezone transformations
   const fechaActual = fechaInicio
     ? typeof fechaInicio === "string"
       ? new Date(fechaInicio)
       : fechaInicio
     : new Date(state.fechaHoraActualReal.fechaHora);
 
-  // Convertir la fecha objetivo a un objeto Date
+  // Convert the target date to a Date object
   const fechaObjetivoObj =
     typeof fechaObjetivoPeruana === "string"
       ? new Date(fechaObjetivoPeruana)
       : fechaObjetivoPeruana;
 
-  // Calcular diferencia en milisegundos
+  // Calculate difference in milliseconds
   const diffMs = fechaObjetivoObj.getTime() - fechaActual.getTime();
 
-  // Calcular porcentaje completado si se proporciona una fecha de inicio
+  // Calculate percentage completed if a start date is provided
   let porcentajeCompletado = 0;
   let enRango = false;
 
@@ -58,7 +58,7 @@ export const tiempoRestanteHasta = (
     }
   }
 
-  // Si la fecha ya pasó
+  // If the date has already passed
   if (diffMs <= 0) {
     return {
       total: 0,
@@ -74,13 +74,13 @@ export const tiempoRestanteHasta = (
     };
   }
 
-  // Convertir a unidades de tiempo
+  // Convert to time units
   const segundos = Math.floor((diffMs / 1000) % 60);
   const minutos = Math.floor((diffMs / (1000 * 60)) % 60);
   const horas = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
   const dias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-  // Formato legible
+  // Readable format
   let formateado = "";
   if (dias > 0) formateado += `${dias} día${dias > 1 ? "s" : ""} `;
   if (horas > 0 || dias > 0)
@@ -89,7 +89,7 @@ export const tiempoRestanteHasta = (
     formateado += `${minutos} minuto${minutos > 1 ? "s" : ""} `;
   formateado += `${segundos} segundo${segundos > 1 ? "s" : ""}`;
 
-  // Formato corto
+  // Short format
   let formatoCorto = "";
   if (dias > 0) formatoCorto += `${dias}d `;
   if (horas > 0 || dias > 0) formatoCorto += `${horas}h `;

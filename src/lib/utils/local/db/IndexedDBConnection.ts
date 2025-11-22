@@ -9,26 +9,26 @@ export class IndexedDBConnection {
   private static instance: IndexedDBConnection;
   private db: IDBDatabase | null = null;
 
-  // Propiedad estática que se inicializa de forma inteligente
+  // Static property that initializes intelligently
   private static _rol: RolesSistema | null = null;
   private static _PostfixIDB: string | null = null;
 
-  // Usamos la variable de entorno para la versión
+  // We use the environment variable for the version
   private dbVersionString: string = SIASIS_CLN01_VERSION;
   private version: number;
   private isInitializing: boolean = false;
   private initPromise: Promise<IDBDatabase> | null = null;
 
   private constructor() {
-    // Constructor privado para patrón Singleton
+    // Private constructor for Singleton pattern
     this.version = this.getVersionNumber(this.dbVersionString);
   }
 
   /**
-   * Getter para el rol que se auto-inicializa desde localStorage si es necesario
+   * Getter for role that auto-initializes from localStorage if necessary
    */
   public static get rol(): RolesSistema {
-    // Si no está seteado, intentar cargar desde localStorage
+    // If not set, try to load from localStorage
     if (!IndexedDBConnection._rol) {
       IndexedDBConnection._rol = IndexedDBConnection.loadRolFromStorage();
     }
@@ -36,21 +36,21 @@ export class IndexedDBConnection {
   }
 
   /**
-   * Setter para el rol que también lo guarda en localStorage
+   * Setter for role that also saves it to localStorage
    */
   public static set rol(newRol: RolesSistema) {
     IndexedDBConnection._rol = newRol;
-    // Guardar en localStorage si estamos en el cliente
+    // Save to localStorage if we're on the client
     if (typeof window !== "undefined" && window.localStorage) {
       localStorage.setItem(nombre_rol_local_storage, newRol);
     }
   }
 
   /**
-   * Getter para el rol que se auto-inicializa desde localStorage si es necesario
+   * Getter for PostfixIDBFromUserData that auto-initializes from localStorage if necessary
    */
   public static get PostfixIDBFromUserData(): string {
-    // Si no está seteado, intentar cargar desde localStorage
+    // If not set, try to load from localStorage
     if (!IndexedDBConnection._PostfixIDB) {
       IndexedDBConnection._PostfixIDB =
         IndexedDBConnection.loadPostfixFromStorage();
@@ -59,11 +59,11 @@ export class IndexedDBConnection {
   }
 
   /**
-   * Setter para el PostfixIDBFromUserData
+   * Setter for PostfixIDBFromUserData
    */
   public static set PostfixIDBFromUserData(username: string) {
     IndexedDBConnection._PostfixIDB = `U${username.substring(0, 3)}`;
-    // Guardar en localStorage si estamos en el cliente
+    // Save to localStorage if we're on the client
     if (typeof window !== "undefined" && window.localStorage) {
       localStorage.setItem(
         nombre_postfix_local_storage,
@@ -73,10 +73,10 @@ export class IndexedDBConnection {
   }
 
   /**
-   * Carga el rol desde localStorage de forma segura
+   * Safely loads role from localStorage
    */
   private static loadRolFromStorage(): RolesSistema {
-    // Verificar si estamos en el cliente
+    // Check if we're on the client
     if (typeof window !== "undefined" && window.localStorage) {
       const storedRole = localStorage.getItem(
         nombre_rol_local_storage
@@ -85,40 +85,40 @@ export class IndexedDBConnection {
         return storedRole;
       }
     }
-    // Valor por defecto si no hay nada en localStorage o no es válido
+    // Default value if nothing in localStorage or not valid
     return RolesSistema.Directivo;
   }
 
   /**
-   * Carga el postfix desde localStorage de forma segura
+   * Safely loads postfix from localStorage
    */
   private static loadPostfixFromStorage(): string {
-    // Verificar si estamos en el cliente
+    // Check if we're on the client
     if (typeof window !== "undefined" && window.localStorage) {
       if (localStorage.getItem(nombre_postfix_local_storage))
         return localStorage.getItem(nombre_postfix_local_storage)!;
     }
-    // Valor por defecto si no hay nada en localStorage o no es válido
+    // Default value if nothing in localStorage or not valid
     return "XXX";
   }
 
   /**
-   * Obtiene el nombre de la base de datos basado en el rol actual
+   * Gets the database name based on the current role
    */
   private get dbName(): string {
     return `SIASIS-CLN01-${IndexedDBConnection.rol}-${IndexedDBConnection.PostfixIDBFromUserData}`;
   }
 
   /**
-   * Fuerza la recarga del rol desde localStorage
-   * Útil cuando sabes que el rol cambió externamente
+   * Forces role reload from localStorage
+   * Useful when you know the role changed externally
    */
   public static reloadRolFromStorage(): void {
     IndexedDBConnection._rol = IndexedDBConnection.loadRolFromStorage();
   }
 
   /**
-   * Obtiene la instancia única de conexión a IndexedDB
+   * Gets the unique IndexedDB connection instance
    */
   public static getInstance(): IndexedDBConnection {
     if (!IndexedDBConnection.instance) {
@@ -128,29 +128,29 @@ export class IndexedDBConnection {
   }
 
   /**
-   * Cambia el rol y reinicializa la conexión a la BD correspondiente
+   * Changes role and reinitializes connection to the corresponding DB
    */
   public async changeRole(newRole: RolesSistema): Promise<void> {
     const currentRole = IndexedDBConnection.rol;
 
-    // Si es el mismo rol, no hacer nada
+    // If same role, do nothing
     if (currentRole === newRole) return;
 
-    // Cerrar la conexión actual
+    // Close current connection
     this.close();
 
-    // Cambiar el rol (esto automáticamente actualiza localStorage)
+    // Change role (this automatically updates localStorage)
     IndexedDBConnection.rol = newRole;
 
-    // Reinicializar con la nueva base de datos
+    // Reinitialize with the new database
     await this.init();
   }
 
   /**
-   * Inicializa la conexión a la base de datos
+   * Initializes the database connection
    */
   public async init(): Promise<IDBDatabase> {
-    // Verificar que estamos en el cliente
+    // Verify we're on the client
     if (typeof window === "undefined") {
       throw new Error("IndexedDB solo está disponible en el navegador");
     }
@@ -160,8 +160,8 @@ export class IndexedDBConnection {
 
     this.isInitializing = true;
     this.initPromise = new Promise((resolve, reject) => {
-      // Al abrir con una versión superior, IndexedDB automáticamente
-      // dispara onupgradeneeded y gestiona la migración
+      // When opening with a higher version, IndexedDB automatically
+      // triggers onupgradeneeded and manages the migration
       const request = indexedDB.open(this.dbName, this.version);
 
       request.onupgradeneeded = (event) => {
@@ -170,7 +170,7 @@ export class IndexedDBConnection {
         );
         const db = (event.target as IDBOpenDBRequest).result;
 
-        // Si hay stores existentes que ya no necesitamos, los eliminamos
+        // If there are existing stores we no longer need, delete them
         for (let i = 0; i < db.objectStoreNames.length; i++) {
           const storeName = db.objectStoreNames[i];
           if (!Object.keys(CLN01_Stores).includes(storeName)) {
@@ -205,10 +205,10 @@ export class IndexedDBConnection {
   }
 
   /**
-   * Configura la estructura de la base de datos
+   * Configures the database structure
    */
   private configureDatabase(db: IDBDatabase): void {
-    // Crear los object stores y sus índices
+    // Create object stores and their indexes
     for (const [storeName, config] of Object.entries(CLN01_Stores)) {
       if (!db.objectStoreNames.contains(storeName)) {
         const store = db.createObjectStore(storeName, {
@@ -216,7 +216,7 @@ export class IndexedDBConnection {
           autoIncrement: config.autoIncrement,
         });
 
-        // Crear los índices
+        // Create indexes
         for (const index of config.indexes) {
           store.createIndex(index.name, index.keyPath, index.options);
         }
@@ -225,14 +225,14 @@ export class IndexedDBConnection {
   }
 
   /**
-   * Convierte la versión semántica a un número entero para IndexedDB
+   * Converts semantic version to an integer for IndexedDB
    */
   private getVersionNumber(versionString: string): number {
-    // Eliminar cualquier sufijo (como -alpha, -beta, etc.)
+    // Remove any suffix (like -alpha, -beta, etc.)
     const cleanVersion = versionString.split("-")[0];
 
-    // Dividir por puntos y convertir a un número entero
-    // Por ejemplo: "1.2.3" -> 1 * 10000 + 2 * 100 + 3 = 10203
+    // Split by dots and convert to an integer
+    // For example: "1.2.3" -> 1 * 10000 + 2 * 100 + 3 = 10203
     const parts = cleanVersion.split(".");
     let versionNumber = 1; // Valor por defecto
 
@@ -247,7 +247,7 @@ export class IndexedDBConnection {
   }
 
   /**
-   * Obtiene la conexión a la base de datos
+   * Gets the database connection
    */
   public async getConnection(): Promise<IDBDatabase> {
     if (!this.db) {
@@ -257,7 +257,7 @@ export class IndexedDBConnection {
   }
 
   /**
-   * Cierra la conexión a la base de datos
+   * Closes the database connection
    */
   public close(): void {
     if (this.db) {
@@ -268,7 +268,7 @@ export class IndexedDBConnection {
   }
 
   /**
-   * Obtiene una transacción para un almacén específico
+   * Gets a transaction for a specific store
    */
   public async getTransaction(
     storeName: string,
@@ -279,7 +279,7 @@ export class IndexedDBConnection {
   }
 
   /**
-   * Obtiene un object store para realizar operaciones
+   * Gets an object store to perform operations
    */
   public async getStore(
     storeName: string,
@@ -290,7 +290,7 @@ export class IndexedDBConnection {
   }
 
   /**
-   * Ejecuta una operación en la base de datos
+   * Executes an operation on the database
    */
   public async executeOperation<T>(
     storeName: string,
@@ -313,7 +313,7 @@ export class IndexedDBConnection {
   }
 
   /**
-   * Obtiene información del estado actual
+   * Gets current state information
    */
   public getStatus() {
     return {
@@ -325,5 +325,5 @@ export class IndexedDBConnection {
   }
 }
 
-// Exportar la instancia única
+// Export the unique instance
 export default IndexedDBConnection.getInstance();

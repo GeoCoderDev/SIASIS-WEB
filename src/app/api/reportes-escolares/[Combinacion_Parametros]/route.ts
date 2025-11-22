@@ -20,16 +20,16 @@ import { verifyAuthToken } from "@/lib/utils/backend/auth/functions/jwtComprobat
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import { DatosAsistenciaHoyHelper } from "../../_utils/DatosAsistenciaHoyHelper";
 
-// ✅ Cambio principal: params ahora es Promise y debe ser awaited
+// ✅ Main change: params is now a Promise and must be awaited
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ Combinacion_Parametros: string }> }
 ) {
   try {
-    // ✅ Await params antes de usarlos
+    // ✅ Await params before using them
     const { Combinacion_Parametros } = await params;
 
-    // ✅ AUTENTICACIÓN
+    // ✅ AUTHENTICATION
     const { error, rol, decodedToken } = await verifyAuthToken(req, [
       RolesSistema.Directivo,
       RolesSistema.Auxiliar,
@@ -42,7 +42,7 @@ export async function GET(
 
     console.log(`🔐 Usuario autenticado: ${rol} - ${decodedToken.ID_Usuario}`);
 
-    // Validar que se recibió el parámetro
+    // Validate that the parameter was received
     if (!Combinacion_Parametros) {
       return NextResponse.json(
         {
@@ -54,7 +54,7 @@ export async function GET(
       );
     }
 
-    // Validar longitud del parámetro (máximo 40 caracteres según el schema)
+    // Validate parameter length (maximum 40 characters according to schema)
     if (Combinacion_Parametros.length > 40) {
       return NextResponse.json(
         {
@@ -67,7 +67,7 @@ export async function GET(
       );
     }
 
-    // ✅ VALIDAR que la combinación de parámetros sea válida usando la función de decodificación
+    // ✅ VALIDATE that the parameter combination is valid using the decoding function
     const parametrosDecodificados =
       decodificarCombinacionParametrosParaReporteEscolar(
         Combinacion_Parametros
@@ -90,7 +90,7 @@ export async function GET(
       JSON.stringify(parametrosDecodificados, null, 2)
     );
 
-    // ✅ VALIDAR PERMISOS usando el helper
+    // ✅ VALIDATE PERMISSIONS using the helper
     const helperAsistencia = await DatosAsistenciaHoyHelper.obtenerInstancia();
     const validacionPermisos = helperAsistencia.validarPermisosReporte(
       rol!,
@@ -118,15 +118,15 @@ export async function GET(
 
     console.log(`✅ Permisos validados correctamente para rol ${rol}`);
 
-    // Obtener instancia de Redis para reportes de asistencia escolar
+    // Get Redis instance for school attendance reports
     const redisClientInstance = redisClient(
       GruposIntanciasDeRedis.ParaReportesDeAsistenciasEscolares
     );
 
-    // Buscar el reporte en Redis usando la combinación de parámetros como clave
+    // Search for the report in Redis using the parameter combination as key
     const reporteData = await redisClientInstance.get(Combinacion_Parametros);
 
-    // Si no existe el reporte, devolver 404
+    // If the report doesn't exist, return 404
     if (!reporteData) {
       return NextResponse.json(
         {
@@ -139,11 +139,11 @@ export async function GET(
       );
     }
 
-    // Parsear los datos de Redis (pueden venir como string JSON)
+    // Parse the data from Redis (may come as JSON string)
     const reporteCompleto: T_Reportes_Asistencia_Escolar =
       typeof reporteData === "string" ? JSON.parse(reporteData) : reporteData;
 
-    // Validar que el estado del reporte sea válido
+    // Validate that the report status is valid
     if (
       !Object.values(EstadoReporteAsistenciaEscolar).includes(
         reporteCompleto.Estado_Reporte as EstadoReporteAsistenciaEscolar
@@ -154,7 +154,7 @@ export async function GET(
       );
     }
 
-    // Filtrar solo los datos que necesita la interfaz ReporteAsistenciaEscolarAnonimo
+    // Filter only the data needed by the ReporteAsistenciaEscolarAnonimo interface
     const reporteAnonimo: ReporteAsistenciaEscolarAnonimo = {
       Combinacion_Parametros_Reporte:
         reporteCompleto.Combinacion_Parametros_Reporte,
@@ -167,7 +167,7 @@ export async function GET(
       `✅ Reporte consultado exitosamente: ${Combinacion_Parametros} - Estado: ${reporteCompleto.Estado_Reporte} - Tipo: ${parametrosDecodificados.tipoReporte} - Nivel: ${parametrosDecodificados.aulasSeleccionadas.Nivel} - Grado: ${parametrosDecodificados.aulasSeleccionadas.Grado}${parametrosDecodificados.aulasSeleccionadas.Seccion}`
     );
 
-    // Devolver respuesta exitosa con los datos filtrados
+    // Return successful response with filtered data
     return NextResponse.json(
       {
         success: true,

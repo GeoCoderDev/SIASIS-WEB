@@ -14,27 +14,27 @@ import { Entorno } from "@/interfaces/shared/Entornos";
 
 dotenv.config();
 
-// Configurando Fuente Roboto
+// Configuring Roboto Font
 const roboto = Roboto({
   weight: ["100", "300", "400", "500", "700", "900"],
   subsets: ["latin"],
   variable: "--font-roboto",
   style: ["italic", "normal"],
-  display: "swap", // Mejora rendimiento
+  display: "swap", // Improves performance
 });
 
 export const metadata: Metadata = {
-  // 🎯 TÍTULO OPTIMIZADO - Más directo y centrado en la institución
+  // 🎯 OPTIMIZED TITLE - More direct and institution-focused
   title: {
     default: "I.E. 20935 Asunción 8 | Sistema SIASIS - Imperial, Cañete",
     template: "%s | I.E. 20935 Asunción 8",
   },
 
-  // 📝 DESCRIPCIÓN OPTIMIZADA - Más específica y atractiva
+  // 📝 OPTIMIZED DESCRIPTION - More specific and attractive
   description:
     "Institución Educativa 20935 Asunción 8 de Imperial, Cañete. Sistema digital SIASIS para control de asistencia, comunicación con padres y gestión educativa. Educación primaria y secundaria de calidad.",
 
-  // 🔍 KEYWORDS OPTIMIZADAS - Más específicas y locales
+  // 🔍 OPTIMIZED KEYWORDS - More specific and local
   keywords: [
     "I.E. 20935",
     "Institución Educativa 20935 Asunción 8",
@@ -91,12 +91,12 @@ export const metadata: Metadata = {
     },
   },
 
-  // 🔗 URL canónica
+  // 🔗 Canonical URL
   alternates: {
     canonical: "https://ie20935.siasis.org",
   },
 
-  // 👥 Autoría
+  // 👥 Authorship
   authors: [
     {
       name: "Institución Educativa 20935 Asunción 8",
@@ -106,9 +106,9 @@ export const metadata: Metadata = {
   publisher: "I.E. 20935 Asunción 8 - Imperial, Cañete",
   category: "Education",
 
-  // ✅ Verificación (ya tienes Google configurado)
+  // ✅ Verification (Google already configured)
   verification: {
-    google: "ImVWtaIkP3rzCz2k2kdPCndjCBLdY4tMBLtCxmeTap4", // ✅ Ya configurado
+    google: "ImVWtaIkP3rzCz2k2kdPCndjCBLdY4tMBLtCxmeTap4", // ✅ Already configured
   },
 
   // 📱 PWA
@@ -119,19 +119,19 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
   },
 
-  // 📍 Geolocalización MEJORADA
+  // 📍 IMPROVED Geolocation
   other: {
-    "geo.region": "PE-LIM", // Lima, no ICA
+    "geo.region": "PE-LIM", // Lima, not ICA
     "geo.placename": "Imperial, Provincia de Cañete, Lima",
     "geo.position": "-13.0594;-76.3503",
     ICBM: "-13.0594, -76.3503",
     language: "es-PE",
     "revisit-after": "7 days",
-    // Datos estructurados básicos
+    // Basic structured data
     "theme-color": "#dd3524",
   },
 
-  // 🎨 ICONOS
+  // 🎨 ICONS
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -160,7 +160,7 @@ export default async function RootLayout({
               content="ImVWtaIkP3rzCz2k2kdPCndjCBLdY4tMBLtCxmeTap4"
             />
 
-            {/* 🎯 DATOS ESTRUCTURADOS CORREGIDOS */}
+            {/* 🎯 CORRECTED STRUCTURED DATA */}
             <script
               type="application/ld+json"
               dangerouslySetInnerHTML={{
@@ -328,7 +328,7 @@ export default async function RootLayout({
               }}
             />
 
-            {/* 🏢 DATOS ESTRUCTURADOS ADICIONALES - LUGAR */}
+            {/* 🏢 ADDITIONAL STRUCTURED DATA - PLACE */}
             <script
               type="application/ld+json"
               dangerouslySetInnerHTML={{
@@ -383,7 +383,7 @@ export default async function RootLayout({
                 --color-interfaz: ${interfazColor};
               }
               
-              /* Mejoras de rendimiento */
+              /* Performance improvements */
               .font-roboto {
                 font-display: swap;
               }

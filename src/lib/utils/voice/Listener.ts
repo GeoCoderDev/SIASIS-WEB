@@ -15,7 +15,7 @@ export class Listener {
   private currentRecognizer?: SpeechRecognition;
   private constructor() {}
 
-  // Método para obtener la instancia única de Listener
+  // Method to get the unique instance of Listener
   public static getInstance(): Listener {
     if (!Listener.instance) {
       Listener.instance = new Listener();
@@ -24,8 +24,8 @@ export class Listener {
   }
 
   /**
-   * Inicia el reconocimiento de voz.
-   * @param callback Función opcional a ejecutar con el resultado de la síntesis.
+   * Starts voice recognition.
+   * @param callback Optional function to execute with the synthesis result.
    */
   public start(
     callback?: (transcript: string) => void,
@@ -41,17 +41,17 @@ export class Listener {
       windowWithSpeech.SpeechRecognition ||
       windowWithSpeech.webkitSpeechRecognition;
 
-    // Crear una nueva instancia de SpeechRecognition cada vez que se llama a start
+    // Create a new SpeechRecognition instance every time start is called
     const recognition = new SpeechRecognition();
     this.currentRecognizer = recognition;
     recognition.lang = "es-ES";
-    recognition.interimResults = false; // Solo resultados finales
-    recognition.continuous = false; // Detenerse tras un solo resultado
+    recognition.interimResults = false; // Only final results
+    recognition.continuous = false; // Stop after a single result
 
-    // Manejo del evento cuando se produce un resultado
+    // Handling the event when a result is produced
     recognition.onresult = (event: SpeechRecognitionEvent) => {
       let transcript = event.results[0][0].transcript;
-      transcript = transcript.replace(/\.$/, ""); // Eliminar el punto final si existe
+      transcript = transcript.replace(/\.$/, ""); // Remove the final period if it exists
       transcript = transcript.toLowerCase();
       this.currentCallbackOnResult?.(transcript);
     };
@@ -60,7 +60,7 @@ export class Listener {
       // this.callbackStop?.();
     };
 
-    // Evento que se activa cuando no se detecta sonido o el usuario guarda silencio
+    // Event that fires when no sound is detected or the user remains silent
     recognition.onsoundend = () => {
       this.callbackStop?.();
       // this.speaker.start("No se detectó ningún sonido. Intenta hablar de nuevo.");
@@ -70,11 +70,11 @@ export class Listener {
       try {
         if (event.error === "aborted") {
           console.log(
-            "El reconocimiento de voz fue abortado intencionalmente."
+            "Voice recognition was intentionally aborted."
           );
         } else {
           this.speaker.start(
-            "Ocurrió un error al reconocer tu voz. Intenta nuevamente.",
+            "An error occurred while recognizing your voice. Please try again.",
             () => {
               this.callbackStop?.();
             }
@@ -82,7 +82,7 @@ export class Listener {
         }
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (e) {
-        alert("Ocurrió un error al reconocer tu voz. Intenta nuevamente.");
+        alert("An error occurred while recognizing your voice. Please try again.");
         this.callbackStop?.();
       }
     };
@@ -99,11 +99,11 @@ export class Listener {
   }
 
   /**
-   * Método para interrumpir el reconocimiento de voz en curso
+   * Method to interrupt ongoing voice recognition
    */
   public stop() {
     this.callbackStop?.();
     this.currentRecognizer?.abort();
-    // No es necesario llamar a `recognition.stop()` porque se crea una nueva instancia en cada `start`
+    // No need to call `recognition.stop()` because a new instance is created on each `start`
   }
 }
