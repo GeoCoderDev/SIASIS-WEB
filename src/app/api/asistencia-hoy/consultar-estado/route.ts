@@ -19,7 +19,7 @@ import { GrupoInstaciasDeRedisPorTipoAsistencia } from "../marcar/route";
 
 export async function GET(req: NextRequest) {
   try {
-    // Verificar autenticación
+    // Verify authentication
     const { error } = await verifyAuthToken(req, [
       RolesSistema.Directivo,
       RolesSistema.Auxiliar,
@@ -30,24 +30,24 @@ export async function GET(req: NextRequest) {
 
     if (error) return error;
 
-    // Obtener parámetros de la consulta
+    // Get query parameters
     const searchParams = req.nextUrl.searchParams;
     const tipoAsistenciaParam = searchParams.get(
       "TipoAsistencia"
     ) as TipoAsistencia;
 
-    // Validar parámetros
+    // Validate parameters
     if (!tipoAsistenciaParam) {
       return NextResponse.json(
         {
           success: false,
-          message: "Se requiere el parámetro TipoAsistencia",
+          message: "The TipoAsistencia parameter is required",
         },
         { status: 400 }
       );
     }
 
-    // Validar que TipoAsistencia sea válido
+    // Validate that TipoAsistencia is valid
     if (
       !Object.values(TipoAsistencia).includes(
         tipoAsistenciaParam as TipoAsistencia
@@ -56,17 +56,17 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: "El TipoAsistencia proporcionado no es válido",
+          message: "The provided TipoAsistencia is not valid",
         },
         { status: 400 }
       );
     }
 
-    // Obtener la fecha actual en Perú
+    // Get the current date in Peru
     const fechaActualPeru = await obtenerFechaActualPeru();
     const [anio, mes, dia] = fechaActualPeru.split("-").map(Number);
 
-    // Determinar la key correcta en Redis según el TipoAsistencia
+    // Determine the correct Redis key based on TipoAsistencia
     let redisKey;
     const tipoAsistencia = tipoAsistenciaParam;
 
@@ -82,24 +82,24 @@ export async function GET(req: NextRequest) {
         break;
       default:
         return NextResponse.json(
-          { success: false, message: "Tipo de asistencia no reconocido" },
+          { success: false, message: "Unrecognized attendance type" },
           { status: 400 }
         );
     }
 
-    // Obtener la instancia de Redis correspondiente al tipo de asistencia
+    // Get the Redis instance corresponding to the attendance type
     const redisClientInstance = redisClient(
       GrupoInstaciasDeRedisPorTipoAsistencia[tipoAsistencia]
     );
 
-    // Consultar el valor en Redis
+    // Query the value in Redis
     const valor = await redisClientInstance.get(redisKey);
 
-    // Determinar si la asistencia está iniciada - Si no hay valor, simplemente consideramos que no está iniciada
-    const asistenciaIniciada = valor === true;
-    console.log("prueba", valor);
+    // Determine if attendance has started - If there is no value, we simply consider that it has not started
+    const asistenciaIniciada = valor === "true";
+    console.log("test", valor);
 
-    // Construir la respuesta - siempre devolvemos una respuesta válida con el estado actual
+    // Build the response - always return a valid response with the current status
     const respuesta: EstadoTomaAsistenciaResponseBody = {
       TipoAsistencia: tipoAsistencia,
       Dia: dia,
@@ -110,41 +110,41 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(respuesta, { status: 200 });
   } catch (error) {
-    console.error("Error al consultar estado de toma de asistencia:", error);
+    console.error("Error querying attendance taking status:", error);
 
-    // Determinar el tipo de error
+    // Determine the type of error
     let logoutType: LogoutTypes | null = null;
     const errorDetails: ErrorDetailsForLogout = {
-      mensaje: "Error al consultar estado de toma de asistencia",
+      mensaje: "Error querying attendance taking status",
       origen: "api/estado-toma-asistencia",
       timestamp: Date.now(),
       siasisComponent: "RDP04",
     };
 
     if (error instanceof Error) {
-      // Si es un error de redis crítico o problemas de conexión severos
+      // If it's a critical Redis error or severe connection problems
       if (
         error.message.includes("Redis connection lost") ||
         error.message.includes("Redis connection failed") ||
         error.message.includes("Redis connection timed out")
       ) {
         logoutType = LogoutTypes.ERROR_SISTEMA;
-        errorDetails.mensaje = "Error de conexión con el sistema de datos";
+        errorDetails.mensaje = "Error connecting to the data system";
       }
 
       errorDetails.mensaje += `: ${error.message}`;
     }
 
-    // Si identificamos un error crítico, redirigir al login
+    // If we identify a critical error, redirect to login
     if (logoutType) {
       return redirectToLogin(logoutType, errorDetails);
     }
 
-    // Para otros errores, simplemente devolver una respuesta JSON de error
+    // For other errors, simply return a JSON error response
     return NextResponse.json(
       {
         success: false,
-        message: "Error interno del servidor",
+        message: "Internal server error",
         error: error instanceof Error ? error.message : String(error),
       },
       { status: 500 }

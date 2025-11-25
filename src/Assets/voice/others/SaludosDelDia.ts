@@ -1,11 +1,11 @@
 export enum PeriodoDia {
-  MAÑANA = "Mañana",
-  TARDE = "Tarde",
-  NOCHE = "Noche",
+  MORNING = "Morning",
+  AFTERNOON = "Afternoon",
+  NIGHT = "Night",
 }
 
 export const saludosDia: Record<PeriodoDia, string> = {
-  [PeriodoDia.MAÑANA]: "Buenos días",
-  [PeriodoDia.TARDE]: "Buenas tardes",
-  [PeriodoDia.NOCHE]: "Buenas noches",
+  [PeriodoDia.MORNING]: "Good morning",
+  [PeriodoDia.AFTERNOON]: "Good afternoon",
+  [PeriodoDia.NIGHT]: "Good evening",
 };

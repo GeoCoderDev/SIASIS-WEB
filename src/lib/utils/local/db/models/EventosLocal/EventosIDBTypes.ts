@@ -1,36 +1,36 @@
 import { T_Eventos } from "@prisma/client";
 
-// ✅ INTERFAZ ORIGINAL: Evento individual (sin cambios)
+// ✅ ORIGINAL INTERFACE: Individual event (no changes)
 export type IEventoLocal = Pick<T_Eventos, "Id_Evento" | "Nombre"> & {
-  Fecha_Inicio: string; // Formato YYYY-MM-DD
-  Fecha_Conclusion: string; // Formato YYYY-MM-DD
-  // ✅ NUEVOS CAMPOS CALCULADOS para indexación
-  mes_año_inicio?: string; // Ejemplo: "2025-06"
-  mes_año_conclusion?: string; // Ejemplo: "2025-06"
+  Fecha_Inicio: string; // YYYY-MM-DD format
+  Fecha_Conclusion: string; // YYYY-MM-DD format
+  // ✅ NEW CALCULATED FIELDS for indexing
+  mes_año_inicio?: string; // Example: "2025-06"
+  mes_año_conclusion?: string; // Example: "2025-06"
 };
 
-// ✅ NUEVA INTERFAZ: Eventos agrupados por mes con sincronización granular
+// ✅ NEW INTERFACE: Events grouped by month with granular synchronization
 export interface IEventosPorMes {
-  clave_mes_año: string; // Clave primaria: "2025-06"
+  clave_mes_año: string; // Primary key: "2025-06"
   año: number; // 2025
-  mes: number; // 6 (junio)
-  eventos: IEventoLocal[]; // Array de eventos del mes
-  cantidad_eventos: number; // Número total de eventos
-  ultima_actualizacion: number; // Timestamp de última sincronización
-  fecha_creacion: number; // Timestamp de creación del registro
+  mes: number; // 6 (June)
+  eventos: IEventoLocal[]; // Array of events for the month
+  cantidad_eventos: number; // Total number of events
+  ultima_actualizacion: number; // Timestamp of last synchronization
+  fecha_creacion: number; // Timestamp of record creation
 }
 
-// ✅ INTERFAZ PARA FILTROS (actualizada)
+// ✅ INTERFACE FOR FILTERS (updated)
 export interface IEventoFilter {
   Id_Evento?: number;
   Nombre?: string;
-  mes?: number; // Filtro por mes (1-12)
-  año?: number; // Filtro por año (2024, 2025, etc.)
-  // ✅ NUEVO: Filtro por clave mes-año
+  mes?: number; // Filter by month (1-12)
+  año?: number; // Filter by year (2024, 2025, etc.)
+  // ✅ NEW: Filter by month-year key
   clave_mes_año?: string; // "2025-06"
 }
 
-// ✅ INTERFAZ PARA RESPUESTA DE SINCRONIZACIÓN
+// ✅ INTERFACE FOR SYNCHRONIZATION RESPONSE
 export interface ISincronizacionEventos {
   sincronizado: boolean;
   eventos_actualizados: number;
@@ -41,12 +41,12 @@ export interface ISincronizacionEventos {
   timestamp_sincronizacion: number;
 }
 
-// ✅ UTILIDAD: Función para generar clave mes-año
+// ✅ UTILITY: Function to generate month-year key
 export const generarClaveMesAño = (mes: number, año: number): string => {
   return `${año}-${mes.toString().padStart(2, '0')}`;
 };
 
-// ✅ UTILIDAD: Función para extraer mes y año de una fecha YYYY-MM-DD
+// ✅ UTILITY: Function to extract month and year from a YYYY-MM-DD date
 export const extraerMesAñoDeFecha = (fecha: string): { mes: number; año: number; clave: string } => {
   const [año, mes] = fecha.split('-').map(Number);
   return {
@@ -56,7 +56,7 @@ export const extraerMesAñoDeFecha = (fecha: string): { mes: number; año: numbe
   };
 };
 
-// ✅ UTILIDAD: Función para validar si un año debe ser eliminado
+// ✅ UTILITY: Function to validate if a year should be deleted
 export const debeEliminarAño = (año: number): boolean => {
   const añoActual = new Date().getFullYear();
   return año !== añoActual;

@@ -66,7 +66,7 @@ const UsuarioGenericoEncontrado = ({
           </div>
         </div>
 
-        {/* Icono de selección */}
+        {/* Selection icon */}
         <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
             <svg
@@ -90,7 +90,7 @@ const UsuarioGenericoEncontrado = ({
 };
 
 const LIMITE_USUARIOS_GENERICOS_A_TRAER = 5;
-// Controla si se muestra feedback visual al usuario mientras escribe (iconos, mensajes, etc.)
+// Controls whether visual feedback is shown to the user while typing (icons, messages, etc.)
 const FEEDBACK_ESCRITURA = true;
 
 const SiasisUserSelector = ({
@@ -119,11 +119,11 @@ const SiasisUserSelector = ({
 
   const { delegarEvento } = useDelegacionEventos();
 
-  // Ref para el timeout del debounce
+  // Ref for the debounce timeout
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const DEBOUNCE_DELAY = 500; // 500ms de delay
+  const DEBOUNCE_DELAY = 500; // 500ms delay
 
-  // Instancia del modelo (se crea una sola vez)
+  // Model instance (created once)
   const [usuariosGenericosIDB] = useState(
     () =>
       new UsuariosGenericosIDB(
@@ -134,7 +134,7 @@ const SiasisUserSelector = ({
       )
   );
 
-  // Función segura para establecer usuarios obtenidos
+  // Safe function to set obtained users
   const setUsuariosSeguro = useCallback(
     (usuarios: GenericUser[] | undefined | null) => {
       setUsuariosGenericosObtenidos(Array.isArray(usuarios) ? usuarios : []);
@@ -142,7 +142,7 @@ const SiasisUserSelector = ({
     []
   );
 
-  // Función de búsqueda usando IndexedDB (equivalente al fetchUsuariosGenericos original)
+  // Search function using IndexedDB (equivalent to the original fetchUsuariosGenericos)
   const buscarUsuariosGenericos = useCallback(async () => {
     try {
       if (
@@ -151,7 +151,7 @@ const SiasisUserSelector = ({
       ) {
         setError({
           success: false,
-          message: "El criterio de búsqueda debe tener al menos 2 caracteres",
+          message: "The search criterion must be at least 2 characters long",
         });
         setUsuariosSeguro([]);
         return;
@@ -174,7 +174,7 @@ const SiasisUserSelector = ({
       } else {
         setError({
           success: false,
-          message: "Error inesperado al buscar usuarios",
+          message: "Unexpected error searching for users",
         });
       }
     }
@@ -199,18 +199,18 @@ const SiasisUserSelector = ({
     );
   }, [delegarEvento, ID_SELECTOR_USUARIO_GENERICO_HTML]);
 
-  // Determinar si el componente está deshabilitado
+  // Determine if the component is disabled
   const estaDeshabilitado = disabled || !rolUsuariosABuscar;
 
-  // DEBOUNCE LOGIC + BÚSQUEDA INICIAL: Buscar después de que el usuario deje de escribir
-  // También busca los primeros 5 usuarios automáticamente al abrir el dropdown
+  // DEBOUNCE LOGIC + INITIAL SEARCH: Search after the user stops typing
+  // Also automatically searches for the first 5 users when the dropdown is opened
   useEffect(() => {
-    // Limpiar timeout anterior
+    // Clear previous timeout
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
     }
 
-    // Si no está desplegado o está deshabilitado, limpiar y salir
+    // If not expanded or disabled, clear and exit
     if (!estaDesplegado || estaDeshabilitado) {
       cancelAllRequests();
       setUsuariosSeguro([]);
@@ -218,8 +218,8 @@ const SiasisUserSelector = ({
       return;
     }
 
-    // Si el criterio está vacío, ejecutar búsqueda inicial inmediatamente
-    // (muestra los primeros 5 usuarios sin filtros)
+    // If the criterion is empty, execute initial search immediately
+    // (shows the first 5 users without filters)
     if (criterioDeBusqueda.trim() === "") {
       setIsTyping(false);
       setError(null);
@@ -227,13 +227,13 @@ const SiasisUserSelector = ({
       return;
     }
 
-    // Si hay criterio de búsqueda, aplicar debounce
+    // If there is a search criterion, apply debounce
     if (FEEDBACK_ESCRITURA) {
       setIsTyping(true);
     }
     setError(null);
 
-    // Configurar timeout para buscar después del delay
+    // Set timeout to search after delay
     debounceTimeoutRef.current = setTimeout(() => {
       if (FEEDBACK_ESCRITURA) {
         setIsTyping(false);
@@ -254,7 +254,7 @@ const SiasisUserSelector = ({
     estaDeshabilitado,
   ]);
 
-  // Cleanup al desmontar el componente
+  // Cleanup on component unmount
   useEffect(() => {
     return () => {
       if (debounceTimeoutRef.current) {
@@ -274,16 +274,16 @@ const SiasisUserSelector = ({
 
   const DENOMINACION_USUARIOS = rolUsuariosABuscar
     ? RolesTextos[rolUsuariosABuscar]["desktop"][Genero.Masculino]
-    : "Usuario";
+    : "User";
 
   return (
     <div className="w-full">
       <label className="block text-xs font-semibold text-gray-700 mb-1">
-        Seleccionar {DENOMINACION_USUARIOS}
+        Select {DENOMINACION_USUARIOS}
       </label>
 
       <div className="relative w-full">
-        {/* Selector principal */}
+        {/* Main selector */}
         <div
           className={`w-full px-3 py-2.5 border-2 rounded-lg cursor-pointer transition-all duration-200
                       bg-white min-h-[3rem] flex items-center justify-between shadow-sm
@@ -303,20 +303,20 @@ const SiasisUserSelector = ({
         >
           <div className="flex-1 min-w-0">
             {!rolUsuariosABuscar ? (
-              // Estado: No hay rol seleccionado
+              // State: No role selected
               <div className="flex items-center space-x-2.5">
                 <AlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0" />
                 <div className="min-w-0">
                   <span className="text-sm font-medium text-amber-600 block truncate">
-                    Selecciona un rol primero
+                    Select a role first
                   </span>
                   <p className="text-xs text-amber-500 truncate">
-                    Debes elegir un rol antes de seleccionar un usuario
+                    You must choose a role before selecting a user
                   </p>
                 </div>
               </div>
             ) : usuarioSeleccionado ? (
-              // Estado: Usuario seleccionado
+              // State: User selected
               <div className="flex items-center space-x-2.5">
                 <FotoPerfilClientSide
                   Google_Drive_Foto_ID={
@@ -337,22 +337,22 @@ const SiasisUserSelector = ({
                 </div>
               </div>
             ) : (
-              // Estado: Rol seleccionado pero sin usuario
+              // State: Role selected but no user
               <div className="flex items-center space-x-2.5">
                 <Users className="w-4 h-4 text-gray-400 flex-shrink-0" />
                 <div className="min-w-0">
                   <span className="text-sm font-medium text-gray-600 block truncate">
-                    Seleccionar {DENOMINACION_USUARIOS}
+                    Select {DENOMINACION_USUARIOS}
                   </span>
                   <p className="text-xs text-gray-400 truncate">
-                    Busca y selecciona un usuario
+                    Search and select a user
                   </p>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Icono de flecha */}
+          {/* Arrow icon */}
           <div className="flex-shrink-0 ml-2">
             <ChevronDown
               className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
@@ -369,7 +369,7 @@ const SiasisUserSelector = ({
             className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl 
                        max-h-80 overflow-hidden"
           >
-            {/* Buscador mejorado */}
+            {/* Improved searcher */}
             <div
               id={`${ID_SELECTOR_USUARIO_GENERICO_HTML}-buscador`}
               className="p-3 border-b border-gray-100 bg-gray-200  rounded-t-lg"
@@ -389,7 +389,7 @@ const SiasisUserSelector = ({
                            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
                            placeholder-gray-400 transition-all duration-200 bg-white"
                   type="search"
-                  placeholder={`Buscar ${DENOMINACION_USUARIOS.toLowerCase()}...`}
+                  placeholder={`Search ${DENOMINACION_USUARIOS.toLowerCase()}...`}
                   value={criterioDeBusqueda}
                   onChange={(e) => {
                     setCriterioDeBusqueda(e.target.value);
@@ -400,22 +400,22 @@ const SiasisUserSelector = ({
               {FEEDBACK_ESCRITURA && isTyping && (
                 <div className="mt-1 text-xs text-blue-600 flex items-center">
                   <Clock className="w-3 h-3 mr-1" />
-                  Escribiendo...
+                  Typing...
                 </div>
               )}
             </div>
 
-            {/* Resultados */}
+            {/* Results */}
             <div
               id={`${ID_SELECTOR_USUARIO_GENERICO_HTML}-users-founded-list`}
               className="overflow-y-auto max-h-64"
             >
               {FEEDBACK_ESCRITURA && isTyping ? (
-                // Estado: Usuario escribiendo (solo si FEEDBACK_ESCRITURA está activo)
+                // State: User typing (only if FEEDBACK_ESCRITURA is active)
                 <div className="flex items-center justify-center py-6">
                   <Clock className="w-5 h-5 mr-2 text-blue-500" />
                   <span className="text-blue-600 text-sm">
-                    Esperando que termines de escribir...
+                    Waiting for you to finish typing...
                   </span>
                 </div>
               ) : !isSomethingLoading ? (
@@ -438,21 +438,21 @@ const SiasisUserSelector = ({
                     <div className="px-3 py-6 text-center">
                       <Users className="w-10 h-10 text-gray-300 mx-auto mb-2" />
                       <p className="text-gray-500 text-sm font-medium">
-                        No se encontraron usuarios
+                        No users found
                       </p>
                       <p className="text-gray-400 text-xs mt-1">
-                        Intenta con otro criterio de búsqueda
+                        Try with another search criterion
                       </p>
                     </div>
                   )}
 
-                  {/* Mensaje informativo */}
+                  {/* Informative message */}
                   {!error && (usuariosGenericosObtenidos?.length ?? 0) > 0 && (
                     <div className="px-3 py-2 text-center bg-blue-50 border-t border-blue-100">
                       <p className="text-blue-600 text-xs">
-                        💡 Si no encuentras al{" "}
-                        {DENOMINACION_USUARIOS.toLowerCase()}, especifica más tu
-                        búsqueda
+                        💡 If you don't find the{" "}
+                        {DENOMINACION_USUARIOS.toLowerCase()}, specify your
+                        search more
                       </p>
                     </div>
                   )}
@@ -468,11 +468,11 @@ const SiasisUserSelector = ({
                   )}
                 </>
               ) : (
-                // Estado: API cargando
+                // State: API loading
                 <div className="flex items-center justify-center py-6">
                   <Loader className="w-5 h-5 mr-2" />
                   <span className="text-gray-500 text-sm">
-                    Buscando usuarios...
+                    Searching for users...
                   </span>
                 </div>
               )}

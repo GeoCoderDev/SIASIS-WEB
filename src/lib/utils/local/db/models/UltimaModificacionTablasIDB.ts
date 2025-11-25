@@ -19,27 +19,27 @@ import {
 } from "@/constants/CACHE_LIFETIME";
 
 class UltimaModificacionTablasIDB {
-  // Información completa de la tabla que incluye nombre local, remoto, descripción, etc.
+  // Complete table information including local name, remote name, description, etc.
   private tablaInfo: ITablaInfo = TablasSistema.ULTIMA_MODIFICACION;
 
   constructor(private siasisAPI: SiasisAPIS | SiasisAPIS[]) {}
 
   /**
-   * Método de sincronización que verifica y actualiza datos desde el servidor
-   * basado en un intervalo de tiempo aleatorio
-   * @param forzarSincronizacion Si es true, se fuerza la sincronización sin importar el tiempo transcurrido
-   * @returns Promise que se resuelve con true si se sincronizó, false en caso contrario
+   * Synchronization method that verifies and updates data from the server
+   * based on a random time interval
+   * @param forzarSincronizacion If true, synchronization is forced regardless of the elapsed time
+   * @returns Promise that resolves with true if synchronized, false otherwise
    */
   public async sync(forzarSincronizacion: boolean = false): Promise<boolean> {
     try {
-      // Utilizamos la función comprobarSincronizacion para determinar si debemos sincronizar
+      // We use the checkSynchronization function to determine if we should synchronize
       const debeSincronizar = await comprobarSincronizacion(
         MIN_CACHE_LIFETIME_SECONDS,
         MAX_CACHE_LIFETIME_SECONDS,
         forzarSincronizacion
       );
 
-      // Si debe sincronizar, obtenemos datos del servidor
+      // If it should synchronize, we get data from the server
       if (debeSincronizar) {
         await this.fetchYActualizarModificaciones();
       }
@@ -47,11 +47,11 @@ class UltimaModificacionTablasIDB {
       return debeSincronizar;
     } catch (error) {
       console.error(
-        "Error en proceso de sincronización de modificaciones:",
+        "Error in modification synchronization process:",
         error
       );
 
-      // Cerrar sesión con detalles del error
+      // Log out with error details
       const errorDetails = {
         origen: "UltimaModificacionTablasIDB.sync",
         mensaje: error instanceof Error ? error.message : String(error),
@@ -65,26 +65,26 @@ class UltimaModificacionTablasIDB {
   }
 
   /**
-   * Obtiene las modificaciones de tablas desde una o múltiples APIs y las almacena localmente
-   * @returns Promise que se resuelve cuando las modificaciones han sido actualizadas
+   * Gets table modifications from one or multiple APIs and stores them locally
+   * @returns Promise that resolves when the modifications have been updated
    */
   public async fetchYActualizarModificaciones(): Promise<void> {
     try {
-      // Determinar si tenemos una API o múltiples APIs
+      // Determine if we have one API or multiple APIs
       const apis = Array.isArray(this.siasisAPI)
         ? this.siasisAPI
         : [this.siasisAPI];
 
-      console.log(`Consultando modificaciones desde ${apis.length} API(s)`);
+      console.log(`Querying modifications from ${apis.length} API(s)`);
 
-      // Crear promesas para cada API
+      // Create promises for each API
       const promesasApis = apis.map(async (api, index) => {
         try {
-          console.log(`Iniciando consulta a API ${index + 1}:`, api);
+          console.log(`Starting query to API ${index + 1}:`, api);
 
           const { fetchSiasisAPI } = fetchSiasisApiGenerator(api);
 
-          // Realizar la petición al endpoint
+          // Make the request to the endpoint
           const fetchCancelable = await fetchSiasisAPI({
             endpoint: "/api/modificaciones-tablas",
             method: "GET",
@@ -92,18 +92,18 @@ class UltimaModificacionTablasIDB {
 
           if (!fetchCancelable) {
             throw new Error(
-              `No se pudo crear la petición de modificaciones de tablas para API ${
+              `Could not create table modifications request for API ${
                 index + 1
               }`
             );
           }
 
-          // Ejecutar la petición
+          // Execute the request
           const response = await fetchCancelable.fetch();
 
           if (!response.ok) {
             throw new Error(
-              `Error al obtener modificaciones de tablas desde API ${
+              `Error getting table modifications from API ${
                 index + 1
               }: ${response.statusText}`
             );
@@ -113,79 +113,79 @@ class UltimaModificacionTablasIDB {
 
           if (!data.success) {
             throw new Error(
-              `Error en respuesta de modificaciones de tablas desde API ${
+              `Error in table modifications response from API ${
                 index + 1
               }: ${data.message}`
             );
           }
 
           console.log(
-            `API ${index + 1} respondió con ${
+            `API ${index + 1} responded with ${
               data.data?.length || 0
-            } modificaciones`
+            } modifications`
           );
           return data.data as T_Ultima_Modificacion_Tablas[];
         } catch (error) {
-          console.warn(`Error al consultar API ${index + 1} (${api}):`, error);
-          // Retornar array vacío para esta API en caso de error
-          // Esto permite que otras APIs continúen funcionando
+          console.warn(`Error querying API ${index + 1} (${api}):`, error);
+          // Return an empty array for this API in case of error
+          // This allows other APIs to continue working
           return [] as T_Ultima_Modificacion_Tablas[];
         }
       });
 
-      // Ejecutar todas las consultas en paralelo
+      // Execute all queries in parallel
       const resultadosApis = await Promise.all(promesasApis);
 
-      // Consolidar todos los resultados
+      // Consolidate all results
       const todasLasModificaciones = resultadosApis.flat();
       console.log(
-        `Total de modificaciones obtenidas: ${todasLasModificaciones.length}`
+        `Total modifications obtained: ${todasLasModificaciones.length}`
       );
 
-      // Eliminar duplicados y conservar el más reciente por tabla
+      // Remove duplicates and keep the most recent per table
       const modificacionesConsolidadas = this.consolidarModificaciones(
         todasLasModificaciones
       );
       console.log(
-        `Modificaciones consolidadas (sin duplicados): ${modificacionesConsolidadas.length}`
+        `Consolidated modifications (without duplicates): ${modificacionesConsolidadas.length}`
       );
 
-      // Actualizar modificaciones en la base de datos local
+      // Update modifications in the local database
       await this.updateFromApiResponse(modificacionesConsolidadas);
 
       console.log(
-        "Modificaciones de tablas actualizadas correctamente desde todas las APIs"
+        "Table modifications updated correctly from all APIs"
       );
     } catch (error) {
       console.error(
-        "Error al obtener y actualizar modificaciones de tablas:",
+        "Error getting and updating table modifications:",
         error
       );
 
-      // Determinar el tipo de error
+      // Determine the error type
       let logoutType = LogoutTypes.ERROR_SINCRONIZACION;
 
       if (error instanceof Error) {
-        // Si es un error de red o problemas de conexión
+        // If it is a network error or connection problems
         if (
           error.message.includes("network") ||
           error.message.includes("fetch")
         ) {
           logoutType = LogoutTypes.ERROR_RED;
         }
-        // Si es un error relacionado con la respuesta del servidor
-        else if (error.message.includes("obtener modificaciones")) {
+        // If it is an error related to the server response
+        else if (error.message.includes("get modifications")) {
           logoutType = LogoutTypes.ERROR_SINCRONIZACION;
         }
       }
 
-      // Crear detalles del error
+      // Create error details
       const errorDetails = {
         origen: "UltimaModificacionTablasIDB.fetchYActualizarModificaciones",
         mensaje: error instanceof Error ? error.message : String(error),
         timestamp: Date.now(),
         codigo: error instanceof Error && error.name ? error.name : undefined,
-        contexto: `APIs consultadas: ${
+        contexto: `APIs queried: ${
           Array.isArray(this.siasisAPI)
             ? this.siasisAPI.join(", ")
             : this.siasisAPI
@@ -198,9 +198,9 @@ class UltimaModificacionTablasIDB {
   }
 
   /**
-   * Consolida las modificaciones eliminando duplicados y conservando la más reciente por tabla
-   * @param modificaciones Array de todas las modificaciones obtenidas
-   * @returns Array consolidado sin duplicados
+   * Consolidates modifications by removing duplicates and keeping the most recent one per table
+   * @param modificaciones Array of all obtained modifications
+   * @returns Consolidated array without duplicates
    */
   private consolidarModificaciones(
     modificaciones: T_Ultima_Modificacion_Tablas[]
@@ -209,7 +209,7 @@ class UltimaModificacionTablasIDB {
       return [];
     }
 
-    // Agrupar modificaciones por nombre de tabla
+    // Group modifications by table name
     const modificacionesPorTabla = new Map<
       string,
       T_Ultima_Modificacion_Tablas[]
@@ -225,15 +225,15 @@ class UltimaModificacionTablasIDB {
       modificacionesPorTabla.get(nombreTabla)!.push(modificacion);
     });
 
-    // Para cada tabla, conservar solo la modificación más reciente
+    // For each table, keep only the most recent modification
     const modificacionesConsolidadas: T_Ultima_Modificacion_Tablas[] = [];
 
     modificacionesPorTabla.forEach((modificacionesDeTabla, nombreTabla) => {
       if (modificacionesDeTabla.length === 1) {
-        // Si solo hay una modificación, la conservamos
+        // If there is only one modification, we keep it
         modificacionesConsolidadas.push(modificacionesDeTabla[0]);
       } else {
-        // Si hay múltiples, conservamos la más reciente
+        // If there are multiple, we keep the most recent one
         const masReciente = modificacionesDeTabla.reduce((prev, current) => {
           const fechaPrev = new Date(prev.Fecha_Modificacion).getTime();
           const fechaCurrent = new Date(current.Fecha_Modificacion).getTime();
@@ -242,8 +242,8 @@ class UltimaModificacionTablasIDB {
         });
 
         console.log(
-          `Tabla "${nombreTabla}": Se encontraron ${modificacionesDeTabla.length} registros, ` +
-            `conservando el más reciente (${masReciente.Fecha_Modificacion})`
+          `Table "${nombreTabla}": ${modificacionesDeTabla.length} records found, ` +
+            `keeping the most recent (${masReciente.Fecha_Modificacion})`
         );
 
         modificacionesConsolidadas.push(masReciente);
@@ -254,15 +254,15 @@ class UltimaModificacionTablasIDB {
   }
 
   /**
-   * Obtiene todos los registros de modificación, sincronizando antes si es necesario
-   * @param forzarSincronizacion Si es true, fuerza la sincronización sin importar el tiempo
-   * @returns Lista de registros de última modificación
+   * Gets all modification records, synchronizing before if necessary
+   * @param forzarSincronizacion If true, forces synchronization regardless of time
+   * @returns List of last modification records
    */
   public async getAll(
     forzarSincronizacion: boolean = false
   ): Promise<T_Ultima_Modificacion_Tablas[]> {
     try {
-      // Intentar sincronizar antes de obtener los datos
+      // Try to synchronize before getting the data
       await this.sync(forzarSincronizacion);
 
       const store = await IndexedDBConnection.getStore(
@@ -279,13 +279,14 @@ class UltimaModificacionTablasIDB {
           reject(request.error);
         };
       });
-    } catch (error) {
+    }
+    catch (error) {
       console.error(
-        `Error al obtener registros de última modificación (${this.tablaInfo.descripcion}):`,
+        `Error getting last modification records (${this.tablaInfo.descripcion}):`,
         error
       );
 
-      // Crear detalles del error
+      // Create error details
       const errorDetails = {
         origen: "UltimaModificacionTablasIDB.getAll",
         mensaje: error instanceof Error ? error.message : String(error),
@@ -299,15 +300,15 @@ class UltimaModificacionTablasIDB {
   }
 
   /**
-   * Obtiene el registro de última modificación para una tabla específica
-   * @param nombreTabla Nombre de la tabla (remoto o local)
-   * @returns Registro de última modificación o null si no existe
+   * Gets the last modification record for a specific table
+   * @param nombreTabla Table name (remote or local)
+   * @returns Last modification record or null if it does not exist
    */
   public async getByTabla(
     nombreTabla: TablasRemoto | TablasLocal
   ): Promise<T_Ultima_Modificacion_Tablas | null> {
     try {
-      // Intentar sincronizar antes de obtener los datos
+      // Try to synchronize before getting the data
       await this.sync();
 
       const store = await IndexedDBConnection.getStore(
@@ -327,7 +328,7 @@ class UltimaModificacionTablasIDB {
       });
     } catch (error) {
       console.error(
-        `Error al obtener última modificación para la tabla ${nombreTabla}:`,
+        `Error getting last modification for table ${nombreTabla}:`,
         error
       );
       throw error;
@@ -335,9 +336,9 @@ class UltimaModificacionTablasIDB {
   }
 
   /**
-   * Obtiene los registros de modificación por tipo de operación
-   * @param operacion Tipo de operación (INSERT, UPDATE, DELETE)
-   * @returns Lista de registros filtrados por operación
+   * Gets the modification records by operation type
+   * @param operacion Operation type (INSERT, UPDATE, DELETE)
+   * @returns List of records filtered by operation
    */
   public async getByOperacion(
     operacion: DatabaseModificationOperations
@@ -346,7 +347,7 @@ class UltimaModificacionTablasIDB {
       const store = await IndexedDBConnection.getStore(
         this.tablaInfo.nombreLocal!
       );
-      const index = store.index("por_operacion");
+      const index = store.index("by_operation");
 
       return new Promise((resolve, reject) => {
         const request = index.getAll(IDBKeyRange.only(operacion));
@@ -361,7 +362,7 @@ class UltimaModificacionTablasIDB {
       });
     } catch (error) {
       console.error(
-        `Error al obtener modificaciones con operación ${operacion}:`,
+        `Error getting modifications with operation ${operacion}:`,
         error
       );
       throw error;
@@ -369,10 +370,10 @@ class UltimaModificacionTablasIDB {
   }
 
   /**
-   * Obtiene los registros de modificación dentro de un rango de fechas
-   * @param fechaInicio Fecha de inicio (ISO 8601 string)
-   * @param fechaFin Fecha de fin (ISO 8601 string)
-   * @returns Lista de registros dentro del rango de fechas
+   * Gets the modification records within a date range
+   * @param fechaInicio Start date (ISO 8601 string)
+   * @param fechaFin End date (ISO 8601 string)
+   * @returns List of records within the date range
    */
   public async getByRangoFechas(
     fechaInicio: string,
@@ -382,7 +383,7 @@ class UltimaModificacionTablasIDB {
       const store = await IndexedDBConnection.getStore(
         this.tablaInfo.nombreLocal!
       );
-      const index = store.index("por_fecha");
+      const index = store.index("by_date");
 
       return new Promise((resolve, reject) => {
         const request = index.getAll(IDBKeyRange.bound(fechaInicio, fechaFin));
@@ -397,7 +398,7 @@ class UltimaModificacionTablasIDB {
       });
     } catch (error) {
       console.error(
-        `Error al obtener modificaciones en rango de fechas:`,
+        `Error getting modifications in date range:`,
         error
       );
       throw error;
@@ -405,12 +406,12 @@ class UltimaModificacionTablasIDB {
   }
 
   /**
-   * Registra una nueva modificación de tabla
-   * @param modificacion Datos de la modificación
+   * Registers a new table modification
+   * @param modificacion Modification data
    */
   public async add(modificacion: T_Ultima_Modificacion_Tablas): Promise<void> {
     try {
-      // Asegurar que tengamos una fecha de modificación
+      // Ensure we have a modification date
       if (!modificacion.Fecha_Modificacion) {
         modificacion.Fecha_Modificacion = new Date();
       }
@@ -421,7 +422,7 @@ class UltimaModificacionTablasIDB {
       );
 
       return new Promise((resolve, reject) => {
-        const request = store.put(modificacion); // Usamos put en lugar de add para sobrescribir si ya existe
+        const request = store.put(modificacion); // We use put instead of add to overwrite if it already exists
 
         request.onsuccess = () => {
           resolve();
@@ -432,14 +433,14 @@ class UltimaModificacionTablasIDB {
         };
       });
     } catch (error) {
-      console.error(`Error al registrar modificación de tabla:`, error);
+      console.error(`Error registering table modification:`, error);
       throw error;
     }
   }
 
   /**
-   * Elimina un registro de modificación de tabla
-   * @param nombreTabla Nombre de la tabla (remoto o local)
+   * Deletes a table modification record
+   * @param nombreTabla Table name (remote or local)
    */
   public async delete(nombreTabla: TablasRemoto | TablasLocal): Promise<void> {
     try {
@@ -461,7 +462,7 @@ class UltimaModificacionTablasIDB {
       });
     } catch (error) {
       console.error(
-        `Error al eliminar registro de modificación para la tabla ${nombreTabla}:`,
+        `Error deleting modification record for table ${nombreTabla}:`,
         error
       );
       throw error;
@@ -469,8 +470,8 @@ class UltimaModificacionTablasIDB {
   }
 
   /**
-   * Actualiza las modificaciones localmente desde la respuesta de la API
-   * @param modificaciones Array de modificaciones de la API
+   * Updates the modifications locally from the API response
+   * @param modificaciones Array of modifications from the API
    */
   public async updateFromApiResponse(
     modificaciones: T_Ultima_Modificacion_Tablas[]
@@ -481,18 +482,18 @@ class UltimaModificacionTablasIDB {
         "readwrite"
       );
 
-      // Procesar cada modificación de manera individual
+      // Process each modification individually
       for (const modificacion of modificaciones) {
         try {
           await new Promise<void>((resolve, reject) => {
-            // Usar simplemente put con un solo parámetro
-            // para respetar las claves en línea configuradas en el store
+            // Simply use put with a single parameter
+            // to respect the inline keys configured in the store
             const request = store.put(modificacion);
 
             request.onsuccess = () => resolve();
             request.onerror = (event) => {
               console.error(
-                "Error al guardar modificación:",
+                "Error saving modification:",
                 event,
                 modificacion
               );
@@ -501,22 +502,22 @@ class UltimaModificacionTablasIDB {
           });
         } catch (itemError) {
           console.warn(
-            `Error al actualizar modificación individual para tabla ${modificacion.Nombre_Tabla}:`,
+            `Error updating individual modification for table ${modificacion.Nombre_Tabla}:`,
             itemError
           );
         }
       }
 
-      // Actualizar la fecha de sincronización en el almacenamiento del usuario
+      // Update the synchronization date in the user's storage
       userStorage.guardarUltimaSincronizacion(Date.now());
 
       console.log(
-        `Actualizadas ${modificaciones.length} modificaciones desde la API`
+        `Updated ${modificaciones.length} modifications from the API`
       );
     } catch (error) {
-      console.error(`Error al actualizar modificaciones desde la API:`, error);
+      console.error(`Error updating modifications from the API:`, error);
 
-      // Crear detalles del error
+      // Create error details
       const errorDetails = {
         origen: "UltimaModificacionTablasIDB.updateFromApiResponse",
         mensaje: error instanceof Error ? error.message : String(error),
@@ -530,8 +531,8 @@ class UltimaModificacionTablasIDB {
   }
 
   /**
-   * Obtiene la modificación más reciente por fecha
-   * @returns La modificación más reciente o null si no hay registros
+   * Gets the most recent modification by date
+   * @returns The most recent modification or null if there are no records
    */
   public async getMasReciente(): Promise<T_Ultima_Modificacion_Tablas | null> {
     try {
@@ -541,7 +542,7 @@ class UltimaModificacionTablasIDB {
         return null;
       }
 
-      // Ordenar por fecha descendente
+      // Sort by date descending
       const ordenadas = todas.sort(
         (a, b) =>
           new Date(b.Fecha_Modificacion).getTime() -
@@ -550,15 +551,15 @@ class UltimaModificacionTablasIDB {
 
       return ordenadas[0];
     } catch (error) {
-      console.error(`Error al obtener la modificación más reciente:`, error);
+      console.error(`Error getting the most recent modification:`, error);
       throw error;
     }
   }
 
   /**
-   * Obtiene las modificaciones más recientes para todas las tablas
-   * @param limit Límite de resultados por tabla (por defecto 1)
-   * @returns Objeto con las tablas y sus modificaciones más recientes
+   * Gets the most recent modifications for all tables
+   * @param limit Limit of results per table (default 1)
+   * @returns Object with the tables and their most recent modifications
    */
   public async getModificacionesRecientesPorTabla(
     limit: number = 1
@@ -567,7 +568,7 @@ class UltimaModificacionTablasIDB {
       const todas = await this.getAll();
       const resultado: Record<string, T_Ultima_Modificacion_Tablas[]> = {};
 
-      // Agrupar por tabla
+      // Group by table
       todas.forEach((modificacion) => {
         const nombreTabla = modificacion.Nombre_Tabla;
         if (!resultado[nombreTabla]) {
@@ -576,7 +577,7 @@ class UltimaModificacionTablasIDB {
         resultado[nombreTabla].push(modificacion);
       });
 
-      // Ordenar cada grupo por fecha y limitar resultados
+      // Sort each group by date and limit results
       Object.keys(resultado).forEach((tabla) => {
         resultado[tabla].sort(
           (a, b) =>
@@ -589,7 +590,7 @@ class UltimaModificacionTablasIDB {
       return resultado;
     } catch (error) {
       console.error(
-        `Error al obtener modificaciones recientes por tabla:`,
+        `Error getting recent modifications by table:`,
         error
       );
       throw error;
@@ -597,9 +598,9 @@ class UltimaModificacionTablasIDB {
   }
 
   /**
-   * Obtiene las tablas que han sido modificadas desde una fecha específica
-   * @param fechaReferencia Fecha ISO string desde la cual buscar
-   * @returns Array con los nombres de las tablas modificadas después de la fecha
+   * Gets the tables that have been modified since a specific date
+   * @param fechaReferencia ISO string date from which to search
+   * @returns Array with the names of the tables modified after the date
    */
   public async getTablasModificadasDesdeFecha(
     fechaReferencia: string
@@ -608,20 +609,20 @@ class UltimaModificacionTablasIDB {
       const timestampReferencia = new Date(fechaReferencia).getTime();
       const todas = await this.getAll();
 
-      // Filtrar las modificaciones posteriores a la fecha de referencia
+      // Filter modifications after the reference date
       const modificacionesRecientes = todas.filter(
         (mod) =>
           new Date(mod.Fecha_Modificacion).getTime() > timestampReferencia
       );
 
-      // Obtener nombres únicos de tablas
+      // Get unique table names
       const tablasModificadas = Array.from(
         new Set(modificacionesRecientes.map((mod) => mod.Nombre_Tabla))
       );
 
       return tablasModificadas;
     } catch (error) {
-      console.error(`Error al obtener tablas modificadas desde fecha:`, error);
+      console.error(`Error getting modified tables since date:`, error);
       throw error;
     }
   }

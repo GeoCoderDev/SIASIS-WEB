@@ -18,7 +18,7 @@ export class HandlerAuxiliarAsistenciaResponse extends HandlerAsistenciaBase {
     this.auxiliarData = asistenciaData;
   }
 
-  // ===== MÉTODOS PARA DATOS DEL AUXILIAR =====
+  // ===== METHODS FOR AUXILIARY DATA =====
 
   public getMiIdentificador(): string {
     return this.auxiliarData.Mi_Identificador;
@@ -32,7 +32,7 @@ export class HandlerAuxiliarAsistenciaResponse extends HandlerAsistenciaBase {
     return this.auxiliarData.HorarioEscolarSecundaria;
   }
 
-  // ===== MÉTODOS DE VALIDACIÓN DE HORARIOS =====
+  // ===== SCHEDULE VALIDATION METHODS =====
 
   public estaHorarioActivo(horario: HorarioTomaAsistencia): boolean {
     const ahora = this.getFechaHoraRedux();
@@ -53,9 +53,9 @@ export class HandlerAuxiliarAsistenciaResponse extends HandlerAsistenciaBase {
   }
 
   /**
-   * Obtiene el horario efectivo para toma de asistencia de estudiantes de secundaria
-   * (horario escolar + extensiones)
-   * @returns Objeto con horario efectivo incluyendo extensiones
+   * Gets the effective schedule for taking secondary school students' attendance
+   * (school schedule + extensions)
+   * @returns Object with effective schedule including extensions
    */
   public getHorarioEfectivoSecundaria(): {
     inicioEfectivo: Date;
@@ -94,9 +94,9 @@ export class HandlerAuxiliarAsistenciaResponse extends HandlerAsistenciaBase {
   }
 
   /**
-   * Verifica si la toma de asistencia de estudiantes está en horario efectivo
-   * (considerando extensiones)
-   * @returns true si está en horario efectivo para tomar asistencia
+   * Checks if student attendance taking is within effective hours
+   * (considering extensions)
+   * @returns true if it is within effective hours to take attendance
    */
   public estaEnHorarioEfectivoTomaAsistencia(): boolean {
     const ahora = this.getFechaHoraRedux();
@@ -111,15 +111,15 @@ export class HandlerAuxiliarAsistenciaResponse extends HandlerAsistenciaBase {
   }
 
   /**
-   * Verifica si es un día válido para toma de asistencia de estudiantes
-   * (no es día de evento, vacaciones interescolares, ni semana de gestión)
-   * @returns true si es un día válido para clases de estudiantes
+   * Checks if it is a valid day for taking student attendance
+   * (it is not an event day, inter-school holidays, nor management week)
+   * @returns true if it is a valid day for student classes
    */
   public esDiaValidoParaClases(): boolean {
-    // Los estudiantes NO tienen clases en:
-    // - Días de evento (feriados, celebraciones)
-    // - Vacaciones interescolares
-    // - Semana de gestión
+    // Students do NOT have classes on:
+    // - Event days (holidays, celebrations)
+    // - Inter-school holidays
+    // - Management week
 
     if (this.esHoyDiaDeEvento()) {
       return false;
@@ -129,7 +129,7 @@ export class HandlerAuxiliarAsistenciaResponse extends HandlerAsistenciaBase {
       return false;
     }
 
-    // Verificar vacaciones interescolares
+    // Check inter-school holidays
     const vacacionesInterescolares =
       this.auxiliarData.Vacaciones_Interescolares || [];
     const fechaActual = this.getFechaLocalPeru();
@@ -149,8 +149,8 @@ export class HandlerAuxiliarAsistenciaResponse extends HandlerAsistenciaBase {
   }
 
   /**
-   * Obtiene información detallada sobre por qué no es un día válido para clases
-   * @returns Objeto con información sobre la restricción actual
+   * Gets detailed information about why it is not a valid day for classes
+   * @returns Object with information about the current restriction
    */
   public getInfoRestriccionClases(): {
     esValido: boolean;
@@ -163,7 +163,7 @@ export class HandlerAuxiliarAsistenciaResponse extends HandlerAsistenciaBase {
       return { esValido: true };
     }
 
-    // Verificar motivo específico
+    // Check specific reason
     const diaEvento = this.esHoyDiaDeEvento();
     if (diaEvento) {
       return {
@@ -182,7 +182,7 @@ export class HandlerAuxiliarAsistenciaResponse extends HandlerAsistenciaBase {
       };
     }
 
-    // Verificar vacaciones interescolares
+    // Check inter-school holidays
     const vacacionesInterescolares =
       this.auxiliarData.Vacaciones_Interescolares || [];
     const fechaActual = this.getFechaLocalPeru();

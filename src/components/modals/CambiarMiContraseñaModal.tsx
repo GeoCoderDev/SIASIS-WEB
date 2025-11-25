@@ -30,11 +30,11 @@ const CambioContrasenaModal = ({
   siasisAPI,
   Rol,
 }: CambioContrasenaModalProps) => {
-  // Estados para los campos de contraseña
+  // States for password fields
   const [contraseñaActual, setContraseñaActual] = useState<string>("");
   const [nuevaContraseña, setNuevaContraseña] = useState<string>("");
 
-  // Estado para validar los campos
+  // State to validate fields
   const [isValid, setIsValid] = useState<boolean>(false);
 
   // API request hooks
@@ -46,25 +46,25 @@ const CambioContrasenaModal = ({
     setIsSomethingLoading,
   } = useRequestAPIFeatures(siasisAPI);
 
-  // Validación de contraseñas
+  // Password validation
   const validateForm = (actual: string, nueva: string) => {
-    // Limpiar errores previos
+    // Clear previous errors
     setError(null);
 
-    // Verificar que no estén vacías
+    // Check that they are not empty
     if (!actual || !nueva) {
       return false;
     }
 
-    // Verificar que la nueva contraseña tenga al menos 6 caracteres
+    // Check that the new password has at least 6 characters
     if (nueva.length < 6) {
       return false;
     }
 
-    // Verificar que sean diferentes
+    // Check that they are different
     if (actual === nueva) {
       setError({
-        message: "La nueva contraseña no puede ser igual a la actual",
+        message: "The new password cannot be the same as the current one",
         success: false,
         errorType: ValidationErrorTypes.INVALID_FORMAT,
       });
@@ -74,7 +74,7 @@ const CambioContrasenaModal = ({
     return true;
   };
 
-  // Manejar cambios en el campo de contraseña actual
+  // Handle changes in the current password field
   const handleContraseñaActualChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -83,7 +83,7 @@ const CambioContrasenaModal = ({
     setIsValid(validateForm(value, nuevaContraseña));
   };
 
-  // Manejar cambios en el campo de nueva contraseña
+  // Handle changes in the new password field
   const handleNuevaContraseñaChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -92,13 +92,13 @@ const CambioContrasenaModal = ({
     setIsValid(validateForm(contraseñaActual, value));
   };
 
-  // Función para enviar la solicitud de cambio de contraseña
+  // Function to send the password change request
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!isValid) {
       setError({
-        message: "Por favor, complete correctamente todos los campos",
+        message: "Please complete all fields correctly",
         success: false,
         errorType: ValidationErrorTypes.REQUIRED_FIELDS,
       });
@@ -117,7 +117,7 @@ const CambioContrasenaModal = ({
         queryParams: { Rol },
       });
 
-      if (!fetchCancelable) throw new Error("Error en la solicitud");
+      if (!fetchCancelable) throw new Error("Request error");
 
       const res = await fetchCancelable.fetch();
       const responseJson = (await res.json()) as ApiResponseBase;
@@ -127,15 +127,15 @@ const CambioContrasenaModal = ({
         return setError(responseJson as ErrorResponseAPIBase);
       }
 
-      // Llamar al callback de éxito si existe
+      // Call success callback if it exists
       onSuccess?.();
 
-      // Cerrar el modal
+      // Close the modal
       eliminateModal();
     } catch (err) {
-      console.error("Error al cambiar la contraseña:", err);
+      console.error("Error changing password:", err);
       setError({
-        message: "Error al procesar la solicitud",
+        message: "Error processing request",
         success: false,
         errorType: RequestErrorTypes.REQUEST_FAILED,
       });
@@ -144,10 +144,10 @@ const CambioContrasenaModal = ({
     }
   };
 
-  // Función para prevenir el cierre del modal durante la operación
+  // Function to prevent modal closing during operation
   const handleClose = () => {
     if (isSomethingLoading) {
-      return; // No hacer nada si está cargando
+      return; // Do nothing if loading
     }
     eliminateModal();
   };
@@ -155,10 +155,10 @@ const CambioContrasenaModal = ({
   return (
     <ModalContainer eliminateModal={handleClose}>
       <div className="flex flex-col items-center w-full max-w-md mx-auto transition-all duration-300 ease-in-out gap-2 px-2">
-        {/* Imagen de candado */}
+        {/* Lock image */}
         <img
           src="/images/svg/Candado.svg"
-          alt="Candado"
+          alt="Lock"
           className="w-[8rem] aspect-square mb-4 sxs-only:w-16 xs-only:w-20 sm:w-24 md:w-28"
         />
 
@@ -167,32 +167,32 @@ const CambioContrasenaModal = ({
           className="w-full flex flex-col items-center"
         >
           <div className="w-full space-y-3">
-            {/* Contraseña actual */}
+            {/* Current password */}
             <PasswordInput
               id="contraseñaActual"
               value={contraseñaActual}
               onChange={handleContraseñaActualChange}
-              label="Contraseña Actual:"
+              label="Current Password:"
               required
               maxLength={20}
               inputClassName="w-full sm:w-[105%]"
             />
 
-            {/* Nueva contraseña */}
+            {/* New password */}
             <PasswordInput
               id="nuevaContraseña"
               value={nuevaContraseña}
               onChange={handleNuevaContraseñaChange}
-              label="Nueva Contraseña"
+              label="New Password"
               required
               minLength={6}
               maxLength={20}
-              helperText="La contraseña debe tener al menos 8 caracteres"
+              helperText="The password must be at least 8 characters long"
               inputClassName="w-full sm:w-[105%]"
             />
           </div>
 
-          {/* Mensaje de error */}
+          {/* Error message */}
           {error && (
             <div className="max-w-[18rem] mt-3">
               <ErrorMessage
@@ -204,19 +204,19 @@ const CambioContrasenaModal = ({
             </div>
           )}
 
-          {/* Botón de envío */}
+          {/* Submit button */}
           <BotonConIcono
             IconTSX={<></>}
             isSomethingLoading={isSomethingLoading}
             titleDisabled={`${
               isSomethingLoading
-                ? "Procesando Solicitud..."
+                ? "Processing Request..."
                 : !isValid
-                ? "Complete correctamente los campos"
-                : "No puede usar el botón ahora"
+                ? "Please complete the fields correctly"
+                : "Cannot use button now"
             }`}
             LoaderTSX={<Loader className="w-[1.3rem] p-[0.25rem] bg-negro" />}
-            texto={isSomethingLoading ? "Cambiando..." : "Cambiar Contraseña"}
+            texto={isSomethingLoading ? "Changing..." : "Change Password"}
             typeButton="submit"
             className={`w-max font-semibold px-6 gap-3 py-2 mt-4 rounded-md text-center text-base ${
               isSomethingLoading || !isValid

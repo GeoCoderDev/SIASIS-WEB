@@ -29,7 +29,7 @@ function decodeJwtPayload(token: string) {
       return null;
     }
 
-    // Decodificar la parte del payload (segunda parte)
+    // Decode the payload part (second part)
     const payload = parts[1];
     const decoded = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
     return JSON.parse(decoded);
@@ -89,7 +89,7 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl;
     const pathname = url.pathname;
 
-    // Permitir rutas de API
+    // Allow API routes
     if (pathname.startsWith("/api")) {
       return NextResponse.next();
     }
@@ -99,7 +99,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.next();
     }
 
-    // Permitir rutas internas de Next.js
+    // Allow internal Next.js routes
     if (isNextInternalRoute(pathname)) {
       return NextResponse.next();
     }
@@ -109,12 +109,12 @@ export async function middleware(request: NextRequest) {
     const Nombres = request.cookies.get("Nombres");
     const Apellidos = request.cookies.get("Apellidos");
 
-    // Permitir acceso a login si no hay token
+    // Allow access to login if there is no token
     if (!token && (pathname === "/login" || pathname.startsWith("/login/"))) {
       return NextResponse.next();
     }
 
-    // Validar presencia de cookies requeridas
+    // Validate presence of required cookies
     if (!token || !Rol || !Nombres || !Apellidos) {
       return deleteCookies();
     }
@@ -175,7 +175,7 @@ export async function middleware(request: NextRequest) {
         return deleteCookies();
       }
 
-      // Verificar que el rol en el token coincida con el rol en la cookie
+      // Verify that the role in the token matches the role in the cookie
       if (decodedPayload.Rol !== rolValue) {
         console.error("Rol en token no coincide con rol en cookie");
         return deleteCookies();

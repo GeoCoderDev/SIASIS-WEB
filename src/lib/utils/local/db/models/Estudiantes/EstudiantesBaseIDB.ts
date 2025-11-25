@@ -1,5 +1,5 @@
 // ============================================================================
-//              Clase base para gestión de estudiantes (NO ABSTRACTA)
+// Base class for student management (NOT ABSTRACT)
 // ============================================================================
 
 import {
@@ -23,7 +23,7 @@ import AllErrorTypes, {
   UserErrorTypes,
 } from "@/interfaces/shared/errors";
 
-// Filtros para búsqueda basados en los atributos base de T_Estudiantes
+// Filters for search based on the base attributes of T_Estudiantes
 export interface IEstudianteBaseFilter {
   Id_Estudiante?: string;
   Nombres?: string;
@@ -33,13 +33,13 @@ export interface IEstudianteBaseFilter {
 }
 
 /**
- * Clase base para gestión de estudiantes (AHORA ES CONCRETA)
- * Todos los roles almacenan estudiantes en la tabla común "estudiantes"
- * Los métodos aquí trabajan solo con los atributos base de la interfaz T_Estudiantes
- * Las clases hijas pueden sobrescribir los métodos según necesiten
+ * Base class for student management (NOW CONCRETE)
+ * All roles store students in the common "estudiantes" table
+ * The methods here work only with the base attributes of the T_Estudiantes interface
+ * Child classes can override the methods as needed
  */
 export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
-  // Tabla común para todos los roles
+  // Common table for all roles
   protected readonly tablaEstudiantes: string = "estudiantes";
   protected readonly tablaInfo: ITablaInfo = TablasSistema.ESTUDIANTES;
 
@@ -51,27 +51,27 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
   ) {}
 
   /**
-   * Verifica si la sincronización está habilitada para esta instancia
-   * @returns true si hay al menos una API configurada, false si no
+   * Checks if synchronization is enabled for this instance
+   * @returns true if at least one API is configured, false otherwise
    */
   protected get isSyncEnabled(): boolean {
     return this.siasisAPI !== undefined;
   }
 
   /**
-   * Métodos que las clases hijas pueden sobrescribir según necesiten
-   * Ahora tienen implementaciones por defecto para permitir uso directo de la clase base
+   * Methods that child classes can override as needed
+   * Now have default implementations to allow direct use of the base class
    */
 
   /**
-   * Sincronización por defecto - usa sincronización estándar
-   * Las clases hijas pueden sobrescribir este método para lógica específica
+   * Default synchronization - uses standard synchronization
+   * Child classes can override this method for specific logic
    */
   protected async sync(): Promise<void> {
-    // Si no hay API configurada, no sincronizar
+    // If no API is configured, do not synchronize
     if (!this.isSyncEnabled) {
       console.log(
-        "Sincronización deshabilitada para esta instancia - siasisAPI es undefined"
+        "Synchronization disabled for this instance - siasisAPI is undefined"
       );
       return;
     }
@@ -80,30 +80,30 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
   }
 
   /**
-   * Solicita estudiantes desde la API - implementación por defecto
-   * Las clases hijas DEBEN sobrescribir este método para funcionalidad real
+   * Requests students from the API - default implementation
+   * Child classes MUST override this method for real functionality
    */
   protected async solicitarEstudiantesDesdeAPI(): Promise<T[]> {
     if (!this.isSyncEnabled) {
       console.warn(
-        "solicitarEstudiantesDesdeAPI: Sincronización deshabilitada - retornando array vacío"
+        "solicitarEstudiantesDesdeAPI: Synchronization disabled - returning empty array"
       );
       return [];
     }
 
     console.warn(
-      "solicitarEstudiantesDesdeAPI no implementado en clase base. " +
-        "Las clases hijas deben sobrescribir este método para funcionalidad específica."
+      "solicitarEstudiantesDesdeAPI not implemented in base class. " +
+        "Child classes must override this method for specific functionality."
     );
     return [];
   }
 
   /**
-   * Actualiza estudiantes de un subconjunto específico solo si los datos locales son más antiguos que la fecha de obtención del servidor
-   * @param filtro Filtro que identifica el subconjunto de estudiantes que se va a reemplazar completamente
-   * @param estudiantes Lista de estudiantes obtenidos del servidor que cumplen con el filtro
-   * @param fechaObtenciones Fecha en formato timestamp string UTC de cuándo se obtuvieron estos datos del servidor
-   * @returns Promise que se resuelve con el resultado de la operación o null si no se necesita actualizar
+   * Updates students from a specific subset only if the local data is older than the server's retrieval date
+   * @param filtro Filter that identifies the subset of students to be completely replaced
+   * @param estudiantes List of students obtained from the server that meet the filter
+   * @param fechaObtenciones Date in UTC timestamp string format of when this data was obtained from the server
+   * @returns Promise that resolves with the result of the operation or null if no update is needed
    */
   public async actualizarSiEsNecesario(
     filtro: IEstudianteBaseFilter,
@@ -117,17 +117,17 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
     wasUpdated: boolean;
   } | null> {
     try {
-      // Si no hay API configurada, proceder directamente con la actualización sin verificar fechas
+      // If no API is configured, proceed directly with the update without checking dates
       if (!this.isSyncEnabled) {
         console.log(
-          "Sincronización deshabilitada - actualizando directamente sin verificar fechas del servidor"
+          "Synchronization disabled - updating directly without checking server dates"
         );
         const result = await this.upsertFromServerWithFilter(
           filtro,
           estudiantes
         );
 
-        // Registrar la actualización local incluso sin sync habilitado
+        // Register the local update even without sync enabled
         await ultimaActualizacionTablasLocalesIDB.registrarActualizacion(
           this.tablaInfo.nombreLocal as TablasLocal,
           DatabaseModificationOperations.UPDATE
@@ -136,19 +136,19 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
         return { ...result, wasUpdated: true };
       }
 
-      // Obtener la última actualización local
+      // Get the last local update
       const ultimaActualizacionLocal =
         await ultimaActualizacionTablasLocalesIDB.getByTabla(
           this.tablaInfo.nombreLocal as TablasLocal
         );
 
-      // Convertir la fecha de obtención del servidor a timestamp
+      // Convert the server data obtaining date to a timestamp
       const fechaObtencionsTimestamp = new Date(fechaObtenciones).getTime();
 
-      // Si no hay actualización local, proceder con la actualización
+      // If there is no local update, proceed with the update
       if (!ultimaActualizacionLocal) {
         console.log(
-          "No hay actualización local registrada, procediendo con la actualización de estudiantes filtrados"
+          "No local update registered, proceeding with updating filtered students"
         );
         const result = await this.upsertFromServerWithFilter(
           filtro,
@@ -163,19 +163,19 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
         return { ...result, wasUpdated: true };
       }
 
-      // Convertir la fecha de actualización local a timestamp
+      // Convert the local update date to a timestamp
       const fechaActualizacionLocal =
         typeof ultimaActualizacionLocal.Fecha_Actualizacion === "number"
           ? ultimaActualizacionLocal.Fecha_Actualizacion
           : new Date(ultimaActualizacionLocal.Fecha_Actualizacion).getTime();
 
-      // Comparar fechas: si la actualización local es anterior a la fecha de obtención del servidor, actualizar
+      // Compare dates: if the local update is older than the server data obtaining date, update
       if (fechaActualizacionLocal < fechaObtencionsTimestamp) {
         const filtroStr = this.filtroToString(filtro);
         console.log(
-          `Actualizando estudiantes con filtro [${filtroStr}]: datos locales (${new Date(
+          `Updating students with filter [${filtroStr}]: local data (${new Date(
             fechaActualizacionLocal
-          ).toLocaleString()}) son anteriores a los datos del servidor (${new Date(
+          ).toLocaleString()}) is older than server data (${new Date(
             fechaObtencionsTimestamp
           ).toLocaleString()})`
         );
@@ -191,16 +191,16 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
         );
 
         console.log(
-          `Actualización de estudiantes completada con filtro [${filtroStr}]: ${estudiantes.length} estudiantes procesados (${result.created} creados, ${result.updated} actualizados, ${result.deleted} eliminados, ${result.errors} errores)`
+          `Student update completed with filter [${filtroStr}]: ${estudiantes.length} students processed (${result.created} created, ${result.updated} updated, ${result.deleted} deleted, ${result.errors} errors)`
         );
 
         return { ...result, wasUpdated: true };
       } else {
         const filtroStr = this.filtroToString(filtro);
         console.log(
-          `No se necesita actualizar estudiantes con filtro [${filtroStr}]: datos locales (${new Date(
+          `No need to update students with filter [${filtroStr}]: local data (${new Date(
             fechaActualizacionLocal
-          ).toLocaleString()}) son más recientes que los datos del servidor (${new Date(
+          ).toLocaleString()}) is more recent than server data (${new Date(
             fechaObtencionsTimestamp
           ).toLocaleString()})`
         );
@@ -215,7 +215,7 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
       }
     } catch (error) {
       console.error(
-        "Error al verificar si es necesario actualizar estudiantes:",
+        "Error checking if it is necessary to update students:",
         error
       );
       this.handleSyncError(error);
@@ -224,7 +224,7 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
   }
 
   /**
-   * Obtiene un estudiante por su ID - SIMPLE como AuxiliaresIDB
+   * Gets a student by their ID - SIMPLE as AuxiliaresIDB
    */
   public async getEstudiantePorId(idEstudiante: string): Promise<T | null> {
     try {
@@ -237,19 +237,19 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
       });
     } catch (error) {
       console.error(
-        `Error al obtener estudiante con ID ${idEstudiante}:`,
+        `Error getting student with ID ${idEstudiante}:`,
         error
       );
       this.handleIndexedDBError(
         error,
-        `obtener estudiante con ID ${idEstudiante}`
+        `get student with ID ${idEstudiante}`
       );
       return null;
     }
   }
 
   /**
-   * Obtiene todos los estudiantes CON SYNC automático
+   * Gets all students WITH automatic SYNC
    */
   public async getTodosLosEstudiantes(
     includeInactive: boolean = false
@@ -259,7 +259,7 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
     this.setSuccessMessage?.(null);
 
     try {
-      // SIMPLE: Solo ejecutar sync antes de consultar
+      // SIMPLE: Just execute sync before querying
       if (this.isSyncEnabled) {
         await this.sync();
       }
@@ -277,22 +277,22 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
         : result.filter((est) => est.Estado === true);
 
       if (estudiantes.length > 0) {
-        this.handleSuccess(`Se encontraron ${estudiantes.length} estudiantes`);
+        this.handleSuccess(`Found ${estudiantes.length} students`);
       } else {
-        this.handleSuccess("No se encontraron estudiantes");
+        this.handleSuccess("No students found");
       }
 
       this.setIsSomethingLoading?.(false);
       return estudiantes;
     } catch (error) {
-      this.handleIndexedDBError(error, "obtener todos los estudiantes");
+      this.handleIndexedDBError(error, "get all students");
       this.setIsSomethingLoading?.(false);
       return [];
     }
   }
 
   /**
-   * Busca estudiantes por nombre CON SYNC automático
+   * Searches for students by name WITH automatic SYNC
    */
   public async buscarPorNombre(
     nombreBusqueda: string,
@@ -302,7 +302,7 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
     this.setError?.(null);
 
     try {
-      // SIMPLE: Solo ejecutar sync antes de consultar
+      // SIMPLE: Just execute sync before querying
       if (this.isSyncEnabled) {
         await this.sync();
       }
@@ -345,39 +345,39 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
 
       if (result.length > 0) {
         this.handleSuccess(
-          `Se encontraron ${result.length} estudiantes con "${nombreBusqueda}"`
+          `Found ${result.length} students with "${nombreBusqueda}"`
         );
       } else {
         this.handleSuccess(
-          `No se encontraron estudiantes con "${nombreBusqueda}"`
+          `No students found with "${nombreBusqueda}"`
         );
       }
 
       this.setIsSomethingLoading?.(false);
       return result;
     } catch (error) {
-      this.handleIndexedDBError(error, "buscar estudiantes por nombre");
+      this.handleIndexedDBError(error, "search students by name");
       this.setIsSomethingLoading?.(false);
       return [];
     }
   }
 
   /**
-   * Filtra estudiantes por estado (activo/inactivo)
-   * @param estado Estado a filtrar (true = activo, false = inactivo)
-   * @returns Array de estudiantes con el estado especificado
+   * Filters students by status (active/inactive)
+   * @param estado Status to filter (true = active, false = inactive)
+   * @returns Array of students with the specified status
    */
   public async filtrarPorEstado(estado: boolean): Promise<T[]> {
     this.setIsSomethingLoading?.(true);
     this.setError?.(null);
 
     try {
-      // Solo sincronizar si está habilitado
+      // Only synchronize if enabled
       if (this.isSyncEnabled) {
         await this.sync();
       } else {
         console.log(
-          "filtrarPorEstado: Sincronización deshabilitada, filtrando datos locales únicamente"
+          "filtrarPorEstado: Synchronization disabled, filtering local data only"
         );
       }
 
@@ -404,29 +404,29 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
         request.onerror = () => reject(request.error);
       });
 
-      const estadoTexto = estado ? "activos" : "inactivos";
+      const estadoTexto = estado ? "active" : "inactive";
       if (result.length > 0) {
         this.handleSuccess(
-          `Se encontraron ${result.length} estudiantes ${estadoTexto}`
+          `Found ${result.length} ${estadoTexto} students`
         );
       } else {
-        this.handleSuccess(`No se encontraron estudiantes ${estadoTexto}`);
+        this.handleSuccess(`No ${estadoTexto} students found`);
       }
 
       this.setIsSomethingLoading?.(false);
       return result;
     } catch (error) {
-      this.handleIndexedDBError(error, "filtrar estudiantes por estado");
+      this.handleIndexedDBError(error, "filter students by status");
       this.setIsSomethingLoading?.(false);
       return [];
     }
   }
 
   /**
-   * Filtra estudiantes por aula
-   * @param idAula ID del aula
-   * @param includeInactive Si incluir estudiantes inactivos
-   * @returns Array de estudiantes del aula especificada
+   * Filters students by classroom
+   * @param idAula Classroom ID
+   * @param includeInactive If to include inactive students
+   * @returns Array of students from the specified classroom
    */
   public async filtrarPorAula(
     idAula: string,
@@ -436,12 +436,12 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
     this.setError?.(null);
 
     try {
-      // Solo sincronizar si está habilitado
+      // Only synchronize if enabled
       if (this.isSyncEnabled) {
         await this.sync();
       } else {
         console.log(
-          "filtrarPorAula: Sincronización deshabilitada, filtrando datos locales únicamente"
+          "filterByClassroom: Synchronization disabled, filtering local data only"
         );
       }
 
@@ -457,7 +457,7 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
           if (cursor) {
             const estudiante = cursor.value as T;
 
-            // Filtrar por aula y estado
+            // Filter by classroom and status
             if (
               estudiante.Id_Aula === idAula &&
               (includeInactive || estudiante.Estado === true)
@@ -475,11 +475,11 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
 
       if (result.length > 0) {
         this.handleSuccess(
-          `Se encontraron ${result.length} estudiantes en el aula ${idAula}`
+          `Found ${result.length} students in classroom ${idAula}`
         );
       } else {
         this.handleSuccess(
-          `No se encontraron estudiantes en el aula ${idAula}`
+          `No students found in classroom ${idAula}`
         );
       }
 
@@ -488,7 +488,7 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
     } catch (error) {
       this.handleIndexedDBError(
         error,
-        `filtrar estudiantes por aula ${idAula}`
+        `filter students by classroom ${idAula}`
       );
       this.setIsSomethingLoading?.(false);
       return [];
@@ -496,10 +496,10 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
   }
 
   /**
-   * Busca estudiantes aplicando múltiples filtros basados en T_Estudiantes
-   * @param filtros Filtros basados en los atributos base
-   * @param includeInactive Si incluir estudiantes inactivos
-   * @returns Array de estudiantes que cumplen todos los filtros
+   * Searches for students by applying multiple filters based on T_Estudiantes
+   * @param filtros Filters based on base attributes
+   * @param includeInactive If to include inactive students
+   * @returns Array of students that meet all filters
    */
   public async buscarConFiltros(
     filtros: IEstudianteBaseFilter,
@@ -509,12 +509,12 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
     this.setError?.(null);
 
     try {
-      // Solo sincronizar si está habilitado
+      // Only synchronize if enabled
       if (this.isSyncEnabled) {
         await this.sync();
       } else {
         console.log(
-          "buscarConFiltros: Sincronización deshabilitada, buscando en datos locales únicamente"
+          "searchWithFilters: Synchronization disabled, searching local data only"
         );
       }
 
@@ -531,13 +531,13 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
             const estudiante = cursor.value as T;
             let cumpleFiltros = true;
 
-            // Filtro por estado si no se incluyen inactivos
+            // Filter by status if not including inactive
             if (!includeInactive && !estudiante.Estado) {
               cursor.continue();
               return;
             }
 
-            // Aplicar filtros específicos
+            // Apply specific filters
             if (
               filtros.Id_Estudiante &&
               estudiante.Id_Estudiante !== filtros.Id_Estudiante
@@ -584,38 +584,38 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
 
       if (result.length > 0) {
         this.handleSuccess(
-          `Se encontraron ${result.length} estudiantes con los filtros aplicados`
+          `Found ${result.length} students with the applied filters`
         );
       } else {
         this.handleSuccess(
-          "No se encontraron estudiantes con los filtros aplicados"
+          "No students found with the applied filters"
         );
       }
 
       this.setIsSomethingLoading?.(false);
       return result;
     } catch (error) {
-      this.handleIndexedDBError(error, "buscar estudiantes con filtros");
+      this.handleIndexedDBError(error, "search students with filters");
       this.setIsSomethingLoading?.(false);
       return [];
     }
   }
 
   /**
-   * Cuenta el total de estudiantes en la tabla
-   * @param includeInactive Si incluir estudiantes inactivos en el conteo
-   * @returns Número total de estudiantes
+   * Counts the total number of students in the table
+   * @param includeInactive If to include inactive students in the count
+   * @returns Total number of students
    */
   public async contarEstudiantes(
     includeInactive: boolean = false
   ): Promise<number> {
     try {
-      // Solo sincronizar si está habilitado
+      // Only synchronize if enabled
       if (this.isSyncEnabled) {
         await this.sync();
       } else {
         console.log(
-          "contarEstudiantes: Sincronización deshabilitada, contando datos locales únicamente"
+          "countStudents: Synchronization disabled, counting local data only"
         );
       }
 
@@ -642,15 +642,15 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
         request.onerror = () => reject(request.error);
       });
     } catch (error) {
-      console.error("Error al contar estudiantes:", error);
-      this.handleIndexedDBError(error, "contar estudiantes");
+      console.error("Error counting students:", error);
+      this.handleIndexedDBError(error, "count students");
       return 0;
     }
   }
 
   /**
-   * Actualiza o crea estudiantes en lote desde el servidor usando filtros para reemplazo específico
-   * Método mejorado que reemplaza completamente el subconjunto que cumple con el filtro
+   * Updates or creates students in batch from the server using filters for specific replacement
+   * Improved method that completely replaces the subset that meets the filter
    */
   protected async upsertFromServerWithFilter(
     filtro: IEstudianteBaseFilter,
@@ -664,36 +664,36 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
     const result = { created: 0, updated: 0, deleted: 0, errors: 0 };
 
     try {
-      // 1. Obtener estudiantes locales que cumplen el filtro
+      // 1. Get local students that meet the filter
       const estudiantesLocalesFiltrados =
         await this.getEstudiantesQueCumplenFiltro(filtro);
       const idsLocalesFiltrados = new Set(
         estudiantesLocalesFiltrados.map((est) => est.Id_Estudiante)
       );
 
-      // 2. Obtener IDs de estudiantes del servidor
+      // 2. Get student IDs from the server
       const idsServidor = new Set(
         estudiantesServidor.map((est) => est.Id_Estudiante)
       );
 
-      // 3. Identificar estudiantes locales que deben ser eliminados
-      // (cumplen el filtro pero ya no están en los datos del servidor)
+      // 3. Identify local students that should be deleted
+      // (meet the filter but are no longer in the server data)
       const idsAEliminar = Array.from(idsLocalesFiltrados).filter(
         (id) => !idsServidor.has(id)
       );
 
-      // 4. Eliminar registros obsoletos del subconjunto filtrado
+      // 4. Delete obsolete records from the filtered subset
       for (const id of idsAEliminar) {
         try {
           await this.deleteById(id);
           result.deleted++;
         } catch (error) {
-          console.error(`Error al eliminar estudiante ${id}:`, error);
+          console.error(`Error deleting student ${id}:`, error);
           result.errors++;
         }
       }
 
-      // 5. Procesar estudiantes del servidor en lotes
+      // 5. Process server students in batches
       const BATCH_SIZE = 20;
 
       for (let i = 0; i < estudiantesServidor.length; i += BATCH_SIZE) {
@@ -725,7 +725,7 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
               request.onerror = () => {
                 result.errors++;
                 console.error(
-                  `Error al guardar estudiante ${estudianteServidor.Id_Estudiante}:`,
+                  `Error saving student ${estudianteServidor.Id_Estudiante}:`,
                   request.error
                 );
                 reject(request.error);
@@ -734,26 +734,26 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
           } catch (error) {
             result.errors++;
             console.error(
-              `Error al procesar estudiante ${estudianteServidor.Id_Estudiante}:`,
+              `Error processing student ${estudianteServidor.Id_Estudiante}:`,
               error
             );
           }
         }
 
-        // Dar respiro al bucle de eventos
+        // Give the event loop a break
         await new Promise((resolve) => setTimeout(resolve, 0));
       }
 
       return result;
     } catch (error) {
-      console.error("Error en la operación upsertFromServerWithFilter:", error);
+      console.error("Error in upsertFromServerWithFilter operation:", error);
       result.errors++;
       return result;
     }
   }
 
   /**
-   * Obtiene estudiantes locales que cumplen con un filtro específico
+   * Gets local students that meet a specific filter
    */
   private async getEstudiantesQueCumplenFiltro(
     filtro: IEstudianteBaseFilter
@@ -772,7 +772,7 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
             const estudiante = cursor.value as T;
             let cumpleFiltro = true;
 
-            // Aplicar filtros específicos (solo los que están definidos)
+            // Apply specific filters (only those that are defined)
             if (
               filtro.Id_Estudiante &&
               estudiante.Id_Estudiante !== filtro.Id_Estudiante
@@ -788,9 +788,9 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
               cumpleFiltro = false;
             }
             if (
-              filtro.Apellidos &&
+              filtros.Apellidos &&
               !estudiante.Apellidos.toLowerCase().includes(
-                filtro.Apellidos.toLowerCase()
+                filtros.Apellidos.toLowerCase()
               )
             ) {
               cumpleFiltro = false;
@@ -817,13 +817,13 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
         request.onerror = () => reject(request.error);
       });
     } catch (error) {
-      console.error("Error al obtener estudiantes que cumplen filtro:", error);
+      console.error("Error getting students that meet filter:", error);
       throw error;
     }
   }
 
   /**
-   * Convierte un filtro en string legible para logs
+   * Converts a filter into a readable string for logs
    */
   private filtroToString(filtro: IEstudianteBaseFilter): string {
     const partes: string[] = [];
@@ -832,15 +832,15 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
     if (filtro.Nombres) partes.push(`Nombres: ${filtro.Nombres}`);
     if (filtro.Apellidos) partes.push(`Apellidos: ${filtro.Apellidos}`);
     if (filtro.Estado !== undefined)
-      partes.push(`Estado: ${filtro.Estado ? "Activo" : "Inactivo"}`);
-    if (filtro.Id_Aula) partes.push(`Aula: ${filtro.Id_Aula}`);
+      partes.push(`Estado: ${filtro.Estado ? "Active" : "Inactive"}`);
+    if (filtro.Id_Aula) partes.push(`Classroom: ${filtro.Id_Aula}`);
 
-    return partes.length > 0 ? partes.join(", ") : "Sin filtros";
+    return partes.length > 0 ? partes.join(", ") : "No filters";
   }
 
   /**
-   * Obtiene todos los IDs de estudiantes en la tabla
-   * @returns Array de IDs de estudiantes
+   * Gets all student IDs in the table
+   * @returns Array of student IDs
    */
   protected async getAllIds(): Promise<string[]> {
     try {
@@ -864,14 +864,14 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
         request.onerror = () => reject(request.error);
       });
     } catch (error) {
-      console.error("Error al obtener todos los IDs de estudiantes:", error);
+      console.error("Error getting all student IDs:", error);
       throw error;
     }
   }
 
   /**
-   * Elimina un estudiante por su ID
-   * @param idEstudiante ID del estudiante a eliminar
+   * Deletes a student by their ID
+   * @param idEstudiante ID of the student to delete
    */
   protected async deleteById(idEstudiante: string): Promise<void> {
     try {
@@ -888,7 +888,7 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
       });
     } catch (error) {
       console.error(
-        `Error al eliminar estudiante con ID ${idEstudiante}:`,
+        `Error deleting student with ID ${idEstudiante}:`,
         error
       );
       throw error;
@@ -896,8 +896,8 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
   }
 
   /**
-   * Actualiza o crea estudiantes en lote desde el servidor
-   * Método común que pueden usar todas las clases hijas
+   * Updates or creates students in batch from the server
+   * Common method that all child classes can use
    */
   protected async upsertFromServer(estudiantesServidor: T[]): Promise<{
     created: number;
@@ -908,27 +908,27 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
     const result = { created: 0, updated: 0, deleted: 0, errors: 0 };
 
     try {
-      // Obtener IDs actuales en la tabla
+      // Get current IDs in the table
       const idsLocales = await this.getAllIds();
       const idsServidor = new Set(
         estudiantesServidor.map((est) => est.Id_Estudiante)
       );
 
-      // Identificar estudiantes que ya no existen en el servidor
+      // Identify students that no longer exist on the server
       const idsAEliminar = idsLocales.filter((id) => !idsServidor.has(id));
 
-      // Eliminar registros obsoletos
+      // Delete obsolete records
       for (const id of idsAEliminar) {
         try {
           await this.deleteById(id);
           result.deleted++;
         } catch (error) {
-          console.error(`Error al eliminar estudiante ${id}:`, error);
+          console.error(`Error deleting student ${id}:`, error);
           result.errors++;
         }
       }
 
-      // Procesar estudiantes en lotes
+      // Process students in batches
       const BATCH_SIZE = 20;
 
       for (let i = 0; i < estudiantesServidor.length; i += BATCH_SIZE) {
@@ -960,7 +960,7 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
               request.onerror = () => {
                 result.errors++;
                 console.error(
-                  `Error al guardar estudiante ${estudianteServidor.Id_Estudiante}:`,
+                  `Error saving student ${estudianteServidor.Id_Estudiante}:`,
                   request.error
                 );
                 reject(request.error);
@@ -969,32 +969,32 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
           } catch (error) {
             result.errors++;
             console.error(
-              `Error al procesar estudiante ${estudianteServidor.Id_Estudiante}:`,
+              `Error processing student ${estudianteServidor.Id_Estudiante}:`,
               error
             );
           }
         }
 
-        // Dar respiro al bucle de eventos
+        // Give the event loop a break
         await new Promise((resolve) => setTimeout(resolve, 0));
       }
 
       return result;
     } catch (error) {
-      console.error("Error en la operación upsertFromServer:", error);
+      console.error("Error in upsertFromServer operation:", error);
       result.errors++;
       return result;
     }
   }
 
   /**
-   * Manejo de sincronización estándar usando comprobarSincronizacionDeTabla
+   * Standard synchronization handling using comprobarSincronizacionDeTabla
    */
   protected async syncronizacionEstandar(): Promise<void> {
-    // Si no hay API configurada, no sincronizar
+    // If no API is configured, do not synchronize
     if (!this.isSyncEnabled) {
       console.log(
-        "syncronizacionEstandar: Sincronización deshabilitada - siasisAPI es undefined"
+        "syncronizacionEstandar: Synchronization disabled - siasisAPI is undefined"
       );
       return;
     }
@@ -1010,7 +1010,7 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
       }
 
       console.log(
-        "%cSE DEBE SINCRONIZAR EL MODELO DE ESTUDIANTES",
+        "%cMUST SYNCHRONIZE STUDENT MODEL",
         "font-size:1.3rem; color:cyan"
       );
       const estudiantes = await this.solicitarEstudiantesDesdeAPI();
@@ -1022,21 +1022,21 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
       );
 
       console.log(
-        `Sincronización de estudiantes completada: ${estudiantes.length} estudiantes procesados (${result.created} creados, ${result.updated} actualizados, ${result.deleted} eliminados, ${result.errors} errores)`
+        `Student synchronization completed: ${estudiantes.length} students processed (${result.created} created, ${result.updated} updated, ${result.deleted} deleted, ${result.errors} errors)`
       );
     } catch (error) {
-      console.error("Error durante la sincronización de estudiantes:", error);
+      console.error("Error during student synchronization:", error);
       this.handleSyncError(error);
     }
   }
 
   /**
-   * Manejo de errores de sincronización - puede ser sobrescrito por clases hijas
-   * @param error Error capturado durante la sincronización
+   * Synchronization error handling - can be overridden by child classes
+   * @param error Error captured during synchronization
    */
   protected async handleSyncError(error: unknown): Promise<void> {
     let errorType: AllErrorTypes = SystemErrorTypes.UNKNOWN_ERROR;
-    let message = "Error al sincronizar estudiantes";
+    let message = "Error synchronizing students";
 
     if (error instanceof Error) {
       if (
@@ -1044,8 +1044,8 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
         error.message.includes("fetch")
       ) {
         errorType = SystemErrorTypes.EXTERNAL_SERVICE_ERROR;
-        message = "Error de red al sincronizar estudiantes";
-      } else if (error.message.includes("obtener estudiantes")) {
+        message = "Network error synchronizing students";
+      } else if (error.message.includes("get students")) {
         errorType = SystemErrorTypes.EXTERNAL_SERVICE_ERROR;
         message = error.message;
       } else if (
@@ -1053,7 +1053,7 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
         error.name === "QuotaExceededError"
       ) {
         errorType = SystemErrorTypes.DATABASE_ERROR;
-        message = "Error de base de datos al sincronizar estudiantes";
+        message = "Database error synchronizing students";
       } else {
         message = error.message;
       }
@@ -1073,7 +1073,7 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
   }
 
   /**
-   * Establece un mensaje de éxito
+   * Sets a success message
    */
   protected handleSuccess(message: string): void {
     const successResponse: MessageProperty = { message };
@@ -1081,27 +1081,27 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
   }
 
   /**
-   * Maneja los errores de operaciones con IndexedDB
+   * Handles errors from IndexedDB operations
    */
   protected handleIndexedDBError(error: unknown, operacion: string): void {
-    console.error(`Error en operación IndexedDB (${operacion}):`, error);
+    console.error(`Error in IndexedDB operation (${operacion}):`, error);
 
     let errorType: AllErrorTypes = SystemErrorTypes.UNKNOWN_ERROR;
-    let message = `Error al ${operacion}`;
+    let message = `Error when ${operacion}`;
 
     if (error instanceof Error) {
       if (error.name === "ConstraintError") {
         errorType = DataConflictErrorTypes.VALUE_ALREADY_IN_USE;
-        message = `Error de restricción al ${operacion}: valor duplicado`;
+        message = `Constraint error when ${operacion}: duplicate value`;
       } else if (error.name === "NotFoundError") {
         errorType = UserErrorTypes.USER_NOT_FOUND;
-        message = `No se encontró el recurso al ${operacion}`;
+        message = `Resource not found when ${operacion}`;
       } else if (error.name === "QuotaExceededError") {
         errorType = SystemErrorTypes.DATABASE_ERROR;
-        message = `Almacenamiento excedido al ${operacion}`;
+        message = `Storage exceeded when ${operacion}`;
       } else if (error.name === "TransactionInactiveError") {
         errorType = SystemErrorTypes.DATABASE_ERROR;
-        message = `Transacción inactiva al ${operacion}`;
+        message = `Inactive transaction when ${operacion}`;
       } else {
         message = error.message || message;
       }
@@ -1116,5 +1116,57 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
         timestamp: Date.now(),
       },
     });
+  }
+
+  /**
+   * Gets basic statistics by level
+   */
+  public async obtenerEstadisticasNivel(nivel: NivelEducativo): Promise<{
+    totalProfesores: number;
+    ultimaActualizacion: number | null;
+  }> {
+    try {
+      const nombreTabla = this.obtenerNombreTabla(nivel);
+      const store = await IndexedDBConnection.getStore(nombreTabla);
+
+      return new Promise((resolve, reject) => {
+        const stats = {
+          totalProfesores: 0,
+          ultimaActualizacion: null as number | null,
+        };
+
+        let ultimaFecha = 0;
+        const request = store.openCursor();
+
+        request.onsuccess = (event) => {
+          const cursor = (event.target as IDBRequest)
+            .result as IDBCursorWithValue;
+
+          if (cursor) {
+            const profesor = cursor.value as IProfesorBaseLocal;
+            stats.totalProfesores++;
+
+            if (profesor.ultima_fecha_actualizacion > ultimaFecha) {
+              ultimaFecha = profesor.ultima_fecha_actualizacion;
+            }
+
+            cursor.continue();
+          } else {
+            stats.ultimaActualizacion = ultimaFecha > 0 ? ultimaFecha : null;
+            resolve(stats);
+          }
+        };
+
+        request.onerror = () => {
+          reject(request.error);
+        };
+      });
+    } catch (error) {
+      this.handleIndexedDBError(error, `get statistics from ${nivel}`);
+      return {
+        totalProfesores: 0,
+        ultimaActualizacion: null,
+      };
+    }
   }
 }

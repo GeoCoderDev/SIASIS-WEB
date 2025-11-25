@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import ModalContainer, { ModalContainerProps } from "./ModalContainer";
-import BotonConIcono from "../buttons/BotonConIcono";
-import Loader from "../shared/loaders/Loader";
+import ModalContainer from "../ModalContainer";
+import BotonConIcono from "@/components/buttons/BotonConIcono";
+import Loader from "@/components/shared/loaders/Loader";
 import { SiasisAPIS } from "@/interfaces/shared/SiasisComponents";
 import useRequestAPIFeatures from "@/hooks/useRequestSiasisAPIFeatures";
 import {
@@ -27,9 +27,9 @@ interface CambioCorreoModalProps
   onSuccess?: () => void;
 }
 
-// Número máximo de intentos permitidos
+// Maximum number of allowed attempts
 const MAX_ATTEMPTS = 3;
-// Tiempo de espera antes de cerrar el modal después de exceder los intentos (3 segundos)
+// Waiting time before closing the modal after exceeding attempts (3 seconds)
 const ERROR_DISPLAY_TIME = 6000;
 
 const CambioCorreoModal = ({
@@ -38,79 +38,77 @@ const CambioCorreoModal = ({
   onSuccess,
   siasisAPI,
 }: CambioCorreoModalProps) => {
-  // Estado para controlar la vista (ingreso de correo vs. ingreso de código)
-  const [step, setStep] = useState<"email" | "code">("email");
+  // State for email fields
+  const [contraseñaActual, setContraseñaActual] = useState<string>("");
+  const [nuevaContraseña, setNuevaContraseña] = useState<string>("");
 
-  // Estado para el nuevo correo electrónico
-  const [nuevoCorreo, setNuevoCorreo] = useState<string>("");
-
-  // Estado para el código OTP
-  const [codigo, setCodigo] = useState<string>("");
-
-  // Estado para almacenar la fecha de expiración absoluta
-  const [expireTimestamp, setExpireTimestamp] = useState<number | null>(null);
-
-  // Estado para el contador de tiempo restante
-  const [timeRemaining, setTimeRemaining] = useState<string>("");
-
-  // Estado para controlar si el botón de envío está habilitado
-  const [isEmailValid, setIsEmailValid] = useState<boolean>(false);
-
-  // Estado para contar los intentos fallidos
-  const [attempts, setAttempts] = useState<number>(0);
-
-  // Estado para controlar si se han excedido los intentos máximos
-  const [maxAttemptsExceeded, setMaxAttemptsExceeded] =
-    useState<boolean>(false);
-
-  // Referencia para el intervalo del temporizador
-  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Referencia para el timeout de cierre por máximos intentos
-  const maxAttemptsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // State to validate fields
+  const [isValid, setIsValid] = useState<boolean>(false);
 
   // API request hooks
   const {
     error,
     setError,
     fetchSiasisAPI,
-    isSomethingLoading,
-    setIsSomethingLoading,
+    isSomethingLoading: isUploading,
+    setIsSomethingLoading: setIsUploading,
   } = useRequestAPIFeatures(siasisAPI);
 
-  // Validar formato de correo electrónico
-  const validateEmail = (email: string) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
-  };
-
-  // Manejar cambio en el campo de correo
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const email = e.target.value;
-    setNuevoCorreo(email);
-    setIsEmailValid(validateEmail(email));
+  // Password validation
+  const validateForm = (actual: string, nueva: string) => {
+    // Clear previous errors
     setError(null);
-  };
 
-  // Manejar cambio en el campo de código
-  const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Solo permitir números
-    const value = e.target.value.replace(/[^0-9]/g, "");
-    if (value.length <= 6) {
-      setCodigo(value);
-      setError(null);
+    // Check that they are not empty
+    if (!actual || !nueva) {
+      return false;
     }
+
+    // Check that the new password has at least 6 characters
+    if (nueva.length < 6) {
+      return false;
+    }
+
+    // Check that they are different
+    if (actual === nueva) {
+      setError({
+        message: "The new password cannot be the same as the current one",
+        success: false,
+        errorType: ValidationErrorTypes.INVALID_FORMAT,
+      });
+      return false;
+    }
+
+    return true;
   };
 
-  // Función para enviar la solicitud de cambio de correo
-  const handleSubmitEmail = async (e: React.FormEvent<HTMLFormElement>) => {
+  // Handle changes in the current password field
+  const handleContraseñaActualChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const value = e.target.value;
+    setContraseñaActual(value);
+    setIsValid(validateForm(value, nuevaContraseña));
+  };
+
+  // Handle changes in the new password field
+  const handleNuevaContraseñaChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const value = e.target.value;
+    setNuevaContraseña(value);
+    setIsValid(validateForm(contraseñaActual, value));
+  };
+
+  // Function to send the password change request
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!isEmailValid) {
+    if (!isValid) {
       setError({
-        message: "Ingresa un correo electrónico válido",
+        message: "Please complete all fields correctly",
         success: false,
-        errorType: ValidationErrorTypes.INVALID_EMAIL,
+        errorType: ValidationErrorTypes.REQUIRED_FIELDS,
       });
       return;
     }
@@ -120,12 +118,14 @@ const CambioCorreoModal = ({
       setError(null);
 
       const fetchCancelable = await fetchSiasisAPI({
-        endpoint: "/api/mis-datos/mi-correo/solicitar-cambio-correo",
+        endpoint: "/api/mis-datos/mi-contrasena",
         method: "PUT",
-        body: JSON.stringify({ nuevoCorreo }),
+        JSONBody: true,
+        body: JSON.stringify({ contraseñaActual, nuevaContraseña }),
+        queryParams: { Rol },
       });
 
-      if (!fetchCancelable) throw new Error("Error en la solicitud");
+      if (!fetchCancelable) throw new Error("Request error");
 
       const res = await fetchCancelable.fetch();
       const responseJson = (await res.json()) as ApiResponseBase;
@@ -135,126 +135,15 @@ const CambioCorreoModal = ({
         return setError(responseJson as ErrorResponseAPIBase);
       }
 
-      const { otpExpireTime } = responseJson as CambiarCorreoSuccessResponse;
-
-      // Calcular y almacenar el timestamp de expiración absoluto
-      const expirationTime = Math.floor(Date.now() / 1000) + otpExpireTime;
-      setExpireTimestamp(expirationTime);
-
-      // Iniciar el contador inmediatamente
-      updateTimeRemaining(expirationTime);
-
-      // Reiniciar contador de intentos y estado de intentos máximos al cambiar a pantalla de código
-      setAttempts(0);
-      setMaxAttemptsExceeded(false);
-
-      // Cambiar al paso de ingreso de código
-      setStep("code");
-    } catch (err) {
-      console.error("Error al solicitar cambio de correo:", err);
-      setError({
-        message: "Error al procesar la solicitud",
-        success: false,
-        errorType: RequestErrorTypes.REQUEST_FAILED,
-      });
-    } finally {
-      setIsSomethingLoading(false);
-    }
-  };
-
-  // Función para confirmar el código OTP
-  const handleSubmitCode = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    if (maxAttemptsExceeded) {
-      return; // No hacer nada si ya se excedieron los intentos máximos
-    }
-
-    if (!codigo || codigo.length === 0) {
-      setError({
-        message: "Ingresa el código de verificación",
-        success: false,
-        errorType: ValidationErrorTypes.REQUIRED_FIELDS,
-      });
-      return;
-    }
-
-    if (codigo.length < 6) {
-      setError({
-        message: "El código debe tener 6 dígitos",
-        success: false,
-        errorType: ValidationErrorTypes.INVALID_FORMAT,
-      });
-      return;
-    }
-
-    try {
-      setIsSomethingLoading(true);
-      setError(null);
-
-      const fetchCancelable = await fetchSiasisAPI({
-        endpoint: "/api/mis-datos/mi-correo/confirmar-correo",
-        method: "POST",
-        body: JSON.stringify({ codigo, nuevoCorreo }),
-      });
-
-      if (!fetchCancelable) throw new Error("Error en la solicitud");
-
-      const res = await fetchCancelable.fetch();
-      const responseJson = (await res.json()) as ApiResponseBase;
-
-      if (!responseJson.success) {
-        // Incrementar el contador de intentos fallidos
-        const newAttempts = attempts + 1;
-        setAttempts(newAttempts);
-
-        // Verificar si se ha excedido el número máximo de intentos
-        if (newAttempts >= MAX_ATTEMPTS) {
-          // Marcar que se han excedido los intentos máximos
-          setMaxAttemptsExceeded(true);
-
-          const maxAttemptsError: ErrorResponseAPIBase = {
-            message: `Has excedido el número máximo de intentos (${MAX_ATTEMPTS}). El proceso será cancelado.`,
-            success: false,
-            errorType: AuthenticationErrorTypes.MAX_ATTEMPTS_EXCEEDED,
-            details: { maxAttempts: MAX_ATTEMPTS },
-          };
-
-          setError(maxAttemptsError);
-
-          // Establecer un temporizador para cerrar el modal después de mostrar el error
-          if (maxAttemptsTimeoutRef.current) {
-            clearTimeout(maxAttemptsTimeoutRef.current);
-          }
-
-          maxAttemptsTimeoutRef.current = setTimeout(() => {
-            // Cerrar el modal
-            eliminateModal();
-          }, ERROR_DISPLAY_TIME);
-
-          setIsSomethingLoading(false);
-          return;
-        }
-
-        setIsSomethingLoading(false);
-        return setError({
-          ...(responseJson as ErrorResponseAPIBase),
-          message: `Código incorrecto. Intento ${newAttempts} de ${MAX_ATTEMPTS}.`,
-        });
-      }
-
-      // Actualizar el correo en el estado de la aplicación
-      updateEmail(nuevoCorreo);
-
-      // Llamar al callback de éxito si existe
+      // Call success callback if it exists
       onSuccess?.();
 
-      // Cerrar el modal
+      // Close the modal
       eliminateModal();
     } catch (err) {
-      console.error("Error al confirmar código:", err);
+      console.error("Error changing password:", err);
       setError({
-        message: "Error al procesar la confirmación",
+        message: "Error processing request",
         success: false,
         errorType: RequestErrorTypes.REQUEST_FAILED,
       });
@@ -263,80 +152,15 @@ const CambioCorreoModal = ({
     }
   };
 
-  // Función para formatear el tiempo restante
-  const formatTimeRemaining = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
-  };
-
-  // Función para actualizar el contador de tiempo restante
-  const updateTimeRemaining = (expirationTimestamp: number) => {
-    const currentTime = Math.floor(Date.now() / 1000);
-    const remaining = expirationTimestamp - currentTime;
-
-    if (remaining <= 0) {
-      setTimeRemaining("Expirado");
-      setError({
-        message: "El código ha expirado. Solicita uno nuevo.",
-        success: false,
-        errorType: TokenErrorTypes.TOKEN_EXPIRED,
-      });
-
-      // Limpiar el intervalo si existe
-      if (timerIntervalRef.current) {
-        clearInterval(timerIntervalRef.current);
-        timerIntervalRef.current = null;
-      }
-
-      return;
-    }
-
-    setTimeRemaining(formatTimeRemaining(remaining));
-  };
-
-  // Efecto para iniciar y manejar el contador de tiempo
-  useEffect(() => {
-    // Limpiar cualquier intervalo existente
-    if (timerIntervalRef.current) {
-      clearInterval(timerIntervalRef.current);
-      timerIntervalRef.current = null;
-    }
-
-    // Si estamos en el paso de código y tenemos un timestamp de expiración, iniciar el contador
-    if (step === "code" && expireTimestamp) {
-      // Actualizar inmediatamente
-      updateTimeRemaining(expireTimestamp);
-
-      // Configurar intervalo para actualizar cada segundo
-      timerIntervalRef.current = setInterval(() => {
-        updateTimeRemaining(expireTimestamp);
-      }, 1000);
-    }
-
-    // Limpiar intervalo al desmontar
-    return () => {
-      if (timerIntervalRef.current) {
-        clearInterval(timerIntervalRef.current);
-        timerIntervalRef.current = null;
-      }
-
-      if (maxAttemptsTimeoutRef.current) {
-        clearTimeout(maxAttemptsTimeoutRef.current);
-        maxAttemptsTimeoutRef.current = null;
-      }
-    };
-  }, [step, expireTimestamp]);
-
-  // Función para prevenir el cierre del modal durante la verificación
+  // Function to prevent modal closing during operation
   const handleClose = () => {
     if (isSomethingLoading) {
-      return; // No hacer nada si está cargando
+      return; // Do nothing if loading
     }
 
     if (step === "code" && !maxAttemptsExceeded) {
       const confirmClose = window.confirm(
-        "¿Estás seguro de que deseas cancelar el proceso de cambio de correo? Si cierras esta ventana, tendrás que iniciar de nuevo."
+        "Are you sure you want to cancel the email change process? If you close this window, you will have to start again."
       );
       if (confirmClose) {
         eliminateModal();
@@ -348,151 +172,77 @@ const CambioCorreoModal = ({
 
   return (
     <ModalContainer eliminateModal={handleClose}>
-      <div className="flex flex-col items-center w-full max-w-[360px] mx-auto transition-all duration-300 ease-in-out gap-4">
-        {/* Imagen de correo electrónico */}
+      <div className="flex flex-col items-center w-full max-w-md mx-auto transition-all duration-300 ease-in-out gap-2 px-2">
+        {/* Lock image */}
         <img
-          src="/images/svg/CorreoElectronico.svg"
-          alt="Correo electrónico"
-          className="w-24 aspect-square mb-2 sxs-only:w-12 sxs-only:h-12 xs-only:w-14 xs-only:h-14"
+          src="/images/svg/Candado.svg"
+          alt="Lock"
+          className="w-[8rem] aspect-square mb-4 sxs-only:w-16 xs-only:w-20 sm:w-24 md:w-28"
         />
 
-        {step === "email" ? (
-          <form
-            onSubmit={handleSubmitEmail}
-            className="w-full flex flex-col items-center"
-          >
-            <div className="w-full">
-              <div className="bg-blue-100 p-3 rounded-md mb-3 flex items-start sxs-only:p-2 xs-only:p-2 lg-only:p-3 xl-only:p-3">
-                <div className="text-blue-700 mr-2 text-base sxs-only:text-sm xs-only:text-sm">
-                  <InformationIcon className="w-4 text-[#007BFF]" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-sm font-semibold text-blue-700 leading-tight">
-                    Cambio de Correo Electrónico
-                  </h3>
-                  <p className="text-xs text-blue-800 mt-0.5 leading-4">
-                    Este correo es clave para recibir todas las notificaciones
-                    importantes. Asegúrate de que el nuevo correo sea uno que
-                    revises frecuentemente.
-                  </p>
-                </div>
-              </div>
-
-              <div className="relative mb-3">
-                <input
-                  type="email"
-                  value={nuevoCorreo}
-                  onChange={handleEmailChange}
-                  placeholder="Ingresa tu nuevo correo aqui"
-                  className="w-full px-3 py-2 text-center text-base border-2 border-red-500 rounded-[10px] focus:outline-none"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Mensaje de error */}
-            {error && <ErrorMessage error={error} closable={true} />}
-
-            {/* Botón de envío */}
-            <BotonConIcono
-              IconTSX={<></>}
-              isSomethingLoading={isSomethingLoading}
-              titleDisabled={`${
-                isSomethingLoading
-                  ? "Procesando Solicitud..."
-                  : !isEmailValid
-                  ? "Ingresa un correo valido"
-                  : "No puede usar el boton ahora"
-              }`}
-              LoaderTSX={<Loader className="w-[1.3rem] p-[0.25rem] bg-negro" />}
-              texto={isSomethingLoading ? "Enviando" : "Cambiar Correo"}
-              typeButton="submit"
-              className={`w-max font-semibold px-4 gap-3 py-2 rounded-md text-center text-base bg-amarillo-ediciones text-negro hover:grayscale-[0.2] transition-colors`}
-              disabled={isSomethingLoading || !isEmailValid}
+        <form
+          onSubmit={handleSubmit}
+          className="w-full flex flex-col items-center"
+        >
+          <div className="w-full space-y-3">
+            {/* Current password */}
+            <PasswordInput
+              id="contraseñaActual"
+              value={contraseñaActual}
+              onChange={handleContraseñaActualChange}
+              label="Current Password:"
+              required
+              maxLength={20}
+              inputClassName="w-full sm:w-[105%]"
             />
-          </form>
-        ) : (
-          <form
-            onSubmit={handleSubmitCode}
-            className="w-full flex flex-col items-center"
-          >
-            <div className="w-full mb-3 flex flex-col items-center">
-              <p className="text-center text-negro text-sm leading-tight mb-2 sxs-only:text-xs xs-only:text-xs">
-                Se ha enviado un código de verificación de 6 dígitos al correo
-                electrónico que ingresaste. Por favor, ingresa el código para
-                confirmar tu identidad antes de proceder con el cambio.
-              </p>
 
-              <div className="w-full bg-red-50 border border-red-200 p-2 rounded-md mb-3">
-                <p className="text-center text-red-600 text-xs font-medium leading-tight">
-                  Revisa tu bandeja de entrada y carpetas de spam.
-                </p>
-                <p className="text-center text-red-500 text-xs mt-0.5 font-medium leading-tight">
-                  No cierres esta ventana hasta completar el proceso.
-                </p>
-              </div>
+            {/* New password */}
+            <PasswordInput
+              id="nuevaContraseña"
+              value={nuevaContraseña}
+              onChange={handleNuevaContraseñaChange}
+              label="New Password"
+              required
+              minLength={6}
+              maxLength={20}
+              helperText="The password must be at least 8 characters long"
+              inputClassName="w-full sm:w-[105%]"
+            />
+          </div>
 
-              {timeRemaining && !maxAttemptsExceeded && (
-                <p className="text-center text-xs text-gray-600 mb-1">
-                  Tiempo restante:{" "}
-                  <span className="font-semibold">{timeRemaining}</span>
-                </p>
-              )}
-
-              {attempts > 0 && !maxAttemptsExceeded && (
-                <p className="text-center text-xs text-amber-600 mb-1 font-medium">
-                  Intento {attempts} de {MAX_ATTEMPTS}
-                </p>
-              )}
-
-              {/* Mostrar input y botón solo si no se han excedido los intentos máximos */}
-              {!maxAttemptsExceeded && (
-                <>
-                  <div className="mb-2">
-                    <input
-                      type="text"
-                      value={codigo}
-                      onChange={handleCodeChange}
-                      placeholder="Ingresa tu codigo aqui"
-                      className="w-max px-3 py-2 text-center text-lg font-medium border-2 border-red-500 rounded-md focus:outline-none"
-                      required
-                      maxLength={6}
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                    />
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Mensaje de error */}
-            {error && (
-              <div className="mb-3 w-full">
-                <ErrorMessage error={error} closable={true} />
-              </div>
-            )}
-
-            {/* Botón de aceptar - Solo mostrar si no se han excedido los intentos máximos */}
-            {!maxAttemptsExceeded && (
-              <BotonConIcono
-                IconTSX={<></>}
-                isSomethingLoading={isSomethingLoading}
-                titleDisabled="Verificando código..."
-                LoaderTSX={
-                  <Loader className="w-[1.3rem] p-[0.25rem] bg-negro" />
-                }
-                texto={isSomethingLoading ? "Verificando" : "Aceptar"}
-                typeButton="submit"
-                className={`font-semibold w-max gap-3 px-4 py-2 rounded-md text-center text-base ${
-                  isSomethingLoading || codigo.length < 6
-                    ? "bg-gris-intermedio text-gris-oscuro cursor-not-allowed"
-                    : "bg-amarillo-ediciones text-negro hover:grayscale-[0.2] transition-colors"
-                }`}
-                disabled={isSomethingLoading || codigo.length < 6}
+          {/* Error message */}
+          {error && (
+            <div className="max-w-[18rem] mt-3">
+              <ErrorMessage
+                className=""
+                error={error}
+                setError={setError}
+                closable={true}
               />
-            )}
-          </form>
-        )}
+            </div>
+          )}
+
+          {/* Submit button */}
+          <BotonConIcono
+            IconTSX={<></>}
+            isSomethingLoading={isSomethingLoading}
+            titleDisabled={`${
+              isSomethingLoading
+                ? "Processing Request..."
+                : !isValid
+                ? "Please complete the fields correctly"
+                : "Cannot use button now"
+            }`}
+            texto={isSomethingLoading ? "Changing..." : "Change Password"}
+            typeButton="submit"
+            className={`w-max gap-3 py-2 px-4 rounded-lg text-negro font-semibold mt-6 ${
+              isSomethingLoading || !isValid
+                ? "bg-gris-intermedio text-gris-oscuro cursor-not-allowed"
+                : "bg-amarillo-ediciones text-negro hover:grayscale-[0.2] transition-colors"
+            }`}
+            disabled={isSomethingLoading || !isValid}
+          />
+        </form>
       </div>
     </ModalContainer>
   );

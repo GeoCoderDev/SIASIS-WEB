@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ActoresSistema } from "@/interfaces/shared/ActoresSistema";
 import { ModoRegistro } from "@/interfaces/shared/ModoRegistro";
-import { redisClient } from "../../../../../config/Redis/RedisClient";
+import {
+  GruposIntanciasDeRedis,
+  redisClient,
+} from "../../../../../config/Redis/RedisClient";
 import { verifyAuthToken } from "@/lib/utils/backend/auth/functions/jwtComprobations";
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import { obtenerFechaActualPeru } from "../../_helpers/obtenerFechaActualPeru";
@@ -17,7 +20,7 @@ import {
 } from "@/interfaces/shared/errors";
 import { GrupoInstaciasDeRedisPorTipoAsistencia } from "../marcar/route";
 
-// Función para validar permisos según rol
+// Function to validate permissions according to role
 const validarPermisosEliminacion = (
   rol: RolesSistema,
   actor: ActoresSistema,
@@ -25,56 +28,56 @@ const validarPermisosEliminacion = (
 ): { esValido: boolean; mensaje?: string } => {
   switch (rol) {
     case RolesSistema.Directivo:
-      // Solo puede eliminar asistencias de personal, NO de estudiantes
+      // Can only delete staff attendance, NOT student attendance
       if (actor === ActoresSistema.Estudiante) {
         return {
           esValido: false,
           mensaje:
-            "Los directivos no pueden eliminar asistencias de estudiantes",
+            "Directors cannot delete student attendances",
         };
       }
-      // Para personal debe ser el tipo correcto
+      // For staff it must be the correct type
       if (tipoAsistencia !== TipoAsistencia.ParaPersonal) {
         return {
           esValido: false,
           mensaje:
-            "Para eliminar asistencias de personal debe usar TipoAsistencia.ParaPersonal",
+            "To delete staff attendances, TipoAsistencia.ParaPersonal must be used",
         };
       }
       return { esValido: true };
 
     case RolesSistema.ProfesorPrimaria:
-      // Solo puede eliminar asistencias de estudiantes de primaria
+      // Can only delete primary student attendances
       if (actor !== ActoresSistema.Estudiante) {
         return {
           esValido: false,
           mensaje:
-            "Los profesores de primaria solo pueden eliminar asistencias de estudiantes",
+            "Primary school teachers can only delete student attendances",
         };
       }
       if (tipoAsistencia !== TipoAsistencia.ParaEstudiantesPrimaria) {
         return {
           esValido: false,
           mensaje:
-            "Los profesores de primaria solo pueden eliminar asistencias de estudiantes de primaria",
+            "Primary school teachers can only delete primary student attendances",
         };
       }
       return { esValido: true };
 
     case RolesSistema.Auxiliar:
-      // Solo puede eliminar asistencias de estudiantes de secundaria
+      // Can only delete secondary student attendances
       if (actor !== ActoresSistema.Estudiante) {
         return {
           esValido: false,
           mensaje:
-            "Los auxiliares solo pueden eliminar asistencias de estudiantes",
+            "Assistants can only delete student attendances",
         };
       }
       if (tipoAsistencia !== TipoAsistencia.ParaEstudiantesSecundaria) {
         return {
           esValido: false,
           mensaje:
-            "Los auxiliares solo pueden eliminar asistencias de estudiantes de secundaria",
+            "Assistants can only delete secondary student attendances",
         };
       }
       return { esValido: true };
@@ -82,12 +85,12 @@ const validarPermisosEliminacion = (
     default:
       return {
         esValido: false,
-        mensaje: "Su rol no tiene permisos para eliminar asistencias",
+        mensaje: "Your role does not have permission to delete attendances",
       };
   }
 };
 
-// Función para construir la clave de Redis
+// Function to build the Redis key
 const construirClaveRedis = (
   fecha: string,
   modoRegistro: ModoRegistro,
@@ -103,15 +106,15 @@ const construirClaveRedis = (
     grado &&
     seccion
   ) {
-    // Para estudiantes con datos completos
+    // For students with complete data
     return `${fecha}:${modoRegistro}:${actor}:${dni}:${nivelEducativo}:${grado}:${seccion}`;
   } else {
-    // Para personal o cuando no se especifican datos completos del estudiante
+    // For staff or when complete student data is not specified
     return `${fecha}:${modoRegistro}:${actor}:${dni}`;
   }
 };
 
-// Función para buscar claves de estudiantes por patrón
+// Function to search for student keys by pattern
 const buscarClaveEstudiante = async (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   redisClientInstance: ReturnType<typeof redisClient>,
@@ -133,22 +136,22 @@ const buscarClaveEstudiante = async (
       return claves[0];
     }
 
-    // Si hay múltiples claves, retornamos la primera encontrada
-    // En un escenario real, esto podría requerir lógica adicional
+    // If there are multiple keys, we return the first one found
+    // In a real scenario, this might require additional logic
     console.warn(
-      `Se encontraron múltiples claves para el estudiante ${dni}:`,
+      `Multiple keys found for student ${dni}:`,
       claves
     );
     return claves[0];
   } catch (error) {
-    console.error("Error al buscar claves de estudiante:", error);
+    console.error("Error searching for student keys:", error);
     return null;
   }
 };
 
 export async function DELETE(req: NextRequest) {
   try {
-    // Verificar autenticación - Solo ciertos roles pueden acceder
+    // Verify authentication - Only certain roles can access
     const { error, rol, decodedToken } = await verifyAuthToken(req, [
       RolesSistema.Directivo,
       RolesSistema.ProfesorPrimaria,
@@ -157,7 +160,7 @@ export async function DELETE(req: NextRequest) {
 
     if (error && !rol && !decodedToken) return error;
 
-    // Parsear el cuerpo de la solicitud
+    // Parse the request body
     const body = (await req.json()) as EliminarAsistenciaRequestBody;
 
     const {
@@ -171,9 +174,9 @@ export async function DELETE(req: NextRequest) {
       Fecha,
     } = body;
 
-    // Validar DNI
+    // Validate DNI
     const dniValidation = validateDNI(Id_Usuario, true);
-    //El directivo tendra ID
+    // The director will have an ID
     if (!dniValidation.isValid && Actor !== ActoresSistema.Directivo) {
       return NextResponse.json(
         {
@@ -185,56 +188,56 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    // Validar campos obligatorios
+    // Validate mandatory fields
     if (!Actor || !ModoRegistro || !tipoAsistencia) {
       return NextResponse.json(
         {
           success: false,
           message:
-            "Se requieren los campos: DNI, Actor, ModoRegistro y TipoAsistencia",
+            "The following fields are required: DNI, Actor, ModoRegistro and TipoAsistencia",
           errorType: RequestErrorTypes.INVALID_PARAMETERS,
         },
         { status: 400 }
       );
     }
 
-    // Validar que Actor sea válido
+    // Validate that Actor is valid
     if (!Object.values(ActoresSistema).includes(Actor)) {
       return NextResponse.json(
         {
           success: false,
-          message: "Actor no válido",
+          message: "Invalid Actor",
           errorType: RequestErrorTypes.INVALID_PARAMETERS,
         },
         { status: 400 }
       );
     }
 
-    // Validar que ModoRegistro sea válido
+    // Validate that ModoRegistro is valid
     if (!Object.values(ModoRegistro).includes(ModoRegistro)) {
       return NextResponse.json(
         {
           success: false,
-          message: "ModoRegistro no válido",
+          message: "Invalid ModoRegistro",
           errorType: RequestErrorTypes.INVALID_PARAMETERS,
         },
         { status: 400 }
       );
     }
 
-    // Validar que TipoAsistencia sea válido
+    // Validate that TipoAsistencia is valid
     if (!Object.values(TipoAsistencia).includes(tipoAsistencia)) {
       return NextResponse.json(
         {
           success: false,
-          message: "TipoAsistencia no válido",
+          message: "Invalid TipoAsistencia",
           errorType: RequestErrorTypes.INVALID_PARAMETERS,
         },
         { status: 400 }
       );
     }
 
-    // Validar permisos según rol
+    // Validate permissions according to role
     const validacionPermisos = validarPermisosEliminacion(
       rol!,
       Actor,
@@ -251,32 +254,32 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    // Determinar la fecha a usar
+    // Determine the date to use
     const fechaEliminacion = Fecha || (await obtenerFechaActualPeru());
 
-    // Validar formato de fecha si se proporciona
+    // Validate date format if provided
     if (Fecha && !/^\d{4}-\d{2}-\d{2}$/.test(Fecha)) {
       return NextResponse.json(
         {
           success: false,
-          message: "El formato de fecha debe ser YYYY-MM-DD",
+          message: "The date format must be YYYY-MM-DD",
           errorType: RequestErrorTypes.INVALID_PARAMETERS,
         },
         { status: 400 }
       );
     }
 
-    // Obtener la instancia de Redis correspondiente
+    // Get the corresponding Redis instance
     const redisClientInstance = redisClient(
       GrupoInstaciasDeRedisPorTipoAsistencia[tipoAsistencia]
     );
 
-    // Construir la clave o buscarla
+    // Build the key or search for it
     let claveAEliminar: string | null = null;
 
     if (Actor === ActoresSistema.Estudiante) {
       if (NivelEducativo && Grado && Seccion) {
-        // Si se proporcionan todos los datos del estudiante, construir clave exacta
+        // If all student data is provided, build exact key
         claveAEliminar = construirClaveRedis(
           fechaEliminacion,
           ModoRegistro,
@@ -287,7 +290,7 @@ export async function DELETE(req: NextRequest) {
           Seccion
         );
       } else {
-        // Si no se proporcionan todos los datos, buscar por patrón
+        // If all data is not provided, search by pattern
         claveAEliminar = await buscarClaveEstudiante(
           redisClientInstance,
           fechaEliminacion,
@@ -297,7 +300,7 @@ export async function DELETE(req: NextRequest) {
         );
       }
     } else {
-      // Para personal, construir clave directamente
+      // For staff, build key directly
       claveAEliminar = construirClaveRedis(
         fechaEliminacion,
         ModoRegistro,
@@ -310,36 +313,36 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: "No se encontró la asistencia a eliminar",
+          message: "No attendance to delete was found",
         },
         { status: 404 }
       );
     }
 
-    // Verificar si la clave existe antes de intentar eliminarla
+    // Check if the key exists before trying to delete it
     const existe = await redisClientInstance.exists(claveAEliminar);
 
     if (!existe) {
       return NextResponse.json(
         {
           success: false,
-          message: "La asistencia especificada no existe",
+          message: "The specified attendance does not exist",
         },
         { status: 404 }
       );
     }
 
-    // Eliminar la asistencia
+    // Delete the attendance
     const resultado = await redisClientInstance.del(claveAEliminar);
 
     console.log(
-      `✅ Asistencia eliminada: ${claveAEliminar} por usuario ${rol} (${decodedToken.ID_Usuario})`
+      `✅ Attendance deleted: ${claveAEliminar} by user ${rol} (${decodedToken.ID_Usuario})`
     );
 
-    // Respuesta exitosa
+    // Successful response
     const respuesta: EliminarAsistenciaSuccessResponse = {
       success: true,
-      message: "Asistencia eliminada correctamente",
+      message: "Attendance deleted successfully",
       data: {
         asistenciaEliminada: resultado > 0,
         claveEliminada: claveAEliminar,
@@ -349,12 +352,12 @@ export async function DELETE(req: NextRequest) {
 
     return NextResponse.json(respuesta, { status: 200 });
   } catch (error) {
-    console.error("❌ Error al eliminar asistencia:", error);
+    console.error("❌ Error deleting attendance:", error);
 
     return NextResponse.json(
       {
         success: false,
-        message: "Error interno del servidor",
+        message: "Internal server error",
         errorType: SystemErrorTypes.UNKNOWN_ERROR,
         errorDetails: error instanceof Error ? error.message : String(error),
       },

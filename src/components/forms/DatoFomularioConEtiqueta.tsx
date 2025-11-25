@@ -8,84 +8,84 @@ import React, {
 import SiasisSelect from "../inputs/SiasisSelect";
 import SiasisInputText from "../inputs/SiasisInputText";
 
-// Definición clara de la interfaz de propiedades
+// Clear definition of the properties interface
 interface DatoFormularioConEtiquetaProps<R> {
-  // Propiedades básicas
+  // Basic properties
   etiqueta: string;
   savedValue?: string | number | null;
   modificatedValue?: string | number | null;
   nombreDato?: keyof R;
   isSomethingLoading: boolean;
 
-  // Propiedades de comportamiento
+  // Behavior properties
   modificable?: boolean;
   modoEdicion?: boolean;
   modificableConModal?: boolean;
   savedValueOculto?: boolean;
   fullWidth?: boolean;
 
-  // Propiedades visuales
+  // Visual properties
   className?: string;
   skeletonClassName?: { className: string };
   IconTSX?: ReactElement;
 
-  // Propiedades de tipo de entrada
+  // Input type properties
   inputType?: "text" | "select" | "tel";
   selectValues?: Record<string, string>;
 
-  // Propiedades de control
+  // Control properties
   onChange?: (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
   setModalVisibility?: Dispatch<SetStateAction<boolean>>;
 
-  // Propiedades HTML nativas
+  // Native HTML properties
   inputAttributes?: InputHTMLAttributes<HTMLInputElement>;
   selectAttributes?: SelectHTMLAttributes<HTMLSelectElement>;
 }
 
 const DatoFormularioConEtiqueta = <R,>({
-  // Destructuración organizada por categorías
-  // Propiedades básicas
+  // Organized destructuring by categories
+  // Basic properties
   etiqueta,
   savedValue,
   modificatedValue,
   nombreDato,
   isSomethingLoading,
 
-  // Propiedades de comportamiento
+  // Behavior properties
   modificable = false,
   modoEdicion = false,
   modificableConModal = false,
   savedValueOculto = false,
   fullWidth = false,
 
-  // Propiedades visuales
+  // Visual properties
   className = "",
   skeletonClassName,
   IconTSX,
 
-  // Propiedades de tipo de entrada
+  // Input type properties
   inputType = "text",
   selectValues,
 
-  // Propiedades de control
+  // Control properties
   onChange,
   setModalVisibility,
 
-  // Propiedades HTML nativas
+  // Native HTML properties
   inputAttributes,
   selectAttributes,
 }: DatoFormularioConEtiquetaProps<R>) => {
-  // Clases comunes para tamaños responsivos
+  // Common classes for responsive sizes
   const textoResponsivo =
     "sxs-only:text-[0.77rem] xs-only:text-[0.81rem] sm-only:text-[0.86rem] md-only:text-[0.9rem] lg-only:text-[0.95rem] xl-only:text-[0.99rem]";
 
-  // Clases para texto "No registrado" (15% más pequeño pero que resalte)
+  // Classes for "Not registered" text (15% smaller but noticeable)
   const textoNoRegistrado =
     "sxs-only:text-[0.65rem] xs-only:text-[0.69rem] sm-only:text-[0.73rem] md-only:text-[0.77rem] lg-only:text-[0.8rem] xl-only:text-[0.85rem] text-gray-500 italic font-medium";
 
-  // Función para renderizar el botón modal (para evitar duplicación)
+  // Function to render the modal button (to avoid duplication)
   const renderBotonModal = () => (
     <div
       className="cursor-pointer flex items-center justify-center bg-amarillo-ediciones rounded-[50%] aspect-square 
@@ -97,15 +97,15 @@ const DatoFormularioConEtiqueta = <R,>({
     </div>
   );
 
-  // Determinar si se debe mostrar el campo de edición
+  // Determine if the edit field should be shown
   const mostrarInputEdicion =
     modificable && modoEdicion && onChange && modificatedValue !== undefined;
 
-  // Determinar si se debe mostrar el skeleton
-  // Mostramos el skeleton si:
-  // 1. No es savedValueOculto (porque en ese caso no queremos mostrar nada relacionado con el valor)
-  // 2. El savedValue no está definido (undefined o null)
-  // 3. Algo está cargando (isSomethingLoading)
+  // Determine if the skeleton should be shown
+  // We show the skeleton if:
+  // 1. It is not savedValueOculto (because in that case we don't want to show anything related to the value)
+  // 2. The savedValue is not defined (undefined or null)
+  // 3. Something is loading (isSomethingLoading)
   const mostrarSkeleton =
     !savedValueOculto && savedValue === undefined && isSomethingLoading;
 
@@ -120,14 +120,14 @@ const DatoFormularioConEtiqueta = <R,>({
         font-normal -text-gray-600
         ${fullWidth ? "min-w-full" : ""}`}
     >
-      {/* Etiqueta del campo */}
+      {/* Field label */}
       {etiqueta}:
-      {/* Botón de edición (cuando el valor está oculto pero definido) */}
+      {/* Edit button (when the value is hidden but defined) */}
       {savedValueOculto &&
         savedValue !== undefined &&
         modificableConModal &&
         renderBotonModal()}
-      {/* Contenedor del valor o input */}
+      {/* Value or input container */}
       <div
         className={`min-h-[1.5rem] 
           sxs-only:min-h-[1.26rem] xs-only:min-h-[1.35rem] sm-only:min-h-[1.44rem] md-only:min-h-[1.53rem] lg-only:min-h-[1.62rem] xl-only:min-h-[1.71rem]
@@ -140,7 +140,7 @@ const DatoFormularioConEtiqueta = <R,>({
               : ""
           }`}
       >
-        {/* Caso 1: Mostrar input de edición */}
+        {/* Case 1: Show edit input */}
         {mostrarInputEdicion && (
           <>
             {inputType === "text" ? (
@@ -150,7 +150,7 @@ const DatoFormularioConEtiqueta = <R,>({
                 name={nombreDato as string}
                 onChange={onChange}
                 className={className ?? textoResponsivo}
-                placeholder={`Ingrese ${etiqueta.toLowerCase()}`}
+                placeholder={`Enter ${etiqueta.toLowerCase()}`}
               />
             ) : inputType === "select" ? (
               <SiasisSelect
@@ -159,10 +159,10 @@ const DatoFormularioConEtiqueta = <R,>({
                 name={nombreDato as string}
                 onChange={onChange}
                 className={className ?? textoResponsivo}
-                placeholder={`Seleccione ${etiqueta.toLowerCase()}`}
+                placeholder={`Select ${etiqueta.toLowerCase()}`}
               >
                 <option value="" disabled>
-                  Pendiente de selección
+                  Pending selection
                 </option>
                 {selectValues &&
                   Object.entries(selectValues).map(([value, text]) => (
@@ -178,7 +178,7 @@ const DatoFormularioConEtiqueta = <R,>({
             //     name={nombreDato as string}
             //     onChange={onChange}
             //     className={className ?? textoResponsivo}
-            //     placeholder={`Ingrese ${etiqueta.toLowerCase()}`}
+            //     placeholder={`Enter ${etiqueta.toLowerCase()}`}
             //   />
             // )
 
@@ -186,7 +186,7 @@ const DatoFormularioConEtiqueta = <R,>({
           </>
         )}
 
-        {/* Caso 2: Mostrar "No registrado" cuando savedValue es null */}
+        {/* Case 2: Show "Not registered" when savedValue is null */}
         {!mostrarInputEdicion && savedValue === null && !savedValueOculto && (
           <span
             className={`w-max max-w-full break-words
@@ -197,13 +197,13 @@ const DatoFormularioConEtiqueta = <R,>({
                 }  
                 ${textoNoRegistrado}`}
           >
-            No registrado
-            {/* Botón de edición modal */}
+            Not registered
+            {/* Modal edit button */}
             {modificableConModal && renderBotonModal()}
           </span>
         )}
 
-        {/* Caso 3: Mostrar valor guardado (no en modo edición y no oculto) */}
+        {/* Case 3: Show saved value (not in edit mode and not hidden) */}
         {!mostrarInputEdicion &&
           savedValue !== undefined &&
           savedValue !== null &&
@@ -217,10 +217,10 @@ const DatoFormularioConEtiqueta = <R,>({
                 }  
                 ${className ?? textoResponsivo}`}
             >
-              {/* Mostrar valor según el tipo */}
+              {/* Show value based on type */}
               {selectValues ? selectValues[savedValue as string] : savedValue}
 
-              {/* Botón de edición modal */}
+              {/* Modal edit button */}
               {modificableConModal && renderBotonModal()}
             </span>
           )}

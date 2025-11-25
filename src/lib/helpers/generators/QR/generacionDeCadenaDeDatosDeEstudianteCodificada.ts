@@ -7,7 +7,7 @@ import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
 import { TiposIdentificadores } from "@/interfaces/shared/TiposIdentificadores";
 import CryptoJS from "crypto-js";
 
-// 🔧 Constantes de configuración
+// 🔧 Configuration constants
 const VALIDAR_NOMBRE_SISTEMA = false;
 const VALIDAR_INSTITUCION = true;
 const VALIDAR_AÑO = true;
@@ -15,7 +15,7 @@ const VALIDAR_TIPO_IDENTIFICADOR = true;
 
 const MOSTRAR_LOGS = ENTORNO !== Entorno.PRODUCCION;
 
-// 📝 Función auxiliar para logs condicionales
+// 📝 Auxiliary function for conditional logs
 function log(...args: any[]): void {
   if (MOSTRAR_LOGS) {
     console.log(...args);
@@ -34,13 +34,13 @@ function logWarn(...args: any[]): void {
   }
 }
 
-// 🎯 Función para crear hash de verificación
+// 🎯 Function to create compact hash for verification
 function crearHashCompacto(datos: string): string {
   const secreto =
     process.env.NEXT_PUBLIC_ENCRIPTACION_CADENAS_DE_DATOS_PARA_QR_KEY;
   if (!secreto) {
     throw new Error(
-      "Variable de entorno NEXT_PUBLIC_ENCRIPTACION_CADENAS_DE_DATOS_PARA_QR_KEY no encontrada"
+      "Environment variable NEXT_PUBLIC_ENCRIPTACION_CADENAS_DE_DATOS_PARA_QR_KEY not found"
     );
   }
   return CryptoJS.SHA256(datos + secreto)
@@ -48,7 +48,7 @@ function crearHashCompacto(datos: string): string {
     .substring(0, 8);
 }
 
-// 🔍 Función para verificar hash
+// 🔍 Function to verify hash
 function verificarHash(datos: string, hashEsperado: string): boolean {
   try {
     return crearHashCompacto(datos) === hashEsperado;
@@ -57,7 +57,7 @@ function verificarHash(datos: string, hashEsperado: string): boolean {
   }
 }
 
-// 🗜️ Función para comprimir datos
+// 🗜️ Function to compress data
 function comprimirDatos(
   sistema: string,
   institucion: string,
@@ -80,7 +80,7 @@ function comprimirDatos(
   return `${sistemaCode}${institucionCode}${nivelCode}${grado}${tipoIdentificador}${añoCode}${identificador}`;
 }
 
-// 🔄 Función para descomprimir datos
+// 🔄 Function to decompress data
 function descomprimirDatos(datosComprimidos: string): {
   sistema: string;
   institucion: string;
@@ -101,9 +101,9 @@ function descomprimirDatos(datosComprimidos: string): {
     const añoStr = datosComprimidos.substring(5, 7);
     const identificador = datosComprimidos.substring(7);
 
-    const sistema = sistemaCode === "A" ? NOMBRE_ACTUAL_SISTEMA : "DESCONOCIDO";
+    const sistema = sistemaCode === "A" ? NOMBRE_ACTUAL_SISTEMA : "UNKNOWN";
     const institucion =
-      institucionCode === "I" ? NOMBRE_INSTITUCION : "DESCONOCIDA";
+      institucionCode === "I" ? NOMBRE_INSTITUCION : "UNKNOWN";
 
     let nivel: string;
     if (nivelCode === "P") {
@@ -111,13 +111,13 @@ function descomprimirDatos(datosComprimidos: string): {
     } else if (nivelCode === "S") {
       nivel = "S";
     } else {
-      logError(`❌ Nivel inválido: '${nivelCode}'`);
+      logError(`❌ Invalid level: '${nivelCode}'`);
       return null;
     }
 
     const grado = parseInt(gradoStr);
     if (isNaN(grado) || grado < 1 || grado > 6) {
-      logError(`❌ Grado inválido: '${gradoStr}'`);
+      logError(`❌ Invalid grade: '${gradoStr}'`);
       return null;
     }
 
@@ -127,23 +127,23 @@ function descomprimirDatos(datosComprimidos: string): {
       tipoIdentificador < 1 ||
       tipoIdentificador > 3
     ) {
-      logError(`❌ Tipo identificador inválido: '${tipoIdentificadorStr}'`);
+      logError(`❌ Invalid identifier type: '${tipoIdentificadorStr}'`);
       return null;
     }
 
     const añoCorto = parseInt(añoStr);
     if (isNaN(añoCorto)) {
-      logError(`❌ Año inválido: '${añoStr}'`);
+      logError(`❌ Invalid year: '${añoStr}'`);
       return null;
     }
     const año = 2000 + añoCorto;
 
     if (!identificador || identificador.length === 0) {
-      logError(`❌ Identificador vacío`);
+      logError(`❌ Empty identifier`);
       return null;
     }
 
-    log(`✅ Datos decodificados:`, {
+    log(`✅ Decoded data:`, {
       sistema,
       institucion,
       nivel,
@@ -163,12 +163,12 @@ function descomprimirDatos(datosComprimidos: string): {
       año,
     };
   } catch (error) {
-    logError(`❌ Error en descompresión:`, error);
+    logError(`❌ Decompression error:`, error);
     return null;
   }
 }
 
-// 🔗 Funciones de codificación Base62
+// 🔗 Base62 encoding functions
 function codificarBase62(numero: bigint): string {
   const alfabeto =
     "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -189,7 +189,7 @@ function decodificarBase62(texto: string): bigint {
   let resultado = 0n;
   for (let i = 0; i < texto.length; i++) {
     const charIndex = alfabeto.indexOf(texto[i]);
-    if (charIndex === -1) throw new Error("Carácter inválido en Base62");
+    if (charIndex === -1) throw new Error("Invalid character in Base62");
     resultado = resultado * 62n + BigInt(charIndex);
   }
   return resultado;
@@ -214,19 +214,19 @@ function numeroAString(num: bigint): string {
   return String.fromCharCode(...bytes);
 }
 
-// 🏷️ Función para normalizar ID del estudiante
+// 🏷️ Function to normalize student ID
 function normalizarIdEstudiante(idEstudiante: string): string {
   return !idEstudiante.includes("-")
     ? `${idEstudiante}-${TiposIdentificadores.DNI}`
     : idEstudiante;
 }
 
-// 🎯 Función principal para generar QR
+// 🎯 Main function to generate QR
 export function generarCadenaDeDatosDeEstudianteCodificada(
   estudiante: EstudianteConAulaYRelacion
 ): string {
   if (!estudiante.aula) {
-    throw new Error("El estudiante no tiene aula asignada");
+    throw new Error("The student does not have an assigned classroom");
   }
 
   const añoActual = new Date().getFullYear();
@@ -236,7 +236,7 @@ export function generarCadenaDeDatosDeEstudianteCodificada(
   const [identificador, tipoIdentificador] =
     identificadorNormalizado.split("-");
 
-  log("📝 Datos originales:", {
+  log("📝 Original data:", {
     sistema: NOMBRE_ACTUAL_SISTEMA,
     institucion: NOMBRE_INSTITUCION,
     nivel: estudiante.aula.Nivel,
@@ -255,27 +255,27 @@ export function generarCadenaDeDatosDeEstudianteCodificada(
     parseInt(tipoIdentificador),
     añoActual
   );
-  log("🗜️ Datos comprimidos:", datosComprimidos);
+  log("🗜️ Compressed data:", datosComprimidos);
 
   const hashVerificacion = crearHashCompacto(datosComprimidos);
-  log("🔐 Hash de verificación:", hashVerificacion);
+  log("🔐 Verification hash:", hashVerificacion);
 
   const datosCombinados = datosComprimidos + hashVerificacion;
-  log("🔗 Datos combinados:", datosCombinados);
+  log("🔗 Combined data:", datosCombinados);
 
   const numero = stringANumero(datosCombinados);
   const resultado = codificarBase62(numero);
 
-  log("✅ Resultado final:", resultado, `(${resultado.length} caracteres)`);
+  log("✅ Final result:", resultado, `(${resultado.length} characters)`);
 
   if (resultado.length > 20) {
-    logWarn("⚠️ El QR resultó más largo de 20 caracteres.");
+    logWarn("⚠️ The QR resulted in more than 20 characters.");
   }
 
   return resultado;
 }
 
-// 🔍 Interfaz para resultado de decodificación
+// 🔍 Interface for decoding result
 interface ResultadoDecodificacion {
   exito: boolean;
   identificadorEstudiante?: string;
@@ -291,85 +291,85 @@ interface ResultadoDecodificacion {
   error?: string;
 }
 
-// 🔍 Función para decodificar QR - VERSIÓN MEJORADA SIN THROWS
+// 🔍 Function to decode QR - IMPROVED VERSION WITHOUT THROWS
 export function decodificarCadenaQREstudiante(
   cadenaQR: string
 ): ResultadoDecodificacion {
   try {
-    log("🔍 Iniciando decodificación de:", cadenaQR);
+    log("🔍 Starting decoding of:", cadenaQR);
 
-    // Validación básica de entrada
+    // Basic input validation
     if (!cadenaQR || cadenaQR.trim().length === 0) {
-      logError("💥 Error: Cadena QR vacía");
+      logError("💥 Error: Empty QR string");
       return {
         exito: false,
-        error: "Código QR no válido",
+        error: "Invalid QR code",
       };
     }
 
     let numero: bigint;
     try {
       numero = decodificarBase62(cadenaQR);
-      log("🔢 Número decodificado:", numero.toString());
+      log("🔢 Decoded number:", numero.toString());
     } catch (error) {
-      logError("💥 Error en decodificación Base62:", error);
+      logError("💥 Error in Base62 decoding:", error);
       return {
         exito: false,
-        error: "Código QR no válido",
+        error: "Invalid QR code",
       };
     }
 
     let datosCombinados: string;
     try {
       datosCombinados = numeroAString(numero);
-      log("🔗 Datos combinados recuperados:", datosCombinados);
+      log("🔗 Recovered combined data:", datosCombinados);
     } catch (error) {
-      logError("💥 Error al convertir número a string:", error);
+      logError("💥 Error converting number to string:", error);
       return {
         exito: false,
-        error: "Código QR no válido",
+        error: "Invalid QR code",
       };
     }
 
     if (datosCombinados.length < 9) {
       logError(
-        "💥 Error: QR demasiado corto, longitud:",
+        "💥 Error: QR too short, length:",
         datosCombinados.length
       );
       return {
         exito: false,
-        error: "Código QR no válido",
+        error: "Invalid QR code",
       };
     }
 
     const hashRecibido = datosCombinados.slice(-8);
     const datosComprimidos = datosCombinados.slice(0, -8);
 
-    log("🔐 Hash recibido:", hashRecibido);
-    log("🗜️ Datos comprimidos recuperados:", datosComprimidos);
+    log("🔐 Received hash:", hashRecibido);
+    log("🗜️ Recovered compressed data:", datosComprimidos);
 
     if (!verificarHash(datosComprimidos, hashRecibido)) {
-      logError("💥 Error: Hash inválido - verificación de integridad fallida");
+      logError("💥 Error: Invalid hash - integrity verification failed");
       return {
         exito: false,
-        error: "Código QR no válido",
+        error: "Invalid QR code",
       };
     }
 
-    log("✅ Hash verificado correctamente");
+    log("✅ Hash verified correctly");
 
     const datosDescomprimidos = descomprimirDatos(datosComprimidos);
     if (!datosDescomprimidos) {
-      logError("💥 Error: No se pudieron descomprimir los datos");
+      logError("💥 Error: Could not decompress data");
       return {
         exito: false,
-        error: "Código QR no válido",
+        error: "Invalid QR code",
       };
     }
 
-    log("📊 Datos descomprimidos:", datosDescomprimidos);
+    log("📊 Decompressed data:", datosDescomprimidos);
 
-    // Validaciones con mensajes específicos y amigables
+    // Validations with specific and friendly messages
     const añoActual = new Date().getFullYear();
 
     if (
@@ -377,12 +377,12 @@ export function decodificarCadenaQREstudiante(
       datosDescomprimidos.sistema !== NOMBRE_ACTUAL_SISTEMA
     ) {
       logError(
-        `💥 Error: Sistema incorrecto. Esperado: ${NOMBRE_ACTUAL_SISTEMA}, Recibido: ${datosDescomprimidos.sistema}`
+        `💥 Error: Incorrect system. Expected: ${NOMBRE_ACTUAL_SISTEMA}, Received: ${datosDescomprimidos.sistema}`
       );
       return {
         exito: false,
         error:
-          "Genera nuevamente el QR puesto que el nombre del sistema cambió",
+          "Generate the QR again as the system name changed",
       };
     }
 
@@ -391,21 +391,21 @@ export function decodificarCadenaQREstudiante(
       datosDescomprimidos.institucion !== NOMBRE_INSTITUCION
     ) {
       logError(
-        `💥 Error: Institución incorrecta. Esperado: ${NOMBRE_INSTITUCION}, Recibido: ${datosDescomprimidos.institucion}`
+        `💥 Error: Incorrect institution. Expected: ${NOMBRE_INSTITUCION}, Received: ${datosDescomprimidos.institucion}`
       );
       return {
         exito: false,
-        error: "Este código QR no pertenece a esta institución",
+        error: "This QR code does not belong to this institution",
       };
     }
 
     if (VALIDAR_AÑO && datosDescomprimidos.año !== añoActual) {
       logError(
-        `💥 Error: Año incorrecto. Esperado: ${añoActual}, Recibido: ${datosDescomprimidos.año}`
+        `💥 Error: Incorrect year. Expected: ${añoActual}, Received: ${datosDescomprimidos.año}`
       );
       return {
         exito: false,
-        error: `Este código QR pertenece al año ${datosDescomprimidos.año}, debe ser del año actual ${añoActual}`,
+        error: `This QR code belongs to year ${datosDescomprimidos.año}, it must be from current year ${añoActual}`,
       };
     }
 
@@ -416,11 +416,11 @@ export function decodificarCadenaQREstudiante(
       )
     ) {
       logError(
-        `💥 Error: Tipo de identificador inválido: ${datosDescomprimidos.tipoIdentificador}`
+        `💥 Error: Invalid identifier type: ${datosDescomprimidos.tipoIdentificador}`
       );
       return {
         exito: false,
-        error: "Código QR no válido",
+        error: "Invalid QR code",
       };
     }
 
@@ -429,28 +429,28 @@ export function decodificarCadenaQREstudiante(
       datosDescomprimidos.nivel !== "S"
     ) {
       logError(
-        `💥 Error: Nivel educativo inválido: ${datosDescomprimidos.nivel}`
+        `💥 Error: Invalid educational level: ${datosDescomprimidos.nivel}`
       );
       return {
         exito: false,
-        error: "Código QR no válido",
+        error: "Invalid QR code",
       };
     }
 
     const identificadorEstudiante = `${datosDescomprimidos.identificador}-${datosDescomprimidos.tipoIdentificador}`;
 
-    log("✅ Decodificación exitosa:", identificadorEstudiante);
+    log("✅ Successful decoding:", identificadorEstudiante);
     return {
       exito: true,
       identificadorEstudiante,
       datosDecodificados: datosDescomprimidos,
-      error: undefined, // Explícitamente undefined para éxito
+      error: undefined, // Explicitly undefined for success
     };
   } catch (error) {
-    logError("💥 Error inesperado durante decodificación:", error);
+    logError("💥 Unexpected error during decoding:", error);
     return {
       exito: false,
-      error: "Código QR no válido",
+      error: "Invalid QR code",
     };
   }
 }

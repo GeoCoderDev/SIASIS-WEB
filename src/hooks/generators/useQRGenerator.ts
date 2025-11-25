@@ -17,7 +17,7 @@ export const useQRGenerator = (estudiante: EstudianteConAulaYRelacion) => {
     setShareSupported(checkWebShareApiSupport());
   }, []);
 
-  // FUNCIÓN ESTABLE - no cambia en cada render
+  // STABLE FUNCTION - does not change on each render
   const generatePDFStable = useCallback(
     async (quantity: number) => {
       if (!hiddenCardsRef.current) return;
@@ -31,7 +31,7 @@ export const useQRGenerator = (estudiante: EstudianteConAulaYRelacion) => {
 
         setCurrentPdfBlob(pdfBlob);
 
-        // Limpiar URL anterior
+        // Clear previous URL
         setPdfPreviewUrl((prevUrl) => {
           if (prevUrl) {
             URL.revokeObjectURL(prevUrl);
@@ -40,13 +40,13 @@ export const useQRGenerator = (estudiante: EstudianteConAulaYRelacion) => {
         });
       } catch (error) {
         console.error("Error generating PDF:", error);
-        alert("Error al generar el PDF. Por favor, intente nuevamente.");
+        alert("Error generating PDF. Please try again.");
       } finally {
         setIsGeneratingPDF(false);
       }
     },
     [estudiante]
-  ); // Solo depende del estudiante
+  ); // Only depends on the student
 
   const downloadPDF = useCallback(() => {
     if (!currentPdfBlob) return;
@@ -57,7 +57,7 @@ export const useQRGenerator = (estudiante: EstudianteConAulaYRelacion) => {
 
   const sharePDF = useCallback(async () => {
     if (!currentPdfBlob || !shareSupported) {
-      alert("Web Share API no disponible. Use el botón de descarga.");
+      alert("Web Share API not available. Use the download button.");
       return;
     }
 
@@ -68,7 +68,7 @@ export const useQRGenerator = (estudiante: EstudianteConAulaYRelacion) => {
     } catch (error) {
       if ((error as Error).name !== "AbortError") {
         console.error("Error sharing PDF:", error);
-        alert("Error al compartir. Use el botón de descarga.");
+        alert("Error sharing. Use the download button.");
       }
     }
   }, [currentPdfBlob, shareSupported, estudiante]);

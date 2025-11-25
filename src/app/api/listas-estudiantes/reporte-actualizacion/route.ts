@@ -52,14 +52,14 @@ export async function GET(req: NextRequest) {
         );
 
         if (!response.ok || !(await esContenidoJSON(response))) {
-          throw new Error("Respuesta del blob inválida o no es JSON");
+          throw new Error("Invalid blob response or not JSON");
         }
 
         reporteActualizacionListas = await response.json();
       } catch (blobError) {
         // Plan B: If the first fetch fails, try with Google Drive
         console.warn(
-          "Error getting data from blob, using backup:",
+          "Error getting data from blob, trying backup:",
           blobError
         );
         usandoRespaldo = true;
@@ -72,7 +72,7 @@ export async function GET(req: NextRequest) {
             );
 
           if (!archivoReporteActualizacionDeListasDeEstudiantesGoogleDriveID) {
-            throw new Error("No se encontró el ID del archivo en Redis");
+            throw new Error("File ID not found in Redis");
           }
 
           // Make backup fetch from Google Drive
@@ -85,13 +85,13 @@ export async function GET(req: NextRequest) {
             !(await esContenidoJSON(respaldoResponse))
           ) {
             throw new Error(
-              `Error en la respuesta de respaldo: ${respaldoResponse.status} ${respaldoResponse.statusText}`
+              `Error in backup response: ${respaldoResponse.status} ${respaldoResponse.statusText}`
             );
           }
 
           reporteActualizacionListas = await respaldoResponse.json();
           console.log(
-            "Datos obtenidos exitosamente desde respaldo Google Drive"
+            "Data successfully obtained from Google Drive backup"
           );
         } catch (respaldoError) {
           // If the backup also fails, throw a more descriptive error
@@ -100,7 +100,7 @@ export async function GET(req: NextRequest) {
             respaldoError
           );
           throw new Error(
-            `Falló el acceso principal y el respaldo: ${
+            `Main access and backup failed: ${
               (respaldoError as Error).message
             }`
           );
@@ -122,23 +122,23 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       ...datosFiltrados,
       _debug: usandoCache
-        ? "Datos obtenidos desde cache"
+        ? "Data obtained from cache"
         : usandoRespaldo
-        ? "Datos obtenidos desde respaldo"
-        : "Datos obtenidos desde fuente principal",
+        ? "Data obtained from backup"
+        : "Data obtained from main source",
     });
   } catch (error) {
     console.error(
-      "Error al obtener reporte de actualización de listas:",
+      "Error getting list update report:",
       error
     );
     // Determine error type
     let logoutType = LogoutTypes.ERROR_SISTEMA;
     const errorDetails: ErrorDetailsForLogout = {
-      mensaje: "Error al recuperar reporte de actualización de listas",
+      mensaje: "Error retrieving list update report",
       origen: "api/reporte-actualizacion-listas",
       timestamp: Date.now(),
-      siasisComponent: "RDP04", // Principal componente es RDP04 (blob)
+      siasisComponent: "RDP04", // Main component is RDP04 (blob)
     };
 
     if (error instanceof Error) {
@@ -151,33 +151,33 @@ export async function GET(req: NextRequest) {
       ) {
         logoutType = LogoutTypes.ERROR_RED;
         errorDetails.mensaje =
-          "Error de conexión al obtener reporte de actualización";
+          "Connection error when getting update report";
       }
       // If it's a JSON parsing error
       else if (
         error.message.includes("JSON") ||
         error.message.includes("parse") ||
-        error.message.includes("no es JSON válido")
+        error.message.includes("not valid JSON")
       ) {
         logoutType = LogoutTypes.ERROR_DATOS_CORRUPTOS;
-        errorDetails.mensaje = "Error al procesar el reporte de actualización";
-        errorDetails.contexto = "Formato de datos inválido";
+        errorDetails.mensaje = "Error processing the update report";
+        errorDetails.contexto = "Invalid data format";
       }
       // If Redis lookup failed
-      else if (error.message.includes("No se encontró el ID")) {
+      else if (error.message.includes("ID not found")) {
         logoutType = LogoutTypes.ERROR_DATOS_NO_DISPONIBLES;
         errorDetails.mensaje =
-          "No se pudo encontrar el reporte de actualización";
-        errorDetails.siasisComponent = "RDP05"; // Error específico de Redis
+          "Could not find the update report";
+        errorDetails.siasisComponent = "RDP05"; // Specific Redis error
       }
       // If both main access and backup failed
       else if (
-        error.message.includes("Falló el acceso principal y el respaldo")
+        error.message.includes("Main access and backup failed")
       ) {
         logoutType = LogoutTypes.ERROR_DATOS_NO_DISPONIBLES;
-        errorDetails.mensaje = "No se pudo obtener el reporte de actualización";
+        errorDetails.mensaje = "Could not get the update report";
         errorDetails.contexto =
-          "Falló tanto el acceso a blob como a Google Drive";
+          "Failed to access both blob and Google Drive";
       }
 
       errorDetails.mensaje += `: ${error.message}`;

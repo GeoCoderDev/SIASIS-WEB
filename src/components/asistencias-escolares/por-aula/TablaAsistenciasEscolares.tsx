@@ -39,18 +39,18 @@ const COLORES_ESTADOS_EXCEL = {
 };
 
 const MESES = [
-  { value: 1, label: "Enero" },
-  { value: 2, label: "Febrero" },
-  { value: 3, label: "Marzo" },
-  { value: 4, label: "Abril" },
-  { value: 5, label: "Mayo" },
-  { value: 6, label: "Junio" },
-  { value: 7, label: "Julio" },
-  { value: 8, label: "Agosto" },
-  { value: 9, label: "Septiembre" },
-  { value: 10, label: "Octubre" },
-  { value: 11, label: "Noviembre" },
-  { value: 12, label: "Diciembre" },
+  { value: 1, label: "January" },
+  { value: 2, label: "February" },
+  { value: 3, label: "March" },
+  { value: 4, label: "April" },
+  { value: 5, label: "May" },
+  { value: 6, label: "June" },
+  { value: 7, label: "July" },
+  { value: 8, label: "August" },
+  { value: 9, label: "September" },
+  { value: 10, label: "October" },
+  { value: 11, label: "November" },
+  { value: 12, label: "December" },
 ];
 
 const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
@@ -70,7 +70,7 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
   const mostrarIndicadorDiaActual =
     esMesActual && diaSemanaActual >= 1 && diaSemanaActual <= 5;
 
-  // Función auxiliar para convertir número a letra de columna Excel
+  // Helper function to convert number to Excel column letter
   const numberToExcelColumn = (num: number): string => {
     let column = "";
     while (num > 0) {
@@ -81,7 +81,7 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
     return column;
   };
 
-  // Función auxiliar para aplicar bordes a TODAS las celdas de un rango fusionado
+  // Helper function to apply borders to ALL cells in a merged range
   const aplicarBordesACeldasFusionadas = (
     worksheet: ExcelJS.Worksheet,
     rango: string,
@@ -115,11 +115,11 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
     const colores = COLORES_ESTADOS_ASISTENCIA_ESCOLAR[estado];
     const simbolo =
       estado === EstadosAsistenciaEscolar.Temprano
-        ? "A"
+        ? "P"
         : estado === EstadosAsistenciaEscolar.Tarde
-        ? "T"
+        ? "L"
         : estado === EstadosAsistenciaEscolar.Falta
-        ? "F"
+        ? "A"
         : estado === EstadosAsistenciaEscolar.Evento
         ? "E"
         : "-";
@@ -127,16 +127,16 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
     return (
       <div
         className={`w-6 h-6 flex items-center justify-center text-xs font-medium ${colores.background} ${colores.text} rounded`}
-        title={`Día ${dia}: ${
-          simbolo === "A"
-            ? "Asistió"
-            : simbolo === "T"
-            ? "Tardanza"
-            : simbolo === "F"
-            ? "Falta"
+        title={`Day ${dia}: ${
+          simbolo === "P"
+            ? "Present"
+            : simbolo === "L"
+            ? "Late"
+            : simbolo === "A"
+            ? "Absent"
             : simbolo === "E"
-            ? "Evento"
-            : "Sin datos"
+            ? "Event"
+            : "No data"
         }`}
       >
         {simbolo}
@@ -150,7 +150,7 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
 
     try {
       const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet("Asistencias", {
+      const worksheet = workbook.addWorksheet("Attendances", {
         pageSetup: {
           paperSize: 9,
           orientation: "landscape",
@@ -160,7 +160,7 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
         },
       });
 
-      // PASO 1: CALCULAR ESTRUCTURA DEL CALENDARIO (Lunes a Viernes)
+      // STEP 1: CALCULATE CALENDAR STRUCTURE (Monday to Friday)
       const año = new Date().getFullYear();
       const mes = datos.mes;
       const primerDia = new Date(año, mes - 1, 1);
@@ -178,7 +178,7 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
       let diaActualMes = 1;
 
       while (diaActualMes <= diasEnMes) {
-        const diasSemanaTextos = ["", "L", "M", "M", "J", "V"];
+        const diasSemanaTextos = ["", "M", "T", "W", "T", "F"];
 
         for (let diaSemana = 1; diaSemana <= 5; diaSemana++) {
           if (diaActualMes === 1 && diaSemana < diaSemanaInicio) {
@@ -209,11 +209,11 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
         }
       }
 
-      // PASO 2: CALCULAR TOTAL DE COLUMNAS
-      // 1 (nombres) + días calendario + 3 (F, T, A)
+      // STEP 2: CALCULATE TOTAL COLUMNS
+      // 1 (names) + calendar days + 3 (A, L, P)
       const totalColumnas = 1 + estructuraCalendario.length + 3;
 
-      // PASO 3: ENCABEZADO INSTITUCIONAL
+      // STEP 3: INSTITUTIONAL HEADER
       const rangoTitulo = `A1:${numberToExcelColumn(totalColumnas)}1`;
       worksheet.mergeCells(rangoTitulo);
 
@@ -268,10 +268,10 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
         rangoSubtitulo,
         estiloSubtitulo
       );
-      worksheet.getCell("A2").value = "REGISTRO MENSUAL DE ASISTENCIA ESCOLAR";
+      worksheet.getCell("A2").value = "MONTHLY SCHOOL ATTENDANCE RECORD";
       worksheet.getRow(2).height = 20;
 
-      // PASO 4: INFORMACIÓN DEL AULA (distribuir en 50%-50%)
+      // STEP 4: CLASSROOM INFORMATION (distribute in 50%-50%)
       let filaActual = 3;
 
       const colsPorSeccion = Math.floor(totalColumnas / 3);
@@ -317,7 +317,7 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
         },
       };
 
-      // Fila 1: NIVEL | GRADO Y SECCIÓN
+      // Row 1: LEVEL | GRADE AND SECTION
       const labelCol1Fin =
         Math.floor((col1Fin - col1Inicio) * 0.4) + col1Inicio;
       const labelCol2Fin =
@@ -340,7 +340,7 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
       );
       worksheet.getCell(
         `${numberToExcelColumn(col1Inicio)}${filaActual}`
-      ).value = "NIVEL:";
+      ).value = "LEVEL:";
 
       worksheet.mergeCells(
         `${numberToExcelColumn(
@@ -358,8 +358,8 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
         `${numberToExcelColumn(labelCol1Fin + 1)}${filaActual}`
       ).value =
         datos.aula.Nivel === NivelEducativo.PRIMARIA
-          ? "Primaria"
-          : "Secundaria";
+          ? "Primary"
+          : "Secondary";
 
       worksheet.mergeCells(
         `${numberToExcelColumn(col2Inicio)}${filaActual}:${numberToExcelColumn(
@@ -375,7 +375,7 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
       );
       worksheet.getCell(
         `${numberToExcelColumn(col2Inicio)}${filaActual}`
-      ).value = "GRADO Y SECCIÓN:";
+      ).value = "GRADE AND SECTION:";
 
       worksheet.mergeCells(
         `${numberToExcelColumn(
@@ -401,7 +401,7 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
 
       filaActual++;
 
-      // Fila 2: MES | TOTAL ESTUDIANTES
+      // Row 2: MONTH | TOTAL STUDENTS
       worksheet.mergeCells(
         `${numberToExcelColumn(col1Inicio)}${filaActual}:${numberToExcelColumn(
           labelCol1Fin
@@ -419,7 +419,7 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
       );
       worksheet.getCell(
         `${numberToExcelColumn(col1Inicio)}${filaActual}`
-      ).value = "MES:";
+      ).value = "MONTH:";
 
       worksheet.mergeCells(
         `${numberToExcelColumn(
@@ -451,7 +451,7 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
       );
       worksheet.getCell(
         `${numberToExcelColumn(col2Inicio)}${filaActual}`
-      ).value = "TOTAL ESTUDIANTES:";
+      ).value = "TOTAL STUDENTS:";
 
       worksheet.mergeCells(
         `${numberToExcelColumn(
@@ -477,16 +477,16 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
 
       filaActual++;
 
-      // Fila de separación entre información y tabla
+      // Separation row between information and table
       worksheet.getRow(filaActual).height = 8;
       filaActual++;
 
-      // PASO 5: TABLA DE ASISTENCIAS
+      // STEP 5: ATTENDANCE TABLE
       const filaEncabezados = filaActual;
 
       worksheet.getColumn(1).width = 30;
 
-      // Nombre (fusionar 2 filas verticalmente)
+      // Name (merge 2 rows vertically)
       worksheet.mergeCells(`A${filaEncabezados}:A${filaEncabezados + 1}`);
       const estiloNombreHeader = {
         font: { bold: true, size: 9, color: { argb: "FFFFFF" } },
@@ -513,9 +513,9 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
         `A${filaEncabezados}:A${filaEncabezados + 1}`,
         estiloNombreHeader
       );
-      worksheet.getCell(`A${filaEncabezados}`).value = "APELLIDOS Y NOMBRES";
+      worksheet.getCell(`A${filaEncabezados}`).value = "SURNAMES AND NAMES";
 
-      // Días del mes (2 filas: letra día y número)
+      // Days of the month (2 rows: day letter and number)
       estructuraCalendario.forEach((diaInfo, index) => {
         const col = index + 2;
         worksheet.getColumn(col).width = 4;
@@ -557,9 +557,9 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
         };
       });
 
-      // Totales (F, T, A) - fusionar verticalmente
+      // Totals (A, L, P) - merge vertically
       const colTotales = estructuraCalendario.length + 2;
-      ["F", "T", "A"].forEach((label, index) => {
+      ["A", "L", "P"].forEach((label, index) => {
         const col = colTotales + index;
         worksheet.getColumn(col).width = 6;
 
@@ -603,7 +603,7 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
       worksheet.getRow(filaEncabezados).height = 15;
       worksheet.getRow(filaEncabezados + 1).height = 15;
 
-      // PASO 6: DATOS DE ESTUDIANTES
+      // STEP 6: STUDENT DATA
       let filaData = filaEncabezados + 2;
 
       datos.estudiantes.forEach((item, index) => {
@@ -701,11 +701,11 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
         filaData++;
       });
 
-      // Fila de separación antes del resumen
+      // Separation row before summary
       worksheet.getRow(filaData).height = 8;
       filaData++;
 
-      // PASO 7: RESUMEN ESTADÍSTICO
+      // STEP 7: STATISTICAL SUMMARY
       const totalAsistencias = datos.estudiantes.reduce(
         (sum, e) => sum + e.totales.asistencias,
         0
@@ -724,7 +724,7 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
       ).length;
       const totalOportunidades = datos.estudiantes.length * diasEscolaresReales;
 
-      // Calcular porcentajes
+      // Calculate percentages
       const porcentajeAsistencias =
         totalOportunidades > 0
           ? ((totalAsistencias / totalOportunidades) * 100).toFixed(2)
@@ -738,7 +738,7 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
           ? ((totalFaltas / totalOportunidades) * 100).toFixed(2)
           : "0.00";
 
-      // TÍTULO DEL RESUMEN
+      // SUMMARY TITLE
       const rangoResumenTitulo = `A${filaData}:${numberToExcelColumn(
         totalColumnas
       )}${filaData}`;
@@ -768,13 +768,13 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
         rangoResumenTitulo,
         estiloResumenTitulo
       );
-      worksheet.getCell(`A${filaData}`).value = "RESUMEN ESTADÍSTICO";
+      worksheet.getCell(`A${filaData}`).value = "STATISTICAL SUMMARY";
       worksheet.getRow(filaData).height = 20;
       filaData++;
 
-      // DISTRIBUCIÓN EN 3 COLUMNAS
+      // DISTRIBUTION IN 3 COLUMNS
 
-      // Fila 1: Etiquetas
+      // Row 1: Labels
       const rangoLabelAsistencias = `${numberToExcelColumn(
         col1Inicio
       )}${filaData}:${numberToExcelColumn(col1Fin)}${filaData}`;
@@ -855,16 +855,16 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
       );
 
       worksheet.getCell(`${numberToExcelColumn(col1Inicio)}${filaData}`).value =
-        "ASISTENCIAS";
+        "ATTENDANCES";
       worksheet.getCell(`${numberToExcelColumn(col2Inicio)}${filaData}`).value =
-        "TARDANZAS";
+        "LATE ARRIVALS";
       worksheet.getCell(`${numberToExcelColumn(col3Inicio)}${filaData}`).value =
-        "FALTAS";
+        "ABSENCES";
 
       worksheet.getRow(filaData).height = 18;
       filaData++;
 
-      // Fila 2: Totales
+      // Row 2: Totals
       const rangoTotalAsistencias = `${numberToExcelColumn(
         col1Inicio
       )}${filaData}:${numberToExcelColumn(col1Fin)}${filaData}`;
@@ -957,7 +957,7 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
       worksheet.getRow(filaData).height = 18;
       filaData++;
 
-      // Fila 3: Porcentajes
+      // Row 3: Percentages
       const rangoPorcentajeAsistencias = `${numberToExcelColumn(
         col1Inicio
       )}${filaData}:${numberToExcelColumn(col1Fin)}${filaData}`;
@@ -1052,7 +1052,7 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
       worksheet.getRow(filaData).height = 20;
       filaData++;
 
-      // Información de generación
+      // Generation information
       const rangoInfoGen = `A${filaData}:${numberToExcelColumn(
         totalColumnas
       )}${filaData}`;
@@ -1080,34 +1080,34 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
       aplicarBordesACeldasFusionadas(worksheet, rangoInfoGen, estiloInfoGen);
       worksheet.getCell(
         `A${filaData}`
-      ).value = `Documento generado automáticamente el ${new Date().toLocaleString(
-        "es-ES"
-      )} | Sistema SIASIS - I.E. 20935 Asunción 8`;
+      ).value = `Document automatically generated on ${new Date().toLocaleString(
+        "en-US"
+      )} | SIASIS System - I.E. 20935 Asunción 8`;
 
-      // GENERAR Y GUARDAR ARCHIVO
+      // GENERATE AND SAVE FILE
       const nivel =
         datos.aula.Nivel === NivelEducativo.PRIMARIA
-          ? "Primaria"
-          : "Secundaria";
-      const nombreFinal = `Asistencias_${nivel}_${datos.aula.Grado}${
+          ? "Primary"
+          : "Secondary";
+      const nombreFinal = `Attendances_${nivel}_${datos.aula.Grado}${
         datos.aula.Seccion
       }_${mesInfo?.label}_${new Date().getFullYear()}`;
 
-      console.log("📊 Generando buffer del archivo Excel...");
+      console.log("📊 Generating Excel file buffer...");
       const buffer = await workbook.xlsx.writeBuffer();
-      console.log(`✅ Buffer generado: ${buffer.byteLength} bytes`);
+      console.log(`✅ Buffer generated: ${buffer.byteLength} bytes`);
 
       const tieneFileSystemAPI = "showSaveFilePicker" in window;
 
       if (tieneFileSystemAPI) {
         try {
-          console.log("💾 Mostrando diálogo de guardado...");
+          console.log("💾 Showing save dialog...");
 
           const fileHandle = await (window as any).showSaveFilePicker({
             suggestedName: `${nombreFinal}.xlsx`,
             types: [
               {
-                description: "Archivos Excel",
+                description: "Excel Files",
                 accept: {
                   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
                     [".xlsx"],
@@ -1117,43 +1117,43 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
           });
 
           console.log(
-            "📁 Usuario seleccionó ubicación, escribiendo archivo..."
+            "📁 User selected location, writing file..."
           );
 
           const writable = await fileHandle.createWritable();
           await writable.write(buffer);
           await writable.close();
 
-          console.log("✅ Archivo escrito exitosamente");
-          setMensajeExportacion("✅ Archivo Excel guardado exitosamente");
+          console.log("✅ File written successfully");
+          setMensajeExportacion("✅ Excel file saved successfully");
         } catch (error: any) {
-          console.error("❌ Error durante la exportación:", error);
-          console.error("   Nombre del error:", error.name);
-          console.error("   Mensaje:", error.message);
+          console.error("❌ Error during export:", error);
+          console.error("   Error name:", error.name);
+          console.error("   Message:", error.message);
 
           if (error.name === "AbortError") {
-            console.log("👤 Usuario canceló el diálogo");
-            setMensajeExportacion("⚠️ Operación cancelada");
+            console.log("👤 User cancelled dialog");
+            setMensajeExportacion("⚠️ Operation cancelled");
           } else if (error.name === "NotAllowedError") {
-            console.log("🚫 Permiso denegado");
-            setMensajeExportacion("❌ Permiso denegado para guardar archivo");
+            console.log("🚫 Permission denied");
+            setMensajeExportacion("❌ Permission denied to save file");
           } else {
-            // Cualquier otro error: intentar descarga tradicional
-            console.log("🔄 Intentando descarga tradicional como fallback...");
+            // Any other error: try traditional download
+            console.log("🔄 Attempting traditional download as fallback...");
             downloadTraditional(buffer, nombreFinal);
           }
         }
       } else {
         console.log(
-          "📥 API de guardado no disponible, usando descarga tradicional"
+          "📥 Save API not available, using traditional download"
         );
         downloadTraditional(buffer, nombreFinal);
       }
 
       setTimeout(() => setMensajeExportacion(""), 4000);
     } catch (error) {
-      console.error("❌ Error crítico al exportar a Excel:", error);
-      setMensajeExportacion("❌ Error al generar el archivo Excel");
+      console.error("❌ Critical error exporting to Excel:", error);
+      setMensajeExportacion("❌ Error generating Excel file");
       setTimeout(() => setMensajeExportacion(""), 4000);
     } finally {
       setExportandoExcel(false);
@@ -1174,7 +1174,7 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
 
-    setMensajeExportacion("✅ Archivo Excel descargado exitosamente");
+    setMensajeExportacion("✅ Excel file downloaded successfully");
   };
 
   return (
@@ -1188,7 +1188,7 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
             <button
               onClick={exportarAExcel}
               disabled={exportandoExcel}
-              title="Exportar a Excel"
+              title="Export to Excel"
               className={`px-5 py-3 rounded-lg font-medium text-sm transition-all duration-200 flex items-center justify-center space-x-2.5 min-w-[140px] shadow-sm hover:shadow-md ${
                 exportandoExcel
                   ? "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-300"
@@ -1200,24 +1200,24 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
                   <img
                     className="w-6 flex-shrink-0 animate-bounce"
                     src="/images/svg/Aplicaciones Relacionadas/ExcelLogo.svg"
-                    alt="Logo de Excel"
+                    alt="Excel Logo"
                   />
-                  <span className="truncate">Generando...</span>
+                  <span className="truncate">Generating...</span>
                 </>
               ) : (
                 <>
                   <img
                     className="w-6 flex-shrink-0"
                     src="/images/svg/Aplicaciones Relacionadas/ExcelLogo.svg"
-                    alt="Logo de Excel"
+                    alt="Excel Logo"
                   />
-                  <span className="truncate">Exportar</span>
+                  <span className="truncate">Export</span>
                 </>
               )}
             </button>
 
             <div className="text-sm text-gray-600">
-              {datos.estudiantes.length} estudiantes • Actualizado:{" "}
+              {datos.estudiantes.length} students • Updated:{" "}
               {datos.fechaConsulta}
             </div>
           </div>
@@ -1255,7 +1255,7 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
             </tr>
             <tr>
               <th className="md:sticky md:left-0 sticky top-10 bg-gray-50 px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-b border-gray-200 md:z-30 z-20 h-12">
-                Apellidos y Nombres
+                Last Names and Names
               </th>
               {datos.diasDelMes.map(({ dia }) => (
                 <th
@@ -1273,13 +1273,13 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
                 </th>
               ))}
               <th className="md:sticky md:right-[120px] sticky top-10 bg-gray-50 px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-b border-gray-200 md:z-30 z-20 h-12">
-                F
+                A
               </th>
               <th className="md:sticky md:right-[60px] sticky top-10 bg-gray-50 px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200 md:z-30 z-20 h-12">
-                T
+                L
               </th>
               <th className="md:sticky md:right-0 sticky top-10 bg-gray-50 px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-b border-gray-200 md:z-30 z-20 h-12">
-                A
+                P
               </th>
             </tr>
           </thead>
@@ -1327,38 +1327,38 @@ const TablaAsistenciasEscolares: React.FC<TablaAsistenciasEscolaresProps> = ({
         <div className="flex flex-wrap gap-4 text-sm">
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-blue-500 rounded flex items-center justify-center text-white text-xs font-medium">
-              A
+              P
             </div>
-            <span>Asistió</span>
+            <span>Present</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-orange-500 rounded flex items-center justify-center text-white text-xs font-medium">
-              T
+              L
             </div>
-            <span>Tardanza</span>
+            <span>Late</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-red-700 rounded flex items-center justify-center text-white text-xs font-medium">
-              F
+              A
             </div>
-            <span>Falta</span>
+            <span>Absent</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-purple-600 rounded flex items-center justify-center text-white text-xs font-medium">
               E
             </div>
-            <span>Evento</span>
+            <span>Event</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-gray-400 rounded flex items-center justify-center text-white text-xs font-medium">
               -
             </div>
-            <span>Sin datos</span>
+            <span>No data</span>
           </div>
           {mostrarIndicadorDiaActual && (
             <div className="flex items-center gap-2 ml-4">
               <div className="text-blue-600 text-lg leading-none">▼</div>
-              <span>Día actual</span>
+              <span>Current day</span>
             </div>
           )}
         </div>

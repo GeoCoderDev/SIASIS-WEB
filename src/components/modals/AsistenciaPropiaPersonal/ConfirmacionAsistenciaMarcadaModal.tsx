@@ -15,7 +15,7 @@ const ConfirmacionAsistenciaMarcadaModal = ({
   fechaHoraRegistro,
   modoRegistro,
 }: ConfirmacionAsistenciaMarcadaModalProps) => {
-  // Función para formatear la fecha y hora
+  // Function to format the date and time
   const formatearFechaHora = (fecha: Date): string => {
     const opciones: Intl.DateTimeFormatOptions = {
       weekday: "long",
@@ -27,19 +27,19 @@ const ConfirmacionAsistenciaMarcadaModal = ({
       timeZone: "America/Lima",
     };
 
-    return fecha.toLocaleDateString("es-PE", opciones);
+    return fecha.toLocaleDateString("en-US", opciones);
   };
 
-  // Función para obtener texto del tipo de registro
+  // Function to get the registration type text
   const obtenerTextoRegistro = (): string => {
-    if (!modoRegistro) return "asistencia";
+    if (!modoRegistro) return "attendance";
     return modoRegistroTextos[modoRegistro].toLowerCase();
   };
 
-  // Obtener fecha formateada
+  // Get formatted date
   const fechaFormateada = fechaHoraRegistro
     ? formatearFechaHora(fechaHoraRegistro)
-    : "fecha no disponible";
+    : "date not available";
 
   return (
     <ModalContainer className="z-[1201]" eliminateModal={eliminateModal}>
@@ -47,19 +47,19 @@ const ConfirmacionAsistenciaMarcadaModal = ({
         <div className="w-full max-w-md px-4 py-6 sm:px-6 sm:py-8 mx-auto flex flex-col items-center justify-center gap-5">
           <img
             src="/images/svg/Asistencia/ConfirmacionDeAsistencia.svg"
-            alt="Confirmación de asistencia"
+            alt="Attendance confirmation"
             className="w-[70px] xs:w-[85px] sm:w-[95px] h-auto object-contain"
           />
 
           <div className="text-center">
             <p className="text-sm xs:text-base sm:text-lg leading-relaxed mb-4">
-              Tu <b>{obtenerTextoRegistro()}</b> ha sido <br />
-              registrada correctamente.
+              Your <b>{obtenerTextoRegistro()}</b> has been <br />
+              successfully registered.
             </p>
 
             <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
               <p className="text-xs xs:text-sm text-green-700 font-medium mb-1">
-                📅 Fecha y hora de registro:
+                📅 Registration date and time:
               </p>
               <p className="text-sm xs:text-base font-bold text-green-800">
                 {fechaFormateada}
@@ -67,7 +67,7 @@ const ConfirmacionAsistenciaMarcadaModal = ({
             </div>
 
             <p className="text-sm xs:text-base text-gray-600">
-              ¡Gracias por registrar tu {obtenerTextoRegistro()}!
+              Thank you for registering your {obtenerTextoRegistro()}!
             </p>
           </div>
         </div>

@@ -63,7 +63,7 @@ export class Listener {
     // Event that fires when no sound is detected or the user remains silent
     recognition.onsoundend = () => {
       this.callbackStop?.();
-      // this.speaker.start("No se detectó ningún sonido. Intenta hablar de nuevo.");
+      // this.speaker.start("No sound was detected. Try speaking again.");
     };
 
     recognition.onerror = (event) => {

@@ -10,7 +10,7 @@ import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
 import { AsistenciasEscolaresHoyRepository } from "./_utils/AsistenciasEscolaresTomadasHoyRepository";
 
 /**
- * Interfaz para la respuesta del endpoint de consulta de asistencias de estudiantes
+ * Interface for the student attendance query endpoint response
  */
 interface ConsultarAsistenciasEstudiantesResponseBody {
   TipoAsistencia: TipoAsistencia;
@@ -28,7 +28,7 @@ interface ConsultarAsistenciasEstudiantesResponseBody {
 }
 
 /**
- * Mapea string a NivelEducativo
+ * Maps string to EducationalLevel
  */
 const mapearNivelEducativo = (nivel: string): NivelEducativo => {
   switch (nivel.toUpperCase()) {
@@ -39,12 +39,12 @@ const mapearNivelEducativo = (nivel: string): NivelEducativo => {
     case "SECUNDARIA":
       return NivelEducativo.SECUNDARIA;
     default:
-      throw new Error(`Nivel educativo no válido: ${nivel}`);
+      throw new Error(`Invalid educational level: ${nivel}`);
   }
 };
 
 /**
- * Valida los permisos según el rol para consultas de asistencia de estudiantes
+ * Validates permissions according to role for student attendance queries
  */
 const validarPermisosEstudiantes = (
   rol: RolesSistema,
@@ -55,77 +55,77 @@ const validarPermisosEstudiantes = (
 ): { esValido: boolean; mensaje?: string } => {
   switch (rol) {
     case RolesSistema.Directivo:
-      // Los directivos pueden consultar cualquier asistencia de estudiantes
+      // Directors can query any student attendance
       return { esValido: true };
 
     case RolesSistema.Auxiliar:
-      // Solo estudiantes de secundaria
+      // Only secondary students
       if (tipoAsistencia !== TipoAsistencia.ParaEstudiantesSecundaria) {
         return {
           esValido: false,
           mensaje:
-            "Los auxiliares solo pueden consultar estudiantes de secundaria",
+            "Assistants can only query secondary students",
         };
       }
       return { esValido: true };
 
     case RolesSistema.ProfesorPrimaria:
-      // Solo estudiantes de primaria
+      // Only primary students
       if (tipoAsistencia !== TipoAsistencia.ParaEstudiantesPrimaria) {
         return {
           esValido: false,
           mensaje:
-            "Los profesores de primaria solo pueden consultar estudiantes de primaria",
+            "Primary school teachers can only query primary students",
         };
       }
-      // TODO: Aquí se podría validar que el profesor solo consulte su aula asignada
+      // TODO: Here it could be validated that the teacher only queries their assigned classroom
       return { esValido: true };
 
     case RolesSistema.Tutor:
-      // Solo estudiantes de secundaria
+      // Only secondary students
       if (tipoAsistencia !== TipoAsistencia.ParaEstudiantesSecundaria) {
         return {
           esValido: false,
           mensaje:
-            "Los tutores solo pueden consultar estudiantes de secundaria",
+            "Tutors can only query secondary students",
         };
       }
-      // TODO: Aquí se podría validar que el tutor solo consulte su aula asignada
+      // TODO: Here it could be validated that the tutor only queries their assigned classroom
       return { esValido: true };
 
     case RolesSistema.Responsable:
-      // Los responsables pueden consultar estudiantes, pero solo los que tienen bajo su responsabilidad
-      // TODO: Esta validación requeriría consultar la base de datos para verificar la relación
+      // Guardians can query students, but only those under their responsibility
+      // TODO: This validation would require querying the database to verify the relationship
       return { esValido: true };
 
     case RolesSistema.ProfesorSecundaria:
       return {
         esValido: false,
         mensaje:
-          "Los profesores de secundaria no pueden consultar asistencias de estudiantes",
+          "Secondary school teachers cannot query student attendances",
       };
 
     case RolesSistema.PersonalAdministrativo:
       return {
         esValido: false,
         mensaje:
-          "El personal administrativo no puede consultar asistencias de estudiantes",
+          "Administrative staff cannot query student attendances",
       };
 
     default:
-      return { esValido: false, mensaje: "Rol no autorizado" };
+      return { esValido: false, mensaje: "Unauthorized role" };
   }
 };
 
 export async function GET(req: NextRequest) {
-  const logPrefix = "[GET /asistencias/estudiantes]";
+  const logPrefix = "[GET /attendances/students]";
 
   try {
-    console.log(`${logPrefix} 🚀 INICIO DE CONSULTA`);
-    console.log(`${logPrefix} 🌐 URL completa: ${req.url}`);
+    console.log(`${logPrefix} 🚀 STARTING QUERY`);
+    console.log(`${logPrefix} 🌐 Full URL: ${req.url}`);
 
-    // Verificar autenticación
-    console.log(`${logPrefix} 🔐 Verificando autenticación...`);
+    // Verify authentication
+    console.log(`${logPrefix} 🔐 Verifying authentication...`);
     const { error, rol, decodedToken } = await verifyAuthToken(req, [
       RolesSistema.Directivo,
       RolesSistema.Auxiliar,
@@ -135,17 +135,17 @@ export async function GET(req: NextRequest) {
     ]);
 
     if (error && !rol && !decodedToken) {
-      console.log(`${logPrefix} ❌ Error de autenticación`);
+      console.log(`${logPrefix} ❌ Authentication error`);
       return error;
     }
 
-    console.log(`${logPrefix} ✅ Usuario autenticado - Rol: ${rol}`);
+    console.log(`${logPrefix} ✅ Authenticated user - Role: ${rol}`);
     console.log(
-      `${logPrefix} 👤 Token decodificado:`,
+      `${logPrefix} 👤 Decoded token:`,
       decodedToken ? Object.keys(decodedToken) : "null"
     );
 
-    // Obtener parámetros de la consulta
+    // Get query parameters
     const searchParams = req.nextUrl.searchParams;
     const tipoAsistenciaParam = searchParams.get(
       "TipoAsistencia"
@@ -156,7 +156,7 @@ export async function GET(req: NextRequest) {
     const seccionParam = searchParams.get("Seccion");
     const totalEstudiantesParam = searchParams.get("totalEstudiantes");
 
-    console.log(`${logPrefix} 📋 Parámetros recibidos:`);
+    console.log(`${logPrefix} 📋 Received parameters:`);
     console.log(`${logPrefix} 📋   TipoAsistencia: ${tipoAsistenciaParam}`);
     console.log(`${logPrefix} 📋   Nivel: ${nivelParam}`);
     console.log(`${logPrefix} 📋   Grado: ${gradoParam}`);
@@ -164,45 +164,45 @@ export async function GET(req: NextRequest) {
     console.log(`${logPrefix} 📋   Seccion: ${seccionParam}`);
     console.log(`${logPrefix} 📋   totalEstudiantes: ${totalEstudiantesParam}`);
 
-    // Validar parámetros obligatorios
+    // Validate mandatory parameters
     if (!tipoAsistenciaParam) {
-      console.log(`${logPrefix} ❌ Falta parámetro TipoAsistencia`);
+      console.log(`${logPrefix} ❌ Missing TipoAsistencia parameter`);
       return NextResponse.json(
-        { success: false, message: "Se requiere el parámetro TipoAsistencia" },
+        { success: false, message: "The TipoAsistencia parameter is required" },
         { status: 400 }
       );
     }
 
     if (!nivelParam) {
-      console.log(`${logPrefix} ❌ Falta parámetro Nivel`);
+      console.log(`${logPrefix} ❌ Missing Nivel parameter`);
       return NextResponse.json(
-        { success: false, message: "Se requiere el parámetro Nivel" },
+        { success: false, message: "The Nivel parameter is required" },
         { status: 400 }
       );
     }
 
     if (!gradoParam) {
-      console.log(`${logPrefix} ❌ Falta parámetro Grado`);
+      console.log(`${logPrefix} ❌ Missing Grado parameter`);
       return NextResponse.json(
-        { success: false, message: "Se requiere el parámetro Grado" },
+        { success: false, message: "The Grado parameter is required" },
         { status: 400 }
       );
     }
 
-    // NUEVA VALIDACIÓN: Seccion es obligatoria para la nueva estructura
+    // NEW VALIDATION: Section is mandatory for the new structure
     if (!seccionParam) {
-      console.log(`${logPrefix} ❌ Falta parámetro Seccion`);
+      console.log(`${logPrefix} ❌ Missing Seccion parameter`);
       return NextResponse.json(
         {
           success: false,
           message:
-            "Se requiere el parámetro Seccion para trabajar con la nueva estructura de datos",
+            "The Seccion parameter is required to work with the new data structure",
         },
         { status: 400 }
       );
     }
 
-    // Validar que TipoAsistencia sea válido y sea para estudiantes
+    // Validate that TipoAsistencia is valid and is for students
     const tiposValidos = [
       TipoAsistencia.ParaEstudiantesPrimaria,
       TipoAsistencia.ParaEstudiantesSecundaria,
@@ -210,45 +210,45 @@ export async function GET(req: NextRequest) {
 
     if (!tiposValidos.includes(tipoAsistenciaParam)) {
       console.log(
-        `${logPrefix} ❌ TipoAsistencia inválido: ${tipoAsistenciaParam}`
+        `${logPrefix} ❌ Invalid TipoAsistencia: ${tipoAsistenciaParam}`
       );
-      console.log(`${logPrefix} 📋 Tipos válidos: ${tiposValidos.join(", ")}`);
+      console.log(`${logPrefix} 📋 Valid types: ${tiposValidos.join(", ")}`);
       return NextResponse.json(
         {
           success: false,
           message:
-            "El TipoAsistencia debe ser para estudiantes (primaria o secundaria)",
+            "TipoAsistencia must be for students (primary or secondary)",
         },
         { status: 400 }
       );
     }
 
-    // Determinar tipo de consulta: individual vs aula
+    // Determine query type: individual vs classroom
     const esConsultaIndividual = !!idEstudianteParam;
     const esConsultaAula = !idEstudianteParam;
 
     console.log(
-      `${logPrefix} 🎯 Tipo de consulta: ${
-        esConsultaIndividual ? "Individual" : "Aula completa"
+      `${logPrefix} 🎯 Query type: ${
+        esConsultaIndividual ? "Individual" : "Full classroom"
       }`
     );
 
-    // NUEVA VALIDACIÓN: totalEstudiantes obligatorio solo para consultas de aula
+    // NEW VALIDATION: totalEstudiantes mandatory only for classroom queries
     if (esConsultaAula && !totalEstudiantesParam) {
       console.log(
-        `${logPrefix} ❌ Falta parámetro totalEstudiantes para consulta de aula`
+        `${logPrefix} ❌ Missing totalEstudiantes parameter for classroom query`
       );
       return NextResponse.json(
         {
           success: false,
           message:
-            "El parámetro totalEstudiantes es obligatorio para consultas de aula completa (cuando no se especifica idEstudiante)",
+            "The totalEstudiantes parameter is mandatory for full classroom queries (when idEstudiante is not specified)",
         },
         { status: 400 }
       );
     }
 
-    // Validar totalEstudiantes si se proporciona
+    // Validate totalEstudiantes if provided
     let totalEstudiantes: number | undefined;
     if (totalEstudiantesParam) {
       totalEstudiantes = parseInt(totalEstudiantesParam);
@@ -258,31 +258,31 @@ export async function GET(req: NextRequest) {
         totalEstudiantes > 50
       ) {
         console.log(
-          `${logPrefix} ❌ totalEstudiantes inválido: ${totalEstudiantesParam}`
+          `${logPrefix} ❌ Invalid totalEstudiantes: ${totalEstudiantesParam}`
         );
         return NextResponse.json(
           {
             success: false,
             message:
-              "El parámetro totalEstudiantes debe ser un número entre 1 y 50",
+              "The totalEstudiantes parameter must be a number between 1 and 50",
           },
           { status: 400 }
         );
       }
       console.log(
-        `${logPrefix} ✅ totalEstudiantes validado: ${totalEstudiantes}`
+        `${logPrefix} ✅ totalEstudiantes validated: ${totalEstudiantes}`
       );
     }
 
-    // Convertir y validar parámetros
+    // Convert and validate parameters
     let nivel: NivelEducativo;
     let grado: number;
 
     try {
       nivel = mapearNivelEducativo(nivelParam);
-      console.log(`${logPrefix} ✅ Nivel mapeado: ${nivel}`);
+      console.log(`${logPrefix} ✅ Level mapped: ${nivel}`);
     } catch (error) {
-      console.log(`${logPrefix} ❌ Error al mapear nivel: ${error}`);
+      console.log(`${logPrefix} ❌ Error mapping level: ${error}`);
       return NextResponse.json(
         { success: false, message: (error as Error).message },
         { status: 400 }
@@ -291,34 +291,34 @@ export async function GET(req: NextRequest) {
 
     grado = parseInt(gradoParam);
     if (isNaN(grado) || grado < 1 || grado > 6) {
-      console.log(`${logPrefix} ❌ Grado inválido: ${gradoParam}`);
+      console.log(`${logPrefix} ❌ Invalid Grado: ${gradoParam}`);
       return NextResponse.json(
-        { success: false, message: "El Grado debe ser un número entre 1 y 6" },
+        { success: false, message: "The Grade must be a number between 1 and 6" },
         { status: 400 }
       );
     }
 
-    // Validar grado según nivel
+    // Validate grade according to level
     if (nivel === NivelEducativo.SECUNDARIA && grado > 5) {
-      console.log(`${logPrefix} ❌ Grado inválido para secundaria: ${grado}`);
+      console.log(`${logPrefix} ❌ Invalid Grade for secondary: ${grado}`);
       return NextResponse.json(
         {
           success: false,
-          message: "Para secundaria, el grado debe estar entre 1 y 5",
+          message: "For secondary, the grade must be between 1 and 5",
         },
         { status: 400 }
       );
     }
 
-    // Validar sección (formato básico)
+    // Validate section (basic format)
     if (seccionParam && !/^[A-Z]{1,2}$/i.test(seccionParam)) {
       console.log(
-        `${logPrefix} ❌ Formato de sección inválido: ${seccionParam}`
+        `${logPrefix} ❌ Invalid section format: ${seccionParam}`
       );
       return NextResponse.json(
         {
           success: false,
-          message: "La sección debe ser una o dos letras (A, B, AB, etc.)",
+          message: "The section must be one or two letters (A, B, AB, etc.)",
         },
         { status: 400 }
       );
@@ -326,11 +326,11 @@ export async function GET(req: NextRequest) {
 
     const seccion = seccionParam.toUpperCase();
     console.log(
-      `${logPrefix} ✅ Parámetros validados - Nivel: ${nivel}, Grado: ${grado}, Sección: ${seccion}`
+      `${logPrefix} ✅ Parameters validated - Level: ${nivel}, Grade: ${grado}, Section: ${seccion}`
     );
 
-    // Validar permisos
-    console.log(`${logPrefix} 🔒 Validando permisos para rol: ${rol}`);
+    // Validate permissions
+    console.log(`${logPrefix} 🔒 Validating permissions for role: ${rol}`);
     const validacionPermisos = validarPermisosEstudiantes(
       rol!,
       tipoAsistenciaParam,
@@ -341,7 +341,7 @@ export async function GET(req: NextRequest) {
 
     if (!validacionPermisos.esValido) {
       console.log(
-        `${logPrefix} ❌ Permisos insuficientes: ${validacionPermisos.mensaje}`
+        `${logPrefix} ❌ Insufficient permissions: ${validacionPermisos.mensaje}`
       );
       return NextResponse.json(
         { success: false, message: validacionPermisos.mensaje },
@@ -349,11 +349,11 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    console.log(`${logPrefix} ✅ Permisos validados correctamente`);
+    console.log(`${logPrefix} ✅ Permissions validated correctly`);
 
-    // Crear instancia del repositorio
+    // Create repository instance
     const asistenciasRepo = new AsistenciasEscolaresHoyRepository();
-    console.log(`${logPrefix} 📦 Repositorio de asistencias creado`);
+    console.log(`${logPrefix} 📦 Attendance repository created`);
 
     let resultados:
       | AsistenciaDiariaEscolarResultado
@@ -362,12 +362,12 @@ export async function GET(req: NextRequest) {
     let mensajeDebug = "";
 
     if (esConsultaIndividual) {
-      // Consulta por ID específico de estudiante
+      // Query by specific student ID
       console.log(
-        `${logPrefix} 🔍 INICIANDO consulta individual: ${idEstudianteParam}`
+        `${logPrefix} 🔍 STARTING individual query: ${idEstudianteParam}`
       );
       console.log(
-        `${logPrefix} 🎯 Parámetros para consulta: nivel=${nivel}, grado=${grado}, seccion=${seccion}, rol=${rol}`
+        `${logPrefix} 🎯 Parameters for query: level=${nivel}, grade=${grado}, section=${seccion}, role=${rol}`
       );
 
       const resultado = await asistenciasRepo.consultarPorIdEstudiante(
@@ -382,17 +382,17 @@ export async function GET(req: NextRequest) {
       resultados = resultado.datos;
       mensajeDebug = resultado.mensaje;
 
-      console.log(`${logPrefix} 📊 Resultado consulta individual:`);
+      console.log(`${logPrefix} 📊 Individual query result:`);
       console.log(
-        `${logPrefix} 📊   Datos: ${
-          resultados ? "Encontrado" : "No encontrado"
+        `${logPrefix} 📊   Data: ${
+          resultados ? "Found" : "Not found"
         }`
       );
-      console.log(`${logPrefix} 📊   Mensaje: ${mensajeDebug}`);
+      console.log(`${logPrefix} 📊   Message: ${mensajeDebug}`);
     } else {
-      // Consulta por aula (nivel, grado, sección) - ACTUALIZADA CON totalEstudiantes
+      // Query by classroom (level, grade, section) - UPDATED WITH totalEstudiantes
       console.log(
-        `${logPrefix} 🏫 INICIANDO consulta por aula: ${nivel} ${grado}° ${seccion} (${totalEstudiantes} estudiantes esperados)`
+        `${logPrefix} 🏫 STARTING classroom query: ${nivel} ${grado}° ${seccion} (${totalEstudiantes} expected students)`
       );
 
       const resultado = await asistenciasRepo.consultarPorAula(
@@ -400,33 +400,33 @@ export async function GET(req: NextRequest) {
         nivel!,
         grado!,
         seccion!,
-        totalEstudiantes!, // Nuevo parámetro obligatorio
+        totalEstudiantes!, // New mandatory parameter
         rol!
       );
 
       resultados = resultado.datos;
       mensajeDebug = resultado.mensaje;
 
-      console.log(`${logPrefix} 📊 Resultado consulta por aula:`);
+      console.log(`${logPrefix} 📊 Classroom query result:`);
       console.log(
-        `${logPrefix} 📊   Datos: ${
+        `${logPrefix} 📊   Data: ${
           Array.isArray(resultados)
-            ? `${resultados.length}/${totalEstudiantes} estudiantes`
-            : "No encontrado"
+            ? `${resultados.length}/${totalEstudiantes} students`
+            : "Not found"
         }`
       );
-      console.log(`${logPrefix} 📊   Mensaje: ${mensajeDebug}`);
+      console.log(`${logPrefix} 📊   Message: ${mensajeDebug}`);
     }
 
-    // Obtener fecha actual para la respuesta
+    // Get current date for the response
     const fechaActual = await asistenciasRepo.obtenerFechaActual();
     const [año, mes, dia] = fechaActual.split("-").map(Number);
 
     console.log(
-      `${logPrefix} 📅 Fecha actual obtenida: ${fechaActual} (${dia}/${mes}/${año})`
+      `${logPrefix} 📅 Current date obtained: ${fechaActual} (${dia}/${mes}/${año})`
     );
 
-    // Crear respuesta
+    // Create response
     const respuesta: ConsultarAsistenciasEstudiantesResponseBody = {
       TipoAsistencia: tipoAsistenciaParam,
       Dia: dia,
@@ -440,16 +440,16 @@ export async function GET(req: NextRequest) {
       _debug: mensajeDebug,
     };
 
-    console.log(`${logPrefix} ✅ CONSULTA COMPLETADA EXITOSAMENTE`);
+    console.log(`${logPrefix} ✅ QUERY COMPLETED SUCCESSFULLY`);
     console.log(
-      `${logPrefix} 📈 Respuesta preparada con ${
+      `${logPrefix} 📈 Response prepared with ${
         Array.isArray(resultados) ? resultados.length : resultados ? 1 : 0
-      } resultados`
+      } results`
     );
 
     return NextResponse.json(respuesta, { status: 200 });
   } catch (error) {
-    console.error(`${logPrefix} ❌ ERROR CRÍTICO:`, error);
+    console.error(`${logPrefix} ❌ CRITICAL ERROR:`, error);
     console.error(
       `${logPrefix} ❌ Stack trace:`,
       error instanceof Error ? error.stack : "No stack available"
@@ -458,9 +458,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        message: "Error interno del servidor",
+        message: "Internal server error",
         error: error instanceof Error ? error.message : String(error),
-        _debug: "Ver logs del servidor para más detalles",
+        _debug: "See server logs for more details",
       },
       { status: 500 }
     );

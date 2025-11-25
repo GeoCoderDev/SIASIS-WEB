@@ -14,7 +14,7 @@ export class Vibrator {
     // Show warning if not supported
     if (!this.isSupported) {
       console.warn(
-        "Vibration API no está soportada en este dispositivo/navegador"
+        "Vibration API is not supported on this device/browser"
       );
     }
   }
@@ -26,21 +26,21 @@ export class Vibrator {
    */
   vibrate(duration: number): boolean {
     if (!this.isSupported) {
-      console.warn("Vibración no soportada - simulando vibración");
+      console.warn("Vibration not supported - simulating vibration");
       return false;
     }
 
     try {
       // Validate that the duration is a positive number
       if (duration <= 0) {
-        console.warn("Duración de vibración debe ser mayor a 0");
+        console.warn("Vibration duration must be greater than 0");
         return false;
       }
 
       navigator.vibrate(duration);
       return true;
     } catch (error) {
-      console.error("Error al ejecutar vibración:", error);
+      console.error("Error executing vibration:", error);
       return false;
     }
   }
@@ -52,20 +52,20 @@ export class Vibrator {
    */
   vibratePattern(pattern: number[]): boolean {
     if (!this.isSupported) {
-      console.warn("Vibración no soportada - simulando patrón");
+      console.warn("Vibration not supported - simulating pattern");
       return false;
     }
 
     try {
       if (!Array.isArray(pattern) || pattern.length === 0) {
-        console.warn("Patrón de vibración debe ser un array no vacío");
+        console.warn("Vibration pattern must be a non-empty array");
         return false;
       }
 
       navigator.vibrate(pattern);
       return true;
     } catch (error) {
-      console.error("Error al ejecutar patrón de vibración:", error);
+      console.error("Error executing vibration pattern:", error);
       return false;
     }
   }
@@ -75,7 +75,7 @@ export class Vibrator {
    */
   stop(): boolean {
     if (!this.isSupported) {
-      console.warn("Vibración no soportada");
+      console.warn("Vibration not supported");
       return false;
     }
 
@@ -83,7 +83,7 @@ export class Vibrator {
       navigator.vibrate(0); // 0 stops the vibration
       return true;
     } catch (error) {
-      console.error("Error al detener vibración:", error);
+      console.error("Error stopping vibration:", error);
       return false;
     }
   }

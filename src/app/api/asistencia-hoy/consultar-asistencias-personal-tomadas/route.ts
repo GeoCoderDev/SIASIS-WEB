@@ -15,7 +15,7 @@ import {
 import { Meses } from "@/interfaces/shared/Meses";
 
 /**
- * Valida los permisos según el rol para consultas de asistencia personal
+ * Validates permissions according to role for personal attendance queries
  */
 const validarPermisosPersonal = (
   rol: RolesSistema,
@@ -25,7 +25,7 @@ const validarPermisosPersonal = (
 ): { esValido: boolean; mensaje?: string } => {
   switch (rol) {
     case RolesSistema.Directivo:
-      // Los directivos pueden consultar asistencias de cualquier personal
+      // Directors can query attendance of any staff
       return { esValido: true };
 
     case RolesSistema.Auxiliar:
@@ -33,13 +33,13 @@ const validarPermisosPersonal = (
     case RolesSistema.ProfesorSecundaria:
     case RolesSistema.Tutor:
     case RolesSistema.PersonalAdministrativo:
-      // Otros roles solo pueden consultar su propia asistencia
+      // Other roles can only query their own personal attendance
       if (esConsultaPropia) return { esValido: true };
 
       if (!idConsulta || idConsulta !== miid) {
         return {
           esValido: false,
-          mensaje: `El rol ${rol} solo puede consultar su propia asistencia personal`,
+          mensaje: `Role ${rol} can only query their own personal attendance`,
         };
       }
       return { esValido: true };
@@ -47,17 +47,17 @@ const validarPermisosPersonal = (
     case RolesSistema.Responsable:
       return {
         esValido: false,
-        mensaje: "Los responsables no tienen registro de asistencia personal",
+        mensaje: "Guardians do not have personal attendance records",
       };
 
     default:
-      return { esValido: false, mensaje: "Rol no autorizado" };
+      return { esValido: false, mensaje: "Unauthorized role" };
   }
 };
 
 export async function GET(req: NextRequest) {
   try {
-    // Verificar autenticación
+    // Verify authentication
     const { error, rol, decodedToken } = await verifyAuthToken(req, [
       RolesSistema.Directivo,
       RolesSistema.Auxiliar,
@@ -71,67 +71,67 @@ export async function GET(req: NextRequest) {
 
     const MI_idUsuario = decodedToken.ID_Usuario;
 
-    // Obtener parámetros de la consulta
+    // Get query parameters
     const searchParams = req.nextUrl.searchParams;
-    const rolParam = searchParams.get("Rol"); // Opcional para consulta propia
+    const rolParam = searchParams.get("Rol"); // Optional for own query
     const modoRegistroParam = searchParams.get("ModoRegistro");
-    const idParam = searchParams.get("idUsuario"); // Opcional para consulta propia
+    const idParam = searchParams.get("idUsuario"); // Optional for own query
 
-    // Detectar si es consulta propia
+    // Detect if it is own query
     const esConsultaPropia = !rolParam;
     let rolConsulta: RolesSistema;
 
     if (esConsultaPropia) {
-      // Si no se envía Rol, es consulta propia
+      // If Role is not sent, it is own query
       rolConsulta = rol!;
-      console.log(`🔍 Consulta propia detectada: ${rolConsulta}`);
+      console.log(`🔍 Own query detected: ${rolConsulta}`);
     } else {
-      // Validar que Rol sea válido para consulta de otros
+      // Validate that Role is valid for querying others
       if (!Object.values(RolesSistema).includes(rolParam as RolesSistema)) {
         return NextResponse.json(
-          { success: false, message: "El Rol proporcionado no es válido" },
+          { success: false, message: "The provided Role is not valid" },
           { status: 400 }
         );
       }
       rolConsulta = rolParam as RolesSistema;
 
-      // Verificar que el rol consultado tenga asistencia personal
+      // Check that the queried role has personal attendance
       if (rolConsulta === RolesSistema.Responsable) {
         return NextResponse.json(
           {
             success: false,
-            message: "Los responsables no tienen asistencia personal",
+            message: "Guardians do not have personal attendance",
           },
           { status: 400 }
         );
       }
     }
 
-    // Validar parámetros obligatorios
+    // Validate mandatory parameters
     if (!modoRegistroParam) {
       return NextResponse.json(
         {
           success: false,
-          message: "Se requiere el parámetro ModoRegistro",
+          message: "The ModoRegistro parameter is required",
         },
         { status: 400 }
       );
     }
 
-    // Validar que ModoRegistro sea válido
+    // Validate that ModoRegistro is valid
     if (
       !Object.values(ModoRegistro).includes(modoRegistroParam as ModoRegistro)
     ) {
       return NextResponse.json(
         {
           success: false,
-          message: "El ModoRegistro proporcionado no es válido",
+          message: "The provided ModoRegistro is not valid",
         },
         { status: 400 }
       );
     }
 
-    // Validar permisos
+    // Validate permissions
     const validacionPermisos = validarPermisosPersonal(
       rol!,
       idParam,
@@ -149,47 +149,47 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Obtener la fecha actual en Perú
+    // Get current date in Peru
     const fechaActualPeru = await obtenerFechaActualPeru();
 
-    // Crear patrón de búsqueda
+    // Create search pattern
     const codigoRol = rolConsulta;
     const idParaBusqueda = esConsultaPropia ? MI_idUsuario : idParam;
 
     let patronBusqueda: string;
     if (idParaBusqueda) {
-      // Consulta unitaria por idUsuario específico
+      // Unitary query by specific idUsuario
       patronBusqueda = `${fechaActualPeru}:${modoRegistroParam}:${codigoRol}:${idParaBusqueda}`;
     } else {
-      // Consulta general por rol
+      // General query by role
       patronBusqueda = `${fechaActualPeru}:${modoRegistroParam}:${codigoRol}:*`;
     }
 
     console.log(
-      `🔍 Buscando claves con patrón: ${patronBusqueda} ${
-        esConsultaPropia ? "(consulta propia)" : "(consulta de otros)"
+      `🔍 Searching keys with pattern: ${patronBusqueda} ${
+        esConsultaPropia ? "(own query)" : "(query of others)"
       }`
     );
 
-    // Obtener la instancia de Redis para personal
+    // Get Redis instance for staff
     const redisClientInstance = redisClient(
       GruposIntanciasDeRedis.ParaAsistenciasDePersonal
     );
 
-    // Buscar claves
+    // Search keys
     let claves: string[];
     if (idParaBusqueda) {
-      // Para consulta unitaria, verificar si existe la clave específica
+      // For unitary query, check if the specific key exists
       const existe = await redisClientInstance.exists(patronBusqueda);
       claves = existe ? [patronBusqueda] : [];
     } else {
-      // Para consultas múltiples, usar keys
+      // For multiple queries, use keys
       claves = await redisClientInstance.keys(patronBusqueda);
     }
 
-    console.log(`📊 Claves encontradas: ${claves.length}`, claves);
+    console.log(`📊 Keys found: ${claves.length}`, claves);
 
-    // Procesar resultados
+    // Process results
     const resultados: AsistenciaDiariaDePersonalResultado[] = [];
 
     for (const clave of claves) {
@@ -200,7 +200,7 @@ export async function GET(req: NextRequest) {
         if (partes.length >= 4) {
           const id = partes[3];
 
-          // Para personal, valor debe ser un array con timestamp y desfase
+          // For staff, value must be an array with timestamp and offset
           if (Array.isArray(valor) && valor.length >= 2) {
             const timestamp = parseInt(valor[0] as string);
             const desfaseSegundos = parseInt(valor[1] as string);
@@ -218,9 +218,9 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    console.log(`✅ Total de resultados encontrados: ${resultados.length}`);
+    console.log(`✅ Total results found: ${resultados.length}`);
 
-    // Crear respuesta
+    // Create response
     const respuesta: ConsultarAsistenciasDePersonalTomadasPorRolEnRedisResponseBody =
       {
         Rol: rolConsulta,
@@ -233,11 +233,11 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(respuesta, { status: 200 });
   } catch (error) {
-    console.error("❌ Error al consultar asistencias de personal:", error);
+    console.error("❌ Error querying personal attendance:", error);
     return NextResponse.json(
       {
         success: false,
-        message: "Error interno del servidor",
+        message: "Internal server error",
         error: error instanceof Error ? error.message : String(error),
       },
       { status: 500 }

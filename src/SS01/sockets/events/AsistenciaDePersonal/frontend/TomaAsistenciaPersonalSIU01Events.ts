@@ -16,7 +16,7 @@ import { MARQUE_LA_ASISTENCIA_DE_ESTE_PERSONAL_PAYLOAD } from "../interfaces/Pay
 export class TomaAsistenciaPersonalSIU01Events {
   public static socketConnection: SocketIOClient.Socket | null = null;
 
-  // Método para verificar si hay conexión disponible
+  // Method to check if connection is available
   private static checkConnection(): boolean {
     if (!this.socketConnection) {
       console.error(
@@ -105,14 +105,14 @@ export class TomaAsistenciaPersonalSIU01Events {
       }
     }
 
-    // Método para limpiar el listener
+    // Method to clear the listener
     unhand(): boolean {
       if (!this.socketHandler) {
         return false;
       }
 
       try {
-        // Asumir que SocketHandler tiene un método para limpiar
+        // Assume that SocketHandler has a method to clear
         if (TomaAsistenciaPersonalSIU01Events.socketConnection) {
           TomaAsistenciaPersonalSIU01Events.socketConnection.off(
             NombresEventosTomaAsistenciaDePersonalSS01.RESPUESTA_SALUDO
@@ -293,14 +293,14 @@ export class TomaAsistenciaPersonalSIU01Events {
       }
     }
 
-    // Método para limpiar el listener
+    // Method to clear the listener
     unhand(): boolean {
       if (!this.socketHandler) {
         return false;
       }
 
       try {
-        // Asumir que SocketHandler tiene un método para limpiar
+        // Assume that SocketHandler has a method to clear
         if (TomaAsistenciaPersonalSIU01Events.socketConnection) {
           TomaAsistenciaPersonalSIU01Events.socketConnection.off(
             NombresEventosTomaAsistenciaDePersonalSS01.SE_ACABA_DE_MARCAR_LA_ASISTENCIA_DE_ESTE_PERSONAL
@@ -362,14 +362,14 @@ export class TomaAsistenciaPersonalSIU01Events {
       }
     }
 
-    // Método para limpiar el listener
+    // Method to clear the listener
     unhand(): boolean {
       if (!this.socketHandler) {
         return false;
       }
 
       try {
-        // Asumir que SocketHandler tiene un método para limpiar
+        // Assume that SocketHandler has a method to clear
         if (TomaAsistenciaPersonalSIU01Events.socketConnection) {
           TomaAsistenciaPersonalSIU01Events.socketConnection.off(
             NombresEventosTomaAsistenciaDePersonalSS01.SE_ACABA_DE_ELIMINAR_LA_ASISTENCIA_DE_ESTE_PERSONAL
@@ -389,7 +389,7 @@ export class TomaAsistenciaPersonalSIU01Events {
     }
   };
 
-  // Método estático para limpiar todos los listeners
+  // Static method to clear all listeners
   static cleanup(): void {
     if (this.socketConnection) {
       this.socketConnection.removeAllListeners();
@@ -399,7 +399,7 @@ export class TomaAsistenciaPersonalSIU01Events {
     }
   }
 
-  // Método para verificar el estado de la conexión
+  // Method to check the connection status
   static getConnectionStatus(): {
     hasConnection: boolean;
     isConnected: boolean;

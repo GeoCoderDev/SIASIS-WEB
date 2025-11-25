@@ -1,5 +1,5 @@
 // =====================================================================================
-// CLASE HIJA ESPECIALIZADA PARA RESPONSABLES
+// SPECIALIZED CHILD CLASS FOR GUARDIANS
 // =====================================================================================
 
 import { Endpoint_Profesores_Con_Aula_Para_Responsables_API02 } from "@/lib/utils/backend/endpoints/api02/ProfesoresConAulaParaResponsables";
@@ -16,7 +16,7 @@ import {
   MessageProperty,
 } from "@/interfaces/shared/apis/types";
 
-// Resultado específico para responsables
+// Specific result for guardians
 export interface ConsultaProfesorResponsableResult
   extends ProfesorOperationResult {
   origen?: "cache" | "api";
@@ -24,8 +24,8 @@ export interface ConsultaProfesorResponsableResult
 }
 
 /**
- * Clase especializada para el manejo de profesores para responsables
- * Implementa consulta específica con datos básicos y celular
+ * Specialized class for handling teachers for guardians
+ * Implements specific query with basic data and cell phone
  */
 export class ProfesoresParaResponsablesIDB extends ProfesoresBaseIDB {
   constructor(
@@ -37,7 +37,7 @@ export class ProfesoresParaResponsablesIDB extends ProfesoresBaseIDB {
   }
 
   /**
-   * MÉTODO SIMPLE: Consulta datos básicos de un profesor con sync automático
+   * SIMPLE METHOD: Queries basic teacher data with automatic sync
    */
   public async consultarDatosBasicosDeProfesor(
     idProfesor: string,
@@ -48,35 +48,35 @@ export class ProfesoresParaResponsablesIDB extends ProfesoresBaseIDB {
     this.setSuccessMessage?.(null);
 
     try {
-      // SIMPLE: Solo verificar si necesita sync y consultar
+      // SIMPLE: Just check if sync is needed and query
       const necesitaSync = await this.necesitaSincronizacion(nivel);
       const profesorExistente = await this.obtenerProfesorPorId(
         idProfesor,
         nivel
       );
 
-      // Si no existe o necesita sync, consultar API
+      // If it does not exist or needs sync, query API
       if (!profesorExistente || necesitaSync) {
         return await this.consultarProfesorDesdeAPI(idProfesor, nivel);
       }
 
-      // Usar datos del caché
+      // Use cached data
       this.handleSuccess(
-        `Datos del profesor ${profesorExistente.Nombres} ${profesorExistente.Apellidos} obtenidos desde registros locales`
+        `Data of teacher ${profesorExistente.Nombres} ${profesorExistente.Apellidos} obtained from local records`
       );
 
       return {
         success: true,
-        message: "Datos del profesor obtenidos exitosamente",
+        message: "Teacher data obtained successfully",
         data: profesorExistente,
         origen: "cache",
         ultimaActualizacion: profesorExistente.ultima_fecha_actualizacion,
       };
     } catch (error) {
-      this.handleIndexedDBError(error, "consultar datos básicos de profesor");
+      this.handleIndexedDBError(error, "query basic teacher data");
       return {
         success: false,
-        message: "No se pudieron obtener los datos del profesor",
+        message: "Could not get teacher data",
       };
     } finally {
       this.setIsSomethingLoading?.(false);
@@ -84,7 +84,7 @@ export class ProfesoresParaResponsablesIDB extends ProfesoresBaseIDB {
   }
 
   /**
-   * Consulta el profesor desde la API y actualiza el cache - VERSIÓN CORREGIDA
+   * Queries the teacher from the API and updates the cache - FIXED VERSION
    */
   private async consultarProfesorDesdeAPI(
     idProfesor: string,
@@ -98,7 +98,7 @@ export class ProfesoresParaResponsablesIDB extends ProfesoresBaseIDB {
           }
         );
 
-      // Procesar y guardar la respuesta
+      // Process and save the response
       const profesorActualizado = await this.procesarRespuestaAPI(
         response,
         nivel
@@ -106,43 +106,43 @@ export class ProfesoresParaResponsablesIDB extends ProfesoresBaseIDB {
 
       if (profesorActualizado.success) {
         this.handleSuccess(
-          "Se obtuvieron los datos del profesor exitosamente."
+          "Teacher data was obtained successfully."
         );
 
         return {
           success: true,
-          message: "Datos del profesor obtenidos exitosamente",
-          data: profesorActualizado.data, // AHORA profesorActualizado.data CONTIENE EL OBJETO COMPLETO
+          message: "Teacher data obtained successfully",
+          data: profesorActualizado.data, // NOW profesorActualizado.data CONTAINS THE COMPLETE OBJECT
           origen: "api",
         };
       }
 
       return {
         success: false,
-        message: "No se encontraron datos del profesor solicitado.",
+        message: "Requested teacher data not found.",
       };
     } catch (error) {
-      console.error("Error en API de profesor:", error);
+      console.error("Error in teacher API:", error);
       return {
         success: false,
         message:
-          "No se pudieron obtener los datos del servidor. Verifique su conexión.",
+          "Could not get data from the server. Check your connection.",
       };
     }
   }
   /**
-   * Procesa la respuesta de la API y actualiza IndexedDB
+   * Processes the API response and updates IndexedDB
    */
   private async procesarRespuestaAPI(
     response: ProfesorConAulaSuccessResponse,
     nivel: NivelEducativo
   ): Promise<ProfesorOperationResult> {
-    // Mapear los datos de la respuesta al formato local
+    // Map the response data to the local format
     const profesorLocal: Omit<
       IProfesorBaseLocal,
       "ultima_fecha_actualizacion"
     > = {
-      // Asignar ID según el nivel
+      // Assign ID according to the level
       ...(nivel === NivelEducativo.PRIMARIA
         ? { Id_Profesor_Primaria: (response.data as any).Id_Profesor_Primaria }
         : {

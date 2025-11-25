@@ -24,14 +24,14 @@ interface Props {
   idAulaRestringida?: string;
 }
 
-// Estados del modal
+// Modal states
 enum EstadosModal {
-  INICIAL = "inicial", // Solo dropdowns + botón generar deshabilitado
-  SELECCIONADO = "seleccionado", // Dropdowns + info aula + botón generar habilitado
-  GENERADO = "generado", // Solo info aula + botones de acción
+  INICIAL = "inicial", // Only dropdowns + disabled generate button
+  SELECCIONADO = "seleccionado", // Dropdowns + classroom info + enabled generate button
+  GENERADO = "generado", // Only classroom info + action buttons
 }
 
-// Estilos por navegador
+// Styles by browser
 const ESTILOS_POR_NAVEGADORES: Record<
   NavegadoresWeb,
   {
@@ -131,7 +131,7 @@ const GeneradorQRParametrizado = ({
     limpiarSelecciones,
   } = useQRGeneratorPorAula();
 
-  // Estados locales
+  // Local states
   const [estadoModal, setEstadoModal] = useState<EstadosModal>(
     EstadosModal.INICIAL
   );
@@ -139,11 +139,11 @@ const GeneradorQRParametrizado = ({
     restriccionNivel || NivelEducativo.PRIMARIA
   );
 
-  // Detectar navegador
+  // Detect browser
   const navegador = useDetectorNavegador();
   const estilos = ESTILOS_POR_NAVEGADORES[navegador];
 
-  // Construir clases del loader e iframe
+  // Build loader and iframe classes
   const clasesLoader = [
     "my-4 text-center flex items-center justify-center flex-col gap-2",
     "landscape-small:my-[0.9rem] landscape-small:gap-[0.45rem]",
@@ -166,12 +166,12 @@ const GeneradorQRParametrizado = ({
     "w-full rounded-lg max-md:my-4",
     "landscape-small:max-md:my-[0.9rem]",
     "landscape-tablet-sm:max-md:my-[0.9rem]",
-    "landscape-small:rounded-[0.45rem]",
-    "landscape-tablet-sm:rounded-[0.45rem]",
+    "landscape-small:rounded-[0.4rem]",
+    "landscape-tablet-sm:rounded-[0.4rem]",
     estilos.AspectRatioVisualizadorDePdf,
   ].join(" ");
 
-  // Control de estados del modal
+  // Modal state control
   useEffect(() => {
     if (currentPdfBlob) {
       setEstadoModal(EstadosModal.GENERADO);
@@ -187,16 +187,16 @@ const GeneradorQRParametrizado = ({
     aulaSeleccionada,
   ]);
 
-  // Función de limpiar personalizada
+  // Custom clear function
   const handleLimpiar = () => {
     limpiarSelecciones();
     setEstadoModal(EstadosModal.INICIAL);
   };
 
-  // Inicialización
+  // Initialization
   useEffect(() => {
     initializeShareSupport();
-    // Cargar grados según restricciones o nivel por defecto
+    // Load grades according to restrictions or default level
     const nivelInicial = restriccionNivel || nivelSeleccionado;
     cargarGradosDisponibles(nivelInicial, idAulaRestringida);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -206,18 +206,18 @@ const GeneradorQRParametrizado = ({
     return cleanup;
   }, [cleanup]);
 
-  // Lógica de habilitación del botón generar
+  // Button enablement logic
   const puedeGenerarPDF =
     aulaSeleccionada && estudiantesDelAula.length > 0 && !isGeneratingPDF;
   const estudiantesCount = estudiantesDelAula.length;
 
-  // Determinar si mostrar selector de nivel
+  // Determine whether to show level selector
   const mostrarSelectorNivel = !restriccionNivel && !idAulaRestringida;
 
-  // Determinar si mostrar selectores de grado/sección
+  // Determine whether to show grade/section selectors
   const mostrarSelectoresGradoSeccion = !idAulaRestringida;
 
-  // Handler para cambio de nivel (solo para Directivos)
+  // Handler for level change (only for Directors)
   const handleNivelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const nuevoNivel = e.target.value as NivelEducativo;
     setNivelSeleccionado(nuevoNivel);
@@ -245,7 +245,7 @@ const GeneradorQRParametrizado = ({
                         landscape-tablet-sm:max-w-[90vw] landscape-tablet-sm:max-h-[80vh] landscape-tablet-sm:rounded-[0.4rem]
                         overflow-y-auto"
         >
-          {/* Grid principal */}
+          {/* Main grid */}
           <div
             className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-4
                           sxs-only:grid-cols-1 sxs-only:gap-2
@@ -256,7 +256,7 @@ const GeneradorQRParametrizado = ({
                           landscape-small:grid-cols-[1fr_280px] landscape-small:gap-[0.9rem]
                           landscape-tablet-sm:grid-cols-[1fr_300px] landscape-tablet-sm:gap-[0.9rem]"
           >
-            {/* Panel de vista previa */}
+            {/* Preview panel */}
             <div
               className="flex flex-col p-4 bg-gris-intermedio rounded-[9px] shadow-[0_0_7px_2px_rgba(0,0,0,0.4)_inset]
                             sxs-only:p-2
@@ -266,7 +266,7 @@ const GeneradorQRParametrizado = ({
                             landscape-small:p-[0.9rem] landscape-small:rounded-[8px]
                             landscape-tablet-sm:p-[0.9rem] landscape-tablet-sm:rounded-[8px]"
             >
-              {/* Visualizador */}
+              {/* Viewer */}
               <div
                 className="flex-1 flex items-center justify-center min-h-[200px]
                               sxs-only:min-h-[140px]
@@ -304,14 +304,14 @@ const GeneradorQRParametrizado = ({
                                     landscape-small:text-[11.5px]
                                     landscape-tablet-sm:text-[11.5px]"
                       >
-                        Generando {estudiantesCount} tarjetas...
+                        Generating {estudiantesCount} cards...
                       </p>
                     </div>
                   ) : pdfPreviewUrl ? (
                     <iframe
                       src={pdfPreviewUrl}
                       className={clasesIframe}
-                      title="Vista previa del PDF del aula"
+                      title="Classroom PDF preview"
                     />
                   ) : (
                     <div className="text-center">
@@ -337,7 +337,7 @@ const GeneradorQRParametrizado = ({
                                     landscape-small:text-[12.6px]
                                     landscape-tablet-sm:text-[12.6px]"
                       >
-                        Vista previa del PDF
+                        PDF preview
                       </p>
                     </div>
                   )}
@@ -345,7 +345,7 @@ const GeneradorQRParametrizado = ({
               </div>
             </div>
 
-            {/* Panel de configuración */}
+            {/* Configuration panel */}
             <div
               className="p-4
                             sxs-only:p-2
@@ -355,7 +355,7 @@ const GeneradorQRParametrizado = ({
                             landscape-small:p-[0.9rem]
                             landscape-tablet-sm:p-[0.9rem]"
             >
-              {/* Título */}
+              {/* Title */}
               <div
                 className="mb-4
                               sxs-only:mb-1.5
@@ -383,7 +383,7 @@ const GeneradorQRParametrizado = ({
                                  landscape-small:text-[1rem]
                                  landscape-tablet-sm:text-[1rem]"
                   >
-                    QR por Aula
+                    QR by Classroom
                   </h3>
                   <QRIcon
                     className="w-5
@@ -397,7 +397,7 @@ const GeneradorQRParametrizado = ({
                   />
                 </div>
 
-                {/* ESTADO INICIAL O SELECCIONADO: Mostrar dropdowns */}
+                {/* INITIAL OR SELECTED STATE: Show dropdowns */}
                 {(estadoModal === EstadosModal.INICIAL ||
                   estadoModal === EstadosModal.SELECCIONADO) && (
                   <div
@@ -412,7 +412,7 @@ const GeneradorQRParametrizado = ({
                                   landscape-small:gap-[0.55rem]
                                   landscape-tablet-sm:gap-[0.55rem]"
                   >
-                    {/* Selector de Nivel - solo si no hay restricciones */}
+                    {/* Level Selector - only if there are no restrictions */}
                     {mostrarSelectorNivel && (
                       <div>
                         <label
@@ -425,7 +425,7 @@ const GeneradorQRParametrizado = ({
                                         landscape-small:text-[11px] landscape-small:mb-[0.2rem]
                                         landscape-tablet-sm:text-[11px] landscape-tablet-sm:mb-[0.2rem]"
                         >
-                          Nivel
+                          Level
                         </label>
                         <select
                           value={nivelSeleccionado}
@@ -448,7 +448,7 @@ const GeneradorQRParametrizado = ({
                       </div>
                     )}
 
-                    {/* Grid para Grado y Sección - solo si no hay restricción de aula */}
+                    {/* Grid for Grade and Section - only if there is no classroom restriction */}
                     {mostrarSelectoresGradoSeccion && (
                       <div
                         className={`grid grid-cols-2 gap-3 ${
@@ -464,7 +464,7 @@ const GeneradorQRParametrizado = ({
                                     landscape-small:gap-[0.55rem]
                                     landscape-tablet-sm:gap-[0.55rem]`}
                       >
-                        {/* Selector de Grado */}
+                        {/* Grade Selector */}
                         <div>
                           <label
                             className="block text-xs font-medium text-gray-700 mb-1
@@ -476,7 +476,7 @@ const GeneradorQRParametrizado = ({
                                           landscape-small:text-[11px] landscape-small:mb-[0.2rem]
                                           landscape-tablet-sm:text-[11px] landscape-tablet-sm:mb-[0.2rem]"
                           >
-                            Grado
+                            Grade
                           </label>
                           <select
                             value={gradoSeleccionado || ""}
@@ -492,7 +492,7 @@ const GeneradorQRParametrizado = ({
                                        landscape-small:p-[0.35rem] landscape-small:text-[11px] landscape-small:rounded-[0.35rem]
                                        landscape-tablet-sm:p-[0.35rem] landscape-tablet-sm:text-[11px] landscape-tablet-sm:rounded-[0.35rem]"
                           >
-                            <option value="">Grado</option>
+                            <option value="">Grade</option>
                             {grados.map((grado) => (
                               <option key={grado} value={grado}>
                                 {grado}°
@@ -501,7 +501,7 @@ const GeneradorQRParametrizado = ({
                           </select>
                         </div>
 
-                        {/* Selector de Sección */}
+                        {/* Section Selector */}
                         <div>
                           <label
                             className="block text-xs font-medium text-gray-700 mb-1
@@ -513,7 +513,7 @@ const GeneradorQRParametrizado = ({
                                           landscape-small:text-[11px] landscape-small:mb-[0.2rem]
                                           landscape-tablet-sm:text-[11px] landscape-tablet-sm:mb-[0.2rem]"
                           >
-                            Sección
+                            Section
                           </label>
                           <select
                             value={seccionSeleccionada || ""}
@@ -534,7 +534,7 @@ const GeneradorQRParametrizado = ({
                                        landscape-small:p-[0.35rem] landscape-small:text-[11px] landscape-small:rounded-[0.35rem]
                                        landscape-tablet-sm:p-[0.35rem] landscape-tablet-sm:text-[11px] landscape-tablet-sm:rounded-[0.35rem]`}
                           >
-                            <option value="">Sección</option>
+                            <option value="">Section</option>
                             {secciones.map((seccion) => (
                               <option key={seccion} value={seccion}>
                                 {seccion}
@@ -547,7 +547,7 @@ const GeneradorQRParametrizado = ({
                   </div>
                 )}
 
-                {/* ESTADO SELECCIONADO O GENERADO: Mostrar información del aula */}
+                {/* SELECTED OR GENERATED STATE: Show classroom information */}
                 {(estadoModal === EstadosModal.SELECCIONADO ||
                   estadoModal === EstadosModal.GENERADO) &&
                   aulaSeleccionada && (
@@ -600,23 +600,23 @@ const GeneradorQRParametrizado = ({
                         </div>
                         <p className="text-blue-600 mb-1 lg-only:mb-2 xl-only:mb-2.5">
                           {estudiantesCount === 0
-                            ? `Sin estudiantes activos | No se pueden generar tarjetas QRs`
-                            : `${estudiantesCount} estudiante${
+                            ? `No active students | Cannot generate QR cards`
+                            : `${estudiantesCount} student${
                                 estudiantesCount !== 1 ? "s" : ""
                               }`}
                         </p>
                         {estudiantesCount > 0 && (
                           <p className="text-blue-500 text-xs mb-1 lg-only:text-sm lg-only:mb-2 xl-only:text-base xl-only:mb-2.5">
-                            {paginasEstimadas} página
+                            {paginasEstimadas} page
                             {paginasEstimadas !== 1 ? "s" : ""} • 4
-                            tarjetas/página
+                            cards/page
                           </p>
                         )}
                       </div>
                     </div>
                   )}
 
-                {/* Botones de acción según estado */}
+                {/* Action buttons based on state */}
                 <div
                   className="mt-4 space-y-2
                                 sxs-only:mt-2.5 sxs-only:space-y-1
@@ -626,7 +626,7 @@ const GeneradorQRParametrizado = ({
                                 landscape-small:mt-[0.8rem] landscape-small:space-y-[0.35rem]
                                 landscape-tablet-sm:mt-[0.8rem] landscape-tablet-sm:space-y-[0.35rem]"
                 >
-                  {/* ESTADO INICIAL O SELECCIONADO: Botón Generar PDF */}
+                  {/* INITIAL OR SELECTED STATE: Generate PDF Button */}
                   {(estadoModal === EstadosModal.INICIAL ||
                     estadoModal === EstadosModal.SELECCIONADO) && (
                     <button
@@ -641,7 +641,7 @@ const GeneradorQRParametrizado = ({
                                  landscape-small:py-[0.45rem] landscape-small:text-[11px] landscape-small:gap-[0.35rem] landscape-small:rounded-[0.35rem]
                                  landscape-tablet-sm:py-[0.45rem] landscape-tablet-sm:text-[11px] landscape-tablet-sm:gap-[0.35rem] landscape-tablet-sm:rounded-[0.35rem]"
                     >
-                      {isGeneratingPDF ? "Generando..." : "Generar PDF"}
+                      {isGeneratingPDF ? "Generating..." : "Generate PDF"}
                       <QRIcon
                         className="w-4
                                                 sxs-only:w-2.5
@@ -655,7 +655,7 @@ const GeneradorQRParametrizado = ({
                     </button>
                   )}
 
-                  {/* ESTADO GENERADO: Botones de descarga, compartir y limpiar */}
+                  {/* GENERATED STATE: Download, share, and clear buttons */}
                   {estadoModal === EstadosModal.GENERADO && (
                     <>
                       <button
@@ -670,7 +670,7 @@ const GeneradorQRParametrizado = ({
                                    landscape-small:py-[0.45rem] landscape-small:text-[11px] landscape-small:gap-[0.35rem] landscape-small:rounded-[0.35rem]
                                    landscape-tablet-sm:py-[0.45rem] landscape-tablet-sm:text-[11px] landscape-tablet-sm:gap-[0.35rem] landscape-tablet-sm:rounded-[0.35rem]"
                       >
-                        Descargar
+                        Download
                         <DescargarIcon
                           className="w-4
                                                   sxs-only:w-2.5
@@ -695,7 +695,7 @@ const GeneradorQRParametrizado = ({
                                    landscape-small:py-[0.45rem] landscape-small:text-[11px] landscape-small:gap-[0.35rem] landscape-small:rounded-[0.35rem]
                                    landscape-tablet-sm:py-[0.45rem] landscape-tablet-sm:text-[11px] landscape-tablet-sm:gap-[0.35rem] landscape-tablet-sm:rounded-[0.35rem]"
                       >
-                        Compartir
+                        Share
                         <CompartirIcon
                           className="w-4 text-white
                                                  sxs-only:w-2.5
@@ -720,12 +720,12 @@ const GeneradorQRParametrizado = ({
                                    landscape-small:py-[0.35rem] landscape-small:text-[11px] landscape-small:rounded-[0.35rem]
                                    landscape-tablet-sm:py-[0.35rem] landscape-tablet-sm:text-[11px] landscape-tablet-sm:rounded-[0.35rem]"
                       >
-                        Limpiar
+                        Clear
                       </button>
                     </>
                   )}
 
-                  {/* Mensajes informativos según estado */}
+                  {/* Informative messages based on state */}
                   {!shareSupported && estadoModal === EstadosModal.GENERADO && (
                     <p
                       className="text-center text-amber-600 bg-amber-50 p-2 rounded-md border border-amber-200
@@ -737,9 +737,8 @@ const GeneradorQRParametrizado = ({
                                    landscape-small:text-[9.5px] landscape-small:p-[0.35rem] landscape-small:leading-tight landscape-small:rounded-[0.35rem]
                                    landscape-tablet-sm:text-[9.5px] landscape-tablet-sm:p-[0.35rem] landscape-tablet-sm:leading-tight landscape-tablet-sm:rounded-[0.35rem]"
                     >
-                      La función de compartir no está disponible en este
-                      dispositivo. Use el botón "Descargar" para guardar el
-                      archivo.
+                      The share function is not available on this device. Use
+                      the "Download" button to save the file.
                     </p>
                   )}
                 </div>

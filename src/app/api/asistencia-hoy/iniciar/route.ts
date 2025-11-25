@@ -22,37 +22,37 @@ import {
 import { GrupoInstaciasDeRedisPorTipoAsistencia } from "../marcar/route";
 
 /**
- * Calcula los segundos que faltan hasta las 23:59:59 del día actual en hora peruana
- * Ahora usa la función mejorada que maneja offsets automáticamente
- * @returns Segundos hasta el final del día en Perú
+ * Calculates the remaining seconds until 23:59:59 of the current day in Peruvian time
+ * Now uses the improved function that handles offsets automatically
+ * @returns Seconds until the end of the day in Peru
  */
 async function calcularSegundosHastaFinDiaPeru(): Promise<number> {
-  // ✅ Usar la nueva función que maneja todos los offsets automáticamente
+  // ✅ Use the new function that handles all offsets automatically
   const fechaActualPeru = await obtenerFechaHoraActualPeru();
 
-  // Crear una fecha que represente las 23:59:59 del mismo día en Perú
+  // Create a date representing 23:59:59 of the same day in Peru
   const finDiaPeruano = new Date(fechaActualPeru);
   finDiaPeruano.setHours(23, 59, 59, 999);
 
-  // Calcular diferencia en segundos
+  // Calculate difference in seconds
   const segundosRestantes = Math.floor(
     (finDiaPeruano.getTime() - fechaActualPeru.getTime()) / 1000
   );
 
-  // Log para depuración (manteniendo la información útil)
+  // Log for debugging (keeping useful information)
   console.log(
-    `Fecha actual Perú (con offsets): ${fechaActualPeru.toISOString()}`
+    `Current date Peru (with offsets): ${fechaActualPeru.toISOString()}`
   );
-  console.log(`Fin del día peruano: ${finDiaPeruano.toISOString()}`);
-  console.log(`Segundos restantes calculados: ${segundosRestantes}`);
+  console.log(`End of Peruvian day: ${finDiaPeruano.toISOString()}`);
+  console.log(`Calculated remaining seconds: ${segundosRestantes}`);
 
-  // Asegurar que devolvemos al menos 1 segundo y como máximo un día
+  // Ensure that we return at least 1 second and at most one day
   return Math.max(Math.min(segundosRestantes, 86400), 1);
 }
 
 export async function POST(req: NextRequest) {
   try {
-    // Verificar autenticación - solo roles con permisos para iniciar asistencia
+    // Verify authentication - only roles with permissions to start attendance
     const { error } = await verifyAuthToken(req, [
       RolesSistema.Directivo,
       RolesSistema.Auxiliar,
@@ -61,44 +61,44 @@ export async function POST(req: NextRequest) {
 
     if (error) return error;
 
-    // Obtener datos del body
+    // Get body data
     const body = (await req.json()) as IniciarTomaAsistenciaRequestBody;
 
-    // Validar que se proporcionó TipoAsistencia
+    // Validate that TipoAsistencia was provided
     if (!body.TipoAsistencia) {
       return NextResponse.json(
         {
           success: false,
-          message: "Se requiere el parámetro TipoAsistencia en el body",
+          message: "The TipoAsistencia parameter is required in the body",
         },
         { status: 400 }
       );
     }
 
-    // Validar que TipoAsistencia sea válido
+    // Validate that TipoAsistencia is valid
     if (!Object.values(TipoAsistencia).includes(body.TipoAsistencia)) {
       return NextResponse.json(
         {
           success: false,
-          message: "El TipoAsistencia proporcionado no es válido",
+          message: "The provided TipoAsistencia is not valid",
         },
         { status: 400 }
       );
     }
 
-    // ✅ Obtener la fecha actual en Perú usando ambas funciones
-    // La función original sigue funcionando para retrocompatibilidad
+    // ✅ Get the current date in Peru using both functions
+    // The original function continues to work for backward compatibility
     const fechaActualPeru = await obtenerFechaActualPeru();
     const [anio, mes, dia] = fechaActualPeru.split("-").map(Number);
 
-    // ✅ También podemos obtener la fecha/hora completa para logs adicionales si es necesario
+    // ✅ We can also get the full date/time for additional logs if needed
     const fechaHoraCompletaPeru = await obtenerFechaHoraActualPeru();
     console.log(
-      `📅 Fecha completa Perú (con offsets): ${fechaHoraCompletaPeru.toISOString()}`
+      `📅 Full date Peru (with offsets): ${fechaHoraCompletaPeru.toISOString()}`
     );
-    console.log(`📅 Fecha string Perú: ${fechaActualPeru}`);
+    console.log(`📅 Date string Peru: ${fechaActualPeru}`);
 
-    // Determinar la key correcta en Redis según el TipoAsistencia
+    // Determine the correct key in Redis according to TipoAsistencia
     let redisKey;
     const tipoAsistencia = body.TipoAsistencia;
 
@@ -114,31 +114,31 @@ export async function POST(req: NextRequest) {
         break;
       default:
         return NextResponse.json(
-          { success: false, message: "Tipo de asistencia no reconocido" },
+          { success: false, message: "Unrecognized attendance type" },
           { status: 400 }
         );
     }
 
-    // ✅ Calcular segundos hasta el final del día usando la función mejorada
+    // ✅ Calculate seconds until the end of the day using the improved function
     const segundosHastaFinDia = await calcularSegundosHastaFinDiaPeru();
 
     console.log(
-      `⏰ Estableciendo bandera con expiración de ${segundosHastaFinDia} segundos (hasta las 23:59:59 hora peruana)`
+      `⏰ Setting flag with expiration of ${segundosHastaFinDia} seconds (until 23:59:59 Peruvian time)`
     );
     console.log(
-      `⏰ En tiempo legible: ${Math.floor(
+      `⏰ In readable time: ${Math.floor(
         segundosHastaFinDia / 3600
       )}h ${Math.floor((segundosHastaFinDia % 3600) / 60)}m ${
         segundosHastaFinDia % 60
       }s`
     );
 
-    // Obtener la instancia de Redis correspondiente al tipo de asistencia
+    // Get the Redis instance corresponding to the attendance type
     const redisClientInstance = redisClient(
       GrupoInstaciasDeRedisPorTipoAsistencia[tipoAsistencia]
     );
 
-    // Almacenar en Redis con expiración al final del día peruano
+    // Store in Redis with expiration at the end of the Peruvian day
     const valorGuardado = await redisClientInstance.set(
       redisKey,
       "true",
@@ -149,13 +149,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: "Error al almacenar el estado de asistencia en Redis",
+          message: "Error storing attendance status in Redis",
         },
         { status: 500 }
       );
     }
 
-    // Construir la respuesta
+    // Build the response
     const respuesta: EstadoTomaAsistenciaResponseBody = {
       TipoAsistencia: tipoAsistencia,
       Dia: dia,
@@ -166,50 +166,50 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(respuesta, { status: 200 });
   } catch (error) {
-    console.error("Error al iniciar estado de toma de asistencia:", error);
+    console.error("Error starting attendance taking status:", error);
 
-    // Determinar el tipo de error
+    // Determine the type of error
     let logoutType: LogoutTypes | null = null;
     const errorDetails: ErrorDetailsForLogout = {
-      mensaje: "Error al iniciar estado de toma de asistencia",
+      mensaje: "Error starting attendance taking status",
       origen: "api/estado-toma-asistencia",
       timestamp: Date.now(),
-      siasisComponent: "RDP05", // Componente Redis
+      siasisComponent: "RDP05", // Redis component
     };
 
     if (error instanceof Error) {
-      // Si es un error de redis crítico o problemas de conexión severos
+      // If it's a critical Redis error or severe connection problems
       if (
         error.message.includes("Redis connection lost") ||
         error.message.includes("Redis connection failed") ||
         error.message.includes("Redis connection timed out")
       ) {
         logoutType = LogoutTypes.ERROR_SISTEMA;
-        errorDetails.mensaje = "Error de conexión con el sistema de datos";
+        errorDetails.mensaje = "Error connecting to the data system";
       }
-      // Si es un error de parseo de JSON
+      // If it's a JSON parsing error
       else if (
         error.message.includes("JSON") ||
         error.message.includes("parse") ||
         error.message.includes("Unexpected token")
       ) {
         logoutType = LogoutTypes.ERROR_DATOS_CORRUPTOS;
-        errorDetails.mensaje = "Error al procesar los datos de la solicitud";
+        errorDetails.mensaje = "Error processing request data";
       }
 
       errorDetails.mensaje += `: ${error.message}`;
     }
 
-    // Si identificamos un error crítico, redirigir al login
+    // If we identify a critical error, redirect to login
     if (logoutType) {
       return redirectToLogin(logoutType, errorDetails);
     }
 
-    // Para otros errores, simplemente devolver una respuesta JSON de error
+    // For other errors, simply return a JSON error response
     return NextResponse.json(
       {
         success: false,
-        message: "Error interno del servidor",
+        message: "Internal server error",
         error: error instanceof Error ? error.message : String(error),
       },
       { status: 500 }

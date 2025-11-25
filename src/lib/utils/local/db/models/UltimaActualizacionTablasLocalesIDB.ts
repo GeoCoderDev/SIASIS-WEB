@@ -8,22 +8,22 @@ import { logout } from "@/lib/utils/frontend/auth/logout";
 import { LogoutTypes } from "@/interfaces/LogoutTypes";
 
 export interface T_Ultima_Actualizacion_Tablas_Locales {
-  Nombre_Tabla: string; // Nombre de la tabla (actúa como clave primaria)
-  Operacion: string; // Tipo de operación (INSERT, UPDATE, DELETE)
-  Fecha_Actualizacion: Date | string; // Fecha de la última actualización local
+  Nombre_Tabla: string; // Table name (acts as primary key)
+  Operacion: string; // Operation type (INSERT, UPDATE, DELETE)
+  Fecha_Actualizacion: Date | string; // Date of the last local update
 }
 
 export class UltimaActualizacionTablasLocalesIDB {
-  // Información completa de la tabla
+  // Complete table information
   private tablaInfo: ITablaInfo = TablasSistema.ULTIMA_ACTUALIZACION_LOCAL;
 
   constructor() {}
 
   /**
-   * Registra o actualiza la información de última actualización para una tabla
-   * @param nombreTabla Nombre de la tabla (local o remota)
-   * @param operacion Tipo de operación realizada
-   * @returns Promise que se resuelve cuando se ha guardado el registro
+   * Registers or updates the last update information for a table
+   * @param nombreTabla Table name (local or remote)
+   * @param operacion Operation type performed
+   * @returns Promise that resolves when the record has been saved
    */
   public async registrarActualizacion(
     nombreTabla: TablasLocal,
@@ -42,7 +42,7 @@ export class UltimaActualizacionTablasLocalesIDB {
       );
 
       return new Promise((resolve, reject) => {
-        // Eliminar el segundo parámetro (la clave) para usar la clave en línea
+        // Remove the second parameter (the key) to use the inline key
         const request = store.put(actualizacion);
 
         request.onsuccess = () => {
@@ -51,7 +51,7 @@ export class UltimaActualizacionTablasLocalesIDB {
 
         request.onerror = (event) => {
           console.error(
-            "Error al registrar actualización local:",
+            "Error registering local update:",
             event,
             actualizacion
           );
@@ -60,11 +60,11 @@ export class UltimaActualizacionTablasLocalesIDB {
       });
     } catch (error) {
       console.error(
-        `Error al registrar actualización local para ${nombreTabla}:`,
+        `Error registering local update for ${nombreTabla}:`,
         error
       );
 
-      // Crear detalles del error
+      // Create error details
       const errorDetails = {
         origen: "UltimaActualizacionTablasLocalesIDB.registrarActualizacion",
         mensaje: error instanceof Error ? error.message : String(error),
@@ -78,8 +78,8 @@ export class UltimaActualizacionTablasLocalesIDB {
   }
 
   /**
-   * Obtiene todas las actualizaciones locales registradas
-   * @returns Promise con el array de actualizaciones
+   * Gets all registered local updates
+   * @returns Promise with the array of updates
    */
   public async getAll(): Promise<T_Ultima_Actualizacion_Tablas_Locales[]> {
     try {
@@ -100,11 +100,11 @@ export class UltimaActualizacionTablasLocalesIDB {
       });
     } catch (error) {
       console.error(
-        `Error al obtener registros de actualizaciones locales:`,
+        `Error getting local update records:`,
         error
       );
 
-      // Crear detalles del error
+      // Create error details
       const errorDetails = {
         origen: "UltimaActualizacionTablasLocalesIDB.getAll",
         mensaje: error instanceof Error ? error.message : String(error),
@@ -117,9 +117,9 @@ export class UltimaActualizacionTablasLocalesIDB {
   }
 
   /**
-   * Obtiene la información de actualización para una tabla específica
-   * @param nombreTabla Nombre de la tabla
-   * @returns Registro de actualización o null si no existe
+   * Gets the update information for a specific table
+   * @param nombreTabla Table name
+   * @returns Update record or null if it does not exist
    */
   public async getByTabla(
     nombreTabla: TablasLocal
@@ -142,7 +142,7 @@ export class UltimaActualizacionTablasLocalesIDB {
       });
     } catch (error) {
       console.error(
-        `Error al obtener actualización local para tabla ${nombreTabla}:`,
+        `Error getting local update for table ${nombreTabla}:`,
         error
       );
       throw error;
@@ -150,9 +150,9 @@ export class UltimaActualizacionTablasLocalesIDB {
   }
 
   /**
-   * Obtiene las actualizaciones por tipo de operación
-   * @param operacion Tipo de operación (INSERT, UPDATE, DELETE)
-   * @returns Lista de actualizaciones que coinciden con la operación
+   * Gets the updates by operation type
+   * @param operacion Operation type (INSERT, UPDATE, DELETE)
+   * @returns List of updates that match the operation
    */
   public async getByOperacion(
     operacion: DatabaseModificationOperations
@@ -161,7 +161,7 @@ export class UltimaActualizacionTablasLocalesIDB {
       const store = await IndexedDBConnection.getStore(
         this.tablaInfo.nombreLocal!
       );
-      const index = store.index("por_operacion");
+      const index = store.index("by_operation");
 
       return new Promise((resolve, reject) => {
         const request = index.getAll(IDBKeyRange.only(operacion));
@@ -176,7 +176,7 @@ export class UltimaActualizacionTablasLocalesIDB {
       });
     } catch (error) {
       console.error(
-        `Error al obtener actualizaciones con operación ${operacion}:`,
+        `Error getting updates with operation ${operacion}:`,
         error
       );
       throw error;
@@ -184,24 +184,24 @@ export class UltimaActualizacionTablasLocalesIDB {
   }
 
   /**
-   * Obtiene actualizaciones realizadas después de una fecha específica
-   * @param fecha Fecha de referencia
-   * @returns Lista de actualizaciones posteriores a la fecha
+   * Gets updates made after a specific date
+   * @param fecha Reference date
+   * @returns List of updates after the date
    */
   public async getActualizacionesDesdeFecha(
     fecha: Date | string
   ): Promise<T_Ultima_Actualizacion_Tablas_Locales[]> {
     try {
-      // Convertir a fecha si es string
+      // Convert to date if it is a string
       const fechaReferencia =
         typeof fecha === "string" ? new Date(fecha) : fecha;
 
       const store = await IndexedDBConnection.getStore(
         this.tablaInfo.nombreLocal!
       );
-      const index = store.index("por_fecha");
+      const index = store.index("by_date");
 
-      // Crear un rango desde la fecha hasta el infinito
+      // Create a range from the date to infinity
       const range = IDBKeyRange.lowerBound(fechaReferencia);
 
       return new Promise((resolve, reject) => {
@@ -216,14 +216,14 @@ export class UltimaActualizacionTablasLocalesIDB {
         };
       });
     } catch (error) {
-      console.error(`Error al obtener actualizaciones desde fecha:`, error);
+      console.error(`Error getting updates since date:`, error);
       throw error;
     }
   }
 
   /**
-   * Obtiene la actualización más reciente entre todas las tablas
-   * @returns La actualización más reciente o null si no hay registros
+   * Gets the most recent update among all tables
+   * @returns The most recent update or null if there are no records
    */
   public async getMasReciente(): Promise<T_Ultima_Actualizacion_Tablas_Locales | null> {
     try {
@@ -233,7 +233,7 @@ export class UltimaActualizacionTablasLocalesIDB {
         return null;
       }
 
-      // Ordenar por fecha descendente
+      // Sort by date descending
       const ordenadas = todas.sort(
         (a, b) =>
           new Date(b.Fecha_Actualizacion).getTime() -
@@ -242,14 +242,14 @@ export class UltimaActualizacionTablasLocalesIDB {
 
       return ordenadas[0];
     } catch (error) {
-      console.error(`Error al obtener la actualización más reciente:`, error);
+      console.error(`Error getting the most recent update:`, error);
       throw error;
     }
   }
 
   /**
-   * Limpia todos los registros de actualizaciones
-   * Útil para reiniciar el seguimiento o limpiar registros antiguos
+   * Clears all update records
+   * Useful for restarting tracking or clearing old records
    */
   public async limpiarRegistros(): Promise<void> {
     try {
@@ -271,11 +271,11 @@ export class UltimaActualizacionTablasLocalesIDB {
       });
     } catch (error) {
       console.error(
-        `Error al limpiar registros de actualizaciones locales:`,
+        `Error clearing local update records:`,
         error
       );
 
-      // Crear detalles del error
+      // Create error details
       const errorDetails = {
         origen: "UltimaActualizacionTablasLocalesIDB.limpiarRegistros",
         mensaje: error instanceof Error ? error.message : String(error),
@@ -288,9 +288,9 @@ export class UltimaActualizacionTablasLocalesIDB {
   }
 
   /**
-   * Obtiene las tablas que han sido actualizadas después de una fecha específica
-   * @param fecha Fecha de referencia
-   * @returns Lista de nombres de tablas actualizadas
+   * Gets the tables that have been updated after a specific date
+   * @param fecha Reference date
+   * @returns List of names of updated tables
    */
   public async getTablasActualizadasDesdeFecha(
     fecha: Date | string
@@ -298,10 +298,10 @@ export class UltimaActualizacionTablasLocalesIDB {
     try {
       const actualizaciones = await this.getActualizacionesDesdeFecha(fecha);
 
-      // Extraer nombres únicos de tablas
+      // Extract unique table names
       return Array.from(new Set(actualizaciones.map((a) => a.Nombre_Tabla)));
     } catch (error) {
-      console.error(`Error al obtener tablas actualizadas desde fecha:`, error);
+      console.error(`Error getting updated tables since date:`, error);
       throw error;
     }
   }

@@ -1,4 +1,4 @@
-// // src/socket/events/asistenciaEvents.ts
+// // src/socket/events/attendanceEvents.ts
 // import { Server, Socket } from "socket.io";
 
 // import { SocketUserData } from "../../../interfaces/UserData";
@@ -6,9 +6,9 @@
 // import { TomaAsistenciaPersonalSS01Events } from "./backend/TomaAsistenciaPersonalSS01Events";
 
 // /**
-//  * Registra los eventos relacionados con la asistencia
-//  * @param io Servidor de Socket.IO
-//  * @param socket Socket del cliente
+//  * Registers attendance-related events
+//  * @param io Socket.IO Server
+//  * @param socket Client socket
 //  */
 // const importarEventosSocketTomaAsistenciaPersonal = (
 //   io: Server,
@@ -16,16 +16,14 @@
 //   nombreSala: string,
 //   emitError: (socket: Socket, code: string, message: string) => void
 // ) => {
-//   // Obtener información del usuario
+//   // Get user information
 //   const { Nombre_Usuario, Rol } = socket.data.user as SocketUserData;
 
 //   TomaAsistenciaPersonalSS01Events.socketConnection = socket;
 
 //   new TomaAsistenciaPersonalSS01Events.SALUDAME_SOCKET_HANDLER(() => {
 //     new TomaAsistenciaPersonalSS01Events.RESPUESTA_SALUDO_EMITTER({
-//       saludo: `Hola ${Nombre_Usuario} con ROL ${Rol}`,
+//       saludo: `Hello ${Nombre_Usuario} with ROLE ${Rol}`,
 //     }).execute();
 //   }).hand();
 // };
-
-// export default importarEventosSocketTomaAsistenciaPersonal;

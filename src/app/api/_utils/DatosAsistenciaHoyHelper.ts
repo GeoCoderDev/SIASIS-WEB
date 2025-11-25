@@ -133,7 +133,7 @@ export class DatosAsistenciaHoyHelper {
           return {
             tienePermiso: false,
             mensaje:
-              "Los auxiliares solo pueden generar reportes de secundaria",
+              "Assistants can only generate secondary school reports",
           };
         }
 
@@ -149,12 +149,9 @@ export class DatosAsistenciaHoyHelper {
           this.obtenerAulaProfesorPrimaria(idUsuario);
 
         if (!aulaProfesorPrimaria) {
-          console.log(
-            `[DatosAsistenciaHoyHelper] ❌ Profesor primaria no encontrado en el sistema`
-          );
           return {
             tienePermiso: false,
-            mensaje: "Profesor no encontrado en el sistema",
+            mensaje: "Teacher not found in the system",
           };
         }
 
@@ -164,7 +161,7 @@ export class DatosAsistenciaHoyHelper {
           );
           return {
             tienePermiso: false,
-            mensaje: "No tiene un aula asignada",
+            mensaje: "You do not have an assigned classroom",
             aulaAsignada: aulaProfesorPrimaria,
           };
         }
@@ -186,7 +183,7 @@ export class DatosAsistenciaHoyHelper {
           );
           return {
             tienePermiso: false,
-            mensaje: `Solo puede generar reportes de su aula asignada: ${aulaProfesorPrimaria.nivel} ${aulaProfesorPrimaria.grado}° ${aulaProfesorPrimaria.seccion}`,
+            mensaje: `You can only generate reports for your assigned classroom: ${aulaProfesorPrimaria.nivel} ${aulaProfesorPrimaria.grado}° ${aulaProfesorPrimaria.seccion}`,
             aulaAsignada: aulaProfesorPrimaria,
           };
         }
@@ -263,14 +260,14 @@ export class DatosAsistenciaHoyHelper {
         return {
           tienePermiso: false,
           mensaje:
-            "Su rol no tiene permisos para acceder a reportes de asistencia",
+            "Your role does not have permission to access attendance reports",
         };
 
       default:
         console.log(`[DatosAsistenciaHoyHelper] ❌ Rol desconocido: ${rol}`);
         return {
           tienePermiso: false,
-          mensaje: "Rol no autorizado",
+          mensaje: "Unauthorized role",
         };
     }
   }

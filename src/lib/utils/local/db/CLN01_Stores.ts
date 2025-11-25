@@ -23,14 +23,14 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     keyPath: "Id_Estudiante",
     autoIncrement: false,
     indexes: [
-      { name: "por_nombres", keyPath: "Nombres", options: { unique: false } },
+      { name: "by_names", keyPath: "Nombres", options: { unique: false } },
       {
-        name: "por_apellidos",
+        name: "by_surnames",
         keyPath: "Apellidos",
         options: { unique: false },
       },
-      { name: "por_aula", keyPath: "Id_Aula", options: { unique: false } },
-      { name: "por_estado", keyPath: "Estado", options: { unique: false } },
+      { name: "by_classroom", keyPath: "Id_Aula", options: { unique: false } },
+      { name: "by_status", keyPath: "Estado", options: { unique: false } },
     ],
   },
 
@@ -39,13 +39,13 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: false,
     indexes: [
       {
-        name: "por_nombre_usuario",
+        name: "by_username",
         keyPath: "Nombre_Usuario",
         options: { unique: true },
       },
-      { name: "por_nombres", keyPath: "Nombres", options: { unique: false } },
+      { name: "by_names", keyPath: "Nombres", options: { unique: false } },
       {
-        name: "por_apellidos",
+        name: "by_surnames",
         keyPath: "Apellidos",
         options: { unique: false },
       },
@@ -57,16 +57,16 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: true,
     indexes: [
       {
-        name: "por_responsable",
+        name: "by_guardian",
         keyPath: "Id_Responsable",
         options: { unique: false },
       },
       {
-        name: "por_estudiante",
+        name: "by_student",
         keyPath: "Id_Estudiante",
         options: { unique: false },
       },
-      { name: "por_tipo", keyPath: "Tipo", options: { unique: false } },
+      { name: "by_type", keyPath: "Tipo", options: { unique: false } },
     ],
   },
 
@@ -74,14 +74,14 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     keyPath: "Id_Profesor_Primaria",
     autoIncrement: false,
     indexes: [
-      { name: "por_nombres", keyPath: "Nombres", options: { unique: false } },
+      { name: "by_names", keyPath: "Nombres", options: { unique: false } },
       {
-        name: "por_apellidos",
+        name: "by_surnames",
         keyPath: "Apellidos",
         options: { unique: false },
       },
       {
-        name: "por_ultima_fecha_actualizacion",
+        name: "by_last_update_date",
         keyPath: "ultima_fecha_actualizacion",
         options: { unique: false },
       },
@@ -93,18 +93,18 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: false,
     indexes: [
       {
-        name: "por_nombre_usuario",
+        name: "by_username",
         keyPath: "Nombre_Usuario",
         options: { unique: true },
       },
-      { name: "por_nombres", keyPath: "Nombres", options: { unique: false } },
+      { name: "by_names", keyPath: "Nombres", options: { unique: false } },
       {
-        name: "por_apellidos",
+        name: "by_surnames",
         keyPath: "Apellidos",
         options: { unique: false },
       },
       {
-        name: "por_ultima_fecha_actualizacion",
+        name: "by_last_update_date",
         keyPath: "ultima_fecha_actualizacion",
         options: { unique: false },
       },
@@ -116,17 +116,17 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: false,
     indexes: [
       {
-        name: "por_nombre_usuario",
+        name: "by_username",
         keyPath: "Nombre_Usuario",
         options: { unique: true },
       },
-      { name: "por_nombres", keyPath: "Nombres", options: { unique: false } },
+      { name: "by_names", keyPath: "Nombres", options: { unique: false } },
       {
-        name: "por_apellidos",
+        name: "by_surnames",
         keyPath: "Apellidos",
         options: { unique: false },
       },
-      { name: "por_estado", keyPath: "Estado", options: { unique: false } },
+      { name: "by_status", keyPath: "Estado", options: { unique: false } },
     ],
   },
 
@@ -135,18 +135,18 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: false,
     indexes: [
       {
-        name: "por_nombre_usuario",
+        name: "by_username",
         keyPath: "Nombre_Usuario",
         options: { unique: true },
       },
-      { name: "por_nombres", keyPath: "Nombres", options: { unique: false } },
+      { name: "by_names", keyPath: "Nombres", options: { unique: false } },
       {
-        name: "por_apellidos",
+        name: "by_surnames",
         keyPath: "Apellidos",
         options: { unique: false },
       },
-      { name: "por_estado", keyPath: "Estado", options: { unique: false } },
-      { name: "por_cargo", keyPath: "Cargo", options: { unique: false } },
+      { name: "by_status", keyPath: "Estado", options: { unique: false } },
+      { name: "by_position", keyPath: "Cargo", options: { unique: false } },
     ],
   },
 
@@ -158,21 +158,21 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     keyPath: "Id_Aula",
     autoIncrement: true,
     indexes: [
-      { name: "por_nivel", keyPath: "Nivel", options: { unique: false } },
-      { name: "por_grado", keyPath: "Grado", options: { unique: false } },
-      { name: "por_seccion", keyPath: "Seccion", options: { unique: false } },
+      { name: "by_level", keyPath: "Nivel", options: { unique: false } },
+      { name: "by_grade", keyPath: "Grado", options: { unique: false } },
+      { name: "by_section", keyPath: "Seccion", options: { unique: false } },
       {
-        name: "por_nivel_grado_seccion",
+        name: "by_level_grado_seccion",
         keyPath: ["Nivel", "Grado", "Seccion"],
         options: { unique: true },
       },
       {
-        name: "por_profesor_primaria",
+        name: "by_primary_teacher",
         keyPath: "Id_Profesor_Primaria", // Changed from Id_ to Id_
         options: { unique: false },
       },
       {
-        name: "por_profesor_secundaria",
+        name: "by_secondary_teacher",
         keyPath: "Id_Profesor_Secundaria", // Changed from Id_ to Id_
         options: { unique: false },
       },
@@ -183,14 +183,14 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     keyPath: "Id_Curso_Horario",
     autoIncrement: true,
     indexes: [
-      { name: "por_dia", keyPath: "Dia_Semana", options: { unique: false } },
+      { name: "by_day", keyPath: "Dia_Semana", options: { unique: false } },
       {
-        name: "por_profesor",
+        name: "by_teacher",
         keyPath: "Id_Profesor_Secundaria", // Changed from Id_ to Id_
         options: { unique: false },
       },
       {
-        name: "por_aula",
+        name: "by_classroom",
         keyPath: "Id_Aula_Secundaria",
         options: { unique: false },
       },
@@ -202,52 +202,52 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
   // ========================================
 
   // ✅ ADDED: Schedules by days - Administrative Staff
-  // horarios_por_dias_personal_administrativo: {
-  //   keyPath: "Id_Horario_Por_Dia_P_Administrativo",
+  // horarios_by_days_personal_administrativo: {
+  //   keyPath: "Id_Horario_by_day_P_Administrativo",
   //   autoIncrement: true,
   //   indexes: [
   //     {
-  //       name: "por_personal_administrativo",
+  //       name: "by_administrative_staff",
   //       keyPath: "Id_Personal_Administrativo", // Cambió de Id_ a Id_
   //       options: { unique: false },
   //     },
-  //     { name: "por_dia", keyPath: "Dia", options: { unique: false } },
+  //     { name: "by_day", keyPath: "Dia", options: { unique: false } },
   //     {
-  //       name: "por_personal_dia",
+  //       name: "by_staff_day",
   //       keyPath: ["Id_Personal_Administrativo", "Dia"], // Cambió de Id_ a Id_
   //       options: { unique: true },
   //     },
   //     {
-  //       name: "por_hora_inicio",
+  //       name: "by_start_time",
   //       keyPath: "Hora_Inicio",
   //       options: { unique: false },
   //     },
-  //     { name: "por_hora_fin", keyPath: "Hora_Fin", options: { unique: false } },
+  //     { name: "by_end_time", keyPath: "Hora_Fin", options: { unique: false } },
   //   ],
   // },
 
   // ✅ ADDED: Schedules by days - Directors
-  // horarios_por_dias_directivos: {
-  //   keyPath: "Id_Horario_Por_Dia_Directivo",
+  // horarios_by_days_directivos: {
+  //   keyPath: "Id_Horario_by_day_Directivo",
   //   autoIncrement: true,
   //   indexes: [
   //     {
-  //       name: "por_directivo",
-  //       keyPath: "Id_Directivo", // Mantiene Id_Directivo (es diferente)
+  //       name: "by_director",
+  //       keyPath: "Id_Directivo", // Keeps Id_Directivo (it's different)
   //       options: { unique: false },
   //     },
-  //     { name: "por_dia", keyPath: "Dia", options: { unique: false } },
+  //     { name: "by_day", keyPath: "Dia", options: { unique: false } },
   //     {
-  //       name: "por_directivo_dia",
+  //       name: "by_director_day",
   //       keyPath: ["Id_Directivo", "Dia"],
   //       options: { unique: true },
   //     },
   //     {
-  //       name: "por_hora_inicio",
+  //       name: "by_start_time",
   //       keyPath: "Hora_Inicio",
   //       options: { unique: false },
   //     },
-  //     { name: "por_hora_fin", keyPath: "Hora_Fin", options: { unique: false } },
+  //     { name: "by_end_time", keyPath: "Hora_Fin", options: { unique: false } },
   //   ],
   // },
 
@@ -261,19 +261,19 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: false,
     indexes: [
       {
-        name: "por_profesor",
+        name: "by_teacher",
         keyPath: "Id_Profesor_Primaria", // Changed from Id_ to Id_
         options: { unique: false },
       },
-      { name: "por_mes", keyPath: "Mes", options: { unique: false } },
+      { name: "by_month", keyPath: "Mes", options: { unique: false } },
       {
-        name: "por_profesor_mes",
+        name: "by_teacher_mes",
         keyPath: ["Id_Profesor_Primaria", "Mes"], // Changed from Id_ to Id_
         options: { unique: true },
       },
       // ✅ NEW: Index for ultima_fecha_actualizacion
       {
-        name: "por_ultima_fecha_actualizacion",
+        name: "by_last_update_date",
         keyPath: "ultima_fecha_actualizacion",
         options: { unique: false },
       },
@@ -285,19 +285,19 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: false,
     indexes: [
       {
-        name: "por_profesor",
+        name: "by_teacher",
         keyPath: "Id_Profesor_Primaria", // Changed from Id_ to Id_
         options: { unique: false },
       },
-      { name: "por_mes", keyPath: "Mes", options: { unique: false } },
+      { name: "by_month", keyPath: "Mes", options: { unique: false } },
       {
-        name: "por_profesor_mes",
+        name: "by_teacher_mes",
         keyPath: ["Id_Profesor_Primaria", "Mes"], // Changed from Id_ to Id_
         options: { unique: true },
       },
       // ✅ NEW: Index for ultima_fecha_actualizacion
       {
-        name: "por_ultima_fecha_actualizacion",
+        name: "by_last_update_date",
         keyPath: "ultima_fecha_actualizacion",
         options: { unique: false },
       },
@@ -310,19 +310,19 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: false,
     indexes: [
       {
-        name: "por_profesor",
+        name: "by_teacher",
         keyPath: "Id_Profesor_Secundaria", // Changed from Id_ to Id_
         options: { unique: false },
       },
-      { name: "por_mes", keyPath: "Mes", options: { unique: false } },
+      { name: "by_month", keyPath: "Mes", options: { unique: false } },
       {
-        name: "por_profesor_mes",
+        name: "by_teacher_mes",
         keyPath: ["Id_Profesor_Secundaria", "Mes"], // Changed from Id_ to Id_
         options: { unique: true },
       },
       // ✅ NEW: Index for ultima_fecha_actualizacion
       {
-        name: "por_ultima_fecha_actualizacion",
+        name: "by_last_update_date",
         keyPath: "ultima_fecha_actualizacion",
         options: { unique: false },
       },
@@ -334,19 +334,19 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: false,
     indexes: [
       {
-        name: "por_profesor",
+        name: "by_teacher",
         keyPath: "Id_Profesor_Secundaria", // Changed from Id_ to Id_
         options: { unique: false },
       },
-      { name: "por_mes", keyPath: "Mes", options: { unique: false } },
+      { name: "by_month", keyPath: "Mes", options: { unique: false } },
       {
-        name: "por_profesor_mes",
+        name: "by_teacher_mes",
         keyPath: ["Id_Profesor_Secundaria", "Mes"], // Changed from Id_ to Id_
         options: { unique: true },
       },
       // ✅ NEW: Index for ultima_fecha_actualizacion
       {
-        name: "por_ultima_fecha_actualizacion",
+        name: "by_last_update_date",
         keyPath: "ultima_fecha_actualizacion",
         options: { unique: false },
       },
@@ -359,19 +359,19 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: false,
     indexes: [
       {
-        name: "por_auxiliar",
+        name: "by_assistant",
         keyPath: "Id_Auxiliar", // Changed from Id_ to Id_
         options: { unique: false },
       },
-      { name: "por_mes", keyPath: "Mes", options: { unique: false } },
+      { name: "by_month", keyPath: "Mes", options: { unique: false } },
       {
-        name: "por_auxiliar_mes",
+        name: "by_assistant_mes",
         keyPath: ["Id_Auxiliar", "Mes"], // Changed from Id_ to Id_
         options: { unique: true },
       },
       // ✅ NEW: Index for ultima_fecha_actualizacion
       {
-        name: "por_ultima_fecha_actualizacion",
+        name: "by_last_update_date",
         keyPath: "ultima_fecha_actualizacion",
         options: { unique: false },
       },
@@ -383,19 +383,19 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: false,
     indexes: [
       {
-        name: "por_auxiliar",
+        name: "by_assistant",
         keyPath: "Id_Auxiliar", // Changed from Id_ to Id_
         options: { unique: false },
       },
-      { name: "por_mes", keyPath: "Mes", options: { unique: false } },
+      { name: "by_month", keyPath: "Mes", options: { unique: false } },
       {
-        name: "por_auxiliar_mes",
+        name: "by_assistant_mes",
         keyPath: ["Id_Auxiliar", "Mes"], // Changed from Id_ to Id_
         options: { unique: true },
       },
       // ✅ NEW: Index for ultima_fecha_actualizacion
       {
-        name: "por_ultima_fecha_actualizacion",
+        name: "by_last_update_date",
         keyPath: "ultima_fecha_actualizacion",
         options: { unique: false },
       },
@@ -408,19 +408,19 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: false,
     indexes: [
       {
-        name: "por_administrativo",
+        name: "by_administrative",
         keyPath: "Id_Personal_Administrativo", // Changed from Id_ to Id_
         options: { unique: false },
       },
-      { name: "por_mes", keyPath: "Mes", options: { unique: false } },
+      { name: "by_month", keyPath: "Mes", options: { unique: false } },
       {
-        name: "por_administrativo_mes",
+        name: "by_administrative_mes",
         keyPath: ["Id_Personal_Administrativo", "Mes"], // Changed from Id_ to Id_
         options: { unique: true },
       },
       // ✅ NEW: Index for ultima_fecha_actualizacion
       {
-        name: "por_ultima_fecha_actualizacion",
+        name: "by_last_update_date",
         keyPath: "ultima_fecha_actualizacion",
         options: { unique: false },
       },
@@ -432,19 +432,19 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: false,
     indexes: [
       {
-        name: "por_administrativo",
+        name: "by_administrative",
         keyPath: "Id_Personal_Administrativo", // Changed from Id_ to Id_
         options: { unique: false },
       },
-      { name: "por_mes", keyPath: "Mes", options: { unique: false } },
+      { name: "by_month", keyPath: "Mes", options: { unique: false } },
       {
-        name: "por_administrativo_mes",
+        name: "by_administrative_mes",
         keyPath: ["Id_Personal_Administrativo", "Mes"], // Changed from Id_ to Id_
         options: { unique: true },
       },
       // ✅ NEW: Index for ultima_fecha_actualizacion
       {
-        name: "por_ultima_fecha_actualizacion",
+        name: "by_last_update_date",
         keyPath: "ultima_fecha_actualizacion",
         options: { unique: false },
       },
@@ -457,19 +457,19 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: true,
     indexes: [
       {
-        name: "por_directivo",
+        name: "by_director",
         keyPath: "Id_Directivo", // Keeps Id_Directivo
         options: { unique: false },
       },
-      { name: "por_mes", keyPath: "Mes", options: { unique: false } },
+      { name: "by_month", keyPath: "Mes", options: { unique: false } },
       {
-        name: "por_directivo_mes",
+        name: "by_director_month",
         keyPath: ["Id_Directivo", "Mes"],
         options: { unique: true },
       },
       // ✅ NEW: Index for ultima_fecha_actualizacion
       {
-        name: "por_ultima_fecha_actualizacion",
+        name: "by_last_update_date",
         keyPath: "ultima_fecha_actualizacion",
         options: { unique: false },
       },
@@ -481,19 +481,19 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: true,
     indexes: [
       {
-        name: "por_directivo",
+        name: "by_director",
         keyPath: "Id_Directivo", // Keeps Id_Directivo
         options: { unique: false },
       },
-      { name: "por_mes", keyPath: "Mes", options: { unique: false } },
+      { name: "by_month", keyPath: "Mes", options: { unique: false } },
       {
-        name: "por_directivo_mes",
+        name: "by_director_month",
         keyPath: ["Id_Directivo", "Mes"],
         options: { unique: true },
       },
       // ✅ NEW: Index for ultima_fecha_actualizacion
       {
-        name: "por_ultima_fecha_actualizacion",
+        name: "by_last_update_date",
         keyPath: "ultima_fecha_actualizacion",
         options: { unique: false },
       },
@@ -510,18 +510,18 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: false,
     indexes: [
       {
-        name: "por_estudiante",
+        name: "by_student",
         keyPath: "Id_Estudiante",
         options: { unique: false },
       },
-      { name: "por_mes", keyPath: "Mes", options: { unique: false } },
+      { name: "by_month", keyPath: "Mes", options: { unique: false } },
       {
-        name: "por_estudiante_mes",
+        name: "by_student_mes",
         keyPath: ["Id_Estudiante", "Mes"],
         options: { unique: true },
       },
       {
-        name: "por_ultima_fecha_actualizacion",
+        name: "by_last_update_date",
         keyPath: "ultima_fecha_actualizacion",
         options: { unique: false },
       },
@@ -533,18 +533,18 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: false,
     indexes: [
       {
-        name: "por_estudiante",
+        name: "by_student",
         keyPath: "Id_Estudiante",
         options: { unique: false },
       },
-      { name: "por_mes", keyPath: "Mes", options: { unique: false } },
+      { name: "by_month", keyPath: "Mes", options: { unique: false } },
       {
-        name: "por_estudiante_mes",
+        name: "by_student_mes",
         keyPath: ["Id_Estudiante", "Mes"],
         options: { unique: true },
       },
       {
-        name: "por_ultima_fecha_actualizacion",
+        name: "by_last_update_date",
         keyPath: "ultima_fecha_actualizacion",
         options: { unique: false },
       },
@@ -556,18 +556,18 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: false,
     indexes: [
       {
-        name: "por_estudiante",
+        name: "by_student",
         keyPath: "Id_Estudiante",
         options: { unique: false },
       },
-      { name: "por_mes", keyPath: "Mes", options: { unique: false } },
+      { name: "by_month", keyPath: "Mes", options: { unique: false } },
       {
-        name: "por_estudiante_mes",
+        name: "by_student_mes",
         keyPath: ["Id_Estudiante", "Mes"],
         options: { unique: true },
       },
       {
-        name: "por_ultima_fecha_actualizacion",
+        name: "by_last_update_date",
         keyPath: "ultima_fecha_actualizacion",
         options: { unique: false },
       },
@@ -579,18 +579,18 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: false,
     indexes: [
       {
-        name: "por_estudiante",
+        name: "by_student",
         keyPath: "Id_Estudiante",
         options: { unique: false },
       },
-      { name: "por_mes", keyPath: "Mes", options: { unique: false } },
+      { name: "by_month", keyPath: "Mes", options: { unique: false } },
       {
-        name: "por_estudiante_mes",
+        name: "by_student_mes",
         keyPath: ["Id_Estudiante", "Mes"],
         options: { unique: true },
       },
       {
-        name: "por_ultima_fecha_actualizacion",
+        name: "by_last_update_date",
         keyPath: "ultima_fecha_actualizacion",
         options: { unique: false },
       },
@@ -602,18 +602,18 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: false,
     indexes: [
       {
-        name: "por_estudiante",
+        name: "by_student",
         keyPath: "Id_Estudiante",
         options: { unique: false },
       },
-      { name: "por_mes", keyPath: "Mes", options: { unique: false } },
+      { name: "by_month", keyPath: "Mes", options: { unique: false } },
       {
-        name: "por_estudiante_mes",
+        name: "by_student_mes",
         keyPath: ["Id_Estudiante", "Mes"],
         options: { unique: true },
       },
       {
-        name: "por_ultima_fecha_actualizacion",
+        name: "by_last_update_date",
         keyPath: "ultima_fecha_actualizacion",
         options: { unique: false },
       },
@@ -625,18 +625,18 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: false,
     indexes: [
       {
-        name: "por_estudiante",
+        name: "by_student",
         keyPath: "Id_Estudiante",
         options: { unique: false },
       },
-      { name: "por_mes", keyPath: "Mes", options: { unique: false } },
+      { name: "by_month", keyPath: "Mes", options: { unique: false } },
       {
-        name: "por_estudiante_mes",
+        name: "by_student_mes",
         keyPath: ["Id_Estudiante", "Mes"],
         options: { unique: true },
       },
       {
-        name: "por_ultima_fecha_actualizacion",
+        name: "by_last_update_date",
         keyPath: "ultima_fecha_actualizacion",
         options: { unique: false },
       },
@@ -649,18 +649,18 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: false,
     indexes: [
       {
-        name: "por_estudiante",
+        name: "by_student",
         keyPath: "Id_Estudiante",
         options: { unique: false },
       },
-      { name: "por_mes", keyPath: "Mes", options: { unique: false } },
+      { name: "by_month", keyPath: "Mes", options: { unique: false } },
       {
-        name: "por_estudiante_mes",
+        name: "by_student_mes",
         keyPath: ["Id_Estudiante", "Mes"],
         options: { unique: true },
       },
       {
-        name: "por_ultima_fecha_actualizacion",
+        name: "by_last_update_date",
         keyPath: "ultima_fecha_actualizacion",
         options: { unique: false },
       },
@@ -672,18 +672,18 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: false,
     indexes: [
       {
-        name: "por_estudiante",
+        name: "by_student",
         keyPath: "Id_Estudiante",
         options: { unique: false },
       },
-      { name: "por_mes", keyPath: "Mes", options: { unique: false } },
+      { name: "by_month", keyPath: "Mes", options: { unique: false } },
       {
-        name: "por_estudiante_mes",
+        name: "by_student_mes",
         keyPath: ["Id_Estudiante", "Mes"],
         options: { unique: true },
       },
       {
-        name: "por_ultima_fecha_actualizacion",
+        name: "by_last_update_date",
         keyPath: "ultima_fecha_actualizacion",
         options: { unique: false },
       },
@@ -695,18 +695,18 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: false,
     indexes: [
       {
-        name: "por_estudiante",
+        name: "by_student",
         keyPath: "Id_Estudiante",
         options: { unique: false },
       },
-      { name: "por_mes", keyPath: "Mes", options: { unique: false } },
+      { name: "by_month", keyPath: "Mes", options: { unique: false } },
       {
-        name: "por_estudiante_mes",
+        name: "by_student_mes",
         keyPath: ["Id_Estudiante", "Mes"],
         options: { unique: true },
       },
       {
-        name: "por_ultima_fecha_actualizacion",
+        name: "by_last_update_date",
         keyPath: "ultima_fecha_actualizacion",
         options: { unique: false },
       },
@@ -718,18 +718,18 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: false,
     indexes: [
       {
-        name: "por_estudiante",
+        name: "by_student",
         keyPath: "Id_Estudiante",
         options: { unique: false },
       },
-      { name: "por_mes", keyPath: "Mes", options: { unique: false } },
+      { name: "by_month", keyPath: "Mes", options: { unique: false } },
       {
-        name: "por_estudiante_mes",
+        name: "by_student_mes",
         keyPath: ["Id_Estudiante", "Mes"],
         options: { unique: true },
       },
       {
-        name: "por_ultima_fecha_actualizacion",
+        name: "by_last_update_date",
         keyPath: "ultima_fecha_actualizacion",
         options: { unique: false },
       },
@@ -741,18 +741,18 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: false,
     indexes: [
       {
-        name: "por_estudiante",
+        name: "by_student",
         keyPath: "Id_Estudiante",
         options: { unique: false },
       },
-      { name: "por_mes", keyPath: "Mes", options: { unique: false } },
+      { name: "by_month", keyPath: "Mes", options: { unique: false } },
       {
-        name: "por_estudiante_mes",
+        name: "by_student_mes",
         keyPath: ["Id_Estudiante", "Mes"],
         options: { unique: true },
       },
       {
-        name: "por_ultima_fecha_actualizacion",
+        name: "by_last_update_date",
         keyPath: "ultima_fecha_actualizacion",
         options: { unique: false },
       },
@@ -767,7 +767,7 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     keyPath: "Rol", // Now uses Rol as PK instead of Id_Bloqueo_Rol
     autoIncrement: false,
     indexes: [
-      // 🗑️ REMOVED: no longer needs por_rol index because Rol is the PK
+      // 🗑️ REMOVED: no longer needs by_role index because Rol is the PK
     ],
   },
 
@@ -775,7 +775,7 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     keyPath: "Id_Constante",
     autoIncrement: true,
     indexes: [
-      { name: "por_nombre", keyPath: "Nombre", options: { unique: true } },
+      { name: "by_name", keyPath: "Nombre", options: { unique: true } },
     ],
   },
 
@@ -783,7 +783,7 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     keyPath: "Id_Horario",
     autoIncrement: true,
     indexes: [
-      { name: "por_nombre", keyPath: "Nombre", options: { unique: true } },
+      { name: "by_name", keyPath: "Nombre", options: { unique: true } },
     ],
   },
 
@@ -792,22 +792,22 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: true,
     indexes: [
       {
-        name: "por_fecha_inicio",
+        name: "by_start_date",
         keyPath: "Fecha_Inicio",
         options: { unique: false },
       },
       {
-        name: "por_fecha_conclusion",
+        name: "by_end_date",
         keyPath: "Fecha_Conclusion",
         options: { unique: false },
       },
       {
-        name: "por_mes_año_inicio",
+        name: "by_month_año_inicio",
         keyPath: "mes_año_inicio",
         options: { unique: false },
       },
       {
-        name: "por_mes_año_conclusion",
+        name: "by_month_año_conclusion",
         keyPath: "mes_año_conclusion",
         options: { unique: false },
       },
@@ -819,12 +819,12 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: true,
     indexes: [
       {
-        name: "por_fecha_inicio",
+        name: "by_start_date",
         keyPath: "Fecha_Inicio",
         options: { unique: false },
       },
       {
-        name: "por_fecha_conclusion",
+        name: "by_end_date",
         keyPath: "Fecha_Conclusion",
         options: { unique: false },
       },
@@ -837,33 +837,33 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: true,
     indexes: [
       {
-        name: "por_correo_destino",
+        name: "by_destination_email",
         keyPath: "Correo_Destino",
         options: { unique: false },
       },
       {
-        name: "por_rol_usuario",
+        name: "by_user_role",
         keyPath: "Rol_Usuario",
         options: { unique: false },
       },
       {
-        name: "por_id_usuario",
+        name: "by_user_id",
         keyPath: "Id_Usuario",
         options: { unique: false },
       },
-      { name: "por_codigo", keyPath: "Codigo", options: { unique: false } },
+      { name: "by_code", keyPath: "Codigo", options: { unique: false } },
       {
-        name: "por_fecha_creacion",
+        name: "by_creation_date",
         keyPath: "Fecha_Creacion",
         options: { unique: false },
       },
       {
-        name: "por_fecha_expiracion",
+        name: "by_expiration_date",
         keyPath: "Fecha_Expiracion",
         options: { unique: false },
       },
       {
-        name: "por_correo_codigo",
+        name: "by_email_code",
         keyPath: ["Correo_Destino", "Codigo"],
         options: { unique: false },
       },
@@ -874,9 +874,9 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     keyPath: "Id_Registro_Fallo_Sistema",
     autoIncrement: true,
     indexes: [
-      { name: "por_fecha", keyPath: "Fecha", options: { unique: false } },
+      { name: "by_date", keyPath: "Fecha", options: { unique: false } },
       {
-        name: "por_componente",
+        name: "by_component",
         keyPath: "Componente",
         options: { unique: false },
       },
@@ -888,17 +888,17 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: false,
     indexes: [
       {
-        name: "por_operacion",
+        name: "by_operation",
         keyPath: "Operacion",
         options: { unique: false },
       },
       {
-        name: "por_fecha",
+        name: "by_date",
         keyPath: "Fecha_Modificacion",
         options: { unique: false },
       },
       {
-        name: "por_usuario",
+        name: "by_user",
         keyPath: "Usuario_Modificacion",
         options: { unique: false },
       },
@@ -909,10 +909,10 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     keyPath: "Id_Fecha_Importante",
     autoIncrement: true,
     indexes: [
-      { name: "por_nombre", keyPath: "Nombre", options: { unique: true } },
-      { name: "por_valor", keyPath: "Valor", options: { unique: false } },
+      { name: "by_name", keyPath: "Nombre", options: { unique: true } },
+      { name: "by_value", keyPath: "Valor", options: { unique: false } },
       {
-        name: "por_ultima_modificacion",
+        name: "by_last_modification",
         keyPath: "Ultima_Modificacion",
         options: { unique: false },
       },
@@ -924,17 +924,17 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: true,
     indexes: [
       {
-        name: "por_fecha_inicio",
+        name: "by_start_date",
         keyPath: "Fecha_Inicio",
         options: { unique: false },
       },
       {
-        name: "por_fecha_conclusion",
+        name: "by_end_date",
         keyPath: "Fecha_Conclusion",
         options: { unique: false },
       },
       {
-        name: "por_rango_fechas",
+        name: "by_date_range",
         keyPath: ["Fecha_Inicio", "Fecha_Conclusion"],
         options: { unique: false },
       },
@@ -950,12 +950,12 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: false,
     indexes: [
       {
-        name: "por_operacion",
+        name: "by_operation",
         keyPath: "Operacion",
         options: { unique: false },
       },
       {
-        name: "por_fecha",
+        name: "by_date",
         keyPath: "Fecha_Actualizacion",
         options: { unique: false },
       },
@@ -967,11 +967,11 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: true,
     indexes: [
       {
-        name: "por_created_at",
+        name: "by_created_at",
         keyPath: "created_at",
         options: { unique: false },
       },
-      { name: "por_attempts", keyPath: "attempts", options: { unique: false } },
+      { name: "by_attempts", keyPath: "attempts", options: { unique: false } },
     ],
   },
 
@@ -987,39 +987,39 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: false,
     indexes: [
       {
-        name: "por_identificador",
+        name: "by_identifier",
         keyPath: "identificador",
         options: { unique: false },
       },
-      { name: "por_fecha", keyPath: "fecha", options: { unique: false } },
-      { name: "por_actor", keyPath: "actor", options: { unique: false } },
+      { name: "by_date", keyPath: "fecha", options: { unique: false } },
+      { name: "by_actor", keyPath: "actor", options: { unique: false } },
       {
-        name: "por_modo_registro",
+        name: "by_registry_mode",
         keyPath: "modoRegistro",
         options: { unique: false },
       },
       {
-        name: "por_tipo_asistencia",
+        name: "by_type_asistencia",
         keyPath: "tipoAsistencia",
         options: { unique: false },
       },
       {
-        name: "por_timestamp_consulta",
+        name: "by_query_timestamp",
         keyPath: "timestampConsulta",
         options: { unique: false },
       },
       {
-        name: "por_identificador_modo",
+        name: "by_identifier_modo",
         keyPath: ["identificador", "modoRegistro"],
         options: { unique: false },
       },
       {
-        name: "por_actor_tipo",
+        name: "by_actor_tipo",
         keyPath: ["actor", "tipoAsistencia"],
         options: { unique: false },
       },
       {
-        name: "por_fecha_identificador",
+        name: "by_date_identificador",
         keyPath: ["fecha", "identificador"],
         options: { unique: false },
       },
@@ -1030,16 +1030,16 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     keyPath: "clave_busqueda",
     autoIncrement: false,
     indexes: [
-      { name: "por_rol", keyPath: "rol", options: { unique: false } },
-      { name: "por_criterio", keyPath: "criterio", options: { unique: false } },
-      { name: "por_limite", keyPath: "limite", options: { unique: false } },
+      { name: "by_role", keyPath: "rol", options: { unique: false } },
+      { name: "by_criteria", keyPath: "criterio", options: { unique: false } },
+      { name: "by_limit", keyPath: "limite", options: { unique: false } },
       {
         name: "por_ultima_actualizacion",
         keyPath: "ultima_actualizacion",
         options: { unique: false },
       },
       {
-        name: "por_rol_criterio",
+        name: "by_role_criterio",
         keyPath: ["rol", "criterio"],
         options: { unique: false },
       },
@@ -1051,30 +1051,31 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     autoIncrement: false,
     indexes: [
       {
-        name: "por_estudiante",
+        name: "by_student",
         keyPath: "Id_Estudiante",
         options: { unique: false },
       },
       {
-        name: "por_tipo_asistencia",
+        name: "by_type_asistencia",
         keyPath: "TipoAsistencia",
         options: { unique: false },
       },
       {
-        name: "por_desfase_segundos",
+        name: "by_offset_seconds",
         keyPath: "DesfaseSegundos",
         options: { unique: false },
       },
       {
-        name: "por_estudiante_tipo",
+        name: "by_student_tipo",
         keyPath: ["Id_Estudiante", "TipoAsistencia"],
         options: { unique: false },
       },
       {
-        name: "por_tipo_desfase",
+        name: "by_type_desfase",
         keyPath: ["TipoAsistencia", "DesfaseSegundos"],
         options: { unique: false },
       },
     ],
   },
 };
+

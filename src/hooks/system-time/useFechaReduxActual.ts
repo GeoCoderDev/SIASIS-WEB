@@ -3,12 +3,12 @@ import { use } from "react";
 import { useSelector } from "react-redux";
 
 const useFechaReduxActual = () => {
-  // ✅ Usar useSelector para obtener fecha de Redux reactivamente
+  // ✅ Use useSelector to get date from Redux reactively
   const fechaHoraRedux = useSelector(
     (state: RootState) => state.others.fechaHoraActualReal.fechaHora
   );
 
-  // ✅ Función helper para obtener fecha Redux con manejo de errores
+  // ✅ Helper function to get Redux date with error handling
   const obtenerFechaRedux = () => {
     if (!fechaHoraRedux) {
       return null;
@@ -17,7 +17,7 @@ const useFechaReduxActual = () => {
     try {
       const fechaObj = new Date(fechaHoraRedux);
       if (isNaN(fechaObj.getTime())) {
-        console.error("❌ Fecha inválida desde Redux:", fechaHoraRedux);
+        console.error("❌ Invalid date from Redux:", fechaHoraRedux);
         return null;
       }
 
@@ -33,7 +33,7 @@ const useFechaReduxActual = () => {
         esHoy: true,
       };
     } catch (error) {
-      console.error("❌ Error al procesar fecha de Redux:", error);
+      console.error("❌ Error processing date from Redux:", error);
       return null;
     }
   };

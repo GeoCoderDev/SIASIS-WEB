@@ -21,11 +21,11 @@ import NoSePuedeUsarLaptopParaAsistenciaModal from "@/components/modals/Asistenc
 import DispositivoSinGPSModal from "@/components/modals/AsistenciaPropiaPersonal/DispositivoSinGPSModal";
 import { DatosAsistenciaCompartidos } from "@/hooks/asistencia-personal-no-directivo/useAsistenciaCompartida";
 
-// ✅ INTERFACES SIMPLIFICADAS
+// ✅ SIMPLIFIED INTERFACES
 interface EstadoBoton {
   visible: boolean;
   tipo: ModoRegistro | null;
-  color: "verde" | "rojizo" | "carga";
+  color: "green" | "reddish" | "loading";
   tooltip: string;
   esCarga: boolean;
 }
@@ -34,20 +34,20 @@ interface MensajeInformativo {
   mostrar: boolean;
   texto: string;
   tipo:
-    | "sin-horario"
-    | "dia-evento"
-    | "fuera-año"
-    | "fin-semana"
-    | "fecha-no-disponible";
+    | "no-schedule"
+    | "event-day"
+    | "out-of-year"
+    | "weekend"
+    | "date-unavailable";
 }
 
-// ✅ SELECTOR OPTIMIZADO
+// ✅ OPTIMIZED SELECTOR
 const selectSidebar = (state: RootState) => ({
   height: state.elementsDimensions.navBarFooterHeight,
   isOpen: state.flags.sidebarIsOpen,
 });
 
-// ✅ COMPONENTE DE MENSAJE INFORMATIVO REUTILIZABLE
+// ✅ REUSABLE INFORMATIONAL MESSAGE COMPONENT
 const MensajeInformativoAsistencia = memo(
   ({
     mensaje,
@@ -63,7 +63,7 @@ const MensajeInformativoAsistencia = memo(
     useEffect(() => {
       if (!delegarEvento) return;
 
-      // Usar delegación de eventos para cerrar al hacer click fuera
+      // Use event delegation to close when clicking outside
       delegarEvento(
         "mousedown",
         "body",
@@ -93,13 +93,13 @@ const MensajeInformativoAsistencia = memo(
                    w-full max-w-lg
                    relative animate-in fade-in-0 zoom-in-95 duration-300"
         >
-          {/* Botón cerrar */}
+          {/* Close button */}
           <button
             onClick={onCerrar}
             className="absolute top-3 right-3 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 
                      flex items-center justify-center transition-colors duration-200
                      text-gray-500 hover:text-gray-700"
-            title="Cerrar"
+            title="Close"
           >
             <svg
               className="w-4 h-4"
@@ -116,7 +116,7 @@ const MensajeInformativoAsistencia = memo(
             </svg>
           </button>
 
-          {/* Contenido */}
+          {/* Content */}
           <div className="pr-8">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
@@ -136,7 +136,7 @@ const MensajeInformativoAsistencia = memo(
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                  Información de Asistencia
+                  Attendance Information
                 </h3>
                 <p className="text-sm text-gray-600">I.E. 20935 Asunción 8</p>
               </div>
@@ -153,7 +153,7 @@ const MensajeInformativoAsistencia = memo(
 
             <div className="mt-6 pt-4 border-t border-gray-100">
               <p className="text-xs text-gray-500 text-center">
-                Este mensaje se muestra solo una vez por sesión
+                This message is shown only once per session
               </p>
             </div>
           </div>
@@ -175,10 +175,10 @@ const MarcarAsistenciaDePersonalButton = memo(
   }) => {
     const { delegarEvento } = useDelegacionEventos();
 
-    // ✅ SELECTORES
+    // ✅ SELECTORS
     const navbarFooter = useSelector(selectSidebar);
 
-    // ✅ EXTRAER DATOS DEL HOOK COMPARTIDO (NO MÁS CONSULTAS PROPIAS)
+    // ✅ EXTRACT DATA FROM SHARED HOOK (NO MORE OWN QUERIES)
     const {
       horario,
       handlerBase,
@@ -188,11 +188,11 @@ const MarcarAsistenciaDePersonalButton = memo(
       refrescarAsistencia,
     } = datosAsistencia;
 
-    // ✅ ESTADOS SIMPLIFICADOS (SIN LÓGICA DE CONSULTA)
+    // ✅ SIMPLIFIED STATES (WITHOUT QUERY LOGIC)
     const [estadoBoton, setEstadoBoton] = useState<EstadoBoton>({
       visible: true,
       tipo: null,
-      color: "carga",
+      color: "loading",
       tooltip: "",
       esCarga: true,
     });
@@ -204,14 +204,14 @@ const MarcarAsistenciaDePersonalButton = memo(
       useState<MensajeInformativo>({
         mostrar: false,
         texto: "",
-        tipo: "sin-horario",
+        tipo: "no-schedule",
       });
 
     const [asistenciaIDB, setAsistenciaIDB] =
       useState<AsistenciaDePersonalIDB | null>(null);
 
     // ===================================================================================
-    //                         Variables de estado para modales
+    //                         State variables for modals
     // ===================================================================================
     const [mostrarModalTomarMiAsistencia, setMostrarModalTomarMiAsistencia] =
       useState(false);
@@ -273,7 +273,7 @@ const MarcarAsistenciaDePersonalButton = memo(
       );
     }, []);
 
-    // ✅ FUNCIÓN: Ocultar mensaje informativo
+    // ✅ FUNCTION: Hide informative message
     const ocultarMensajeInformativo = useCallback(() => {
       setMensajeInformativo((prev) => ({ ...prev, mostrar: false }));
       sessionStorage.setItem(
@@ -282,56 +282,56 @@ const MarcarAsistenciaDePersonalButton = memo(
       );
     }, []);
 
-    // ✅ FUNCIÓN: Obtener fecha actual de Redux (sin causar re-renders)
+    // ✅ FUNCTION: Get current date from Redux (without causing re-renders)
     const obtenerFechaActual = useCallback((): Date | null => {
       const state = store.getState();
       const fechaHora = state.others.fechaHoraActualReal.fechaHora;
       const inicializado = state.others.fechaHoraActualReal.inicializado;
 
       if (!fechaHora || !inicializado) {
-        console.log("❌ Fecha Redux no disponible o no inicializada");
+        console.log("❌ Redux date not available or not initialized");
         return null;
       }
 
       const fecha = new Date(fechaHora);
-      fecha.setHours(fecha.getHours() - 5); // Corregir zona horaria
+      fecha.setHours(fecha.getHours() - 5); // Correct timezone
 
       return fecha;
     }, []);
 
-    // ✅ FUNCIÓN: Verificar condiciones especiales (USANDO DATOS COMPARTIDOS)
+    // ✅ FUNCTION: Check special conditions (USING SHARED DATA)
     const verificarCondicionesEspeciales = useCallback((): string | null => {
       if (!handlerBase) return null;
 
-      console.log("🔍 VERIFICANDO CONDICIONES ESPECIALES...");
+      console.log("🔍 CHECKING SPECIAL CONDITIONS...");
 
-      // 1. Fuera del año escolar (prioridad más alta)
+      // 1. Out of school year (highest priority)
       const fueraAño = handlerBase.estaFueraDeAnioEscolar();
       if (fueraAño) {
-        console.log("🚫 FUERA DEL AÑO ESCOLAR");
-        return "Fuera del período escolar, no se registra asistencia";
+        console.log("🚫 OUT OF SCHOOL YEAR");
+        return "Outside school period, attendance is not recorded";
       }
 
-      // 2. Día de evento
+      // 2. Event day
       const diaEvento = handlerBase.esHoyDiaDeEvento();
       if (diaEvento) {
-        console.log("🚫 DÍA DE EVENTO:", diaEvento.Nombre);
-        return `Hoy es ${diaEvento.Nombre}, no se registra asistencia`;
+        console.log("🚫 EVENT DAY:", diaEvento.Nombre);
+        return `Today is ${diaEvento.Nombre}, attendance is not recorded`;
       }
 
-      // 3. ✅ VERIFICACIÓN DE FECHAS (fechaLocalPeru < fechaRedux)
+      // 3. ✅ DATE VERIFICATION (fechaLocalPeru < fechaRedux)
       const fechaRedux = obtenerFechaActual();
       if (fechaRedux) {
         const fechaLocalPeru = handlerBase.getFechaLocalPeru();
 
-        console.log("🕐 VERIFICANDO FECHAS PARA REGISTRO:", {
+        console.log("🕐 VERIFYING DATES FOR REGISTRATION:", {
           fechaLocalPeru: fechaLocalPeru.toISOString(),
           fechaRedux: fechaRedux.toISOString(),
           fechaLocalPeruFecha: fechaLocalPeru.toDateString(),
           fechaReduxFecha: fechaRedux.toDateString(),
         });
 
-        // Comparar solo fechas (sin horas)
+        // Compare only dates (without hours)
         const fechaReduxSinHora = new Date(
           fechaRedux.getFullYear(),
           fechaRedux.getMonth(),
@@ -344,34 +344,34 @@ const MarcarAsistenciaDePersonalButton = memo(
         );
 
         if (fechaPeruSinHora < fechaReduxSinHora) {
-          console.log("🚫 FECHA LOCAL MENOR - Mostrando mensaje de espera");
-          return "Aún no puedes registrar tu asistencia";
+          console.log("🚫 LOCAL DATE LESS - Showing wait message");
+          return "You cannot register your attendance yet";
         }
 
-        // 4. Fin de semana (después de verificar fechas)
-        const diaSemana = fechaRedux.getDay(); // 0=domingo, 1=lunes, ..., 6=sábado
+        // 4. Weekend (after date verification)
+        const diaSemana = fechaRedux.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
         if (diaSemana === 0) {
-          // Domingo
-          console.log("🚫 ES DOMINGO");
-          return "Hoy es domingo, no se registra asistencia";
+          // Sunday
+          console.log("🚫 IS SUNDAY");
+          return "Today is Sunday, attendance is not recorded";
         }
         if (diaSemana === 6) {
-          // Sábado
-          console.log("🚫 ES SÁBADO");
-          return "Hoy es sábado, no se registra asistencia";
+          // Saturday
+          console.log("🚫 IS SATURDAY");
+          return "Today is Saturday, attendance is not recorded";
         }
       }
 
-      console.log("✅ NO HAY CONDICIONES ESPECIALES");
+      console.log("✅ NO SPECIAL CONDITIONS");
       return null;
     }, [handlerBase, obtenerFechaActual]);
 
-    // ✅ FUNCIÓN: Actualizar estado del botón (USANDO DATOS COMPARTIDOS)
-    // ✅ FUNCIÓN: Actualizar estado del botón (USANDO DATOS COMPARTIDOS) - VERSIÓN CORREGIDA
+    // ✅ FUNCTION: Update button state (USING SHARED DATA)
+    // ✅ FUNCTION: Update button state (USING SHARED DATA) - CORRECTED VERSION
     const actualizarEstadoBoton = useCallback(() => {
-      console.log("🔍 ===== INICIO actualizarEstadoBoton =====");
+      console.log("🔍 ===== START updateButtonState =====");
 
-      // ✅ Verificar si aún estamos en proceso de inicialización
+      // ✅ Check if we are still initializing
       const estaInicializando =
         !inicializado ||
         !asistenciaIDB ||
@@ -380,101 +380,101 @@ const MarcarAsistenciaDePersonalButton = memo(
           !handlerBase) ||
         !asistencia.inicializado;
 
-      console.log("🎯 EVALUACIÓN COMPLETA:", {
+      console.log("🎯 FULL EVALUATION:", {
         inicializado,
         asistenciaIDB: !!asistenciaIDB,
         handlerBase: !!handlerBase,
         asistenciaInicializada: asistencia.inicializado,
         estaInicializando,
         rol,
-        horario: !!horario, // ✅ NUEVO: Mostrar estado del horario
+        horario: !!horario, // ✅ NEW: Show schedule status
         esDirectivoOResponsable:
           rol === RolesSistema.Directivo || rol === RolesSistema.Responsable,
       });
 
-      // ✅ MOSTRAR ESTADO DE CARGA mientras se inicializa
+      // ✅ SHOW LOADING STATE while initializing
       if (estaInicializando) {
-        console.log("⏳ RESULTADO: Manteniendo estado de carga");
+        console.log("⏳ RESULT: Keeping loading state");
         setEstadoBoton({
           visible: true,
           tipo: null,
-          color: "carga",
-          tooltip: "Inicializando sistema...",
+          color: "loading",
+          tooltip: "Initializing system...",
           esCarga: true,
         });
         return;
       }
 
-      console.log("✅ INICIALIZACIÓN COMPLETADA - Evaluando condiciones...");
+      console.log("✅ INITIALIZATION COMPLETE - Evaluating conditions...");
 
-      // ✅ NUEVA VERIFICACIÓN PRIORITARIA: Sin horario (ANTES de condiciones especiales)
+      // ✅ NEW PRIORITY VERIFICATION: No schedule (BEFORE special conditions)
       if (inicializado && !horario) {
         console.log(
-          "🚫 RESULTADO: Ocultando por falta de horario (usuario sin horario hoy)"
+          "🚫 RESULT: Hiding due to lack of schedule (user without schedule today)"
         );
         setEstadoBoton({
           visible: false,
           tipo: null,
-          color: "verde",
+          color: "green",
           tooltip: "",
           esCarga: false,
         });
         return;
       }
 
-      console.log("✅ Horario disponible:", !!horario);
+      console.log("✅ Schedule available:", !!horario);
 
-      // ✅ Verificar condiciones especiales (DESPUÉS de verificar horario)
+      // ✅ Check special conditions (AFTER schedule verification)
       const condicionEspecial = verificarCondicionesEspeciales();
       if (condicionEspecial) {
         console.log(
-          "🚫 RESULTADO: Ocultando por condición especial:",
+          "🚫 RESULT: Hiding due to special condition:",
           condicionEspecial
         );
         setEstadoBoton({
           visible: false,
           tipo: null,
-          color: "verde",
+          color: "green",
           tooltip: "",
           esCarga: false,
         });
         return;
       }
 
-      console.log("✅ Sin condiciones especiales");
+      console.log("✅ No special conditions");
 
-      // ✅ USAR EL MODO ACTUAL CALCULADO POR EL HOOK COMPARTIDO
-      console.log("🎯 MODO ACTUAL EVALUADO:", {
+      // ✅ USE THE CURRENT MODE CALCULATED BY THE SHARED HOOK
+      console.log("🎯 CURRENT MODE EVALUATED:", {
         activo: modoActual.activo,
         tipo: modoActual.tipo,
         razon: modoActual.razon,
       });
 
-      // ✅ Si el modo no está activo (fuera del rango de tiempo), OCULTAR el botón
+      // ✅ If the mode is not active (outside time range), HIDE the button
       if (!modoActual.activo || !modoActual.tipo) {
         console.log(
-          "🚫 RESULTADO: Ocultando botón - Fuera del rango de tiempo:",
+          "🚫 RESULT: Hiding button - Outside time range:",
           modoActual.razon
         );
         setEstadoBoton({
           visible: false,
           tipo: null,
-          color: "verde",
+          color: "green",
           tooltip: "",
           esCarga: false,
         });
         return;
       }
 
-      console.log("✅ Dentro del rango de tiempo válido");
+      console.log("✅ Within valid time range");
 
-      // ✅ VERIFICAR SI YA SE MARCÓ LA ASISTENCIA DEL MODO ACTUAL (USANDO DATOS COMPARTIDOS)
+      // ✅ CHECK IF ATTENDANCE FOR THE CURRENT MODE HAS ALREADY BEEN MARKED (USING SHARED DATA)
       const yaSeMarco =
         modoActual.tipo === ModoRegistro.Entrada
           ? asistencia.entradaMarcada
           : asistencia.salidaMarcada;
 
-      console.log("🎯 VERIFICACIÓN DE ASISTENCIA:", {
+      console.log("🎯 ATTENDANCE VERIFICATION:", {
         modoTipo: modoActual.tipo,
         entradaMarcada: asistencia.entradaMarcada,
         salidaMarcada: asistencia.salidaMarcada,
@@ -483,35 +483,35 @@ const MarcarAsistenciaDePersonalButton = memo(
 
       if (yaSeMarco) {
         console.log(
-          `🚫 RESULTADO: Ocultando botón - ${modoActual.tipo} ya marcada`
+          `🚫 RESULT: Hiding button - ${modoActual.tipo} already marked`
         );
         setEstadoBoton({
           visible: false,
           tipo: null,
-          color: "verde",
+          color: "green",
           tooltip: "",
           esCarga: false,
         });
         return;
       }
 
-      // ✅ MOSTRAR BOTÓN CON EL MODO ACTUAL
+      // ✅ SHOW BUTTON WITH CURRENT MODE
       const esEntrada = modoActual.tipo === ModoRegistro.Entrada;
-      const color = esEntrada ? "verde" : "rojizo";
+      const color = esEntrada ? "green" : "reddish";
 
       console.log(
-        `👁️ RESULTADO: Mostrando botón ${color} para ${modoActual.tipo}`
+        `👁️ RESULT: Showing ${color} button for ${modoActual.tipo}`
       );
 
       setEstadoBoton({
         visible: true,
         tipo: modoActual.tipo,
         color,
-        tooltip: `¡Registra tu ${modoRegistroTextos[modoActual.tipo]}!`,
+        tooltip: `¡Register your ${modoRegistroTextos[modoActual.tipo]}!`,
         esCarga: false,
       });
 
-      console.log("🔍 ===== FIN actualizarEstadoBoton =====");
+      console.log("🔍 ===== END updateButtonState =====");
     }, [
       inicializado,
       asistenciaIDB,
@@ -519,33 +519,33 @@ const MarcarAsistenciaDePersonalButton = memo(
       asistencia.inicializado,
       asistencia.entradaMarcada,
       asistencia.salidaMarcada,
-      horario, // ✅ NUEVA DEPENDENCIA CRÍTICA
+      horario, // ✅ CRITICAL NEW DEPENDENCY
       rol,
       modoActual,
       verificarCondicionesEspeciales,
     ]);
 
-    // ✅ FUNCIÓN: Verificar y mostrar mensaje informativo
+    // ✅ FUNCTION: Check and show informative message
     const verificarMensajeInformativo = useCallback(() => {
-      // Solo mostrar si no se ha mostrado antes en esta sesión
+      // Only show if it hasn't been shown before in this session
       if (tooltipOculto) return;
 
-      // Verificar condiciones en orden de prioridad
+      // Check conditions in order of priority
       const condicionEspecial = verificarCondicionesEspeciales();
       if (condicionEspecial) {
-        let tipo: MensajeInformativo["tipo"] = "sin-horario";
+        let tipo: MensajeInformativo["tipo"] = "no-schedule";
 
-        if (condicionEspecial.includes("Fuera del período")) {
-          tipo = "fuera-año";
+        if (condicionEspecial.includes("Outside school period")) {
+          tipo = "out-of-year";
         } else if (
-          condicionEspecial.includes("domingo") ||
-          condicionEspecial.includes("sábado")
+          condicionEspecial.includes("Sunday") ||
+          condicionEspecial.includes("Saturday")
         ) {
-          tipo = "fin-semana";
-        } else if (condicionEspecial.includes("Aún no puedes")) {
-          tipo = "fecha-no-disponible";
-        } else if (condicionEspecial.includes("no se registra asistencia")) {
-          tipo = "dia-evento";
+          tipo = "weekend";
+        } else if (condicionEspecial.includes("You cannot yet")) {
+          tipo = "date-unavailable";
+        } else if (condicionEspecial.includes("attendance is not recorded")) {
+          tipo = "event-day";
         }
 
         setMensajeInformativo({
@@ -556,41 +556,41 @@ const MarcarAsistenciaDePersonalButton = memo(
         return;
       }
 
-      // Verificar si no hay horario
+      // Check if there is no schedule
       if (handlerBase && !horario) {
         setMensajeInformativo({
           mostrar: true,
-          texto: "No hay asistencia que debas registrar hoy",
-          tipo: "sin-horario",
+          texto: "There is no attendance you should register today",
+          tipo: "no-schedule",
         });
         return;
       }
     }, [tooltipOculto, verificarCondicionesEspeciales, handlerBase, horario]);
 
-    // ✅ INICIALIZACIÓN (SOLO AsistenciaIDB, sin más consultas)
+    // ✅ INITIALIZATION (ONLY AsistenciaIDB, no more queries)
     useEffect(() => {
-      console.log("🔧 INICIALIZANDO AsistenciaDePersonalIDB...");
+      console.log("🔧 INITIALIZING AsistenciaDePersonalIDB...");
       const nuevaAsistenciaIDB = new AsistenciaDePersonalIDB("API01");
       setAsistenciaIDB(nuevaAsistenciaIDB);
       console.log(
-        "✅ AsistenciaDePersonalIDB inicializada:",
+        "✅ AsistenciaDePersonalIDB initialized:",
         nuevaAsistenciaIDB
       );
     }, []);
 
-    // ✅ NUEVO: Verificar mensaje informativo cuando se obtiene handler/horario
+    // ✅ NEW: Check informative message when handler/schedule is obtained
     useEffect(() => {
       if (handlerBase && inicializado) {
         verificarMensajeInformativo();
       }
     }, [handlerBase, horario, inicializado, verificarMensajeInformativo]);
 
-    // ✅ EFECTO PRINCIPAL: Actualizar estado del botón cuando cambien los datos compartidos
+    // ✅ MAIN EFFECT: Update button state when shared data changes
     useEffect(() => {
       actualizarEstadoBoton();
     }, [actualizarEstadoBoton]);
 
-    // ✅ DELEGACIÓN DE EVENTOS PARA TOOLTIP
+    // ✅ EVENT DELEGATION FOR TOOLTIP
     useEffect(() => {
       if (!delegarEvento) return;
       delegarEvento(
@@ -601,14 +601,14 @@ const MarcarAsistenciaDePersonalButton = memo(
       );
     }, [delegarEvento, ocultarTooltip]);
 
-    // ✅ MOSTRAR TOOLTIP AL CAMBIAR TIPO (solo si no hay mensaje informativo)
+    // ✅ SHOW TOOLTIP ON TYPE CHANGE (only if no informative message)
     useEffect(() => {
       if (estadoBoton.tipo && !mensajeInformativo.mostrar) {
         mostrarTooltip();
       }
     }, [estadoBoton.tipo, mensajeInformativo.mostrar, mostrarTooltip]);
 
-    // ✅ HANDLE CLICK - No permitir click en estado de carga
+    // ✅ HANDLE CLICK - Do not allow click in loading state
     const handleClick = useCallback(() => {
       if (!estadoBoton.visible || estadoBoton.esCarga) return;
 
@@ -621,27 +621,27 @@ const MarcarAsistenciaDePersonalButton = memo(
       ocultarTooltip,
     ]);
 
-    // ✅ FUNCIÓN: Marcar asistencia de hoy (USANDO DATOS COMPARTIDOS)
+    // ✅ FUNCTION: Mark attendance for today (USING SHARED DATA)
     const marcarMiAsistenciaDeHoy = useCallback(async () => {
       try {
         if (!estadoBoton.tipo || !horario) {
-          console.error("❌ No hay tipo de registro o horario disponible");
+          console.error("❌ No registration type or schedule available");
           return;
         }
 
         setModoRegistroMarcado(estadoBoton.tipo);
 
-        // Obtener la hora esperada ISO basada en el modo de registro
+        // Get the expected ISO time based on the registration mode
         const fechaActual = obtenerFechaActual();
         if (!fechaActual) {
-          console.error("❌ No se pudo obtener la fecha actual");
+          console.error("❌ Could not get current date");
           return;
         }
 
         let horaEsperadaISO: string;
 
         if (estadoBoton.tipo === ModoRegistro.Entrada) {
-          // Para entrada, usar hora de inicio del horario
+          // For entry, use schedule start time
           const horaInicio = new Date(horario.Inicio);
           const fechaInicioHoy = new Date(fechaActual);
           fechaInicioHoy.setHours(
@@ -652,7 +652,7 @@ const MarcarAsistenciaDePersonalButton = memo(
           );
           horaEsperadaISO = fechaInicioHoy.toISOString();
         } else {
-          // Para salida, usar hora de fin del horario
+          // For exit, use schedule end time
           const horaFin = new Date(horario.Fin);
           const fechaFinHoy = new Date(fechaActual);
           fechaFinHoy.setHours(horaFin.getHours(), horaFin.getMinutes(), 0, 0);
@@ -660,39 +660,39 @@ const MarcarAsistenciaDePersonalButton = memo(
         }
 
         console.log(
-          `🕐 Hora esperada ISO para ${estadoBoton.tipo}:`,
+          `🕐 Expected ISO time for ${estadoBoton.tipo}:`,
           horaEsperadaISO
         );
 
-        // Intentar marcar asistencia usando el orquestador
+        // Attempt to mark attendance using the orchestrator
         if (!asistenciaIDB) {
-          console.error("❌ AsistenciaIDB no disponible");
+          console.error("❌ AsistenciaIDB not available");
           return;
         }
 
-        // ✅ MARCAR ASISTENCIA
+        // ✅ MARK ATTENDANCE
         await asistenciaIDB.marcarMiAsistenciaPropia(
           rol,
           estadoBoton.tipo,
           horaEsperadaISO
         );
 
-        // ✅ GUARDAR LA FECHA/HORA DE REGISTRO EXITOSO
+        // ✅ SAVE THE SUCCESSFUL REGISTRATION DATE/TIME
         setFechaHoraRegistro(
           new Date(store.getState().others.fechaHoraActualReal.fechaHora!)
-        ); // Hora actual del registro
+        ); // Current registration time
 
         await refrescarAsistencia();
 
-        // ✅ NUEVO: OCULTAR BOTÓN INMEDIATAMENTE DESPUÉS DEL REGISTRO EXITOSO
+        // ✅ NEW: HIDE BUTTON IMMEDIATELY AFTER SUCCESSFUL REGISTRATION
         console.log(
-          `✅ Asistencia de ${estadoBoton.tipo} marcada exitosamente - Ocultando botón`
+          `✅ Attendance of ${estadoBoton.tipo} marked successfully - Hiding button`
         );
 
-        console.log("✅ Asistencia marcada exitosamente");
+        console.log("✅ Attendance marked successfully");
       } catch (error) {
-        console.error("❌ Error al marcar mi asistencia:", error);
-        throw error; // Re-lanzar para que el modal lo maneje
+        console.error("❌ Error marking my attendance:", error);
+        throw error; // Re-throw so the modal can handle it
       }
     }, [
       estadoBoton.tipo,
@@ -703,12 +703,12 @@ const MarcarAsistenciaDePersonalButton = memo(
       actualizarEstadoBoton,
     ]);
 
-    // ✅ RENDER: Mensaje informativo o botón
+    // ✅ RENDER: Informative message or button
     const mostrarTooltipActual = !tooltipOculto && !mensajeInformativo.mostrar;
 
     return (
       <>
-        {/* ✅ MENSAJE INFORMATIVO */}
+        {/* ✅ INFORMATIONAL MESSAGE */}
         {mensajeInformativo.mostrar && (
           <MensajeInformativoAsistencia
             mensaje={mensajeInformativo}
@@ -717,7 +717,7 @@ const MarcarAsistenciaDePersonalButton = memo(
           />
         )}
 
-        {/* ✅ MODALES */}
+        {/* ✅ MODALS */}
         {mostrarModalTomarMiAsistencia && (
           <MarcarAsistenciaPropiaDePersonalModal
             Rol={rol}
@@ -751,7 +751,7 @@ const MarcarAsistenciaDePersonalButton = memo(
             eliminateModal={() => {
               setMostrarModalConfirmacioAsistenciaMarcada(false);
               setFechaHoraRegistro(null);
-              setModoRegistroMarcado(null); // ✅ LIMPIAR el modo guardado
+              setModoRegistroMarcado(null); // ✅ CLEAR saved mode
             }}
             fechaHoraRegistro={fechaHoraRegistro}
             modoRegistro={modoRegistroMarcado}
@@ -868,7 +868,7 @@ const MarcarAsistenciaDePersonalButton = memo(
             }
         }
 
-        /* ✅ NUEVOS: Estilos para móviles con sombra reducida y más separación */
+        /* ✅ NEW: Styles for mobiles with reduced shadow and more separation */
         @media (max-width: 300px) {
             .button-enhanced-verde {
                 animation: buttonPulse 3s ease-in-out infinite;
@@ -920,7 +920,7 @@ const MarcarAsistenciaDePersonalButton = memo(
             }
         }
 
-        /* Estilos originales para pantallas grandes */
+        /* Original styles for large screens */
         @media (min-width: 768px) {
             .button-enhanced-verde {
                 animation: buttonPulse 3s ease-in-out infinite;
@@ -968,7 +968,7 @@ const MarcarAsistenciaDePersonalButton = memo(
         `}
         </style>
 
-        {/* ✅ BOTÓN: Ahora incluye estado de carga */}
+        {/* ✅ BUTTON: Now includes loading state */}
         {estadoBoton.visible && (
           <div
             className="fixed z-[102] right-0 Mover-NavBarFooter
@@ -978,7 +978,7 @@ const MarcarAsistenciaDePersonalButton = memo(
              mr-6 mb-5"
             style={{ bottom: navbarFooter.height + 80 }}
           >
-            {/* Tooltip - Solo mostrar si NO es estado de carga */}
+            {/* Tooltip - Only show if NOT loading state */}
             {mostrarTooltipActual && !estadoBoton.esCarga && (
               <div
                 id="tooltip-mostrar-asistencia-personal"
@@ -990,9 +990,9 @@ const MarcarAsistenciaDePersonalButton = memo(
               >
                 <div
                   className={`${
-                    estadoBoton.color === "verde"
+                    estadoBoton.color === "green"
                       ? "bg-azul-principal"
-                      : estadoBoton.color === "rojizo"
+                      : estadoBoton.color === "reddish"
                       ? "bg-red-600"
                       : "bg-blue-600"
                   } text-white px-3 py-2 rounded-lg text-sm font-medium shadow-lg relative
@@ -1005,9 +1005,9 @@ const MarcarAsistenciaDePersonalButton = memo(
                   <div
                     className={`absolute top-1/2 transform -translate-y-1/2
                    left-full border-l-4 border-y-4 border-y-transparent ${
-                     estadoBoton.color === "verde"
+                     estadoBoton.color === "green"
                        ? "border-l-azul-principal"
-                       : estadoBoton.color === "rojizo"
+                       : estadoBoton.color === "reddish"
                        ? "border-l-red-600"
                        : "border-l-blue-600"
                    }`}
@@ -1016,31 +1016,31 @@ const MarcarAsistenciaDePersonalButton = memo(
               </div>
             )}
 
-            {/* Botón */}
+            {/* Button */}
             <button
               onClick={handleClick}
               disabled={estadoBoton.esCarga}
               title={
                 estadoBoton.esCarga
-                  ? "Inicializando..."
-                  : `Registrar ${estadoBoton.tipo}`
+                  ? "Initializing..."
+                  : `Register ${estadoBoton.tipo}`
               }
               className={`${
                 estadoBoton.esCarga
                   ? "button-enhanced-carga"
                   : mostrarTooltipActual
-                  ? estadoBoton.color === "verde"
+                  ? estadoBoton.color === "green"
                     ? "button-enhanced-verde"
                     : "button-enhanced-rojizo"
                   : "transition-all duration-300"
               }
              relative overflow-hidden aspect-square
              ${
-               estadoBoton.color === "verde"
+               estadoBoton.color === "green"
                  ? "bg-gradient-to-br from-verde-principal to-green-600 hover:from-green-500 hover:to-green-700"
-                 : estadoBoton.color === "rojizo"
+                 : estadoBoton.color === "reddish"
                  ? "bg-gradient-to-br from-red-500 to-red-700 hover:from-red-600 hover:to-red-800"
-                 : "bg-gradient-to-br from-blue-500 to-blue-600" // Estado de carga
+                 : "bg-gradient-to-br from-blue-500 to-blue-600" // Loading state
              }
              rounded-full flex items-center justify-center
              transition-all duration-300 ease-out
@@ -1055,7 +1055,7 @@ const MarcarAsistenciaDePersonalButton = memo(
                "hover:shadow-[0_10px_30px_rgba(0,0,0,0.35),0_4px_15px_rgba(34,197,94,0.5),inset_0_1px_0_rgba(255,255,255,0.3)]"
              }
              border-2 ${
-               estadoBoton.color === "carga"
+               estadoBoton.color === "loading"
                  ? "border-blue-400/20"
                  : "border-green-400/20"
              }
@@ -1064,14 +1064,14 @@ const MarcarAsistenciaDePersonalButton = memo(
              sm-only:w-16 sm-only:h-16 sm-only:p-3
              w-18 h-18 p-4`}
             >
-              {/* Efecto de brillo en hover - solo si no es estado de carga */}
+              {/* Shine effect on hover - only if NOT loading state */}
               {!estadoBoton.esCarga && (
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 transform -translate-x-full hover:translate-x-full transition-transform duration-700"></div>
               )}
 
-              {/* Contenido del botón */}
+              {/* Button content */}
               {estadoBoton.esCarga ? (
-                // ✅ Spinner de carga
+                // ✅ Loading spinner
                 <div className="loading-spinner relative z-10">
                   <svg
                     className="w-8 h-8 text-white sxs-only:w-6 xs-only:w-7 sm-only:w-8"
@@ -1094,23 +1094,23 @@ const MarcarAsistenciaDePersonalButton = memo(
                   </svg>
                 </div>
               ) : (
-                // ✅ Icono normal de lápiz
+                // ✅ Normal pencil icon
                 <LapizFirmando className="text-white relative z-10 drop-shadow-sm sxs-only:w-6 xs-only:w-7 sm-only:w-8 w-8" />
               )}
 
-              {/* Punto de notificación cuando hay tooltip - Solo si NO es estado de carga */}
+              {/* Notification dot when there is a tooltip - Only if NOT loading state */}
               {mostrarTooltipActual && !estadoBoton.esCarga && (
                 <div
                   className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-white animate-ping
                  sxs-only:w-2 sxs-only:h-2 ${
-                   estadoBoton.color === "verde"
+                   estadoBoton.color === "green"
                      ? "bg-blue-500"
                      : "bg-yellow-500"
                  }`}
                 />
               )}
 
-              {/* Indicadores de estado - Solo si NO es estado de carga */}
+              {/* Status indicators - Only if NOT loading state */}
               {!estadoBoton.esCarga && (
                 <div className="absolute -bottom-1 -left-1 flex space-x-1">
                   <div
@@ -1121,8 +1121,8 @@ const MarcarAsistenciaDePersonalButton = memo(
                     }`}
                     title={
                       asistencia.entradaMarcada
-                        ? "Entrada registrada"
-                        : "Entrada pendiente"
+                        ? "Entry registered"
+                        : "Entry pending"
                     }
                   />
                   <div
@@ -1133,8 +1133,8 @@ const MarcarAsistenciaDePersonalButton = memo(
                     }`}
                     title={
                       asistencia.salidaMarcada
-                        ? "Salida registrada"
-                        : "Salida pendiente"
+                        ? "Exit registered"
+                        : "Exit pending"
                     }
                   />
                 </div>

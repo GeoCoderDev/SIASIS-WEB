@@ -14,9 +14,9 @@ import { TablasRemoto } from "@/interfaces/shared/TablasSistema";
 import { Endpoint_Get_Usuarios_Genericos_API01 } from "@/lib/utils/backend/endpoints/api01/UsuariosGenericos";
 import { PersonalDelColegio } from "@/interfaces/shared/PersonalDelColegio";
 
-// Interfaz para el registro de cache
+// Interface for the cache record
 export interface IUsuariosGenericosCache {
-  clave_busqueda: string; // Key compuesta: "rol|criterio|limite"
+  clave_busqueda: string; // Composite key: "role|criteria|limit"
   rol: RolesSistema;
   criterio: string;
   limite: number;
@@ -25,12 +25,12 @@ export interface IUsuariosGenericosCache {
   ultima_actualizacion: number; // Timestamp
 }
 
-// Mapeo de roles a sus tablas correspondientes
+// Mapping of roles to their corresponding tables
 const MAPEO_ROLES_TABLAS: Record<RolesSistema, TablasRemoto> = {
   [RolesSistema.Directivo]: TablasRemoto.Tabla_Directivos,
   [RolesSistema.ProfesorPrimaria]: TablasRemoto.Tabla_Profesores_Primaria,
   [RolesSistema.ProfesorSecundaria]: TablasRemoto.Tabla_Profesores_Secundaria,
-  [RolesSistema.Tutor]: TablasRemoto.Tabla_Profesores_Secundaria, // Mismo que ProfesorSecundaria
+  [RolesSistema.Tutor]: TablasRemoto.Tabla_Profesores_Secundaria, // Same as SecondaryTeacher
   [RolesSistema.Auxiliar]: TablasRemoto.Tabla_Auxiliares,
   [RolesSistema.Responsable]: TablasRemoto.Tabla_Responsables,
   [RolesSistema.PersonalAdministrativo]:
@@ -48,60 +48,60 @@ export class UsuariosGenericosIDB {
   ) {}
 
   /**
-   * Genera una clave única para la búsqueda
+   * Generates a unique key for the search
    */
   private generarClaveBusqueda(
     rol: RolesSistema,
     criterio: string,
     limite: number
   ): string {
-    // Normalizamos el criterio para evitar inconsistencias
+    // We normalize the criteria to avoid inconsistencies
     const criterioNormalizado = criterio.trim().toLowerCase();
     return `${rol}|${criterioNormalizado}|${limite}`;
   }
 
   /**
-   * Verifica si necesita sincronización comparando con la última modificación de la tabla correspondiente
+   * Checks if synchronization is needed by comparing with the last modification of the corresponding table
    */
   private async necesitaSincronizacion(
     registroCache: IUsuariosGenericosCache
   ): Promise<boolean> {
     try {
-      // Obtener la tabla correspondiente al rol
+      // Get the corresponding table for the role
       const tablaCorrespondiente = MAPEO_ROLES_TABLAS[registroCache.rol];
 
       if (!tablaCorrespondiente) {
         console.warn(
-          `No se encontró tabla correspondiente para el rol: ${registroCache.rol}`
+          `No corresponding table found for role: ${registroCache.rol}`
         );
-        return true; // Si no sabemos la tabla, mejor sincronizamos
+        return true; // If we don't know the table, it's better to synchronize
       }
 
-      // Obtener la última modificación de la tabla correspondiente
+      // Get the last modification of the corresponding table
       const ultimaModificacion = await new UltimaModificacionTablasIDB(
         this.siasisAPI
       ).getByTabla(tablaCorrespondiente);
 
-      // Si no hay registro de modificación, consideramos que no necesita sincronización
+      // If there is no modification record, we consider that it does not need synchronization
       if (!ultimaModificacion) {
         return false;
       }
 
-      // Convertir la fecha de modificación remota a timestamp
+      // Convert the remote modification date to a timestamp
       const fechaModificacionRemota = new Date(
         ultimaModificacion.Fecha_Modificacion
       ).getTime();
 
-      // Comparar: si la modificación remota es más reciente que nuestro cache, necesitamos sincronizar
+      // Compare: if the remote modification is more recent than our cache, we need to synchronize
       return registroCache.ultima_actualizacion < fechaModificacionRemota;
     } catch (error) {
-      console.error("Error al verificar necesidad de sincronización:", error);
-      return true; // En caso de error, mejor sincronizamos
+      console.error("Error checking need for synchronization:", error);
+      return true; // In case of error, it's better to synchronize
     }
   }
 
   /**
-   * Obtiene usuarios desde la API
+   * Gets users from the API
    */
   private async fetchUsuariosDesdeAPI(
     rol: RolesSistema,
@@ -123,10 +123,10 @@ export class UsuariosGenericosIDB {
         total: responseData.total || 0,
       };
     } catch (error) {
-      console.error("Error al obtener usuarios desde API:", error);
+      console.error("Error getting users from API:", error);
 
       let errorType: AllErrorTypes = SystemErrorTypes.UNKNOWN_ERROR;
-      let message = "Error al obtener usuarios";
+      let message = "Error getting users";
 
       if (error instanceof Error) {
         if (
@@ -134,7 +134,7 @@ export class UsuariosGenericosIDB {
           error.message.includes("fetch")
         ) {
           errorType = SystemErrorTypes.EXTERNAL_SERVICE_ERROR;
-          message = "Error de red al obtener usuarios";
+          message = "Network error getting users";
         } else {
           message = error.message;
         }
@@ -155,7 +155,7 @@ export class UsuariosGenericosIDB {
   }
 
   /**
-   * Guarda el resultado en el cache local
+   * Saves the result in the local cache
    */
   private async guardarEnCache(
     registro: IUsuariosGenericosCache
@@ -178,13 +178,13 @@ export class UsuariosGenericosIDB {
         };
       });
     } catch (error) {
-      console.error("Error al guardar en cache:", error);
+      console.error("Error saving to cache:", error);
       throw error;
     }
   }
 
   /**
-   * Obtiene un registro del cache local
+   * Gets a record from the local cache
    */
   private async obtenerDesdeCache(
     claveBusqueda: string
@@ -204,13 +204,13 @@ export class UsuariosGenericosIDB {
         };
       });
     } catch (error) {
-      console.error("Error al obtener desde cache:", error);
+      console.error("Error getting from cache:", error);
       return null;
     }
   }
 
   /**
-   * Busca usuarios genéricos con cache inteligente
+   * Searches for generic users with smart cache
    */
   public async buscarUsuarios(
     rol: RolesSistema,
@@ -222,30 +222,30 @@ export class UsuariosGenericosIDB {
     this.setSuccessMessage?.(null);
 
     try {
-      // Validar parámetros
+      // Validate parameters
       if (criterio.trim().length > 0 && criterio.trim().length < 2) {
         this.setError?.({
           success: false,
-          message: "El criterio de búsqueda debe tener al menos 2 caracteres",
+          message: "The search criteria must have at least 2 characters",
         });
         this.setIsSomethingLoading?.(false);
         return { resultados: [], total: 0 };
       }
 
-      // Generar clave de búsqueda
+      // Generate search key
       const claveBusqueda = this.generarClaveBusqueda(rol, criterio, limite);
 
-      // Intentar obtener desde cache
+      // Try to get from cache
       const registroCache = await this.obtenerDesdeCache(claveBusqueda);
 
-      // Si tenemos cache, verificar si necesita sincronización
+      // If we have cache, check if synchronization is needed
       if (registroCache) {
         const necesitaSync = await this.necesitaSincronizacion(registroCache);
 
         if (!necesitaSync) {
-          // Cache válido, devolver resultados
+          // Valid cache, return results
           this.setSuccessMessage?.({
-            message: `Se encontraron ${registroCache.resultados.length} usuarios (desde cache)`,
+            message: `Found ${registroCache.resultados.length} users (from cache)`,
           });
           this.setIsSomethingLoading?.(false);
           return {
@@ -255,14 +255,14 @@ export class UsuariosGenericosIDB {
         }
       }
 
-      // Cache no válido o no existe, obtener desde API
+      // Invalid cache or it doesn't exist, get from API
       const { resultados, total } = await this.fetchUsuariosDesdeAPI(
         rol,
         criterio,
         limite
       );
 
-      // Guardar en cache
+      // Save in cache
       const nuevoRegistro: IUsuariosGenericosCache = {
         clave_busqueda: claveBusqueda,
         rol,
@@ -275,22 +275,22 @@ export class UsuariosGenericosIDB {
 
       await this.guardarEnCache(nuevoRegistro);
 
-      // Mensaje de éxito
+      // Success message
       this.setSuccessMessage?.({
-        message: `Se encontraron ${resultados.length} usuarios`,
+        message: `Found ${resultados.length} users`,
       });
 
       this.setIsSomethingLoading?.(false);
       return { resultados, total };
     } catch (error) {
-      this.handleIndexedDBError(error, "buscar usuarios");
+      this.handleIndexedDBError(error, "search users");
       this.setIsSomethingLoading?.(false);
       return { resultados: [], total: 0 };
     }
   }
 
   /**
-   * Limpia el cache para un rol específico (útil cuando sabemos que los datos han cambiado)
+   * Clears the cache for a specific role (useful when we know the data has changed)
    */
   public async limpiarCacheDeRol(rol: RolesSistema): Promise<void> {
     try {
@@ -298,7 +298,7 @@ export class UsuariosGenericosIDB {
         this.nombreTablaLocal,
         "readwrite"
       );
-      const index = store.index("por_rol");
+      const index = store.index("by_role");
 
       return new Promise<void>((resolve, reject) => {
         const request = index.openCursor(IDBKeyRange.only(rol));
@@ -319,13 +319,13 @@ export class UsuariosGenericosIDB {
         };
       });
     } catch (error) {
-      console.error(`Error al limpiar cache del rol ${rol}:`, error);
+      console.error(`Error clearing cache for role ${rol}:`, error);
       throw error;
     }
   }
 
   /**
-   * Limpia todo el cache de usuarios genéricos
+   * Clears the entire generic users cache
    */
   public async limpiarTodoElCache(): Promise<void> {
     try {
@@ -346,27 +346,27 @@ export class UsuariosGenericosIDB {
         };
       });
     } catch (error) {
-      console.error("Error al limpiar todo el cache:", error);
+      console.error("Error clearing the entire cache:", error);
       throw error;
     }
   }
 
   /**
-   * Maneja los errores de operaciones con IndexedDB
+   * Handles errors from IndexedDB operations
    */
   private handleIndexedDBError(error: unknown, operacion: string): void {
-    console.error(`Error en operación IndexedDB (${operacion}):`, error);
+    console.error(`Error in IndexedDB operation (${operacion}):`, error);
 
     let errorType: AllErrorTypes = SystemErrorTypes.UNKNOWN_ERROR;
-    let message = `Error al ${operacion}`;
+    let message = `Error when ${operacion}`;
 
     if (error instanceof Error) {
       if (error.name === "QuotaExceededError") {
         errorType = SystemErrorTypes.DATABASE_ERROR;
-        message = `Almacenamiento excedido al ${operacion}`;
+        message = `Storage exceeded when ${operacion}`;
       } else if (error.name === "TransactionInactiveError") {
         errorType = SystemErrorTypes.DATABASE_ERROR;
-        message = `Transacción inactiva al ${operacion}`;
+        message = `Inactive transaction when ${operacion}`;
       } else {
         message = error.message || message;
       }

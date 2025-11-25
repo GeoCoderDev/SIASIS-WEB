@@ -15,40 +15,40 @@ import { Speaker } from "../../../lib/utils/voice/Speaker";
 
 const speaker = Speaker.getInstance();
 
-//Comandos para otras paginas
+//Commands for other pages
 
-export const C_V_Contacto = new CommandVoice(["contacto"], () => {
+export const C_V_Contacto = new CommandVoice(["contact"], () => {
   return new Promise((resolve) => {
-    speaker.start("Redirigiendo al Módulo 1.", () => resolve(null));
+    speaker.start("Redirecting to Module 1.", () => resolve(null));
     window.location.href = "/modulos/1";
   });
 });
 
-export const C_V_Home = new CommandVoice(["inicio"], () => {
+export const C_V_Home = new CommandVoice(["home", "start"], () => {
   return new Promise((resolve) => {
-    speaker.start("Redirigiendo a la pagina de inicio.", () => resolve(null));
+    speaker.start("Redirecting to the home page.", () => resolve(null));
     window.location.href = "/";
   });
 });
 
-//Comandos Modulo 1
+//Module 1 Commands
 
 export const C_V_Modulo_1 = new CommandVoice(
-  ["módulo1", "modulo1", "módulo 1", "modulo 1", "módulo uno"],
+  ["module1", "module 1", "module one"],
   () => {
     return new Promise((resolve) => {
-      speaker.start("Redirigiendo al Módulo 1.", () => resolve(null));
+      speaker.start("Redirecting to Module 1.", () => resolve(null));
       window.location.href = "/modulos/1";
     });
   }
 );
 
 export const C_VModulo_1_Seccion_1 = new CommandVoice(
-  ["calidad software conceptos modelos criterios", "sección 1", "sección uno"],
+  ["software quality concepts models criteria", "section 1", "section one"],
   () => {
     return new Promise((resolve) => {
       speaker.start(
-        "Redirigiendo a Calidad Software: Conceptos, Modelos y Criterios.",
+        "Redirecting to Software Quality: Concepts, Models and Criteria.",
         () => resolve(null)
       );
       window.location.href =
@@ -58,10 +58,10 @@ export const C_VModulo_1_Seccion_1 = new CommandVoice(
 );
 
 export const C_VModulo_1_Seccion_2 = new CommandVoice(
-  ["herramientas calidad software", "sección 2", "sección dos"],
+  ["software quality tools", "section 2", "section two"],
   () => {
     return new Promise((resolve) => {
-      speaker.start("Redirigiendo a Herramientas de Calidad de Software.", () =>
+      speaker.start("Redirecting to Software Quality Tools.", () =>
         resolve(null)
       );
       window.location.href = "/modulos/1/herramientas-calidad-software";
@@ -70,11 +70,11 @@ export const C_VModulo_1_Seccion_2 = new CommandVoice(
 );
 
 export const C_VModulo_1_Seccion_3 = new CommandVoice(
-  ["normas y estándares de calidad software", "sección 3", "sección tres"],
+  ["software quality standards", "section 3", "section three"],
   () => {
     return new Promise((resolve) => {
       speaker.start(
-        "Redirigiendo a Normas y Estándares de Calidad de Software.",
+        "Redirecting to Software Quality Standards.",
         () => resolve(null)
       );
       window.location.href = "/modulos/1/normas-estandares-calidad-software";
@@ -84,14 +84,14 @@ export const C_VModulo_1_Seccion_3 = new CommandVoice(
 
 export const C_VModulo_1_Seccion_4 = new CommandVoice(
   [
-    "origen y evolución de la ingeniería de software",
-    "sección 4",
-    "sección cuatro",
+    "origin and evolution of software engineering",
+    "section 4",
+    "section four",
   ],
   () => {
     return new Promise((resolve) => {
       speaker.start(
-        "Redirigiendo a Origen y Evolución de la Ingeniería de Software.",
+        "Redirecting to Origin and Evolution of Software Engineering.",
         () => resolve(null)
       );
       window.location.href = "/modulos/1/origen-evolucion-ingenieria-software";
@@ -99,13 +99,13 @@ export const C_VModulo_1_Seccion_4 = new CommandVoice(
   }
 );
 
-//Comandos Modulo 2
+//Module 2 Commands
 
 // export const C_V_Modulo_2 = new CommandVoice(
-//   ["módulo2", "modulo2", "módulo 2", "modulo 2", "módulo dos"],
+//   ["module2", "module 2", "module two"],
 //   () => {
 //     return new Promise((resolve) => {
-//       speaker.start("Redirigiendo al Módulo 2.", () => {
+//       speaker.start("Redirecting to Module 2.", () => {
 //         resolve(null);
 
 //         C_M_Modulo_2.start();
@@ -116,11 +116,11 @@ export const C_VModulo_1_Seccion_4 = new CommandVoice(
 // );
 
 export const C_V_Modulo_2_Seccion_1 = new CommandVoice(
-  ["conceptos fundamentales vyv", "sección 1", "sección uno"],
+  ["fundamental concepts vnv", "section 1", "section one"],
   () => {
     return new Promise((resolve) => {
       speaker.start(
-        "Redirigiendo a Conceptos Fundamentales de Verificación y Validación.",
+        "Redirecting to Fundamental Concepts of Verification and Validation.",
         () => resolve(null)
       );
       window.location.href = "/modulos/2/conceptos-fundamentales-vyv";
@@ -130,14 +130,14 @@ export const C_V_Modulo_2_Seccion_1 = new CommandVoice(
 
 export const C_V_Modulo_2_Seccion_2 = new CommandVoice(
   [
-    "verificación de la documentación de requerimientos",
-    "sección 2",
-    "sección dos",
+    "verification of requirements documentation",
+    "section 2",
+    "section two",
   ],
   () => {
     return new Promise((resolve) => {
       speaker.start(
-        "Redirigiendo a Verificación de la Documentación de Requerimientos.",
+        "Redirecting to Verification of Requirements Documentation.",
         () => resolve(null)
       );
       window.location.href =
@@ -148,14 +148,14 @@ export const C_V_Modulo_2_Seccion_2 = new CommandVoice(
 
 export const C_V_Modulo_2_Seccion_3 = new CommandVoice(
   [
-    "validación de la documentación de requerimientos",
-    "sección 3",
-    "sección tres",
+    "validation of requirements documentation",
+    "section 3",
+    "section three",
   ],
   () => {
     return new Promise((resolve) => {
       speaker.start(
-        "Redirigiendo a Validación de la Documentación de Requerimientos.",
+        "Redirecting to Validation of Requirements Documentation.",
         () => resolve(null)
       );
       window.location.href =
@@ -166,14 +166,14 @@ export const C_V_Modulo_2_Seccion_3 = new CommandVoice(
 
 export const C_V_Modulo_2_Seccion_4 = new CommandVoice(
   [
-    "revisión formal del documento de requerimientos",
-    "sección 4",
-    "sección cuatro",
+    "formal review of requirements document",
+    "section 4",
+    "section four",
   ],
   () => {
     return new Promise((resolve) => {
       speaker.start(
-        "Redirigiendo a Revisión Formal del Documento de Requerimientos.",
+        "Redirecting to Formal Review of the Requirements Document.",
         () => resolve(null)
       );
       window.location.href =
@@ -184,14 +184,14 @@ export const C_V_Modulo_2_Seccion_4 = new CommandVoice(
 
 export const C_V_Modulo_2_Seccion_5 = new CommandVoice(
   [
-    "herramientas vyv para análisis de requerimientos",
-    "sección 5",
-    "sección cinco",
+    "vnv tools for requirements analysis",
+    "section 5",
+    "section five",
   ],
   () => {
     return new Promise((resolve) => {
       speaker.start(
-        "Redirigiendo a Herramientas VyV para Análisis de Requerimientos.",
+        "Redirecting to V&V Tools for Requirements Analysis.",
         () => resolve(null)
       );
       window.location.href =
@@ -200,24 +200,24 @@ export const C_V_Modulo_2_Seccion_5 = new CommandVoice(
   }
 );
 
-//Comandos Modulo 3
+//Module 3 Commands
 
 export const C_V_Modulo_3 = new CommandVoice(
-  ["módulo3", "modulo3", "módulo 3", "modulo 3", "módulo tres"],
+  ["module3", "module 3", "module three"],
   () => {
     return new Promise((resolve) => {
-      speaker.start("Redirigiendo al Módulo 3.", () => resolve(null));
+      speaker.start("Redirecting to Module 3.", () => resolve(null));
       window.location.href = "/modulos/3";
     });
   }
 );
 
 export const C_V_Modulo_3_Seccion_1 = new CommandVoice(
-  ["conceptos fundamentales del diseño", "sección 1", "sección uno"],
+  ["fundamental design concepts", "section 1", "section one"],
   () => {
     return new Promise((resolve) => {
       speaker.start(
-        "Redirigiendo a Conceptos Fundamentales del Diseño de Sistema.",
+        "Redirecting to Fundamental Concepts of System Design.",
         () => resolve(null)
       );
       window.location.href =
@@ -227,11 +227,11 @@ export const C_V_Modulo_3_Seccion_1 = new CommandVoice(
 );
 
 export const C_V_Modulo_3_Seccion_2 = new CommandVoice(
-  ["verificación de documentación", "sección 2", "sección dos"],
+  ["documentation verification", "section 2", "section two"],
   () => {
     return new Promise((resolve) => {
       speaker.start(
-        "Redirigiendo a Verificación de la Documentación de Diseño.",
+        "Redirecting to Verification of Design Documentation.",
         () => resolve(null)
       );
       window.location.href = "/modulos/3/verificacion-documentacion-diseno";
@@ -240,11 +240,11 @@ export const C_V_Modulo_3_Seccion_2 = new CommandVoice(
 );
 
 export const C_V_Modulo_3_Seccion_3 = new CommandVoice(
-  ["validación de documentación", "sección 3", "sección tres"],
+  ["documentation validation", "section 3", "section three"],
   () => {
     return new Promise((resolve) => {
       speaker.start(
-        "Redirigiendo a Validación de la Documentación de Diseño.",
+        "Redirecting to Validation of Design Documentation.",
         () => resolve(null)
       );
       window.location.href = "/modulos/3/validacion-documentacion-diseno";
@@ -253,11 +253,11 @@ export const C_V_Modulo_3_Seccion_3 = new CommandVoice(
 );
 
 export const C_V_Modulo_3_Seccion_4 = new CommandVoice(
-  ["revisión formal del diseño", "sección 4", "sección cuatro"],
+  ["formal design review", "section 4", "section four"],
   () => {
     return new Promise((resolve) => {
       speaker.start(
-        "Redirigiendo a Revisión Formal del Diseño del Sistema.",
+        "Redirecting to Formal Review of the System Design.",
         () => resolve(null)
       );
       window.location.href = "/modulos/3/revision-formal-diseno-sistema";
@@ -267,28 +267,28 @@ export const C_V_Modulo_3_Seccion_4 = new CommandVoice(
 
 export const C_V_Modulo_3_Seccion_5 = new CommandVoice(
   [
-    "herramientas de V y V",
-    "herramientas de verificación y validación",
-    "sección 5",
-    "sección cinco",
+    "v and v tools",
+    "verification and validation tools",
+    "section 5",
+    "section five",
   ],
   () => {
     return new Promise((resolve) => {
       speaker.start(
-        "Redirigiendo a Herramientas para la Verificación y Validación del Diseño.",
+        "Redirecting to Tools for Design Verification and Validation.",
         () => resolve(null)
       );
       window.location.href = "/modulos/3/herramientas-vyv-diseno-sistema";
     });
   }
 );
-//Comandos Modulo 4
+//Module 4 Commands
 
 export const C_V_Modulo_4 = new CommandVoice(
-  ["módulo4", "modulo4", "módulo 4", "modulo 4", "módulo cuatro"],
+  ["module4", "module 4", "module four"],
   () => {
     return new Promise((resolve) => {
-      speaker.start("Redirigiendo al Módulo 4.", () => resolve(null));
+      speaker.start("Redirecting to Module 4.", () => resolve(null));
       window.location.href = "/modulos/4";
     });
   }
@@ -296,14 +296,14 @@ export const C_V_Modulo_4 = new CommandVoice(
 
 export const C_V_Modulo_4_Seccion_1 = new CommandVoice(
   [
-    "definición y características de factores críticos",
-    "sección 1",
-    "sección uno",
+    "definition and characteristics of critical factors",
+    "section 1",
+    "section one",
   ],
   () => {
     return new Promise((resolve) => {
       speaker.start(
-        "Redirigiendo a Definición y Características de los Factores Críticos de Éxito.",
+        "Redirecting to Definition and Characteristics of Critical Success Factors.",
         () => resolve(null)
       );
       window.location.href =
@@ -313,11 +313,11 @@ export const C_V_Modulo_4_Seccion_1 = new CommandVoice(
 );
 
 export const C_V_Modulo_4_Seccion_2 = new CommandVoice(
-  ["factores técnicos críticos", "sección 2", "sección dos"],
+  ["critical technical factors", "section 2", "section two"],
   () => {
     return new Promise((resolve) => {
       speaker.start(
-        "Redirigiendo a Factores Técnicos Críticos para el Desarrollo del Software.",
+        "Redirecting to Critical Technical Factors for Software Development.",
         () => resolve(null)
       );
       window.location.href = "/modulos/4/factores-tecnicos-criticos";
@@ -326,11 +326,11 @@ export const C_V_Modulo_4_Seccion_2 = new CommandVoice(
 );
 
 export const C_V_Modulo_4_Seccion_3 = new CommandVoice(
-  ["factores humanos", "sección 3", "sección tres"],
+  ["human factors", "section 3", "section three"],
   () => {
     return new Promise((resolve) => {
       speaker.start(
-        "Redirigiendo a Factores Humanos en el Desarrollo de Software.",
+        "Redirecting to Human Factors in Software Development.",
         () => resolve(null)
       );
       window.location.href = "/modulos/4/factores-humanos";
@@ -339,10 +339,10 @@ export const C_V_Modulo_4_Seccion_3 = new CommandVoice(
 );
 
 export const C_V_Modulo_4_Seccion_4 = new CommandVoice(
-  ["factores organizacionales", "sección 4", "sección cuatro"],
+  ["organizational factors", "section 4", "section four"],
   () => {
     return new Promise((resolve) => {
-      speaker.start("Redirigiendo a Factores Organizacionales Críticos.", () =>
+      speaker.start("Redirecting to Critical Organizational Factors.", () =>
         resolve(null)
       );
       window.location.href = "/modulos/4/factores-organizacionales";
@@ -351,11 +351,11 @@ export const C_V_Modulo_4_Seccion_4 = new CommandVoice(
 );
 
 export const C_V_Modulo_4_Seccion_5 = new CommandVoice(
-  ["metodologías y procesos", "sección 5", "sección cinco"],
+  ["methodologies and processes", "section 5", "section five"],
   () => {
     return new Promise((resolve) => {
       speaker.start(
-        "Redirigiendo a Metodologías y Procesos como Factores de Éxito.",
+        "Redirecting to Methodologies and Processes as Success Factors.",
         () => resolve(null)
       );
       window.location.href = "/modulos/4/metodologias-procesos";
@@ -364,21 +364,21 @@ export const C_V_Modulo_4_Seccion_5 = new CommandVoice(
 );
 
 export const C_V_Modulo_4_Seccion_6 = new CommandVoice(
-  ["factores externos", "sección 6", "sección seis"],
+  ["external factors", "section 6", "section six"],
   () => {
     return new Promise((resolve) => {
-      speaker.start("Redirigiendo a Factores Externos.", () => resolve(null));
+      speaker.start("Redirecting to External Factors.", () => resolve(null));
       window.location.href = "/modulos/4/factores-externos";
     });
   }
 );
 
 export const C_V_Modulo_4_Seccion_7 = new CommandVoice(
-  ["ejemplos de factores críticos", "sección 7", "sección siete"],
+  ["examples of critical factors", "section 7", "section seven"],
   () => {
     return new Promise((resolve) => {
       speaker.start(
-        "Redirigiendo a Ejemplos de Factores Críticos de Éxito en Proyectos Reales.",
+        "Redirecting to Examples of Critical Success Factors in Real Projects.",
         () => resolve(null)
       );
       window.location.href = "/modulos/4/ejemplos-factores-criticos";
@@ -386,31 +386,31 @@ export const C_V_Modulo_4_Seccion_7 = new CommandVoice(
   }
 );
 
-//Comandos Especiales
+//Special Commands
 
-// Función para crear comandos de voz para cada resultado
+// Function to create voice commands for each result
 // function createResultCommands(
-//   searchResults: SubseccionSearchResult[]
+//   searchResults: SubseccionSearchResult
 // ): CommandVoice[] {
 //   return searchResults.map((result, index) => {
 //     const num = index + 1;
 //     return new CommandVoice(
 //       [
-//         `resultado ${num}`,
-//         `resultado${num}`,
-//         `resultado ${numberToText(num)}`,
-//         `resultado${numberToText(num)}`,
-//         `resultado, ${num}`,
-//         `resultado, ${numberToText(num)}`,
-//         // Variantes adicionales para posibles transcripciones de Edge
-//         `resultado ${num}.`,
-//         `resultado, ${num}.`,
-//         `resultado ${numberToText(num)}.`,
-//         `resultado, ${numberToText(num)}.`,
+//         `result ${num}`,
+//         `result${num}`,
+//         `result ${numberToText(num)}`,
+//         `result${numberToText(num)}`,
+//         `result, ${num}`,
+//         `result, ${numberToText(num)}`,
+//         // Additional variants for possible Edge transcriptions
+//         `result ${num}.`,
+//         `result, ${num}.`,
+//         `result ${numberToText(num)}.`,
+//         `result, ${numberToText(num)}.`,
 //       ],
 //       () => {
 //         return new Promise((resolve) => {
-//           speaker.start(`Redirigiendo a ${result.title}`, () => {
+//           speaker.start(`Redirecting to ${result.title}`, () => {
 //             // CommandVoice.iterateNext = false;
 //             window.location.href = result.path;
 //             resolve(null);
@@ -421,21 +421,21 @@ export const C_V_Modulo_4_Seccion_7 = new CommandVoice(
 //   });
 // }
 
-// export const C_V_Buscar = new CommandVoice(["buscar"], () => {
+// export const C_V_Buscar = new CommandVoice(["search"], () => {
 //   return new Promise((resolve) => {
-//     speaker.start("Por favor, di el término que deseas buscar.", () => {
+//     speaker.start("Please, say the term you want to search for.", () => {
 //       const listener = Listener.getInstance();
 
 //       listener.start((transcript) => {
 //         const searchInput = document.getElementById(
-//           "buscador-global"
+//           "global-search-bar"
 //         ) as HTMLInputElement;
 
 //         if (searchInput) {
 //           searchInput.value = transcript;
 
 //           const searchForm = document.getElementById(
-//             "formulario-busqueda"
+//             "search-form"
 //           ) as HTMLFormElement;
 
 //           if (searchForm) {
@@ -448,15 +448,15 @@ export const C_V_Modulo_4_Seccion_7 = new CommandVoice(
 
 //               const resultsToRead =
 //                 generateSearchResultsSpeech(searcherResults);
-//               speaker.start("Buscando...", () => {
-//                 // Crear comandos para cada resultado
+//               speaker.start("Searching...", () => {
+//                 // Create commands for each result
 //                 const resultCommands = createResultCommands(searcherResults);
 
-//                 //Comandos Adicionales
+//                 //Additional Commands
 
-//                 // Comando para repetir resultados
+//                 // Command to repeat results
 //                 const repeatResultsCommand = new CommandVoice(
-//                   ["repetir resultados", "repetir", "repite los resultados"],
+//                   ["repeat results", "repeat", "repeat the results"],
 //                   () => {
 //                     return new Promise((resolve2) => {
 //                       const resultsToRead =
@@ -466,9 +466,9 @@ export const C_V_Modulo_4_Seccion_7 = new CommandVoice(
 //                   }
 //                 );
 
-//                 // Comando para nueva búsqueda
+//                 // Command for new search
 //                 const newSearchCommand = new CommandVoice(
-//                   ["nueva búsqueda", "buscar otra vez", "buscar de nuevo"],
+//                   ["new search", "search again", "search anew"],
 //                   () => {
 //                     return new Promise(() => {
 //                       // CommandVoice.iterateNext = true;
@@ -477,14 +477,14 @@ export const C_V_Modulo_4_Seccion_7 = new CommandVoice(
 //                   }
 //                 );
 
-//                 // Combinar todos los comandos
+//                 // Combine all commands
 //                 const allCommands = [
 //                   ...resultCommands,
 //                   repeatResultsCommand,
 //                   newSearchCommand,
 //                 ];
 
-//                 // Crear y iniciar el menú de comandos
+//                 // Create and start the command menu
 //                 const commandMenu = new CommandMenu(resultsToRead, allCommands);
 
 //                 commandMenu.start();
@@ -502,13 +502,13 @@ export const C_V_Modulo_4_Seccion_7 = new CommandVoice(
 //   });
 // });
 
-// export const C_V_Leer = new CommandVoice(["leer"], () => {
+// export const C_V_Leer = new CommandVoice(["read"], () => {
 //   return new Promise((resolve) => {
 //     if (window) {
 //       const urlObject = new URL(window.location.href);
 //       const contentToRead = getCurrentToRead(urlObject.pathname);
 //       if (contentToRead)
-//         speaker.start("Leendo...", () => {
+//         speaker.start("Reading...", () => {
 //           speaker.start(contentToRead);
 //         });
 //     }
@@ -517,7 +517,7 @@ export const C_V_Modulo_4_Seccion_7 = new CommandVoice(
 //   });
 // });
 
-// export const C_V_Siguiente = new CommandVoice(["siguiente"], () => {
+// export const C_V_Siguiente = new CommandVoice(["next"], () => {
 //   return new Promise((resolve) => {
 //     const currentPath = CommandVoice.getCurrentPath?.();
 
@@ -526,7 +526,7 @@ export const C_V_Modulo_4_Seccion_7 = new CommandVoice(
 
 //       if (nextSubsection.path) {
 //         speaker.start(
-//           `Redirigiendo a ${nextSubsection.title} ubicado en ${nextSubsection.breadcrumbText}`,
+//           `Redirecting to ${nextSubsection.title} located at ${nextSubsection.breadcrumbText}`,
 //           () => {
 //             window.location.href = nextSubsection.path!;
 //             resolve(null);
@@ -534,7 +534,7 @@ export const C_V_Modulo_4_Seccion_7 = new CommandVoice(
 //         );
 //       } else {
 //         speaker.start(
-//           `No hay una subsección siguiente en este modulo ${nextSubsection.moduleNumber}`,
+//           `There is no next subsection in this module ${nextSubsection.moduleNumber}`,
 //           () => resolve(null)
 //         );
 //       }
@@ -544,7 +544,7 @@ export const C_V_Modulo_4_Seccion_7 = new CommandVoice(
 //   });
 // });
 
-// export const C_V_Anterior = new CommandVoice(["anterior"], () => {
+// export const C_V_Anterior = new CommandVoice(["previous"], () => {
 //   return new Promise((resolve) => {
 //     const currentPath = CommandVoice.getCurrentPath?.();
 
@@ -553,7 +553,7 @@ export const C_V_Modulo_4_Seccion_7 = new CommandVoice(
 
 //       if (prevSubsection.path) {
 //         speaker.start(
-//           `Redirigiendo a ${prevSubsection.title} ubicado en ${prevSubsection.breadcrumbText}`,
+//           `Redirecting to ${prevSubsection.title} located at ${prevSubsection.breadcrumbText}`,
 //           () => {
 //             window.location.href = prevSubsection.path!;
 //             resolve(null);
@@ -561,7 +561,7 @@ export const C_V_Modulo_4_Seccion_7 = new CommandVoice(
 //         );
 //       } else {
 //         speaker.start(
-//           `No hay una subsección anterior en este modulo ${prevSubsection.moduleNumber}`,
+//           `There is no previous subsection in this module ${prevSubsection.moduleNumber}`,
 //           () => resolve(null)
 //         );
 //       }
@@ -572,10 +572,10 @@ export const C_V_Modulo_4_Seccion_7 = new CommandVoice(
 // });
 
 export const C_V_Validador_Requerimientos = new CommandVoice(
-  ["validador"],
+  ["validator"],
   () => {
     return new Promise((resolve) => {
-      speaker.start("Redirigiendo al validador de requerimientos", () =>
+      speaker.start("Redirecting to the requirements validator", () =>
         resolve(null)
       );
       window.location.href = "/herramientas/validador-requerimientos";
@@ -583,19 +583,19 @@ export const C_V_Validador_Requerimientos = new CommandVoice(
   }
 );
 
-export const C_V_Usar_Validador = new CommandVoice(["usar validador"], () => {
+export const C_V_Usar_Validador = new CommandVoice(["use validator"], () => {
   return new Promise((resolve) => {
     speaker.start(
-      "¿Tu requerimiento es funcional?, Si es así, dí si, de lo contrario di no para indicar que se trata de un requerimiento no funcional",
+      "Is your requirement functional? If so, say yes, otherwise say no to indicate that it is a non-functional requirement",
       () => {
         const listener = Listener.getInstance();
 
         listener.start((transcript) => {
           const radioButton = document.querySelector<HTMLInputElement>(
             `input[name="type"][value="${
-              transcript === "si" || transcript === "sí"
-                ? "Funcional"
-                : "No Funcional"
+              transcript === "yes"
+                ? "Functional"
+                : "Non Functional"
             }"]`
           );
           if (radioButton) {

@@ -2,11 +2,11 @@ import { AsistenciaMensualPersonalLocal } from "../AsistenciaDePersonalTypes";
 import { AsistenciaDateHelper } from "../../utils/AsistenciaDateHelper";
 
 /**
- * 🎯 RESPONSABILIDAD: Validaciones y verificaciones de datos
- * - Verificar sincronización de registros
- * - Validar integridad de datos
- * - Verificar existencia de registros
- * - Comprobar actualización necesaria
+ * 🎯 RESPONSIBILITY: Data validations and verifications
+ * - Verify record synchronization
+ * - Validate data integrity
+ * - Verify record existence
+ * - Check for necessary updates
  */
 export class AsistenciaDePersonalValidator {
   private dateHelper: AsistenciaDateHelper;
@@ -16,10 +16,10 @@ export class AsistenciaDePersonalValidator {
   }
 
   /**
-   * Verifica si los registros de entrada y salida están sincronizados
-   * CRITERIO: Deben tener la misma cantidad de días ESCOLARES registrados (EXCLUYENDO EL DÍA ACTUAL)
-   * DÍAS ESCOLARES: Solo lunes a viernes (fines de semana se ignoran)
-   * MOTIVO: Durante el día actual puede haber entradas pero aún no salidas
+   * Checks if entry and exit records are synchronized
+   * CRITERION: They must have the same number of SCHOOL days recorded (EXCLUDING THE CURRENT DAY)
+   * SCHOOL DAYS: Monday to Friday only (weekends are ignored)
+   * REASON: During the current day there may be entries but no exits yet
    */
   public verificarSincronizacionEntradaSalida(
     registroEntrada: AsistenciaMensualPersonalLocal | null,
@@ -32,13 +32,13 @@ export class AsistenciaDePersonalValidator {
     diasEscolaresEntrada: number;
     diasEscolaresSalida: number;
   } {
-    // Obtener día actual desde Redux
+    // Get current day from Redux
     const fechaActualRedux = this.dateHelper.obtenerFechaHoraActualDesdeRedux();
     if (!fechaActualRedux) {
       console.error(
-        "❌ No se pudo obtener fecha desde Redux para verificar sincronización"
+        "❌ Could not get date from Redux to verify synchronization"
       );
-      // Fallback: usar todos los días si no podemos obtener la fecha actual
+      // Fallback: use all days if we cannot get the current date
       const diasEntrada = registroEntrada
         ? Object.keys(registroEntrada.registros || {}).length
         : 0;
@@ -50,8 +50,8 @@ export class AsistenciaDePersonalValidator {
         estanSincronizados: diasEntrada === diasSalida,
         razon:
           diasEntrada === diasSalida
-            ? `Ambos tienen ${diasEntrada} días (sin verificar día actual ni días escolares)`
-            : `Diferente cantidad: entrada=${diasEntrada}, salida=${diasSalida} (sin verificar día actual ni días escolares)`,
+            ? `Both have ${diasEntrada} days (without checking current day or school days)`
+            : `Different quantity: entry=${diasEntrada}, exit=${diasSalida} (without checking current day or school days)`,
         diasEntrada,
         diasSalida,
         diasEscolaresEntrada: diasEntrada,
@@ -61,7 +61,7 @@ export class AsistenciaDePersonalValidator {
 
     const diaActual = fechaActualRedux.getDate().toString();
 
-    // Función para contar días escolares excluyendo el día actual
+    // Function to count school days excluding the current day
     const contarDiasEscolaresSinActual = (
       registro: AsistenciaMensualPersonalLocal | null
     ): number => {
@@ -79,7 +79,7 @@ export class AsistenciaDePersonalValidator {
       return diasEscolaresSinActual.length;
     };
 
-    // Contar días en cada registro (incluyendo día actual y fines de semana para info)
+    // Count days in each record (including current day and weekends for info)
     const diasEntrada = registroEntrada
       ? Object.keys(registroEntrada.registros || {}).length
       : 0;
@@ -87,28 +87,28 @@ export class AsistenciaDePersonalValidator {
       ? Object.keys(registroSalida.registros || {}).length
       : 0;
 
-    // Contar solo días escolares excluyendo el día actual (esto es lo importante para sincronización)
+    // Count only school days excluding the current day (this is important for synchronization)
     const diasEscolaresEntrada = contarDiasEscolaresSinActual(registroEntrada);
     const diasEscolaresSalida = contarDiasEscolaresSinActual(registroSalida);
 
     console.log(
-      `🔍 Verificando sincronización de días escolares (día actual: ${diaActual}):`
+      `🔍 Verifying synchronization of school days (current day: ${diaActual}):`
     );
     console.log(
-      `   📊 Entrada: ${diasEntrada} días total → ${diasEscolaresEntrada} días escolares históricos`
+      `   📊 Entry: ${diasEntrada} total days → ${diasEscolaresEntrada} historical school days`
     );
     console.log(
-      `   📊 Salida: ${diasSalida} días total → ${diasEscolaresSalida} días escolares históricos`
+      `   📊 Exit: ${diasSalida} total days → ${diasEscolaresSalida} historical school days`
     );
 
-    // Verificación: Solo comparar días escolares anteriores al actual
+    // Verification: Only compare school days before the current one
     if (diasEscolaresEntrada === diasEscolaresSalida) {
       console.log(
-        `✅ SINCRONIZADOS: Ambos tienen ${diasEscolaresEntrada} días escolares históricos`
+        `✅ SYNCHRONIZED: Both have ${diasEscolaresEntrada} historical school days`
       );
       return {
         estanSincronizados: true,
-        razon: `Ambos registros tienen ${diasEscolaresEntrada} días escolares históricos (excluyendo fines de semana y día actual)`,
+        razon: `Both records have ${diasEscolaresEntrada} historical school days (excluding weekends and current day)`,
         diasEntrada,
         diasSalida,
         diasEscolaresEntrada,
@@ -116,13 +116,13 @@ export class AsistenciaDePersonalValidator {
       };
     }
 
-    // Desincronizados: Diferente cantidad de días escolares
+    // Desynchronized: Different number of school days
     console.log(
-      `❌ DESINCRONIZADOS: Entrada=${diasEscolaresEntrada} días escolares, Salida=${diasEscolaresSalida} días escolares`
+      `❌ DESYNCHRONIZED: Entry=${diasEscolaresEntrada} school days, Exit=${diasEscolaresSalida} school days`
     );
     return {
       estanSincronizados: false,
-      razon: `Diferente cantidad de días escolares históricos: entrada=${diasEscolaresEntrada}, salida=${diasEscolaresSalida} (solo lunes-viernes, excluyendo día actual)`,
+      razon: `Different number of historical school days: entry=${diasEscolaresEntrada}, exit=${diasEscolaresSalida} (only Monday-Friday, excluding current day)`,
       diasEntrada,
       diasSalida,
       diasEscolaresEntrada,
@@ -131,8 +131,8 @@ export class AsistenciaDePersonalValidator {
   }
 
   /**
-   * ✅ NUEVO: Valida consistencia entre cantidad de entradas y salidas
-   * Solo puede haber máximo 1 de diferencia (entrada sin salida del día actual)
+   * ✅ NEW: Validates consistency between number of entries and exits
+   * There can only be a maximum of 1 difference (entry without exit for the current day)
    */
   public async validarConsistenciaEntradaSalida(
     registroEntrada: AsistenciaMensualPersonalLocal | null,
@@ -148,12 +148,12 @@ export class AsistenciaDePersonalValidator {
     requiereCorreccion: boolean;
   }> {
     try {
-      // Contar entradas
+      // Count entries
       const cantidadEntradas = registroEntrada
         ? Object.keys(registroEntrada.registros).length
         : 0;
 
-      // Contar salidas
+      // Count exits
       const cantidadSalidas = registroSalida
         ? Object.keys(registroSalida.registros).length
         : 0;
@@ -165,35 +165,35 @@ export class AsistenciaDePersonalValidator {
       let requiereCorreccion = false;
 
       if (diferencia === 0) {
-        razon = `Perfecto: ${cantidadEntradas} entradas = ${cantidadSalidas} salidas`;
+        razon = `Perfect: ${cantidadEntradas} entries = ${cantidadSalidas} exits`;
       } else if (diferencia === 1) {
         const mayor =
-          cantidadEntradas > cantidadSalidas ? "entradas" : "salidas";
-        razon = `Aceptable: 1 ${mayor} más (posiblemente día actual sin completar)`;
+          cantidadEntradas > cantidadSalidas ? "entries" : "exits";
+        razon = `Acceptable: 1 more ${mayor} (possibly current day not completed)`;
       } else {
-        razon = `INCONSISTENTE: ${diferencia} de diferencia (${cantidadEntradas} entradas vs ${cantidadSalidas} salidas)`;
+        razon = `INCONSISTENT: ${diferencia} difference (${cantidadEntradas} entries vs ${cantidadSalidas} exits)`;
         requiereCorreccion = true;
       }
 
-      // Log detallado para debugging
+      // Detailed log for debugging
       if (!esConsistente) {
         console.warn(
-          `⚠️ Inconsistencia detectada para ${idUsuario} - mes ${mes}: ${razon}`
+          `⚠️ Inconsistency detected for ${idUsuario} - month ${mes}: ${razon}`
         );
 
-        // Mostrar detalles de los días registrados
+        // Show details of recorded days
         if (registroEntrada && cantidadEntradas > 0) {
           const diasEntrada = Object.keys(registroEntrada.registros).sort(
             (a, b) => parseInt(a) - parseInt(b)
           );
-          console.warn(`📅 Días con entrada: ${diasEntrada.join(", ")}`);
+          console.warn(`📅 Days with entry: ${diasEntrada.join(", ")}`);
         }
 
         if (registroSalida && cantidadSalidas > 0) {
           const diasSalida = Object.keys(registroSalida.registros).sort(
             (a, b) => parseInt(a) - parseInt(b)
           );
-          console.warn(`📅 Días con salida: ${diasSalida.join(", ")}`);
+          console.warn(`📅 Days with exit: ${diasSalida.join(", ")}`);
         }
       }
 
@@ -206,14 +206,14 @@ export class AsistenciaDePersonalValidator {
         requiereCorreccion,
       };
     } catch (error) {
-      console.error("Error al validar consistencia entrada/salida:", error);
+      console.error("Error validating entry/exit consistency:", error);
       return {
         esConsistente: false,
         diferencia: -1,
         cantidadEntradas: 0,
         cantidadSalidas: 0,
-        razon: `Error en validación: ${
-          error instanceof Error ? error.message : "Error desconocido"
+        razon: `Validation error: ${
+          error instanceof Error ? error.message : "Unknown error"
         }`,
         requiereCorreccion: true,
       };
@@ -221,14 +221,14 @@ export class AsistenciaDePersonalValidator {
   }
 
   /**
-   * Verifica si los registros locales necesitan actualización
+   * Checks if local records need updating
    */
   public verificarSiNecesitaActualizacion(
     registroEntrada: AsistenciaMensualPersonalLocal | null,
     registroSalida: AsistenciaMensualPersonalLocal | null,
     diaActual: number
   ): boolean {
-    // Calcular el último día registrado en ambos registros
+    // Calculate the last recorded day in both records
     let ultimoDiaEntrada = 0;
     let ultimoDiaSalida = 0;
 
@@ -248,11 +248,11 @@ export class AsistenciaDePersonalValidator {
 
     const ultimoDiaLocal = Math.max(ultimoDiaEntrada, ultimoDiaSalida);
 
-    // Si el último día local es menor que el día actual - 1, necesita actualización
-    // (dejamos margen de 1 día para evitar consultas constantes)
+    // If the last local day is less than the current day - 1, it needs an update
+    // (we leave a margin of 1 day to avoid constant queries)
     const necesitaActualizacion = ultimoDiaLocal < diaActual - 1;
 
-    console.log(`🔍 Verificación actualización:`, {
+    console.log(`🔍 Update verification:`, {
       ultimoDiaEntrada,
       ultimoDiaSalida,
       ultimoDiaLocal,
@@ -264,7 +264,7 @@ export class AsistenciaDePersonalValidator {
   }
 
   /**
-   * Verifica si el registro mensual tiene TODOS los días laborales anteriores
+   * Checks if the monthly record has ALL previous working days
    */
   public verificarRegistroMensualCompleto(
     registroMensual: AsistenciaMensualPersonalLocal | null,
@@ -274,24 +274,24 @@ export class AsistenciaDePersonalValidator {
       return false;
     }
 
-    // Si no hay días laborales anteriores (primer día laboral del mes), consideramos completo
+    // If there are no previous working days (first working day of the month), consider complete
     if (diasLaboralesAnteriores.length === 0) {
       return true;
     }
 
-    // Verificar que TODOS los días laborales anteriores estén registrados
+    // Verify that ALL previous working days are recorded
     for (const diaLaboral of diasLaboralesAnteriores) {
       const diaRegistrado = registroMensual.registros[diaLaboral.toString()];
       if (!diaRegistrado) {
         console.log(
-          `❌ Falta el día laboral ${diaLaboral} en el registro mensual`
+          `❌ Missing working day ${diaLaboral} in monthly record`
         );
         return false;
       }
     }
 
     console.log(
-      `✅ Todos los días laborales anteriores están registrados: [${diasLaboralesAnteriores.join(
+      `✅ All previous working days are recorded: [${diasLaboralesAnteriores.join(
         ", "
       )}]`
     );
@@ -299,7 +299,7 @@ export class AsistenciaDePersonalValidator {
   }
 
   /**
-   * Verifica si un registro tiene datos históricos
+   * Checks if a record has historical data
    */
   public tieneRegistrosHistoricos(
     registroEntrada: AsistenciaMensualPersonalLocal | null,
@@ -317,7 +317,7 @@ export class AsistenciaDePersonalValidator {
   }
 
   /**
-   * Valida que un registro mensual tenga la estructura correcta
+   * Validates that a monthly record has the correct structure
    */
   public validarEstructuraRegistroMensual(
     registro: AsistenciaMensualPersonalLocal | null
@@ -325,12 +325,12 @@ export class AsistenciaDePersonalValidator {
     const errores: string[] = [];
 
     if (!registro) {
-      errores.push("El registro es nulo");
+      errores.push("The record is null");
       return { valido: false, errores };
     }
 
     if (typeof registro.Id_Registro_Mensual !== "number") {
-      errores.push("Id_Registro_Mensual debe ser un número");
+      errores.push("Id_Registro_Mensual must be a number");
     }
 
     if (
@@ -338,18 +338,18 @@ export class AsistenciaDePersonalValidator {
       registro.mes < 1 ||
       registro.mes > 12
     ) {
-      errores.push("El mes debe ser un número entre 1 y 12");
+      errores.push("The month must be a number between 1 and 12");
     }
 
     if (
       typeof registro.idUsuario_Personal !== "string" ||
       registro.idUsuario_Personal.length !== 8
     ) {
-      errores.push("Dni_Personal debe ser un string de 8 caracteres");
+      errores.push("Dni_Personal must be an 8-character string");
     }
 
     if (!registro.registros || typeof registro.registros !== "object") {
-      errores.push("registros debe ser un objeto");
+      errores.push("records must be an object");
     }
 
     return {
@@ -359,7 +359,7 @@ export class AsistenciaDePersonalValidator {
   }
 
   /**
-   * Verifica si un día específico está registrado
+   * Checks if a specific day is recorded
    */
   public existeDiaEnRegistro(
     registro: AsistenciaMensualPersonalLocal | null,
@@ -373,7 +373,7 @@ export class AsistenciaDePersonalValidator {
   }
 
   /**
-   * Cuenta el total de días registrados (incluyendo fines de semana)
+   * Counts the total number of recorded days (including weekends)
    */
   public contarTotalDiasRegistrados(
     registro: AsistenciaMensualPersonalLocal | null
@@ -386,7 +386,7 @@ export class AsistenciaDePersonalValidator {
   }
 
   /**
-   * Cuenta solo los días escolares registrados (lunes a viernes)
+   * Counts only the recorded school days (Monday to Friday)
    */
   public contarDiasEscolaresRegistrados(
     registro: AsistenciaMensualPersonalLocal | null

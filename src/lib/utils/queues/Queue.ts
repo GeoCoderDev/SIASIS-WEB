@@ -205,7 +205,7 @@ export class QueueForData<T extends QueueItem> extends Queue<T> {
 
     try {
       // STEP 2: Process the element
-      console.log(`Procesando item ${item.NumeroDeOrden}...`);
+      console.log(`Processing item ${item.NumeroDeOrden}...`);
       await this.dataProcessor.processItem(item);
 
       // STEP 3: If processing was successful, remove the element
@@ -216,11 +216,11 @@ export class QueueForData<T extends QueueItem> extends Queue<T> {
       this.retryCount.delete(item.NumeroDeOrden);
 
       console.log(
-        `Item ${item.NumeroDeOrden} procesado exitosamente y eliminado de la cola`
+        `Item ${item.NumeroDeOrden} processed successfully and removed from the queue`
       );
     } catch (error) {
       // STEP 4: If there's an error, handle retries
-      console.error(`Error procesando item ${item.NumeroDeOrden}:`, error);
+      console.error(`Error processing item ${item.NumeroDeOrden}:`, error);
       await this.handleProcessingError(item, error);
     } finally {
       this.isProcessingItem = false;
@@ -241,13 +241,13 @@ export class QueueForData<T extends QueueItem> extends Queue<T> {
         console.log(
           `Item ${
             item.NumeroDeOrden
-          } movido al final de la cola para reintento (${currentRetries + 1}/${
+          } moved to the end of the queue for retry (${currentRetries + 1}/${
             this.queueOptions.maxRetries
           })`
         );
       } else {
         console.error(
-          `Error al mover item ${item.NumeroDeOrden} al final de la cola`
+          `Error moving item ${item.NumeroDeOrden} to the end of the queue`
         );
         // As fallback, delete the current item and create a new one at the end
         await this.queueRepository.deleteByOrderNumber(item.NumeroDeOrden);
@@ -259,7 +259,7 @@ export class QueueForData<T extends QueueItem> extends Queue<T> {
       this.retryCount.delete(item.NumeroDeOrden);
 
       console.error(
-        `Item ${item.NumeroDeOrden} descartado definitivamente después de ${this.queueOptions.maxRetries} intentos fallidos`,
+        `Item ${item.NumeroDeOrden} permanently discarded after ${this.queueOptions.maxRetries} failed attempts`,
         error
       );
     }

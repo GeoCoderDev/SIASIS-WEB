@@ -11,25 +11,25 @@ import {
   SEGUNDOS_TOLERANCIA_SALIDA_PERSONAL,
 } from "@/constants/MINUTOS_TOLERANCIA_ASISTENCIA_PERSONAL";
 
-// ✅ INTERFAZ: Estructura base para asistencias
+// ✅ INTERFACE: Base structure for attendances
 interface AsistenciaHoyBase {
-  clave: string; // Clave única: fecha:modo:actor:dni[:extras]
+  clave: string; // Unique key: date:mode:actor:dni[:extras]
   dni: string;
   actor: ActoresSistema;
   modoRegistro: ModoRegistro;
   tipoAsistencia: TipoAsistencia;
   fecha: string; // YYYY-MM-DD
-  timestampConsulta: number; // Momento en que se consultó desde Redis (timestamp peruano)
+  timestampConsulta: number; // Moment it was queried from Redis (Peruvian timestamp)
 }
 
-// ✅ INTERFAZ: Asistencia de personal
+// ✅ INTERFACE: Staff attendance
 export interface AsistenciaPersonalHoy extends AsistenciaHoyBase {
-  timestamp: number; // Momento del registro de entrada/salida
+  timestamp: number; // Moment of entry/exit registration
   desfaseSegundos: number;
   estado: EstadosAsistenciaPersonal;
 }
 
-// ✅ INTERFAZ: Asistencia de estudiante
+// ✅ INTERFACE: Student attendance
 export interface AsistenciaEstudianteHoy extends AsistenciaHoyBase {
   estado: EstadosAsistenciaPersonal;
   nivelEducativo?: string;
@@ -37,59 +37,59 @@ export interface AsistenciaEstudianteHoy extends AsistenciaHoyBase {
   seccion?: string;
 }
 
-// ✅ TIPO UNIÓN: Para manejar ambos tipos
+// ✅ UNION TYPE: To handle both types
 export type AsistenciaHoy = AsistenciaPersonalHoy | AsistenciaEstudianteHoy;
 
-// ✅ INTERFAZ: Para consultas específicas
+// ✅ INTERFACE: For specific queries
 export interface ConsultaAsistenciaHoy {
   idUsuario: string | number;
   actor: ActoresSistema;
   modoRegistro: ModoRegistro;
   tipoAsistencia: TipoAsistencia;
-  fecha?: string; // Opcional, por defecto hoy
-  nivelEducativo?: string; // Para estudiantes
-  grado?: string; // Para estudiantes
-  seccion?: string; // Para estudiantes
+  fecha?: string; // Optional, defaults to today
+  nivelEducativo?: string; // For students
+  grado?: string; // For students
+  seccion?: string; // For students
 }
 
 /**
- * ✅ CLASE: Gestiona las asistencias tomadas en el día actual
- * 🎯 PROPÓSITO: Evitar consultas excesivas a Redis almacenando temporalmente los datos
- * ⏰ LÓGICA: Implementa descarte automático después del tiempo establecido
- * 📁 TABLA: asistencias_tomadas_hoy (solo local, no se sincroniza)
+ * ✅ CLASS: Manages attendances taken on the current day
+ * 🎯 PURPOSE: Avoid excessive queries to Redis by temporarily storing data
+ * ⏰ LOGIC: Implements automatic discard after the set time
+ * 📁 TABLE: attendances_taken_today (local only, not synchronized)
  *
- * ✅ CORREGIDO:
- * - Toda lógica temporal delegada a DateHelper (SRP)
- * - Timestamps peruanos consistentes desde Redux
- * - Mantenimiento optimizado con horarios reales
- * - Logging mejorado con timestamps legibles
+ * ✅ FIXED:
+ * - All temporal logic delegated to DateHelper (SRP)
+ * - Consistent Peruvian timestamps from Redux
+ * - Optimized maintenance with real schedules
+ * - Improved logging with readable timestamps
  */
 export class AsistenciasTomadasHoyIDB {
   private nombreTabla: string = TablasLocal.Tabla_Asistencias_Tomadas_Hoy;
-  private dateHelper: AsistenciaDateHelper; // ✅ NUEVO: Dependencia de DateHelper
-  private intervalos: NodeJS.Timeout[] = []; // ✅ NUEVO: Para limpiar intervalos
+  private dateHelper: AsistenciaDateHelper; // ✅ NEW: DateHelper dependency
+  private intervalos: NodeJS.Timeout[] = []; // ✅ NEW: To clear intervals
 
   constructor(dateHelper: AsistenciaDateHelper) {
-    // ✅ NUEVO: Constructor con dependencia
+    // ✅ NEW: Constructor with dependency
     this.dateHelper = dateHelper;
   }
 
   /**
-   * ✅ GENERAR CLAVE ÚNICA para identificar cada asistencia
-   * 📝 FORMATO PERSONAL: fecha:modo:actor:dni
-   * 📝 FORMATO ESTUDIANTE: fecha:modo:actor:dni:nivel:grado:seccion
-   * 🎯 COMPATIBILIDAD: Igual formato que usa el endpoint de marcado
-   * ✅ CORREGIDO: Usar DateHelper para obtener fecha
+   * ✅ GENERATE UNIQUE KEY to identify each attendance
+   * 📝 STAFF FORMAT: date:mode:actor:dni
+   * 📝 STUDENT FORMAT: date:mode:actor:dni:level:grade:section
+   * 🎯 COMPATIBILITY: Same format used by the marking endpoint
+   * ✅ FIXED: Use DateHelper to get date
    */
   private generarClave(consulta: ConsultaAsistenciaHoy): string {
-    // ✅ CORREGIDO: Usar DateHelper en lugar de new Date()
+    // ✅ FIXED: Use DateHelper instead of new Date()
     const fecha =
       consulta.fecha ||
       this.dateHelper.obtenerFechaStringActual() ||
       this.obtenerFechaHoyFallback();
     const base = `${fecha}:${consulta.modoRegistro}:${consulta.actor}`;
 
-    // ✅ FORMATO ESTUDIANTE: Siempre incluir nivel, grado y sección
+    // ✅ STUDENT FORMAT: Always include level, grade and section
     if (consulta.actor === ActoresSistema.Estudiante) {
       const nivel = consulta.nivelEducativo || "UNKNOWN";
       const grado = consulta.grado!;
@@ -97,32 +97,32 @@ export class AsistenciasTomadasHoyIDB {
       return `${base}:${nivel}:${grado}:${seccion}`;
     }
 
-    // ✅ FORMATO PERSONAL: Solo la clave base
+    // ✅ STAFF FORMAT: Just the base key
     return `${base}:${consulta.idUsuario}`;
   }
 
   /**
-   * ✅ NUEVO: Fallback para obtener fecha si DateHelper falla
-   * Solo se usa como respaldo de emergencia
+   * ✅ NEW: Fallback to get date if DateHelper fails
+   * Only used as an emergency backup
    */
   private obtenerFechaHoyFallback(): string {
     console.warn(
-      "⚠️ Usando fallback para obtener fecha (DateHelper no disponible)"
+      "⚠️ Using fallback to get date (DateHelper not available)"
     );
     const hoy = new Date();
     return hoy.toISOString().split("T")[0];
   }
 
   /**
-   * ✅ VERIFICAR si una asistencia debe ser descartada por tiempo
-   * 🕐 LÓGICA: Descartar si han pasado más de X minutos desde la consulta
-   * ✅ CORREGIDO: Usar DateHelper para timestamp actual
+   * ✅ VERIFY if an attendance should be discarded due to time
+   * 🕐 LOGIC: Discard if more than X minutes have passed since the query
+   * ✅ FIXED: Use DateHelper for current timestamp
    */
   private debeDescartar(
     timestampConsulta: number,
     tipoAsistencia: TipoAsistencia
   ): boolean {
-    // ✅ CORREGIDO: Usar DateHelper en lugar de Date.now()
+    // ✅ FIXED: Use DateHelper instead of Date.now()
     const timestampActual = this.dateHelper.obtenerTimestampPeruano();
     const tiempoTranscurrido = timestampActual - timestampConsulta;
     const minutosTranscurridos = Math.floor(tiempoTranscurrido / (1000 * 60));
@@ -134,7 +134,7 @@ export class AsistenciasTomadasHoyIDB {
 
     if (debeDescartar) {
       console.log(
-        `⏰ Asistencia expirada: ${minutosTranscurridos}min > ${limitMinutos}min límite (consultada: ${this.dateHelper.formatearTimestampLegible(
+        `⏰ Expired attendance: ${minutosTranscurridos}min > ${limitMinutos}min limit (queried: ${this.dateHelper.formatearTimestampLegible(
           timestampConsulta
         )})`
       );
@@ -144,9 +144,9 @@ export class AsistenciasTomadasHoyIDB {
   }
 
   /**
-   * ✅ CONSULTAR asistencia en cache local
-   * 🔍 RETORNA: La asistencia si existe y no debe descartarse, null en caso contrario
-   * ✅ CORREGIDO: Logging mejorado con timestamps legibles
+   * ✅ QUERY attendance in local cache
+   * 🔍 RETURNS: The attendance if it exists and should not be discarded, otherwise null
+   * ✅ FIXED: Improved logging with readable timestamps
    */
   public async consultarAsistencia(
     consulta: ConsultaAsistenciaHoy
@@ -167,12 +167,12 @@ export class AsistenciasTomadasHoyIDB {
           const asistencia = request.result as AsistenciaHoy | undefined;
 
           if (!asistencia) {
-            console.log(`📭 No encontrada en cache: ${clave}`);
+            console.log(`📭 Not found in cache: ${clave}`);
             resolve(null);
             return;
           }
 
-          // Verificar si debe descartarse por tiempo
+          // Check if it should be discarded due to time
           if (
             this.debeDescartar(
               asistencia.timestampConsulta,
@@ -180,18 +180,18 @@ export class AsistenciasTomadasHoyIDB {
             )
           ) {
             console.log(
-              `⏰ Asistencia expirada en cache: ${clave} (consultada: ${this.dateHelper.formatearTimestampLegible(
+              `⏰ Expired attendance in cache: ${clave} (queried: ${this.dateHelper.formatearTimestampLegible(
                 asistencia.timestampConsulta
               )})`
             );
-            // Eliminar la asistencia expirada
+            // Delete the expired attendance
             this.eliminarAsistencia(clave).catch(console.error);
             resolve(null);
             return;
           }
 
           console.log(
-            `✅ Asistencia encontrada en cache: ${clave} (consultada: ${this.dateHelper.formatearTimestampLegible(
+            `✅ Attendance found in cache: ${clave} (queried: ${this.dateHelper.formatearTimestampLegible(
               asistencia.timestampConsulta
             )})`
           );
@@ -199,25 +199,25 @@ export class AsistenciasTomadasHoyIDB {
         };
 
         request.onerror = () => {
-          console.error(`❌ Error al consultar asistencia: ${request.error}`);
+          console.error(`❌ Error querying attendance: ${request.error}`);
           reject(request.error);
         };
       });
     } catch (error) {
-      console.error("❌ Error al consultar asistencia en cache:", error);
+      console.error("❌ Error querying attendance in cache:", error);
       return null;
     }
   }
 
   /**
-   * ✅ GUARDAR asistencia desde datos de Redis en cache local
-   * 💾 COMPATIBLE: Maneja tanto personal como estudiantes
-   * 🔄 FORMATO: Adapta según el tipo de datos recibidos
-   * ✅ CORREGIDO: Usar timestamp peruano para timestampConsulta
+   * ✅ SAVE attendance from Redis data in local cache
+   * 💾 COMPATIBLE: Handles both staff and students
+   * 🔄 FORMAT: Adapts according to the type of data received
+   * ✅ FIXED: Use Peruvian timestamp for timestampConsulta
    */
   public async guardarAsistenciaDesdeRedis(
     clave: string,
-    valor: string | string[], // Redis puede devolver string (estudiantes) o array (personal)
+    valor: string | string[], // Redis can return string (students) or array (staff)
     actor: ActoresSistema,
     modoRegistro: ModoRegistro,
     tipoAsistencia: TipoAsistencia,
@@ -227,7 +227,7 @@ export class AsistenciasTomadasHoyIDB {
     seccion?: string
   ): Promise<void> {
     try {
-      // ✅ CORREGIDO: Usar DateHelper para fecha y timestamp
+      // ✅ FIXED: Use DateHelper for date and timestamp
       const fecha =
         this.dateHelper.obtenerFechaStringActual() ||
         this.obtenerFechaHoyFallback();
@@ -236,7 +236,7 @@ export class AsistenciasTomadasHoyIDB {
       let asistenciaCache: AsistenciaHoy;
 
       if (actor === ActoresSistema.Estudiante) {
-        // ✅ ASISTENCIA DE ESTUDIANTE: El valor es un estado (string)
+        // ✅ STUDENT ATTENDANCE: The value is a state (string)
         const estado = valor as EstadosAsistenciaPersonal;
 
         asistenciaCache = {
@@ -253,12 +253,12 @@ export class AsistenciasTomadasHoyIDB {
           timestampConsulta,
         } as AsistenciaEstudianteHoy;
       } else {
-        // ✅ ASISTENCIA DE PERSONAL: El valor es un array [timestamp, desfaseSegundos]
+        // ✅ STAFF ATTENDANCE: The value is an array [timestamp, offsetSeconds]
         const valorArray = Array.isArray(valor) ? valor : [valor, "0"];
         const timestamp = parseInt(valorArray[0]) || 0;
         const desfaseSegundos = parseInt(valorArray[1]) || 0;
 
-        // Determinar estado basado en desfase
+        // Determine state based on offset
         const estado = this.determinarEstadoPersonal(
           desfaseSegundos,
           modoRegistro
@@ -280,34 +280,34 @@ export class AsistenciasTomadasHoyIDB {
 
       await this.guardarAsistencia(asistenciaCache);
       console.log(
-        `💾 Asistencia desde Redis guardada en cache: ${clave} (timestamp: ${this.dateHelper.formatearTimestampLegible(
+        `💾 Attendance from Redis saved in cache: ${clave} (timestamp: ${this.dateHelper.formatearTimestampLegible(
           timestampConsulta
         )})`
       );
     } catch (error) {
-      console.error("❌ Error al guardar asistencia desde Redis:", error);
+      console.error("❌ Error saving attendance from Redis:", error);
       throw error;
     }
   }
 
   /**
-   * ✅ DETERMINAR ESTADO de asistencia personal basado en desfase
-   * ⏰ LÓGICA: Igual que en AsistenciaDePersonalIDB
-   * ✅ SIN CAMBIOS: No maneja timestamps directamente
+   * ✅ DETERMINE staff attendance state based on offset
+   * ⏰ LOGIC: Same as in AsistenciaDePersonalIDB
+   * ✅ NO CHANGES: Does not handle timestamps directly
    */
   private determinarEstadoPersonal(
     desfaseSegundos: number,
     modoRegistro: ModoRegistro
   ): EstadosAsistenciaPersonal {
     if (modoRegistro === ModoRegistro.Entrada) {
-      // ✅ CAMBIO: Solo Temprano o Tarde
+      // ✅ CHANGE: Only Early or Late
       if (desfaseSegundos <= SEGUNDOS_TOLERANCIA_ENTRADA_PERSONAL) {
-        return EstadosAsistenciaPersonal.Temprano; // ✅ CAMBIADO
+        return EstadosAsistenciaPersonal.Temprano; // ✅ CHANGED
       } else {
-        return EstadosAsistenciaPersonal.Tarde; // ✅ SIN TOLERANCIA
+        return EstadosAsistenciaPersonal.Tarde; // ✅ WITHOUT TOLERANCE
       }
     } else {
-      // Para salidas mantener la lógica existente o cambiar según necesites
+      // For exits, keep the existing logic or change as needed
       if (desfaseSegundos >= -SEGUNDOS_TOLERANCIA_SALIDA_PERSONAL) {
         return EstadosAsistenciaPersonal.Cumplido;
       } else {
@@ -317,8 +317,8 @@ export class AsistenciasTomadasHoyIDB {
   }
 
   /**
-   * ✅ ELIMINAR asistencia específica del cache
-   * ✅ SIN CAMBIOS: No maneja timestamps
+   * ✅ DELETE specific attendance from cache
+   * ✅ NO CHANGES: Does not handle timestamps
    */
   private async eliminarAsistencia(clave: string): Promise<void> {
     try {
@@ -332,24 +332,24 @@ export class AsistenciasTomadasHoyIDB {
         const request = store.delete(clave);
 
         request.onsuccess = () => {
-          console.log(`🗑️ Asistencia eliminada del cache: ${clave}`);
+          console.log(`🗑️ Attendance deleted from cache: ${clave}`);
           resolve();
         };
 
         request.onerror = () => {
-          console.error(`❌ Error al eliminar asistencia: ${request.error}`);
+          console.error(`❌ Error deleting attendance: ${request.error}`);
           reject(request.error);
         };
       });
     } catch (error) {
-      console.error("❌ Error al eliminar asistencia del cache:", error);
+      console.error("❌ Error deleting attendance from cache:", error);
     }
   }
 
   /**
-   * ✅ LIMPIAR asistencias expiradas del cache
-   * 🧹 EJECUTA: Rutina de limpieza eliminando registros antiguos
-   * ✅ MEJORADO: Logging detallado con timestamps
+   * ✅ CLEAR expired attendances from cache
+   * 🧹 EXECUTES: Cleanup routine by deleting old records
+   * ✅ IMPROVED: Detailed logging with timestamps
    */
   public async limpiarAsistenciasExpiradas(): Promise<{
     eliminadas: number;
@@ -380,7 +380,7 @@ export class AsistenciasTomadasHoyIDB {
           if (cursor) {
             const asistencia = cursor.value as AsistenciaHoy;
 
-            // Verificar si debe descartarse
+            // Check if it should be discarded
             if (
               this.debeDescartar(
                 asistencia.timestampConsulta,
@@ -391,16 +391,16 @@ export class AsistenciasTomadasHoyIDB {
                 cursor.delete();
                 resultado.eliminadas++;
                 console.log(
-                  `🗑️ Asistencia expirada eliminada: ${
+                  `🗑️ Expired attendance deleted: ${
                     asistencia.clave
-                  } (consultada: ${this.dateHelper.formatearTimestampLegible(
+                  } (queried: ${this.dateHelper.formatearTimestampLegible(
                     asistencia.timestampConsulta
                   )})`
                 );
               } catch (error) {
                 resultado.errores++;
                 console.error(
-                  `❌ Error al eliminar ${asistencia.clave}:`,
+                  `❌ Error deleting ${asistencia.clave}:`,
                   error
                 );
               }
@@ -408,34 +408,34 @@ export class AsistenciasTomadasHoyIDB {
 
             cursor.continue();
           } else {
-            // Terminamos de recorrer todos los registros
+            // We finished iterating through all the records
             console.log(
-              `🧹 Limpieza completada en ${this.dateHelper.formatearTimestampLegible(
+              `🧹 Cleanup completed at ${this.dateHelper.formatearTimestampLegible(
                 timestampLimpieza
-              )}: ${resultado.eliminadas} eliminadas, ${
+              )}: ${resultado.eliminadas} deleted, ${
                 resultado.errores
-              } errores`
+              } errors`
             );
             resolve(resultado);
           }
         };
 
         request.onerror = () => {
-          console.error(`❌ Error durante limpieza: ${request.error}`);
+          console.error(`❌ Error during cleanup: ${request.error}`);
           reject(request.error);
         };
       });
     } catch (error) {
-      console.error("❌ Error al limpiar asistencias expiradas:", error);
+      console.error("❌ Error clearing expired attendances:", error);
       resultado.errores++;
       return resultado;
     }
   }
 
   /**
-   * ✅ LIMPIAR todas las asistencias de una fecha específica
-   * 🗓️ ÚTIL: Para limpiar datos del día anterior al cambiar de día
-   * ✅ SIN CAMBIOS: No maneja timestamps directamente
+   * ✅ CLEAR all attendances for a specific date
+   * 🗓️ USEFUL: To clear previous day's data when the day changes
+   * ✅ NO CHANGES: Does not handle timestamps directly
    */
   public async limpiarAsistenciasPorFecha(fecha: string): Promise<void> {
     try {
@@ -455,45 +455,45 @@ export class AsistenciasTomadasHoyIDB {
           if (cursor) {
             const asistencia = cursor.value as AsistenciaHoy;
 
-            // Si la fecha coincide, eliminar
+            // If the date matches, delete
             if (asistencia.fecha === fecha) {
               cursor.delete();
               console.log(
-                `🗑️ Asistencia de fecha ${fecha} eliminada: ${asistencia.clave}`
+                `🗑️ Attendance for date ${fecha} deleted: ${asistencia.clave}`
               );
             }
 
             cursor.continue();
           } else {
-            console.log(`🧹 Limpieza por fecha completada: ${fecha}`);
+            console.log(`🧹 Cleanup by date completed: ${fecha}`);
             resolve();
           }
         };
 
         request.onerror = () => {
-          console.error(`❌ Error al limpiar por fecha: ${request.error}`);
+          console.error(`❌ Error clearing by date: ${request.error}`);
           reject(request.error);
         };
       });
     } catch (error) {
       console.error(
-        `❌ Error al limpiar asistencias de fecha ${fecha}:`,
+        `❌ Error clearing attendances for date ${fecha}:`,
         error
       );
     }
   }
 
   /**
-   * ✅ LIMPIAR todas las asistencias con fecha anterior a la especificada
-   * 🗓️ ÚTIL: Para limpiar todos los días anteriores de una vez
+   * ✅ CLEAR all attendances with a date prior to the specified one
+   * 🗓️ USEFUL: To clear all previous days at once
    */
   public async limpiarAsistenciasAnterioresA(
     fechaLimite: string
   ): Promise<number> {
     try {
-      // 🔍 DEBUG TEMPORAL
-      console.log("🔍 DEBUG limpiarAsistenciasAnterioresA:");
-      console.log("- fechaLimite recibida:", fechaLimite);
+      // 🔍 TEMPORARY DEBUG
+      console.log("🔍 DEBUG clearAttendancesBefore:");
+      console.log("- received limitDate:", fechaLimite);
 
       await IndexedDBConnection.init();
       const store = await IndexedDBConnection.getStore(
@@ -501,12 +501,12 @@ export class AsistenciasTomadasHoyIDB {
         "readwrite"
       );
 
-      // ✅ CONVERTIR fechaLimite a timestamp para comparación confiable
+      // ✅ CONVERT limitDate to timestamp for reliable comparison
       const fechaLimiteObj = new Date(fechaLimite + "T00:00:00.000Z");
       const timestampLimite = fechaLimiteObj.getTime();
 
-      console.log("- fechaLimite como Date:", fechaLimiteObj);
-      console.log("- timestampLimite:", timestampLimite);
+      console.log("- limitDate as Date:", fechaLimiteObj);
+      console.log("- limitTimestamp:", timestampLimite);
 
       return new Promise<number>((resolve, reject) => {
         const request = store.openCursor();
@@ -519,7 +519,7 @@ export class AsistenciasTomadasHoyIDB {
           if (cursor) {
             const asistencia = cursor.value as AsistenciaHoy;
 
-            // ✅ COMPARACIÓN CONFIABLE: Convertir fecha de asistencia a timestamp
+            // ✅ RELIABLE COMPARISON: Convert attendance date to timestamp
             const fechaAsistenciaObj = new Date(
               asistencia.fecha + "T00:00:00.000Z"
             );
@@ -527,30 +527,30 @@ export class AsistenciasTomadasHoyIDB {
 
             const debeEliminar = timestampAsistencia < timestampLimite;
 
-            // 🔍 DEBUG TEMPORAL
-            console.log(`🔍 Comparando asistencia:`);
+            // 🔍 TEMPORARY DEBUG
+            console.log(`🔍 Comparing attendance:`);
             console.log(
-              `  - Fecha: "${asistencia.fecha}" -> timestamp: ${timestampAsistencia}`
+              `  - Date: "${asistencia.fecha}" -> timestamp: ${timestampAsistencia}`
             );
-            console.log(`  - Es anterior? ${debeEliminar}`);
-            console.log(`  - Clave: ${asistencia.clave}`);
+            console.log(`  - Is it earlier? ${debeEliminar}`);
+            console.log(`  - Key: ${asistencia.clave}`);
 
             if (debeEliminar) {
               cursor.delete();
               eliminadas++;
               console.log(
-                `🗑️ Asistencia ELIMINADA: ${asistencia.clave} (fecha: ${asistencia.fecha})`
+                `🗑️ Attendance DELETED: ${asistencia.clave} (date: ${asistencia.fecha})`
               );
             } else {
               console.log(
-                `✅ Asistencia CONSERVADA: ${asistencia.clave} (fecha: ${asistencia.fecha})`
+                `✅ Attendance KEPT: ${asistencia.clave} (date: ${asistencia.fecha})`
               );
             }
 
             cursor.continue();
           } else {
             console.log(
-              `🧹 Limpieza completada: ${eliminadas} asistencias anteriores a ${fechaLimite} eliminadas`
+              `🧹 Cleanup completed: ${eliminadas} attendances before ${fechaLimite} deleted`
             );
             resolve(eliminadas);
           }
@@ -558,14 +558,14 @@ export class AsistenciasTomadasHoyIDB {
 
         request.onerror = () => {
           console.error(
-            `❌ Error al limpiar asistencias anteriores: ${request.error}`
+            `❌ Error clearing previous attendances: ${request.error}`
           );
           reject(request.error);
         };
       });
     } catch (error) {
       console.error(
-        `❌ Error al limpiar asistencias anteriores a ${fechaLimite}:`,
+        `❌ Error clearing attendances before ${fechaLimite}:`,
         error
       );
       return 0;
@@ -573,9 +573,9 @@ export class AsistenciasTomadasHoyIDB {
   }
 
   /**
-   * ✅ GUARDAR asistencia en cache local
-   * 💾 ALMACENA: Los datos de asistencia con timestamp de consulta actual
-   * ✅ CORREGIDO: Usar timestamp peruano para timestampConsulta
+   * ✅ SAVE attendance in local cache
+   * 💾 STORES: Attendance data with current query timestamp
+   * ✅ FIXED: Use Peruvian timestamp for timestampConsulta
    */
   public async guardarAsistencia(asistencia: AsistenciaHoy): Promise<void> {
     try {
@@ -585,7 +585,7 @@ export class AsistenciasTomadasHoyIDB {
         "readwrite"
       );
 
-      // ✅ CORREGIDO: Usar DateHelper para timestamp de consulta
+      // ✅ FIXED: Use DateHelper for query timestamp
       const timestampConsultaActual = this.dateHelper.obtenerTimestampPeruano();
       const asistenciaConTimestamp = {
         ...asistencia,
@@ -597,7 +597,7 @@ export class AsistenciasTomadasHoyIDB {
 
         request.onsuccess = () => {
           console.log(
-            `💾 Asistencia guardada en cache: ${
+            `💾 Attendance saved in cache: ${
               asistencia.clave
             } (timestamp: ${this.dateHelper.formatearTimestampLegible(
               timestampConsultaActual
@@ -607,20 +607,20 @@ export class AsistenciasTomadasHoyIDB {
         };
 
         request.onerror = () => {
-          console.error(`❌ Error al guardar asistencia: ${request.error}`);
+          console.error(`❌ Error saving attendance: ${request.error}`);
           reject(request.error);
         };
       });
     } catch (error) {
-      console.error("❌ Error al guardar asistencia en cache:", error);
+      console.error("❌ Error saving attendance in cache:", error);
       throw error;
     }
   }
 
   /**
-   * ✅ CONSULTAR MÚLTIPLES asistencias (para consultas por aula/sección)
-   * 🎯 ÚTIL: Para cuando se consultan todos los estudiantes de una sección
-   * ✅ SIN CAMBIOS: No maneja timestamps directamente
+   * ✅ QUERY MULTIPLE attendances (for queries by classroom/section)
+   * 🎯 USEFUL: For when all students in a section are queried
+   * ✅ NO CHANGES: Does not handle timestamps directly
    */
   public async consultarAsistenciasMultiples(
     actor: ActoresSistema,
@@ -651,13 +651,13 @@ export class AsistenciasTomadasHoyIDB {
           if (cursor) {
             const asistencia = cursor.value as AsistenciaHoy;
 
-            // Verificar si cumple criterios básicos
+            // Check if it meets basic criteria
             if (
               asistencia.actor === actor &&
               asistencia.modoRegistro === modoRegistro &&
               asistencia.tipoAsistencia === tipoAsistencia
             ) {
-              // Aplicar filtros adicionales si se proporcionan
+              // Apply additional filters if provided
               let cumpleFiltros = true;
 
               if (filtros?.fecha && asistencia.fecha !== filtros.fecha) {
@@ -688,7 +688,7 @@ export class AsistenciasTomadasHoyIDB {
                 cumpleFiltros = false;
               }
 
-              // Verificar si no ha expirado
+              // Check if not expired
               if (
                 cumpleFiltros &&
                 !this.debeDescartar(
@@ -711,15 +711,15 @@ export class AsistenciasTomadasHoyIDB {
         };
       });
     } catch (error) {
-      console.error("❌ Error al consultar asistencias múltiples:", error);
+      console.error("❌ Error querying multiple attendances:", error);
       return [];
     }
   }
 
   /**
-   * ✅ OBTENER ESTADÍSTICAS del cache
-   * 📊 INFORMACIÓN: Cantidad de registros, expirados, etc.
-   * ✅ CORREGIDO: Usar DateHelper para fecha
+   * ✅ GET STATISTICS from cache
+   * 📊 INFORMATION: Number of records, expired, etc.
+   * ✅ FIXED: Use DateHelper for date
    */
   public async obtenerEstadisticas(): Promise<{
     totalRegistros: number;
@@ -771,11 +771,11 @@ export class AsistenciasTomadasHoyIDB {
             cursor.continue();
           } else {
             console.log(
-              `📊 Estadísticas obtenidas: ${stats.totalRegistros} total, ${
+              `📊 Statistics obtained: ${stats.totalRegistros} total, ${
                 stats.registrosValidos
-              } válidos, ${
+              } valid, ${
                 stats.registrosExpirados
-              } expirados (${this.dateHelper.formatearTimestampLegible(
+              } expired (${this.dateHelper.formatearTimestampLegible(
                 timestampEstadisticas
               )})`
             );
@@ -788,24 +788,24 @@ export class AsistenciasTomadasHoyIDB {
         };
       });
     } catch (error) {
-      console.error("❌ Error al obtener estadísticas:", error);
+      console.error("❌ Error getting statistics:", error);
       return stats;
     }
   }
 
   /**
-   * ✅ INICIALIZAR rutinas de mantenimiento
-   * 🔄 EJECUTA: Limpieza automática cada cierto tiempo
-   * ✅ CORREGIDO: Usar DateHelper para cálculos temporales
+   * ✅ INITIALIZE maintenance routines
+   * 🔄 EXECUTES: Automatic cleanup every certain time
+   * ✅ FIXED: Use DateHelper for temporal calculations
    */
   public inicializarMantenimiento(): void {
     console.log(
-      `🔧 Inicializando mantenimiento de cache de asistencias (${this.dateHelper.formatearTimestampLegible(
+      `🔧 Initializing attendance cache maintenance (${this.dateHelper.formatearTimestampLegible(
         this.dateHelper.obtenerTimestampPeruano()
       )})`
     );
 
-    // ✅ CORREGIDO: Limpiar asistencias expiradas cada 5 minutos usando DateHelper
+    // ✅ FIXED: Clear expired attendances every 5 minutes using DateHelper
     const intervaloLimpieza = setInterval(async () => {
       try {
         const timestampInicio = this.dateHelper.obtenerTimestampPeruano();
@@ -813,30 +813,30 @@ export class AsistenciasTomadasHoyIDB {
 
         if (resultado.eliminadas > 0) {
           console.log(
-            `🧹 Mantenimiento automático completado en ${this.dateHelper.formatearTimestampLegible(
+            `🧹 Automatic maintenance completed at ${this.dateHelper.formatearTimestampLegible(
               timestampInicio
-            )}: ${resultado.eliminadas} asistencias expiradas eliminadas`
+            )}: ${resultado.eliminadas} expired attendances deleted`
           );
         }
       } catch (error) {
-        console.error("❌ Error en mantenimiento automático:", error);
+        console.error("❌ Error in automatic maintenance:", error);
       }
-    }, 5 * 60 * 1000); // 5 minutos
+    }, 5 * 60 * 1000); // 5 minutes
 
     this.intervalos.push(intervaloLimpieza);
 
-    // ✅ CORREGIDO: Usar DateHelper para cálculos de medianoche
+    // ✅ FIXED: Use DateHelper for midnight calculations
     this.programarLimpiezaMedianoche();
   }
 
   /**
-   * ✅ NUEVO: Programa limpieza automática a medianoche usando DateHelper
+   * ✅ NEW: Schedules automatic cleanup at midnight using DateHelper
    */
   private programarLimpiezaMedianoche(): void {
     const timestampActual = this.dateHelper.obtenerTimestampPeruano();
     const fechaActual = new Date(timestampActual);
 
-    // Calcular medianoche del día siguiente
+    // Calculate midnight of the next day
     const medianoche = new Date(fechaActual);
     medianoche.setDate(fechaActual.getDate() + 1);
     medianoche.setHours(0, 0, 0, 0);
@@ -844,13 +844,13 @@ export class AsistenciasTomadasHoyIDB {
     const tiempoHastaMedianoche = medianoche.getTime() - timestampActual;
 
     console.log(
-      `🌙 Programando limpieza de medianoche para: ${this.dateHelper.formatearTimestampLegible(
+      `🌙 Scheduling midnight cleanup for: ${this.dateHelper.formatearTimestampLegible(
         medianoche.getTime()
-      )} (en ${Math.round(tiempoHastaMedianoche / (1000 * 60))} minutos)`
+      )} (in ${Math.round(tiempoHastaMedianoche / (1000 * 60))} minutes)`
     );
 
     const timeoutMedianoche = setTimeout(() => {
-      // Limpiar datos del día anterior
+      // Clear previous day's data
       const fechaAyer = this.dateHelper.generarFechaString(
         fechaActual.getMonth() + 1,
         fechaActual.getDate() - 1,
@@ -858,11 +858,11 @@ export class AsistenciasTomadasHoyIDB {
       );
 
       console.log(
-        `🌙 Ejecutando limpieza de medianoche para fecha: ${fechaAyer}`
+        `🌙 Executing midnight cleanup for date: ${fechaAyer}`
       );
       this.limpiarAsistenciasPorFecha(fechaAyer).catch(console.error);
 
-      // Configurar limpieza diaria recursiva
+      // Set up recursive daily cleanup
       const intervaloLimpiezaDiaria = setInterval(async () => {
         const timestampLimpieza = this.dateHelper.obtenerTimestampPeruano();
         const fechaLimpieza = new Date(timestampLimpieza);
@@ -873,25 +873,25 @@ export class AsistenciasTomadasHoyIDB {
           fechaLimpieza.getFullYear()
         );
 
-        console.log(`🌙 Limpieza diaria automática para fecha: ${fechaAyer}`);
+        console.log(`🌙 Automatic daily cleanup for date: ${fechaAyer}`);
         await this.limpiarAsistenciasPorFecha(fechaAyer);
-      }, 24 * 60 * 60 * 1000); // 24 horas
+      }, 24 * 60 * 60 * 1000); // 24 hours
 
       this.intervalos.push(intervaloLimpiezaDiaria);
     }, tiempoHastaMedianoche);
 
     console.log(
-      `Limpieza de cache se hara a la media noche de hoy, ${timeoutMedianoche}`
+      `Cache cleanup will be done at midnight today, ${timeoutMedianoche}`
     );
   }
 
   /**
-   * ✅ NUEVO: Limpia todos los intervalos de mantenimiento
-   * 🧹 ÚTIL: Para limpiar recursos al destruir la instancia
+   * ✅ NEW: Clears all maintenance intervals
+   * 🧹 USEFUL: To clear resources when destroying the instance
    */
   public limpiarMantenimiento(): void {
     console.log(
-      `🛑 Limpiando ${this.intervalos.length} intervalos de mantenimiento`
+      `🛑 Clearing ${this.intervalos.length} maintenance intervals`
     );
 
     this.intervalos.forEach((intervalo) => {
@@ -902,7 +902,7 @@ export class AsistenciasTomadasHoyIDB {
   }
 
   /**
-   * ✅ NUEVO: Obtiene información detallada del mantenimiento
+   * ✅ NEW: Gets detailed maintenance information
    */
   public obtenerInfoMantenimiento(): {
     intervalosActivos: number;
@@ -911,7 +911,7 @@ export class AsistenciasTomadasHoyIDB {
   } {
     const timestampActual = this.dateHelper.obtenerTimestampPeruano();
 
-    // Calcular próxima limpieza (próximo múltiplo de 5 minutos)
+    // Calculate next cleanup (next multiple of 5 minutes)
     const minutosActuales = new Date(timestampActual).getMinutes();
     const minutosProximaLimpieza = Math.ceil(minutosActuales / 5) * 5;
     const proximaLimpieza = new Date(timestampActual);
@@ -922,7 +922,7 @@ export class AsistenciasTomadasHoyIDB {
       proximaLimpieza: this.dateHelper.formatearTimestampLegible(
         proximaLimpieza.getTime()
       ),
-      ultimaLimpieza: null, // Podrías almacenar esto en una variable de instancia
+      ultimaLimpieza: null, // You could store this in an instance variable
     };
   }
 }

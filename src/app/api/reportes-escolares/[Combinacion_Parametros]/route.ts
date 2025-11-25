@@ -40,14 +40,14 @@ export async function GET(
 
     if (error && !rol && !decodedToken) return error;
 
-    console.log(`🔐 Usuario autenticado: ${rol} - ${decodedToken.ID_Usuario}`);
+    console.log(`🔐 Authenticated user: ${rol} - ${decodedToken.ID_Usuario}`);
 
     // Validate that the parameter was received
     if (!Combinacion_Parametros) {
       return NextResponse.json(
         {
           success: false,
-          message: "Se requiere el parámetro Combinacion_Parametros",
+          message: "The Combinacion_Parametros parameter is required",
           errorType: RequestErrorTypes.INVALID_PARAMETERS,
         } as ErrorResponseAPIBase,
         { status: 400 }
@@ -60,7 +60,7 @@ export async function GET(
         {
           success: false,
           message:
-            "El parámetro Combinacion_Parametros excede la longitud máxima permitida (40 caracteres)",
+            "The Combinacion_Parametros parameter exceeds the maximum allowed length (40 characters)",
           errorType: RequestErrorTypes.INVALID_PARAMETERS,
         } as ErrorResponseAPIBase,
         { status: 400 }
@@ -78,7 +78,7 @@ export async function GET(
         {
           success: false,
           message:
-            "La combinación de parámetros no es válida. Verifique el formato y los valores proporcionados.",
+            "The combination of parameters is not valid. Check the format and the provided values.",
           errorType: RequestErrorTypes.INVALID_PARAMETERS,
         } as ErrorResponseAPIBase,
         { status: 400 }
@@ -86,7 +86,7 @@ export async function GET(
     }
 
     console.log(
-      `🔍 Consultando reporte con parámetros decodificados:`,
+      `🔍 Querying report with decoded parameters:`,
       JSON.stringify(parametrosDecodificados, null, 2)
     );
 
@@ -102,21 +102,21 @@ export async function GET(
 
     if (!validacionPermisos.tienePermiso) {
       console.log(
-        `❌ Permiso denegado para ${rol}: ${validacionPermisos.mensaje}`
+        `❌ Permission denied for ${rol}: ${validacionPermisos.mensaje}`
       );
       return NextResponse.json(
         {
           success: false,
           message:
             validacionPermisos.mensaje ||
-            "No tiene permisos para consultar este reporte",
+            "You do not have permission to query this report",
           errorType: PermissionErrorTypes.INSUFFICIENT_PERMISSIONS,
         } as ErrorResponseAPIBase,
         { status: 403 }
       );
     }
 
-    console.log(`✅ Permisos validados correctamente para rol ${rol}`);
+    console.log(`✅ Permissions successfully validated for role ${rol}`);
 
     // Get Redis instance for school attendance reports
     const redisClientInstance = redisClient(
@@ -132,7 +132,7 @@ export async function GET(
         {
           success: false,
           message:
-            "No se encontró ningún reporte con esa combinación de parámetros",
+            "No report was found with that combination of parameters",
           errorType: RequestErrorTypes.RESOURCE_NOT_FOUND,
         } as ErrorResponseAPIBase,
         { status: 404 }
@@ -150,7 +150,7 @@ export async function GET(
       )
     ) {
       console.warn(
-        `⚠️ Estado de reporte inválido encontrado: ${reporteCompleto.Estado_Reporte}`
+        `⚠️ Invalid report status found: ${reporteCompleto.Estado_Reporte}`
       );
     }
 
@@ -164,25 +164,25 @@ export async function GET(
     };
 
     console.log(
-      `✅ Reporte consultado exitosamente: ${Combinacion_Parametros} - Estado: ${reporteCompleto.Estado_Reporte} - Tipo: ${parametrosDecodificados.tipoReporte} - Nivel: ${parametrosDecodificados.aulasSeleccionadas.Nivel} - Grado: ${parametrosDecodificados.aulasSeleccionadas.Grado}${parametrosDecodificados.aulasSeleccionadas.Seccion}`
+      `✅ Report successfully queried: ${Combinacion_Parametros} - Status: ${reporteCompleto.Estado_Reporte} - Type: ${parametrosDecodificados.tipoReporte} - Level: ${parametrosDecodificados.aulasSeleccionadas.Nivel} - Grade: ${parametrosDecodificados.aulasSeleccionadas.Grado}${parametrosDecodificados.aulasSeleccionadas.Seccion}`
     );
 
     // Return successful response with filtered data
     return NextResponse.json(
       {
         success: true,
-        message: "Reporte encontrado exitosamente",
+        message: "Report found successfully",
         data: reporteAnonimo,
       },
       { status: 200 }
     );
   } catch (error) {
-    console.error("❌ Error al consultar reporte de asistencia:", error);
+    console.error("❌ Error querying attendance report:", error);
 
     return NextResponse.json(
       {
         success: false,
-        message: "Error al consultar el reporte de asistencia",
+        message: "Error querying attendance report",
         errorType: SystemErrorTypes.UNKNOWN_ERROR,
         ErrorDetails: error instanceof Error ? error.message : String(error),
       } as ErrorResponseAPIBase,

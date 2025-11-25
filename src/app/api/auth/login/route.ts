@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
 
     if (!Nombres || !Apellidos || !Rol || !token) {
       return new Response(
-        JSON.stringify({ message: "Datos inconpletos para iniciar Sesion" }),
+        JSON.stringify({ message: "Incomplete data to start session" }),
         { status: 401 }
       );
     }

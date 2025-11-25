@@ -39,22 +39,22 @@ async function gatillarGeneracionReporte(
   payload: T_Reportes_Asistencia_Escolar
 ): Promise<void> {
   try {
-    console.log(`🚀 INICIANDO GATILLADO de generación de reporte`);
+    console.log(`🚀 STARTING TRIGGER of report generation`);
 
     // Verify GitHub configuration
     if (!GITHUB_CONFIG.TOKEN) {
-      throw new Error("TOKEN de GitHub no configurado");
+      throw new Error("GitHub TOKEN not configured");
     }
 
     if (!GITHUB_CONFIG.REPOSITORY_OWNER || !GITHUB_CONFIG.REPOSITORY_NAME) {
-      throw new Error("Configuración de repositorio de GitHub incompleta");
+      throw new Error("Incomplete GitHub repository configuration");
     }
 
     const url = `https://api.github.com/repos/${GITHUB_CONFIG.REPOSITORY_OWNER}/${GITHUB_CONFIG.REPOSITORY_NAME}/dispatches`;
-    console.log(`🌐 URL GitHub Actions: ${url}`);
+    console.log(`🌐 GitHub Actions URL: ${url}`);
 
     const githubPayload = {
-      event_type: "generar-reporte-asistencia",
+      event_type: "generate-attendance-report",
       client_payload: {
         Combinacion_Parametros_Reporte: payload.Combinacion_Parametros_Reporte,
         Estado_Reporte: payload.Estado_Reporte,
@@ -65,7 +65,7 @@ async function gatillarGeneracionReporte(
       },
     };
 
-    console.log(`📦 Payload a enviar:`, JSON.stringify(githubPayload, null, 2));
+    console.log(`📦 Payload to send:`, JSON.stringify(githubPayload, null, 2));
 
     const response = await fetch(url, {
       method: "POST",
@@ -77,19 +77,19 @@ async function gatillarGeneracionReporte(
       body: JSON.stringify(githubPayload),
     });
 
-    console.log(`📡 Respuesta GitHub Actions - Status: ${response.status}`);
+    console.log(`📡 GitHub Actions Response - Status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`❌ Error response body:`, errorText);
       throw new Error(
-        `Error al gatillar GitHub Action: ${response.status} ${response.statusText} - ${errorText}`
+        `Error triggering GitHub Action: ${response.status} ${response.statusText} - ${errorText}`
       );
     }
 
-    console.log(`✅ GitHub Action gatillado exitosamente para reporte`);
+    console.log(`✅ GitHub Action triggered successfully for report`);
   } catch (error) {
-    console.error(`❌ Error al gatillar GitHub Action:`, error);
+    console.error(`❌ Error triggering GitHub Action:`, error);
     throw error;
   }
 }
@@ -124,7 +124,7 @@ export async function POST(req: NextRequest) {
 
     if (error && !rol && !decodedToken) return error;
 
-    console.log(`🔐 Usuario autenticado: ${rol} - ${decodedToken.ID_Usuario}`);
+    console.log(`🔐 Authenticated user: ${rol} - ${decodedToken.ID_Usuario}`);
 
     // ✅ PARSE BODY
     const body = (await req.json()) as {
@@ -137,7 +137,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: "Se requiere Combinacion_Parametros_Reporte en el body",
+          message: "Combinacion_Parametros_Reporte is required in the body",
           errorType: RequestErrorTypes.INVALID_PARAMETERS,
         } as ErrorResponseAPIBase,
         { status: 400 }
@@ -145,7 +145,7 @@ export async function POST(req: NextRequest) {
     }
 
     console.log(
-      `📋 Combinación de parámetros recibida: ${Combinacion_Parametros_Reporte}`
+      `📋 Received parameter combination: ${Combinacion_Parametros_Reporte}`
     );
 
     // ✅ VALIDATE FORMAT
@@ -159,7 +159,7 @@ export async function POST(req: NextRequest) {
         {
           success: false,
           message:
-            "La combinación de parámetros no es válida. Verifique el formato y los valores proporcionados.",
+            "The parameter combination is not valid. Please check the format and provided values.",
           errorType: RequestErrorTypes.INVALID_PARAMETERS,
         } as ErrorResponseAPIBase,
         { status: 400 }
@@ -167,7 +167,7 @@ export async function POST(req: NextRequest) {
     }
 
     console.log(
-      `🔍 Parámetros decodificados:`,
+      `🔍 Decoded parameters:`,
       JSON.stringify(parametrosDecodificados, null, 2)
     );
 
@@ -183,21 +183,21 @@ export async function POST(req: NextRequest) {
 
     if (!validacionPermisos.tienePermiso) {
       console.log(
-        `❌ Permiso denegado para ${rol}: ${validacionPermisos.mensaje}`
+        `❌ Permission denied for ${rol}: ${validacionPermisos.mensaje}`
       );
       return NextResponse.json(
         {
           success: false,
           message:
             validacionPermisos.mensaje ||
-            "No tiene permisos para generar este reporte",
+            "You do not have permission to generate this report",
           errorType: PermissionErrorTypes.INSUFFICIENT_PERMISSIONS,
         } as ErrorResponseAPIBase,
         { status: 403 }
       );
     }
 
-    console.log(`✅ Permisos validados correctamente para rol ${rol}`);
+    console.log(`✅ Permissions successfully validated for role ${rol}`);
 
     // ✅ VERIFY IF ALREADY EXISTS IN REDIS
     const redisClientInstance = redisClient(
@@ -210,7 +210,7 @@ export async function POST(req: NextRequest) {
 
     if (reporteExistente) {
       console.log(
-        `📋 Reporte ya existe en Redis: ${Combinacion_Parametros_Reporte}`
+        `📋 Report already exists in Redis: ${Combinacion_Parametros_Reporte}`
       );
 
       // Parse existing data
@@ -231,7 +231,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           success: true,
-          message: `El reporte ya existe y está en estado ${
+          message: `The report already exists and is in state ${
             EstadosReporteAsistenciaEscolarTextos[
               datosDeEstadoDeReporte.Estado_Reporte as EstadoReporteAsistenciaEscolar
             ]
@@ -244,7 +244,7 @@ export async function POST(req: NextRequest) {
     }
 
     console.log(
-      `🆕 Reporte no existe, procediendo a crear: ${Combinacion_Parametros_Reporte}`
+      `🆕 Report does not exist, proceeding to create: ${Combinacion_Parametros_Reporte}`
     );
 
     // ✅ CREATE NEW REPORT
@@ -261,7 +261,7 @@ export async function POST(req: NextRequest) {
     };
 
     console.log(
-      `📦 Nuevo reporte a crear:`,
+      `📦 New report to create:`,
       JSON.stringify(nuevoReporte, null, 2)
     );
 
@@ -273,19 +273,19 @@ export async function POST(req: NextRequest) {
     );
 
     console.log(
-      `💾 Reporte guardado en Redis exitosamente con expiración de ${
+      `💾 Report saved to Redis successfully with an expiration of ${
         TIEMPO_EXPIRACION_REPORTES_ASISTENCIAS_ESCOLARES_SEGUNDOS_CACHE_REDIS /
         3600
-      } horas`
+      } hours`
     );
 
     // ✅ TRIGGER GITHUB ACTIONS
     try {
       await gatillarGeneracionReporte(nuevoReporte);
-      console.log(`🚀 GitHub Action gatillado exitosamente`);
+      console.log(`🚀 GitHub Action triggered successfully`);
     } catch (errorGithub) {
       console.error(
-        `⚠️ Error al gatillar GitHub Action (reporte guardado en Redis):`,
+        `⚠️ Error triggering GitHub Action (report saved in Redis):`,
         errorGithub
       );
       // Don't fail the request if GitHub Actions fails, the report is already in Redis
@@ -301,26 +301,26 @@ export async function POST(req: NextRequest) {
     };
 
     console.log(
-      `✅ Reporte creado exitosamente: ${Combinacion_Parametros_Reporte}`
+      `✅ Report created successfully: ${Combinacion_Parametros_Reporte}`
     );
 
     return NextResponse.json(
       {
         success: true,
         message:
-          "Reporte creado exitosamente y enviado para generación en segundo plano",
+          "Report created successfully and sent for background generation",
         data: datosDeEstadoDeReporte,
         existia: false,
       },
       { status: 201 }
     );
   } catch (error) {
-    console.error("❌ Error al crear reporte de asistencia:", error);
+    console.error("❌ Error creating attendance report:", error);
 
     return NextResponse.json(
       {
         success: false,
-        message: "Error al crear el reporte de asistencia",
+        message: "Error creating attendance report",
         errorType: SystemErrorTypes.UNKNOWN_ERROR,
         ErrorDetails: error instanceof Error ? error.message : String(error),
       } as ErrorResponseAPIBase,

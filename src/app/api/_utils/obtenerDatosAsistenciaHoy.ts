@@ -8,7 +8,7 @@ import { esContenidoJSON } from "../_helpers/esContenidoJSON";
  */
 export interface ResultadoObtenerDatosAsistencia {
   datos: DatosAsistenciaHoyIE20935;
-  fuente: "cache" | "blob" | "respaldo";
+  fuente: "cache" | "blob" | "backup";
   mensaje?: string;
 }
 
@@ -84,7 +84,7 @@ async function obtenerDatosDesdeBlob(): Promise<DatosAsistenciaHoyIE20935> {
 
   if (!response.ok) {
     throw new Error(
-      `Error HTTP en blob: ${response.status} ${response.statusText}`
+      `HTTP error in blob: ${response.status} ${response.statusText}`
     );
   }
 
@@ -122,7 +122,7 @@ async function obtenerDatosDesdeRespaldo(): Promise<DatosAsistenciaHoyIE20935> {
 
   if (!response.ok) {
     throw new Error(
-      `Error HTTP en respaldo: ${response.status} ${response.statusText}`
+      `HTTP error in backup: ${response.status} ${response.statusText}`
     );
   }
 
@@ -145,11 +145,11 @@ async function obtenerDatosDesdeRespaldo(): Promise<DatosAsistenciaHoyIE20935> {
  * @example
  * ```typescript
  * // Basic usage (with cache)
- * const resultado = await obtenerDatosAsistenciaHoy();
- * console.log(resultado.datos, resultado.fuente);
+ * const result = await obtenerDatosAsistenciaHoy();
+ * console.log(result.datos, result.fuente);
  *
  * // Force update
- * const resultado = await obtenerDatosAsistenciaHoy(true);
+ * const result = await obtenerDatosAsistenciaHoy(true);
  * ```
  */
 export async function obtenerDatosAsistenciaHoy(
@@ -166,17 +166,17 @@ export async function obtenerDatosAsistenciaHoy(
       );
 
       console.log(
-        `📋 Usando datos desde cache (válido por ${Math.round(
+        `📋 Using data from cache (valid for ${Math.round(
           tiempoRestante / 1000 / 60
-        )} minutos más)`
+        )} more minutes)`
       );
 
       return {
         datos: datosCache,
         fuente: "cache",
-        mensaje: `Cache válido por ${Math.round(
+        mensaje: `Cache valid for ${Math.round(
           tiempoRestante / 1000 / 60
-        )} minutos más`,
+        )} more minutes`,
       };
     }
   }
@@ -191,11 +191,11 @@ export async function obtenerDatosAsistenciaHoy(
     return {
       datos,
       fuente: "blob",
-      mensaje: "Datos obtenidos desde fuente principal",
+      mensaje: "Data obtained from main source",
     };
   } catch (errorBlob) {
     console.warn(
-      "⚠️ Error al obtener datos del blob, intentando respaldo:",
+      "⚠️ Error getting data from blob, trying backup:",
       errorBlob
     );
 
@@ -208,19 +208,19 @@ export async function obtenerDatosAsistenciaHoy(
 
       return {
         datos,
-        fuente: "respaldo",
-        mensaje: `Datos obtenidos desde respaldo. Error principal: ${
+        fuente: "backup",
+        mensaje: `Data obtained from backup. Main error: ${
           (errorBlob as Error).message
         }`,
       };
     } catch (errorRespaldo) {
-      console.error("❌ Error en respaldo:", errorRespaldo);
+      console.error("❌ Error in backup:", errorRespaldo);
 
       // If both fail, throw descriptive error
       throw new Error(
-        `Falló el acceso principal y el respaldo. ` +
-          `Principal: ${(errorBlob as Error).message}. ` +
-          `Respaldo: ${(errorRespaldo as Error).message}`
+        `Main access and backup failed. ` +
+          `Main: ${(errorBlob as Error).message}. ` +
+          `Backup: ${(errorRespaldo as Error).message}`
       );
     }
   }

@@ -45,13 +45,13 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error("Error getting attendance data:", error);
 
-    // Determine the type of error
+    // Determine the error type
     let logoutType = LogoutTypes.ERROR_SISTEMA;
     const errorDetails: ErrorDetailsForLogout = {
-      mensaje: "Error al recuperar datos de asistencia",
+      mensaje: "Error retrieving attendance data",
       origen: "api/datos-asistencia-hoy",
       timestamp: Date.now(),
-      siasisComponent: "RDP04", // Principal componente es RDP04 (blob)
+      siasisComponent: "RDP04", // Main component is RDP04 (blob)
     };
 
     if (error instanceof Error) {
@@ -61,52 +61,52 @@ export async function GET(req: NextRequest) {
         error.message.includes("network") ||
         error.message.includes("ECONNREFUSED") ||
         error.message.includes("timeout") ||
-        error.message.includes("Timeout de petición HTTP")
+        error.message.includes("HTTP request timeout")
       ) {
         logoutType = LogoutTypes.ERROR_RED;
         errorDetails.mensaje =
-          "Error de conexión al obtener datos de asistencia";
+          "Connection error when getting attendance data";
       }
       // If it's a JSON parsing error
       else if (
         error.message.includes("JSON") ||
         error.message.includes("parse") ||
-        error.message.includes("no contiene JSON válido")
+        error.message.includes("not valid JSON")
       ) {
         logoutType = LogoutTypes.ERROR_DATOS_CORRUPTOS;
-        errorDetails.mensaje = "Error al procesar los datos de asistencia";
-        errorDetails.contexto = "Formato de datos inválido";
+        errorDetails.mensaje = "Error processing attendance data";
+        errorDetails.contexto = "Invalid data format";
       }
       // If Redis lookup failed
       else if (
         error.message.includes(
-          "No se encontró el ID del archivo de respaldo en Redis"
+          "Backup file ID not found in Redis"
         )
       ) {
         logoutType = LogoutTypes.ERROR_DATOS_NO_DISPONIBLES;
         errorDetails.mensaje =
-          "No se pudo encontrar la información de asistencia";
-        errorDetails.siasisComponent = "RDP05"; // Error específico de Redis
+          "Could not find attendance information";
+        errorDetails.siasisComponent = "RDP05"; // Specific Redis error
       }
-      // If both primary access and backup failed
+      // If both main access and backup failed
       else if (
-        error.message.includes("Falló el acceso principal y el respaldo")
+        error.message.includes("Main access and backup failed")
       ) {
         logoutType = LogoutTypes.ERROR_DATOS_NO_DISPONIBLES;
         errorDetails.mensaje =
-          "No se pudo obtener la información de asistencia";
+          "Could not get attendance information";
         errorDetails.contexto =
-          "Falló tanto el acceso a blob como a Google Drive";
+          "Failed to access both blob and Google Drive";
       }
       // If it's a specific HTTP error
       else if (
-        error.message.includes("Error HTTP en blob") ||
-        error.message.includes("Error HTTP en respaldo")
+        error.message.includes("HTTP error in blob") ||
+        error.message.includes("HTTP error in backup")
       ) {
         logoutType = LogoutTypes.ERROR_RED;
         errorDetails.mensaje =
-          "Error del servidor al obtener datos de asistencia";
-        errorDetails.contexto = "Respuesta HTTP inválida";
+          "Server error when getting attendance data";
+        errorDetails.contexto = "Invalid HTTP response";
       }
 
       errorDetails.mensaje += `: ${error.message}`;

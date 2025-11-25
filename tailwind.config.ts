@@ -91,7 +91,7 @@ const config: Config = {
           max: "1440px",
         },
 
-        //Breakpoints Excluyentes 
+        // Exclusive Breakpoints
         "sxs-only": {
           min: "0px",
           max: "300px",
@@ -119,7 +119,7 @@ const config: Config = {
           raw: "(max-height: 50vw)",
         },
         
-        // ✨ NUEVOS BREAKPOINTS LANDSCAPE
+        // ✨ NEW LANDSCAPE BREAKPOINTS
         "landscape-xs": {
           raw: "(max-height: 649px) and (orientation: landscape)",
         },

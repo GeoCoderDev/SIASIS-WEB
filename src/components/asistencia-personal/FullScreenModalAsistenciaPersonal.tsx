@@ -26,6 +26,79 @@ import { AsistenciaHoy } from "@/lib/utils/local/db/models/AsistenciasTomadasHoy
 import { saludosDia } from "@/Assets/voice/others/SaludosDelDia";
 import IndexedDBConnection from "@/constants/singleton/IndexedDBConnection";
 
+// ========================================================================================
+// ENVIRONMENT CONFIGURATION
+// ========================================================================================
+
+const TESTING_EXPLICITO = false;
+
+const REQUERIR_VALIDACION_GPS_SEGUN_ENTORNO: Record<Entorno, boolean> = {
+  [Entorno.LOCAL]: true,
+  [Entorno.DESARROLLO]: true,
+  [Entorno.CERTIFICACION]: true,
+  [Entorno.PRODUCCION]: true,
+  [Entorno.TEST]: true,
+};
+
+const USAR_COORDENADAS_MOCKEADAS_SEGUN_ENTORNO: Record<Entorno, boolean> = {
+  [Entorno.LOCAL]: true,
+  [Entorno.DESARROLLO]: false,
+  [Entorno.CERTIFICACION]: true,
+  [Entorno.PRODUCCION]: false,
+  [Entorno.TEST]: false,
+};
+
+const SOLO_PERMITIR_CELULARES_SEGUN_ENTORNO: Record<Entorno, boolean> = {
+  [Entorno.LOCAL]: false,
+  [Entorno.DESARROLLO]: false,
+  [Entorno.CERTIFICACION]: true,
+  [Entorno.PRODUCCION]: true,
+  [Entorno.TEST]: false,
+};
+
+const REQUERIR_VALIDACION_GPS = REQUERIR_VALIDACION_GPS_SEGUN_ENTORNO[ENTORNO];
+const USAR_COORDENADAS_MOCKEADAS =
+  USAR_COORDENADAS_MOCKEADAS_SEGUN_ENTORNO[ENTORNO];
+const SOLO_PERMITIR_CELULARES_PARA_ASISTENCIA =
+  SOLO_PERMITIR_CELULARES_SEGUN_ENTORNO[ENTORNO];
+
+export const LATITUD_MOCKEADA = -13.0567;
+export const LONGITUD_MOCKEADA = -76.347049;
+
+const COORDENADAS_DEBUGGING = {
+  DENTRO_COLEGIO_1: { lat: -13.0567, lng: -76.347049 },
+  DENTRO_COLEGIO_2: { lat: -13.056641, lng: -76.346922 },
+  FUERA_COLEGIO: { lat: -12.0464, lng: -77.0428 },
+};
+
+interface MarcarAsistenciaPropiaDePersonalModalProps {
+  eliminateModal: () => void;
+  modoRegistro: ModoRegistro;
+  marcarMiAsistenciaDeHoy: () => Promise<void>;
+  setMostrarModalConfirmacioAsistenciaMarcada: React.Dispatch<
+    React.SetStateAction<boolean>
+  >;
+  setMostrarModalFaltaActivarGPSoBrindarPermisosGPS: React.Dispatch<
+    React.SetStateAction<boolean>
+  >;
+  setMostrarModalUbicacionFueraDelColegioAlRegistrarAsistenciaPropia: React.Dispatch<
+    React.SetStateAction<boolean>
+  >;
+  setMostrarModalErrorGenericoAlRegistrarAsistenciaPropia: React.Dispatch<
+    React.SetStateAction<boolean>
+  >;
+  setMostrarModalFalloConexionAInternet: React.Dispatch<
+    React.SetStateAction<boolean>
+  >;
+  setMostrarModalNoSePuedeUsarLaptop: React.Dispatch<
+    React.SetStateAction<boolean>
+  >;
+  setMostrarModalDispositivoSinGPS: React.Dispatch<
+    React.SetStateAction<boolean>
+  >;
+  Rol: RolesSistema;
+}
+
 const FullScreenModalAsistenciaPersonal = ({
   closeFullScreenModal,
   fechaHoraActual,
@@ -37,20 +110,20 @@ const FullScreenModalAsistenciaPersonal = ({
   fechaHoraActual: FechaHoraActualRealState;
   tiempoRestante?: TiempoRestante | null;
 }) => {
-  // Estados para controlar el flujo
+  // States to control the flow
   const [rolSeleccionado, setRolSeleccionado] = useState<RolesSistema | null>(
     null
   );
   const [modoRegistro, setModoRegistro] = useState<ModoRegistro | null>(null);
   const [cargando, setCargando] = useState(false);
 
-  // Obtener el saludo según la hora del día
+  // Get the greeting according to the time of day
   const periodoDelDia = determinarPeriodoDia(
     fechaHoraActual.fechaHora || new Date().toISOString()
   );
   const saludo = saludosDia[periodoDelDia];
 
-  // Efecto para el saludo de bienvenida
+  // Effect for the welcome greeting
   useEffect(() => {
     const saludoDeBienvenida = async () => {
       const nombreCompletoCortoDirectivoLogeado =
@@ -59,53 +132,53 @@ const FullScreenModalAsistenciaPersonal = ({
       const speaker = Speaker.getInstance();
 
       speaker.start(
-        `${saludo}, Directivo ${nombreCompletoCortoDirectivoLogeado}, usted ha iniciado la toma de Asistencia de Personal`
+        `${saludo}, Director ${nombreCompletoCortoDirectivoLogeado}, you have started Staff Attendance taking`
       );
     };
 
     saludoDeBienvenida();
   }, [saludo]);
 
-  // Manejador para la selección de rol
+  // Handler for role selection
   const handleRolSelection = (rol: RolesSistema) => {
     setCargando(true);
 
     // Audio feedback
     const speaker = Speaker.getInstance();
-    speaker.start(`Ha seleccionado el rol ${obtenerTextoRol(rol)}`);
+    speaker.start(`You have selected the role ${obtenerTextoRol(rol)}`);
 
-    // Simulamos una pequeña carga para mejorar la experiencia
+    // We simulate a small load to improve the experience
     setTimeout(() => {
       setRolSeleccionado(rol);
       setCargando(false);
     }, 300);
   };
 
-  // Manejador para la selección de modo (entrada/salida)
+  // Handler for entry/exit mode selection
   const handleModoSelection = (modo: ModoRegistro | null) => {
     setCargando(true);
 
     // Audio feedback
     const speaker = Speaker.getInstance();
-    speaker.start(`Registrando ${modoRegistroTextos[modo!]}`);
+    speaker.start(`Registering ${modoRegistroTextos[modo!]}`);
 
-    // Simulamos una pequeña carga para mejorar la experiencia
+    // We simulate a small load to improve the experience
     setTimeout(() => {
       setModoRegistro(modo);
       setCargando(false);
     }, 300);
   };
 
-  // Función para volver al paso anterior
+  // Function to go back to the previous step
   const handleVolver = () => {
-    // Feedback por voz al retroceder
+    // Voice feedback when going back
     const speaker = Speaker.getInstance();
 
     if (modoRegistro !== null) {
-      speaker.start(`Volviendo a la selección de modo de registro`);
+      speaker.start(`Returning to registration mode selection`);
       setModoRegistro(null);
     } else if (rolSeleccionado !== null) {
-      speaker.start(`Volviendo a la selección de rol`);
+      speaker.start(`Returning to role selection`);
       setRolSeleccionado(null);
     }
   };
@@ -127,14 +200,14 @@ const FullScreenModalAsistenciaPersonal = ({
 
           if (cursor) {
             const asistencia = cursor.value as AsistenciaHoy;
-            console.log(`🔍 REGISTRO EN CACHE:`);
-            console.log(`  - Clave: ${asistencia.clave}`);
+            console.log(`🔍 RECORD IN CACHE:`);
+            console.log(`  - Key: ${asistencia.clave}`);
             console.log(
-              `  - DNI: ${asistencia.dni} (tipo: ${typeof asistencia.dni})`
+              `  - DNI: ${asistencia.dni} (type: ${typeof asistencia.dni})`
             );
             console.log(`  - Actor: ${asistencia.actor}`);
-            console.log(`  - Modo: ${asistencia.modoRegistro}`);
-            console.log(`  - Fecha: ${asistencia.fecha}`);
+            console.log(`  - Mode: ${asistencia.modoRegistro}`);
+            console.log(`  - Date: ${asistencia.fecha}`);
             console.log(`---`);
 
             cursor.continue();
@@ -144,7 +217,7 @@ const FullScreenModalAsistenciaPersonal = ({
         };
       });
     } catch (error) {
-      console.error("Error en diagnóstico:", error);
+      console.error("Error in diagnostics:", error);
     }
   };
 
@@ -152,16 +225,16 @@ const FullScreenModalAsistenciaPersonal = ({
     getDiagnostic();
   }, []);
 
-  // Determinar qué contenido mostrar según el estado actual
+  // Determine what content to show based on current state
   const renderContenido = () => {
-    // Si estamos cargando, mostrar un spinner
+    // If loading, show a spinner
     if (cargando) {
       return (
         <div className="w-full h-full flex items-center justify-center bg-white bg-opacity-75">
           <div className="flex flex-col items-center">
             <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
             <p className="mt-3 text-blue-600 font-medium text-sm">
-              Cargando...
+              Loading...
             </p>
           </div>
         </div>
@@ -169,21 +242,21 @@ const FullScreenModalAsistenciaPersonal = ({
     }
 
     if (rolSeleccionado === null) {
-      // Paso 1: Selección de Rol
+      // Step 1: Role Selection
       return (
         <div className="w-full h-full flex items-center justify-center p-3 sm-only:p-4 md-only:p-5 lg-only:p-5 xl-only:p-5 ">
           <div className="w-full max-w-4xl flex flex-col items-center">
-            {/* Título principal */}
+            {/* Main title */}
             <h1 className="text-lg sm-only:text-xl md-only:text-2xl lg-only:text-2xl xl-only:text-2xl font-bold text-green-600 text-center mb-4 sm-only:mb-8 md-only:mb-8 lg-only:mb-8 xl-only:mb-8 mt-1 sm-only:mt-2 md-only:mt-2 lg-only:mt-2 xl-only:mt-2">
-              {saludo}, haz clic en tu Rol
+              {saludo}, click on your Role
             </h1>
 
-            {/* Tarjetas de roles - Responsive: 2x2+1 en móvil, 3+2 en desktop */}
+            {/* Role cards - Responsive: 2x2+1 on mobile, 3+2 on desktop */}
             <div className="w-full max-w-lg mx-auto px-3">
-              {/* Layout para móviles - 2 por fila + 1 centrado */}
+              {/* Mobile layout - 2 per row + 1 centered */}
               <div className="sxs-only:block xs-only:block sm-only:block md-only:hidden lg-only:hidden xl-only:hidden">
                 <div className="flex flex-col items-center gap-3 xs-only:gap-4 sm-only:gap-4">
-                  {/* Primera fila móvil - 2 botones */}
+                  {/* First mobile row - 2 buttons */}
                   <div className="flex items-center justify-center gap-3 xs-only:gap-4 sm-only:gap-5">
                     <RolBoton
                       onClick={() =>
@@ -192,18 +265,18 @@ const FullScreenModalAsistenciaPersonal = ({
                       icon={
                         <ProfesorPrimariaIcon className="max-lg:short-height:h-[7vh] sxs-only:w-[1.3rem] xs-only:w-[1.4rem] sm-only:w-[1.6rem] text-negro" />
                       }
-                      label="Profesor (Primaria)"
+                      label="Primary Teacher"
                     />
                     <RolBoton
                       onClick={() => handleRolSelection(RolesSistema.Auxiliar)}
                       icon={
                         <AuxiliarIcon className="max-lg:short-height:h-[7vh] sxs-only:w-[1.3rem] xs-only:w-[1.4rem] sm-only:w-[1.5rem] text-negro" />
                       }
-                      label="Auxiliar"
+                      label="Assistant"
                     />
                   </div>
 
-                  {/* Segunda fila móvil - 2 botones */}
+                  {/* Second mobile row - 2 buttons */}
                   <div className="flex items-center justify-center gap-3 xs-only:gap-4 sm-only:gap-5">
                     <RolBoton
                       onClick={() =>
@@ -212,7 +285,7 @@ const FullScreenModalAsistenciaPersonal = ({
                       icon={
                         <ProfesorOTutorIcon className="max-lg:short-height:h-[6.5vh] sxs-only:w-[1.2rem] xs-only:w-[1.3rem] sm-only:w-[1.4rem] text-negro" />
                       }
-                      label="Profesor/Tutor (Secundaria)"
+                      label="Secondary Teacher/Tutor"
                     />
                     <RolBoton
                       onClick={() =>
@@ -221,27 +294,27 @@ const FullScreenModalAsistenciaPersonal = ({
                       icon={
                         <PersonasGenericasIcon className="max-lg:short-height:h-[7vh] sxs-only:w-[1.3rem] xs-only:w-[1.4rem] sm-only:w-[1.6rem] text-negro" />
                       }
-                      label="Otro"
+                      label="Other"
                     />
                   </div>
 
-                  {/* Tercera fila móvil - 1 botón centrado */}
+                  {/* Third mobile row - 1 centered button */}
                   <div className="flex items-center justify-center">
                     <RolBoton
                       onClick={() => handleRolSelection(RolesSistema.Directivo)}
                       icon={
                         <DirectivoIcon className="max-lg:short-height:h-[7vh] sxs-only:w-[1.3rem] xs-only:w-[1.4rem] sm-only:w-[1.6rem] text-negro" />
                       }
-                      label="Directivo"
+                      label="Director"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Layout para tablet/desktop - 3+2 */}
+              {/* Tablet/desktop layout - 3+2 */}
               <div className="sxs-only:hidden xs-only:hidden sm-only:hidden md-only:block lg-only:block xl-only:block">
                 <div className="flex flex-col items-center justify-center">
-                  {/* Primera fila desktop - 3 botones */}
+                  {/* First desktop row - 3 buttons */}
                   <div className="flex items-center justify-center gap-5 md-only:gap-6 lg-only:gap-7 xl-only:gap-8 mb-5 md-only:mb-6 lg-only:mb-7 xl-only:mb-8">
                     <RolBoton
                       onClick={() =>
@@ -250,14 +323,14 @@ const FullScreenModalAsistenciaPersonal = ({
                       icon={
                         <ProfesorPrimariaIcon className="md-only:w-[2rem] lg-only:w-[2.3rem] xl-only:w-[2.6rem] text-negro" />
                       }
-                      label="Profesor (Primaria)"
+                      label="Primary Teacher"
                     />
                     <RolBoton
                       onClick={() => handleRolSelection(RolesSistema.Auxiliar)}
                       icon={
                         <AuxiliarIcon className="md-only:w-[1.8rem] lg-only:w-[2.1rem] xl-only:w-[2.4rem] text-negro" />
                       }
-                      label="Auxiliar"
+                      label="Assistant"
                     />
                     <RolBoton
                       onClick={() =>
@@ -266,11 +339,11 @@ const FullScreenModalAsistenciaPersonal = ({
                       icon={
                         <ProfesorOTutorIcon className="md-only:w-[1.9rem] lg-only:w-[2.2rem] xl-only:w-[2.5rem] text-negro" />
                       }
-                      label="Profesor/Tutor (Secundaria)"
+                      label="Secondary Teacher/Tutor"
                     />
                   </div>
 
-                  {/* Segunda fila desktop - 2 botones centrados */}
+                  {/* Second desktop row - 2 centered buttons */}
                   <div className="flex items-center justify-center gap-5 md-only:gap-6 lg-only:gap-7 xl-only:gap-8">
                     <RolBoton
                       onClick={() =>
@@ -279,14 +352,14 @@ const FullScreenModalAsistenciaPersonal = ({
                       icon={
                         <PersonasGenericasIcon className="md-only:w-[2rem] lg-only:w-[2.3rem] xl-only:w-[2.6rem] text-negro" />
                       }
-                      label="Otro"
+                      label="Other"
                     />
                     <RolBoton
                       onClick={() => handleRolSelection(RolesSistema.Directivo)}
                       icon={
                         <DirectivoIcon className="md-only:w-[2rem] lg-only:w-[2.3rem] xl-only:w-[2.6rem] text-negro" />
                       }
-                      label="Directivo"
+                      label="Director"
                     />
                   </div>
                 </div>
@@ -296,14 +369,14 @@ const FullScreenModalAsistenciaPersonal = ({
         </div>
       );
     } else if (modoRegistro === null) {
-      // Paso 2: Selección de Entrada/Salida
+      // Step 2: Entry/Exit Selection
       return (
         <div className="w-full h-full flex items-center justify-center">
           <SeleccionEntradaSalida onSeleccion={handleModoSelection} />
         </div>
       );
     } else {
-      // Paso 3: Lista de personal para marcar asistencia
+      // Step 3: Staff list to mark attendance
       return (
         <div className="w-full h-full">
           <ListaPersonal
@@ -321,18 +394,18 @@ const FullScreenModalAsistenciaPersonal = ({
 
   return (
     <div className="animate__animated animate__fadeInUp [animation-duration:800ms] fixed top-0 left-0 w-full h-[100dvh] grid grid-rows-[auto_1fr_auto] bg-white z-[1001]">
-      {/* Cabecera - REDUCIDA */}
+      {/* Header - REDUCED */}
       <header className="bg-blue-50 border-b border-blue-100 py-3 px-2 md-only:py-3 md-only:px-3 lg-only:py-4 lg-only:px-3 xl-only:py-4 xl-only:px-3 shadow-sm">
         <div className="max-w-7xl mx-auto flex flex-col sm-only:flex-row md-only:flex-row lg-only:flex-row xl-only:flex-row justify-between items-center gap-1 sm-only:gap-2 gap-y-3">
           <div className="flex items-center gap-3 sm-only:gap-3">
-            {/* Botón "Retroceder" - solo visible cuando se ha seleccionado algo */}
+            {/* "Back" button - only visible when something has been selected */}
             {rolSeleccionado !== null && (
               <button
                 onClick={handleVolver}
                 className="flex items-center text-blanco bg-color-interfaz px-2 py-1.5 sm-only:px-3 sm-only:py-2 rounded-md text-[0.9rem]"
               >
                 <VolverIcon className="w-6 mr-1" />
-                Retroceder
+                Back
               </button>
             )}
             <div className="flex flex-col">
@@ -343,14 +416,14 @@ const FullScreenModalAsistenciaPersonal = ({
                 {fechaHoraActual.formateada?.horaAmPm}
               </span>
               <span className="text-blue-900 font-bold text-sm sm-only:text-base md-only:text-base lg-only:text-lg xl-only:text-lg leading-tight text-center sm-only:text-left md-only:text-left lg-only:text-left xl-only:text-left">
-                Registro de Asistencia de Personal
+                Staff Attendance Record
               </span>
             </div>
           </div>
           <div className="flex items-center gap-3 sm-only:gap-2 md-only:gap-3 lg-only:gap-3 xl-only:gap-3">
             <div className="flex flex-col items-end">
               <span className="text-red-600 font-medium text-xs leading-tight">
-                Toma de Asistencia acaba en:
+                Attendance taking ends in:
               </span>
               <span className="text-red-700 font-bold text-xs sm-only:text-sm md-only:text-sm lg-only:text-base xl-only:text-base leading-tight">
                 {tiempoRestante?.formatoCorto}
@@ -360,16 +433,16 @@ const FullScreenModalAsistenciaPersonal = ({
               onClick={closeFullScreenModal}
               className="bg-red-600 hover:bg-red-700 text-white font-medium py-1 px-1.5 sm-only:py-1 sm-only:px-2 md-only:py-1.5 md-only:px-3 lg-only:py-1.5 lg-only:px-3 xl-only:py-1.5 xl-only:px-3 rounded-lg transition-colors shadow-sm text-[0.9rem] sm-only:text-[0.9rem] md-only:text-[0.8rem]  lg-only:text-base xl-only:text-base"
             >
-              Cerrar
+              Close
             </button>
           </div>
         </div>
       </header>
 
-      {/* Contenido principal con scroll */}
+      {/* Main content with scroll */}
       <main className="overflow-auto">{renderContenido()}</main>
 
-      {/* Pie de página - REDUCIDO */}
+      {/* Footer - REDUCED */}
       <footer className="bg-color-interfaz text-white border-t border-color-interfaz py-3 px-2 md-only:py-3 md-only:px-3 lg-only:py-3 lg-only:px-3 xl-only:py-3 xl-only:px-3 shadow-md">
         <div className="max-w-7xl mx-auto text-center">
           <div className="flex flex-col items-center gap-1">
@@ -377,7 +450,7 @@ const FullScreenModalAsistenciaPersonal = ({
               I.E. 20935 Asunción 8 - Imperial, Cañete
             </p>
             <p className="text-xs opacity-80 leading-tight">
-              Sistema de Control de Asistencia ©{" "}
+              Attendance Control System ©{" "}
               {fechaHoraActual.utilidades?.año || new Date().getFullYear()}
             </p>
           </div>
