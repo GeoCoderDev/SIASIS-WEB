@@ -1,1 +1,1 @@
-export const NOMBRE_CLASE_IMAGENES_FOTO_PERFIL_USUARIO = "Foto-Perfil-Usuario";
+export const USER_PROFILE_PICTURE_IMAGE_CLASS_NAME = "User-Profile-Picture";

@@ -13,243 +13,236 @@ import { HandlerPersonalAdministrativoAsistenciaResponse } from "@/lib/utils/loc
 import { HorarioTomaAsistencia } from "@/interfaces/shared/Asistencia/DatosAsistenciaHoyIE20935";
 import { ModoRegistro } from "@/interfaces/shared/ModoRegistro";
 import {
-  HORAS_ANTES_INICIO_ACTIVACION,
-  HORAS_ANTES_SALIDA_CAMBIO_MODO_PARA_PERSONAL,
-  HORAS_DESPUES_SALIDA_LIMITE,
-  INTERVALO_CONSULTA_ASISTENCIA_OPTIMIZADO_MS,
+  HOURS_BEFORE_START_ACTIVATION,
+  HOURS_BEFORE_EXIT_MODE_CHANGE_FOR_STAFF,
+  HOURS_AFTER_EXIT_LIMIT,
+  OPTIMIZED_ATTENDANCE_QUERY_INTERVAL_MS,
 } from "@/constants/INTERVALOS_CONSULTAS_ASISTENCIAS_PROPIAS_PARA_PERSONAL_NO_DIRECTIVO";
 
 // ✅ INTERFACES
-export interface EstadoAsistenciaCompartido {
-  entradaMarcada: boolean;
-  salidaMarcada: boolean;
-  inicializado: boolean;
+export interface SharedAttendanceState {
+  entryMarked: boolean;
+  exitMarked: boolean;
+  initialized: boolean;
 }
 
-export interface ModoActualCompartido {
-  activo: boolean;
-  tipo: ModoRegistro | null;
-  razon: string;
+export interface CurrentSharedMode {
+  active: boolean;
+  type: ModoRegistro | null;
+  reason: string;
 }
 
-export interface DatosAsistenciaCompartidos {
-  horario: HorarioTomaAsistencia | null;
-  handlerBase: HandlerAsistenciaBase | null;
-  asistencia: EstadoAsistenciaCompartido;
-  modoActual: ModoActualCompartido;
-  inicializado: boolean;
-  consultaInicialCompletada: boolean;
+export interface SharedAttendanceData {
+  schedule: HorarioTomaAsistencia | null;
+  baseHandler: HandlerAsistenciaBase | null;
+  attendance: SharedAttendanceState;
+  currentMode: CurrentSharedMode;
+  initialized: boolean;
+  initialQueryCompleted: boolean;
   // ✅ NEW FUNCTION TO REFRESH IMMEDIATELY
-  refrescarAsistencia: () => Promise<void>;
+  refreshAttendance: () => Promise<void>;
 }
 
 // ✅ CONSTANTS
-const RETRY_HORARIO_MS = 30000;
-const TIMEOUT_EMERGENCIA_REINTENTO_MS = 3800;
+const SCHEDULE_RETRY_MS = 30000;
+const EMERGENCY_RETRY_TIMEOUT_MS = 3800;
 
 // ✅ OPTIMIZED SELECTOR
-const selectHoraMinutoActual = (state: RootState) => {
-  const fechaHora = state.others.fechaHoraActualReal.fechaHora;
-  if (!fechaHora) return null;
+const selectCurrentHourMinute = (state: RootState) => {
+  const dateTime = state.others.fechaHoraActualReal.dateTime;
+  if (!dateTime) return null;
 
-  const fecha = new Date(fechaHora);
-  fecha.setHours(fecha.getHours() - 5);
-  const timestamp = Math.floor(fecha.getTime() / 60000) * 60000;
+  const date = new Date(dateTime);
+  date.setHours(date.getHours() - 5);
+  const timestamp = Math.floor(date.getTime() / 60000) * 60000;
 
   return {
-    fecha,
+    date,
     timestamp,
-    hora: fecha.getHours(),
-    minuto: fecha.getMinutes(),
+    hour: date.getHours(),
+    minute: date.getMinutes(),
   };
 };
 
 export const useAsistenciaCompartida = (
-  rol: RolesSistema
-): DatosAsistenciaCompartidos => {
+  role: RolesSistema
+): SharedAttendanceData => {
   // ✅ SELECTORS
-  const horaMinutoActual = useSelector(selectHoraMinutoActual);
-  const reduxInicializado = useSelector(
-    (state: RootState) => state.others.fechaHoraActualReal.inicializado
+  const currentHourMinute = useSelector(selectCurrentHourMinute);
+  const reduxInitialized = useSelector(
+    (state: RootState) => state.others.fechaHoraActualReal.initialized
   );
 
   // ✅ STATES
-  const [horario, setHorario] = useState<HorarioTomaAsistencia | null>(null);
-  const [handlerBase, setHandlerBase] = useState<HandlerAsistenciaBase | null>(
-    null
-  );
-  const [inicializado, setInicializado] = useState(false);
-  const [asistenciaIDB, setAsistenciaIDB] =
+  const [schedule, setSchedule] = useState<HorarioTomaAsistencia | null>(null);
+  const [baseHandler, setBaseHandler] =
+    useState<HandlerAsistenciaBase | null>(null);
+  const [initialized, setInitialized] = useState(false);
+  const [attendanceIDB, setAttendanceIDB] =
     useState<AsistenciaDePersonalIDB | null>(null);
-  const [asistencia, setAsistencia] = useState<EstadoAsistenciaCompartido>({
-    entradaMarcada: false,
-    salidaMarcada: false,
-    inicializado: false,
+  const [attendance, setAttendance] = useState<SharedAttendanceState>({
+    entryMarked: false,
+    exitMarked: false,
+    initialized: false,
   });
-  const [consultaInicialCompletada, setConsultaInicialCompletada] =
-    useState(false);
-  const [consultaInicialEnProceso, setConsultaInicialEnProceso] =
-    useState(false);
-  const [timerEmergenciaActivo, setTimerEmergenciaActivo] = useState(true);
+  const [initialQueryCompleted, setInitialQueryCompleted] = useState(false);
+  const [initialQueryInProgress, setInitialQueryInProgress] = useState(false);
+  const [emergencyTimerActive, setEmergencyTimerActive] = useState(true);
 
   // ✅ REFS
   const retryRef = useRef<NodeJS.Timeout | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const timerEmergenciaRef = useRef<NodeJS.Timeout | null>(null);
-  const consultaEnProcesoRef = useRef<boolean>(false);
-  const ultimoModoConsultado = useRef<ModoRegistro | null>(null);
+  const emergencyTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const queryInProgressRef = useRef<boolean>(false);
+  const lastConsultedMode = useRef<ModoRegistro | null>(null);
 
   // ✅ FUNCTION: Get current date from Redux
-  const obtenerFechaActual = useCallback((): Date | null => {
+  const getCurrentDate = useCallback((): Date | null => {
     const state = store.getState();
-    const fechaHora = state.others.fechaHoraActualReal.fechaHora;
-    const inicializado = state.others.fechaHoraActualReal.inicializado;
+    const dateTime = state.others.fechaHoraActualReal.dateTime;
+    const initialized = state.others.fechaHoraActualReal.initialized;
 
-    if (!fechaHora || !inicializado) return null;
+    if (!dateTime || !initialized) return null;
 
-    const fecha = new Date(fechaHora);
-    fecha.setHours(fecha.getHours() - 5);
-    return fecha;
+    const date = new Date(dateTime);
+    date.setHours(date.getHours() - 5);
+    return date;
   }, []);
 
   // ✅ FUNCTION: Determine current mode based on schedule and date
-  const determinarModoActual = useCallback(
+  const determineCurrentMode = useCallback(
     (
-      horario: HorarioTomaAsistencia | null,
-      fechaActual: Date | null = null
-    ): ModoActualCompartido => {
-      if (!horario) {
-        return { activo: false, tipo: null, razon: "Schedule not available" };
+      schedule: HorarioTomaAsistencia | null,
+      currentDate: Date | null = null
+    ): CurrentSharedMode => {
+      if (!schedule) {
+        return { active: false, type: null, reason: "Schedule not available" };
       }
 
-      const fecha = fechaActual || obtenerFechaActual();
-      if (!fecha) {
-        return { activo: false, tipo: null, razon: "Date not available" };
+      const date = currentDate || getCurrentDate();
+      if (!date) {
+        return { active: false, type: null, reason: "Date not available" };
       }
 
-      const horarioInicio = new Date(horario.Inicio);
-      const horarioFin = new Date(horario.Fin);
+      const scheduleStart = new Date(schedule.Inicio);
+      const scheduleEnd = new Date(schedule.Fin);
 
-      const inicioHoy = new Date(fecha);
-      inicioHoy.setHours(
-        horarioInicio.getHours(),
-        horarioInicio.getMinutes(),
+      const todayStart = new Date(date);
+      todayStart.setHours(
+        scheduleStart.getHours(),
+        scheduleStart.getMinutes(),
         0,
         0
       );
 
-      const finHoy = new Date(fecha);
-      finHoy.setHours(horarioFin.getHours(), horarioFin.getMinutes(), 0, 0);
+      const todayEnd = new Date(date);
+      todayEnd.setHours(scheduleEnd.getHours(), scheduleEnd.getMinutes(), 0, 0);
 
-      const unaHoraAntesInicio = new Date(
-        inicioHoy.getTime() - HORAS_ANTES_INICIO_ACTIVACION * 60 * 60 * 1000
+      const oneHourBeforeStart = new Date(
+        todayStart.getTime() - HOURS_BEFORE_START_ACTIVATION * 60 * 60 * 1000
       );
-      const unaHoraAntesSalida = new Date(
-        finHoy.getTime() -
-          HORAS_ANTES_SALIDA_CAMBIO_MODO_PARA_PERSONAL * 60 * 60 * 1000
+      const oneHourBeforeExit = new Date(
+        todayEnd.getTime() -
+          HOURS_BEFORE_EXIT_MODE_CHANGE_FOR_STAFF * 60 * 60 * 1000
       );
-      const dosHorasDespuesSalida = new Date(
-        finHoy.getTime() + HORAS_DESPUES_SALIDA_LIMITE * 60 * 60 * 1000
+      const twoHoursAfterExit = new Date(
+        todayEnd.getTime() + HOURS_AFTER_EXIT_LIMIT * 60 * 60 * 1000
       );
 
-      if (fecha < unaHoraAntesInicio) {
+      if (date < oneHourBeforeStart) {
         return {
-          activo: false,
-          tipo: null,
-          razon: `Too early. Activation at ${unaHoraAntesInicio.toLocaleTimeString()}`,
+          active: false,
+          type: null,
+          reason: `Too early. Activation at ${oneHourBeforeStart.toLocaleTimeString()}`,
         };
       }
 
-      if (fecha > dosHorasDespuesSalida) {
+      if (date > twoHoursAfterExit) {
         return {
-          activo: false,
-          tipo: null,
-          razon: "Attendance period finished",
+          active: false,
+          type: null,
+          reason: "Attendance period finished",
         };
       }
 
-      if (fecha < unaHoraAntesSalida) {
+      if (date < oneHourBeforeExit) {
         return {
-          activo: true,
-          tipo: ModoRegistro.Entrada,
-          razon: "Entry registration period",
+          active: true,
+          type: ModoRegistro.Entrada,
+          reason: "Entry registration period",
         };
       } else {
         return {
-          activo: true,
-          tipo: ModoRegistro.Salida,
-          razon: "Exit registration period",
+          active: true,
+          type: ModoRegistro.Salida,
+          reason: "Exit registration period",
         };
       }
     },
-    [obtenerFechaActual]
+    [getCurrentDate]
   );
 
   // ✅ FUNCTION: Consult attendance for specific mode
-  const consultarAsistenciaModo = useCallback(
-    async (modo: ModoRegistro, razon: string): Promise<void> => {
-      if (!asistenciaIDB) {
+  const queryAttendanceMode = useCallback(
+    async (mode: ModoRegistro, reason: string): Promise<void> => {
+      if (!attendanceIDB) {
         console.log("❌ AsistenciaIDB not available");
         return;
       }
 
       // ✅ IMMEDIATE PROTECTION WITH REF
-      if (consultaEnProcesoRef.current) {
+      if (queryInProgressRef.current) {
         console.log(
-          `⏭️ QUERY ALREADY IN PROGRESS - BLOCKING ${modo} (${razon})`
+          `⏭️ QUERY ALREADY IN PROGRESS - BLOCKING ${mode} (${reason})`
         );
         return;
       }
 
       try {
-        console.log(`🔍 CONSULTING ${modo} - Reason: ${razon}`);
+        console.log(`🔍 CONSULTING ${mode} - Reason: ${reason}`);
 
         // ✅ BLOCK IMMEDIATELY
-        consultaEnProcesoRef.current = true;
-        setConsultaInicialEnProceso(true);
+        queryInProgressRef.current = true;
+        setInitialQueryInProgress(true);
 
-        const resultado = await asistenciaIDB.consultarMiAsistenciaDeHoy(
-          modo,
-          rol
+        const result = await attendanceIDB.consultarMiAsistenciaDeHoy(
+          mode,
+          role
         );
 
-        console.log(`✅ Result ${modo}:`, {
-          marcada: resultado.marcada,
-          fuente: resultado.fuente,
+        console.log(`✅ Result ${mode}:`, {
+          marked: result.marcada,
+          source: result.fuente,
         });
 
-        setAsistencia((prev) => ({
+        setAttendance((prev) => ({
           ...prev,
-          entradaMarcada:
-            modo === ModoRegistro.Entrada
-              ? resultado.marcada
-              : prev.entradaMarcada,
-          salidaMarcada:
-            modo === ModoRegistro.Salida
-              ? resultado.marcada
-              : prev.salidaMarcada,
-          inicializado: true,
+          entryMarked:
+            mode === ModoRegistro.Entrada ? result.marcada : prev.entryMarked,
+          exitMarked:
+            mode === ModoRegistro.Salida ? result.marcada : prev.exitMarked,
+          initialized: true,
         }));
 
-        setConsultaInicialCompletada(true);
+        setInitialQueryCompleted(true);
       } catch (error) {
-        console.error(`❌ Error consulting ${modo}:`, error);
+        console.error(`❌ Error consulting ${mode}:`, error);
       } finally {
         // ✅ ALWAYS RELEASE LOCKS
-        consultaEnProcesoRef.current = false;
-        setConsultaInicialEnProceso(false);
+        queryInProgressRef.current = false;
+        setInitialQueryInProgress(false);
       }
     },
-    [asistenciaIDB, rol]
+    [attendanceIDB, role]
   );
 
   // ✅ NEW FUNCTION: Refresh attendance immediately
-  const refrescarAsistencia = useCallback(async (): Promise<void> => {
+  const refreshAttendance = useCallback(async (): Promise<void> => {
     if (
-      !asistenciaIDB ||
-      !horario ||
-      rol === RolesSistema.Directivo ||
-      rol === RolesSistema.Responsable
+      !attendanceIDB ||
+      !schedule ||
+      role === RolesSistema.Directivo ||
+      role === RolesSistema.Responsable
     ) {
       console.log(
         "❌ Cannot refresh: missing data or is Director/Guardian"
@@ -260,306 +253,306 @@ export const useAsistenciaCompartida = (
     try {
       console.log("🔄 REFRESHING ATTENDANCE IMMEDIATELY...");
 
-      const modoActual = determinarModoActual(horario);
+      const currentMode = determineCurrentMode(schedule);
 
-      if (modoActual.activo && modoActual.tipo) {
+      if (currentMode.active && currentMode.type) {
         // Consult both modes to ensure complete synchronization
-        const [resultadoEntrada, resultadoSalida] = await Promise.all([
-          asistenciaIDB.consultarMiAsistenciaDeHoy(ModoRegistro.Entrada, rol),
-          asistenciaIDB.consultarMiAsistenciaDeHoy(ModoRegistro.Salida, rol),
+        const [entryResult, exitResult] = await Promise.all([
+          attendanceIDB.consultarMiAsistenciaDeHoy(ModoRegistro.Entrada, role),
+          attendanceIDB.consultarMiAsistenciaDeHoy(ModoRegistro.Salida, role),
         ]);
 
         console.log("✅ DATA REFRESHED:", {
-          entrada: resultadoEntrada.marcada,
-          salida: resultadoSalida.marcada,
+          entry: entryResult.marcada,
+          exit: exitResult.marcada,
         });
 
-        setAsistencia({
-          entradaMarcada: resultadoEntrada.marcada,
-          salidaMarcada: resultadoSalida.marcada,
-          inicializado: true,
+        setAttendance({
+          entryMarked: entryResult.marcada,
+          exitMarked: exitResult.marcada,
+          initialized: true,
         });
       }
     } catch (error) {
       console.error("❌ Error refreshing attendance:", error);
     }
-  }, [asistenciaIDB, horario, rol, determinarModoActual]);
+  }, [attendanceIDB, schedule, role, determineCurrentMode]);
 
   // ✅ FUNCTION: Get user schedule
-  const obtenerHorario = useCallback(async () => {
-    if (rol === RolesSistema.Directivo || rol === RolesSistema.Responsable) {
-      setInicializado(true);
+  const getSchedule = useCallback(async () => {
+    if (role === RolesSistema.Directivo || role === RolesSistema.Responsable) {
+      setInitialized(true);
       return;
     }
 
     try {
-      console.log(`🔄 Getting schedule for ${rol}`);
+      console.log(`🔄 Getting schedule for ${role}`);
 
-      const datosIDB = new DatosAsistenciaHoyIDB();
-      const handler = (await datosIDB.getHandler()) as HandlerAsistenciaBase;
+      const dataIDB = new DatosAsistenciaHoyIDB();
+      const handler = (await dataIDB.getHandler()) as HandlerAsistenciaBase;
 
       if (!handler) {
         console.warn("Handler not available, retrying...");
         if (retryRef.current) clearTimeout(retryRef.current);
-        retryRef.current = setTimeout(obtenerHorario, RETRY_HORARIO_MS);
+        retryRef.current = setTimeout(getSchedule, SCHEDULE_RETRY_MS);
         return;
       }
 
-      setHandlerBase(handler);
+      setBaseHandler(handler);
 
-      let nuevoHorario: HorarioTomaAsistencia | null = null;
+      let newSchedule: HorarioTomaAsistencia | null = null;
 
-      switch (rol) {
+      switch (role) {
         case RolesSistema.ProfesorPrimaria:
-          nuevoHorario = (
+          newSchedule = (
             handler as HandlerProfesorPrimariaAsistenciaResponse
           ).getMiHorarioTomaAsistencia();
           break;
         case RolesSistema.Auxiliar:
-          nuevoHorario = (
+          newSchedule = (
             handler as HandlerAuxiliarAsistenciaResponse
           ).getMiHorarioTomaAsistencia();
           break;
         case RolesSistema.ProfesorSecundaria:
         case RolesSistema.Tutor:
-          const horarioPersonal = (
+          const personalSchedule = (
             handler as HandlerProfesorTutorSecundariaAsistenciaResponse
           ).getMiHorarioTomaAsistencia();
-          if (horarioPersonal) {
-            nuevoHorario = {
-              Inicio: horarioPersonal.Hora_Entrada_Dia_Actual,
-              Fin: horarioPersonal.Hora_Salida_Dia_Actual,
+          if (personalSchedule) {
+            newSchedule = {
+              Inicio: personalSchedule.Hora_Entrada_Dia_Actual,
+              Fin: personalSchedule.Hora_Salida_Dia_Actual,
             };
           }
           break;
         case RolesSistema.PersonalAdministrativo:
-          const horarioAdmin = (
+          const adminSchedule = (
             handler as HandlerPersonalAdministrativoAsistenciaResponse
           ).getHorarioPersonal();
-          if (horarioAdmin) {
-            nuevoHorario = {
-              Inicio: horarioAdmin.Horario_Laboral_Entrada,
-              Fin: horarioAdmin.Horario_Laboral_Salida,
+          if (adminSchedule) {
+            newSchedule = {
+              Inicio: adminSchedule.Horario_Laboral_Entrada,
+              Fin: adminSchedule.Horario_Laboral_Salida,
             };
           }
           break;
       }
 
-      if (nuevoHorario) {
-        setHorario(nuevoHorario);
-        console.log(`✅ Schedule obtained for ${rol}:`, nuevoHorario);
+      if (newSchedule) {
+        setSchedule(newSchedule);
+        console.log(`✅ Schedule obtained for ${role}:`, newSchedule);
       } else {
         console.warn(
           "Schedule not available, User does not register attendance today..."
         );
-        setHorario(null);
+        setSchedule(null);
       }
 
-      setInicializado(true);
+      setInitialized(true);
     } catch (error) {
       console.error("Error getting schedule:", error);
       if (retryRef.current) clearTimeout(retryRef.current);
-      retryRef.current = setTimeout(obtenerHorario, RETRY_HORARIO_MS);
+      retryRef.current = setTimeout(getSchedule, SCHEDULE_RETRY_MS);
     }
-  }, [rol]);
+  }, [role]);
 
   // ✅ INTELLIGENT PERIODIC CONSULTATION
-  const consultaPeriodicaInteligente = useCallback(() => {
-    if (!consultaInicialCompletada) {
+  const intelligentPeriodicQuery = useCallback(() => {
+    if (!initialQueryCompleted) {
       console.log(
         "⏭️ Waiting for initial query to complete before periodic query"
       );
       return;
     }
 
-    const modoActual = determinarModoActual(horario);
+    const currentMode = determineCurrentMode(schedule);
 
-    if (!modoActual.activo || !modoActual.tipo) {
+    if (!currentMode.active || !currentMode.type) {
       console.log("⏭️ No periodic query: mode not active");
       return;
     }
 
-    const yaSeMarco =
-      modoActual.tipo === ModoRegistro.Entrada
-        ? asistencia.entradaMarcada
-        : asistencia.salidaMarcada;
+    const alreadyMarked =
+      currentMode.type === ModoRegistro.Entrada
+        ? attendance.entryMarked
+        : attendance.exitMarked;
 
-    if (yaSeMarco) {
-      console.log(`⏭️ No periodic query: ${modoActual.tipo} already marked`);
+    if (alreadyMarked) {
+      console.log(`⏭️ No periodic query: ${currentMode.type} already marked`);
       return;
     }
 
     // ✅ ONLY CONSULT IF IT IS A DIFFERENT MODE
-    if (ultimoModoConsultado.current !== modoActual.tipo) {
+    if (lastConsultedMode.current !== currentMode.type) {
       console.log(
-        `🔄 Mode change detected: ${ultimoModoConsultado.current} → ${modoActual.tipo}`
+        `🔄 Mode change detected: ${lastConsultedMode.current} → ${currentMode.type}`
       );
-      ultimoModoConsultado.current = modoActual.tipo;
-      consultarAsistenciaModo(
-        modoActual.tipo,
+      lastConsultedMode.current = currentMode.type;
+      queryAttendanceMode(
+        currentMode.type,
         "intelligent periodic consultation"
       );
     }
   }, [
-    consultaInicialCompletada,
-    horario,
-    asistencia.entradaMarcada,
-    asistencia.salidaMarcada,
-    consultarAsistenciaModo,
-    determinarModoActual,
+    initialQueryCompleted,
+    schedule,
+    attendance.entryMarked,
+    attendance.exitMarked,
+    queryAttendanceMode,
+    determineCurrentMode,
   ]);
 
   // ✅ EMERGENCY RETRY FUNCTION
-  const reintentoForzadoEmergencia = useCallback(() => {
+  const forcedEmergencyRetry = useCallback(() => {
     console.log("🚨 FORCED EMERGENCY RETRY");
 
-    if (consultaEnProcesoRef.current) {
+    if (queryInProgressRef.current) {
       console.log("⏭️ Query already in progress, skipping emergency");
-      setTimerEmergenciaActivo(false);
+      setEmergencyTimerActive(false);
       return;
     }
 
-    if (!horario && !handlerBase) {
-      console.log("🔄 Forcing obtenerHorario()");
-      obtenerHorario();
+    if (!schedule && !baseHandler) {
+      console.log("🔄 Forcing getSchedule()");
+      getSchedule();
     }
 
-    if (!asistencia.inicializado && horario && !consultaInicialCompletada) {
+    if (!attendance.initialized && schedule && !initialQueryCompleted) {
       console.log("🔄 Executing emergency query");
-      const modoActual = determinarModoActual(horario);
-      if (modoActual.activo && modoActual.tipo) {
-        consultarAsistenciaModo(modoActual.tipo, "emergency");
+      const currentMode = determineCurrentMode(schedule);
+      if (currentMode.active && currentMode.type) {
+        queryAttendanceMode(currentMode.type, "emergency");
       }
     }
 
-    setTimerEmergenciaActivo(false);
+    setEmergencyTimerActive(false);
   }, [
-    horario,
-    handlerBase,
-    asistencia.inicializado,
-    consultaInicialCompletada,
-    obtenerHorario,
-    determinarModoActual,
-    consultarAsistenciaModo,
+    schedule,
+    baseHandler,
+    attendance.initialized,
+    initialQueryCompleted,
+    getSchedule,
+    determineCurrentMode,
+    queryAttendanceMode,
   ]);
 
   // ✅ EFFECTS
   useEffect(() => {
     console.log("🔧 INITIALIZING AsistenciaDePersonalIDB...");
-    const nuevaAsistenciaIDB = new AsistenciaDePersonalIDB("API01");
-    setAsistenciaIDB(nuevaAsistenciaIDB);
-    console.log("✅ AsistenciaDePersonalIDB initialized:", nuevaAsistenciaIDB);
+    const newAttendanceIDB = new AsistenciaDePersonalIDB("API01");
+    setAttendanceIDB(newAttendanceIDB);
+    console.log("✅ AsistenciaDePersonalIDB initialized:", newAttendanceIDB);
   }, []);
 
   useEffect(() => {
-    if (!horario && !handlerBase) {
-      obtenerHorario();
+    if (!schedule && !baseHandler) {
+      getSchedule();
     }
-  }, [horario, handlerBase, obtenerHorario]);
+  }, [schedule, baseHandler, getSchedule]);
 
   // ✅ INITIAL QUERY
   // ✅ INITIAL QUERY - CORRECTED VERSION
   useEffect(() => {
     // ✅ NEW CONDITION: Also run when initialized=true EVEN IF there is no schedule
     if (
-      inicializado && // ✅ Main change: use 'initialized' instead of 'schedule'
-      !asistencia.inicializado &&
-      reduxInicializado &&
-      !consultaInicialCompletada &&
-      !consultaInicialEnProceso
+      initialized && // ✅ Main change: use 'initialized' instead of 'schedule'
+      !attendance.initialized &&
+      reduxInitialized &&
+      !initialQueryCompleted &&
+      !initialQueryInProgress
     ) {
       console.log("🚀 STARTING INITIAL QUERY... (Redux already initialized)");
 
       // ✅ NEW LOGIC: Check if there is a schedule first
-      if (!horario) {
+      if (!schedule) {
         console.log(
           "❌ NO SCHEDULE - Marking as initialized without querying"
         );
-        setConsultaInicialCompletada(true);
-        setAsistencia((prev) => ({
+        setInitialQueryCompleted(true);
+        setAttendance((prev) => ({
           ...prev,
-          inicializado: true, // ✅ KEY: Mark as initialized even if there is no schedule
+          initialized: true, // ✅ KEY: Mark as initialized even if there is no schedule
         }));
         return;
       }
 
       // ✅ Only if there is a schedule, proceed with normal logic
-      const modoActual = determinarModoActual(horario);
+      const currentMode = determineCurrentMode(schedule);
 
-      if (modoActual.activo && modoActual.tipo) {
-        console.log("✅ EXECUTING INITIAL QUERY - Mode:", modoActual.tipo);
-        ultimoModoConsultado.current = modoActual.tipo;
-        consultarAsistenciaModo(modoActual.tipo, "shared initial query");
+      if (currentMode.active && currentMode.type) {
+        console.log("✅ EXECUTING INITIAL QUERY - Mode:", currentMode.type);
+        lastConsultedMode.current = currentMode.type;
+        queryAttendanceMode(currentMode.type, "shared initial query");
       } else {
         console.log(
           "❌ INITIAL QUERY NOT EXECUTED - Reason:",
-          modoActual.razon
+          currentMode.reason
         );
-        setConsultaInicialCompletada(true);
-        setAsistencia((prev) => ({
+        setInitialQueryCompleted(true);
+        setAttendance((prev) => ({
           ...prev,
-          inicializado: true,
+          initialized: true,
         }));
       }
     }
   }, [
-    inicializado, // ✅ Main change: use 'initialized' instead of 'schedule'
-    horario, // ✅ Keep schedule as dependency to detect changes
-    asistencia.inicializado,
-    reduxInicializado,
-    consultaInicialCompletada,
-    consultaInicialEnProceso,
-    consultarAsistenciaModo,
-    determinarModoActual,
+    initialized, // ✅ Main change: use 'initialized' instead of 'schedule'
+    schedule, // ✅ Keep schedule as dependency to detect changes
+    attendance.initialized,
+    reduxInitialized,
+    initialQueryCompleted,
+    initialQueryInProgress,
+    queryAttendanceMode,
+    determineCurrentMode,
   ]);
 
   // ✅ EMERGENCY TIMER
   useEffect(() => {
-    if (!timerEmergenciaActivo) return;
+    if (!emergencyTimerActive) return;
 
     console.log(
       `⏰ Starting emergency timer: ${
-        TIMEOUT_EMERGENCIA_REINTENTO_MS / 1000
+        EMERGENCY_RETRY_TIMEOUT_MS / 1000
       } seconds`
     );
 
-    timerEmergenciaRef.current = setTimeout(() => {
+    emergencyTimerRef.current = setTimeout(() => {
       console.log("🚨 EMERGENCY TIMEOUT REACHED");
-      reintentoForzadoEmergencia();
-    }, TIMEOUT_EMERGENCIA_REINTENTO_MS);
+      forcedEmergencyRetry();
+    }, EMERGENCY_RETRY_TIMEOUT_MS);
 
     return () => {
-      if (timerEmergenciaRef.current) {
-        clearTimeout(timerEmergenciaRef.current);
-        timerEmergenciaRef.current = null;
+      if (emergencyTimerRef.current) {
+        clearTimeout(emergencyTimerRef.current);
+        emergencyTimerRef.current = null;
       }
     };
-  }, [timerEmergenciaActivo, reintentoForzadoEmergencia]);
+  }, [emergencyTimerActive, forcedEmergencyRetry]);
 
   // ✅ PERIODIC INTERVAL
   useEffect(() => {
-    if (timerEmergenciaActivo) return;
+    if (emergencyTimerActive) return;
 
     if (
-      !asistencia.inicializado ||
-      !horario ||
-      !reduxInicializado ||
-      !consultaInicialCompletada
+      !attendance.initialized ||
+      !schedule ||
+      !reduxInitialized ||
+      !initialQueryCompleted
     ) {
       return;
     }
 
     console.log(
       `⏰ Configuring query every ${
-        INTERVALO_CONSULTA_ASISTENCIA_OPTIMIZADO_MS / (1000 * 60)
+        OPTIMIZED_ATTENDANCE_QUERY_INTERVAL_MS / (1000 * 60)
       } minutes`
     );
 
-    const intervalo = setInterval(() => {
-      consultaPeriodicaInteligente();
-    }, INTERVALO_CONSULTA_ASISTENCIA_OPTIMIZADO_MS);
+    const interval = setInterval(() => {
+      intelligentPeriodicQuery();
+    }, OPTIMIZED_ATTENDANCE_QUERY_INTERVAL_MS);
 
-    intervalRef.current = intervalo;
+    intervalRef.current = interval;
 
     return () => {
       if (intervalRef.current) {
@@ -568,52 +561,52 @@ export const useAsistenciaCompartida = (
       }
     };
   }, [
-    timerEmergenciaActivo,
-    asistencia.inicializado,
-    horario,
-    reduxInicializado,
-    consultaInicialCompletada,
-    consultaPeriodicaInteligente,
+    emergencyTimerActive,
+    attendance.initialized,
+    schedule,
+    reduxInitialized,
+    initialQueryCompleted,
+    intelligentPeriodicQuery,
   ]);
 
   // ✅ DETECT MODE CHANGE
   useEffect(() => {
     if (
-      !horaMinutoActual ||
-      !asistencia.inicializado ||
-      !horario ||
-      !reduxInicializado ||
-      !consultaInicialCompletada
+      !currentHourMinute ||
+      !attendance.initialized ||
+      !schedule ||
+      !reduxInitialized ||
+      !initialQueryCompleted
     )
       return;
 
-    if (horaMinutoActual.minuto % 10 === 0) {
+    if (currentHourMinute.minute % 10 === 0) {
       console.log(
-        `🕐 Mode change verification every 10min: ${horaMinutoActual.hora}:${horaMinutoActual.minuto}`
+        `🕐 Mode change verification every 10min: ${currentHourMinute.hour}:${currentHourMinute.minute}`
       );
 
-      const modoActual = determinarModoActual(horario, horaMinutoActual.fecha);
+      const currentMode = determineCurrentMode(schedule, currentHourMinute.date);
 
       if (
-        modoActual.activo &&
-        modoActual.tipo &&
-        ultimoModoConsultado.current !== modoActual.tipo
+        currentMode.active &&
+        currentMode.type &&
+        lastConsultedMode.current !== currentMode.type
       ) {
         console.log(
-          `🔄 MODE CHANGE DETECTED: ${ultimoModoConsultado.current} → ${modoActual.tipo}`
+          `🔄 MODE CHANGE DETECTED: ${lastConsultedMode.current} → ${currentMode.type}`
         );
-        ultimoModoConsultado.current = modoActual.tipo;
-        consultarAsistenciaModo(modoActual.tipo, "mode change by schedule");
+        lastConsultedMode.current = currentMode.type;
+        queryAttendanceMode(currentMode.type, "mode change by schedule");
       }
     }
   }, [
-    horaMinutoActual?.timestamp,
-    asistencia.inicializado,
-    horario,
-    reduxInicializado,
-    consultaInicialCompletada,
-    consultarAsistenciaModo,
-    determinarModoActual,
+    currentHourMinute?.timestamp,
+    attendance.initialized,
+    schedule,
+    reduxInitialized,
+    initialQueryCompleted,
+    queryAttendanceMode,
+    determineCurrentMode,
   ]);
 
   // ✅ CLEANUP
@@ -621,20 +614,20 @@ export const useAsistenciaCompartida = (
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
       if (retryRef.current) clearTimeout(retryRef.current);
-      if (timerEmergenciaRef.current) clearTimeout(timerEmergenciaRef.current);
+      if (emergencyTimerRef.current) clearTimeout(emergencyTimerRef.current);
     };
   }, []);
 
   // ✅ CALCULATE CURRENT MODE
-  const modoActual = determinarModoActual(horario);
+  const currentMode = determineCurrentMode(schedule);
 
   return {
-    horario,
-    handlerBase,
-    asistencia,
-    modoActual,
-    inicializado,
-    consultaInicialCompletada,
-    refrescarAsistencia, // ✅ NEW EXPOSED FUNCTION
+    schedule,
+    baseHandler,
+    attendance,
+    currentMode,
+    initialized,
+    initialQueryCompleted,
+    refreshAttendance, // ✅ NEW EXPOSED FUNCTION
   };
 };

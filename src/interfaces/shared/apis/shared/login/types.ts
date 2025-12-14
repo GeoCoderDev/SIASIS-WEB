@@ -1,5 +1,5 @@
 // =========================================
-// RUTA: /api/login
+// ROUTE: /api/login
 // =========================================
 
 import { Genero } from "../../../Genero";
@@ -7,7 +7,7 @@ import { RolesSistema } from "../../../RolesSistema";
 import { ApiResponseBase } from "../../types";
 
 /**
- * Body para la petición de login
+ * Body for the login request
  */
 export interface LoginBody {
   Nombre_Usuario: string;
@@ -15,7 +15,7 @@ export interface LoginBody {
 }
 
 /**
- * Datos retornados en login exitoso
+ * Data returned on successful login
  */
 export interface SuccessLoginData {
   Nombres: string;

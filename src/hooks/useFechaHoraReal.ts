@@ -1,10 +1,10 @@
 import { ENTORNO } from "@/constants/ENTORNO";
 import { INTERVALO_MINUTOS_SINCRONIZACION_HORA_REAL } from "@/constants/INTERVALO_MINUTOS_SINCRONIZACION_HORA_REAL";
-import { ZONA_HORARIA_LOCAL } from "@/constants/ZONA_HORARIA_LOCAL";
+import { LOCAL_TIME_ZONE } from "@/constants/ZONA_HORARIA_LOCAL";
 import {
-  fetchFechaHoraActual,
+  fetchRealCurrentDateTime,
   setTimezone,
-  updateFechaHoraActual,
+  updateRealCurrentDateTime,
 } from "@/global/state/others/fechaHoraActualReal";
 import { AppDispatch, RootState } from "@/global/store";
 import { Entorno } from "@/interfaces/shared/Entornos";
@@ -22,10 +22,10 @@ export const useFechaHoraReal = ({
   syncInterval = INTERVALO_MINUTOS_SINCRONIZACION_HORA_REAL * 60 * 1000, // X minutes
   updateInterval = 1000, // 1 second
   autoSync = ENTORNO !== Entorno.LOCAL, // If different from local, sync automatically
-  timezone = ZONA_HORARIA_LOCAL,
+  timezone = LOCAL_TIME_ZONE,
 }: UseFechaHoraRealOptions = {}) => {
   const dispatch = useDispatch<AppDispatch>();
-  const fechaHoraState = useSelector(
+  const realCurrentDateTimeState = useSelector(
     (state: RootState) => state.others.fechaHoraActualReal
   );
 
@@ -33,20 +33,20 @@ export const useFechaHoraReal = ({
   const updateIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Function to sync with server
-  const sincronizarConServidor = () => {
-    dispatch(fetchFechaHoraActual(timezone));
+  const syncWithServer = () => {
+    dispatch(fetchRealCurrentDateTime(timezone));
   };
 
   // Change timezone
-  const cambiarZonaHoraria = (nuevaZona: string) => {
-    dispatch(setTimezone({ value: nuevaZona }));
-    sincronizarConServidor();
+  const changeTimezone = (newTimezone: string) => {
+    dispatch(setTimezone({ value: newTimezone }));
+    syncWithServer();
   };
 
   // Initial and periodic synchronization
   useEffect(() => {
     if (autoSync) {
-      sincronizarConServidor();
+      syncWithServer();
 
       // Clear existing interval if there is one
       if (syncIntervalRef.current) {
@@ -55,7 +55,7 @@ export const useFechaHoraReal = ({
 
       // Configure new interval
       syncIntervalRef.current = setInterval(
-        sincronizarConServidor,
+        syncWithServer,
         syncInterval
       );
     }
@@ -77,7 +77,7 @@ export const useFechaHoraReal = ({
 
     // Configure new interval
     updateIntervalRef.current = setInterval(() => {
-      dispatch(updateFechaHoraActual());
+      dispatch(updateRealCurrentDateTime());
     }, updateInterval);
 
     return () => {
@@ -90,15 +90,15 @@ export const useFechaHoraReal = ({
 
   // We expose only the basic functions
   return {
-    sincronizarConServidor,
-    cambiarZonaHoraria,
-    error: fechaHoraState.error,
-    fechaHoraRealState: fechaHoraState,
+    syncWithServer,
+    changeTimezone,
+    error: realCurrentDateTimeState.error,
+    realCurrentDateTimeState: realCurrentDateTimeState,
     // Current state data
-    fechaHora: fechaHoraState.fechaHora,
-    formateada: fechaHoraState.formateada,
-    utilidades: fechaHoraState.utilidades,
-    inicializado: fechaHoraState.inicializado,
+    dateTime: realCurrentDateTimeState.dateTime,
+    formatted: realCurrentDateTimeState.formatted,
+    utilities: realCurrentDateTimeState.utilities,
+    initialized: realCurrentDateTimeState.initialized,
   };
 };
 

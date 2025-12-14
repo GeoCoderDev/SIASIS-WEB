@@ -8,16 +8,16 @@ import { SuccessResponseAPIBase } from "./apis/types";
 import { NivelEducativo } from "./NivelEducativo";
 import { AsistenciaEscolarDeUnDia } from "./AsistenciasEscolares";
 
-// ========== RESPUESTAS Y RESULTADOS ==========
+// ========== RESPONSES AND RESULTS ==========
 
 //////////////////////
-// RESULTADOS DIARIOS
+// DAILY RESULTS
 //////////////////////
 export interface AsistenciaDiariaDePersonalResultado {
   idUsuario: string;
   AsistenciaMarcada: boolean;
   Detalles: {
-    // Para personal
+    // For staff
     Timestamp?: number;
 
     DesfaseSegundos: number;
@@ -31,7 +31,7 @@ export interface AsistenciaDiariaEscolarResultado {
 }
 
 // ---------------------------------------------------------------
-// |               DETALLES UNITARIOS DE ASISTENCIAS             |
+// |               UNITARY ATTENDANCE DETAILS                    |
 // ---------------------------------------------------------------
 
 export interface DetallesAsistenciaUnitariaPersonal {
@@ -44,7 +44,7 @@ export interface DetallesAsistenciaUnitariaEstudiantes {
 }
 
 // ---------------------------------------------------------------
-// |               DETALLES UNITARIOS DE ASISTENCIAS             |
+// |               UNITARY ATTENDANCE DETAILS                    |
 // ---------------------------------------------------------------
 export interface RegistroAsistenciaUnitariaPersonal {
   ModoRegistro: ModoRegistro;
@@ -59,7 +59,7 @@ export interface RegistroAsistenciaUnitariaPersonal {
 }
 
 //////////////////////
-// REGISTRO MENSUAL PARA PERSONAL
+// MONTHLY RECORD FOR STAFF
 //////////////////////
 export type RegistroAsistenciaMensualPersonal = Pick<
   RegistroAsistenciaUnitariaPersonal,
@@ -79,7 +79,7 @@ export enum TipoAsistencia {
 }
 
 // ----------------------------------------------------------------------------
-// |         RELACIONADO AL ESTADO DE CADA TIPO DE TOMA DE ASISTENCIA         |
+// |         RELATED TO THE STATE OF EACH TYPE OF ATTENDANCE TAKING         |
 // ----------------------------------------------------------------------------
 export interface EstadoTomaAsistenciaResponseBody {
   TipoAsistencia: TipoAsistencia;
@@ -94,7 +94,7 @@ export interface IniciarTomaAsistenciaRequestBody {
 }
 
 // --------------------------------------------------------------------------------
-// |        ASISTENCIAS TOMADAS AGRUPADAS POR ACTOR O POR UN SOLO PERSONAL        |
+// |        ATTENDANCES TAKEN GROUPED BY ACTOR OR BY A SINGLE STAFF MEMBER        |
 // --------------------------------------------------------------------------------
 
 export interface ConsultarAsistenciasDePersonalTomadasPorRolEnRedisResponseBody {
@@ -106,61 +106,61 @@ export interface ConsultarAsistenciasDePersonalTomadasPorRolEnRedisResponseBody 
   Resultados:
     | AsistenciaDiariaDePersonalResultado[]
     | AsistenciaDiariaDePersonalResultado
-    | null; // Array para múltiples, objeto/null para unitario
+    | null; // Array for multiple, object/null for unitary
 }
 
 // --------------------------------------------------------------------------------
-// |        ASISTENCIAS TOMADAS AGRUPADAS POR ACTOR O POR UN SOLO PERSONAL        |
+// |        ATTENDANCES TAKEN GROUPED BY ACTOR OR BY A SINGLE STAFF MEMBER        |
 // --------------------------------------------------------------------------------
 /**
- * ✅ NUEVAS: Interfaces específicas para diferentes tipos de consulta desde el frontend
+ * ✅ NEW: Specific interfaces for different types of queries from the frontend
  */
 
-// Para consulta propia (solo requiere ModoRegistro)
+// For self-query (only requires ModoRegistro)
 export interface ConsultaAsistenciaPropia {
   ModoRegistro: ModoRegistro;
-  // Actor y TipoAsistencia se determinan automáticamente del token
+  // Actor and TipoAsistencia are automatically determined from the token
 }
 
-// Para consulta de cierto personal específico
+// For querying a specific staff member
 export interface ConsultaAsistenciaPersonal extends ConsultaAsistenciaPropia {
   Actor: Exclude<ActoresSistema, ActoresSistema.Estudiante>;
   TipoAsistencia: TipoAsistencia.ParaPersonal;
   idUsuario: string;
 }
 
-// Para consulta de estudiantes específicos
+// For querying specific students
 export interface ConsultaAsistenciaEstudiante {
   Actor: ActoresSistema.Estudiante;
   TipoAsistencia:
     | TipoAsistencia.ParaEstudiantesPrimaria
     | TipoAsistencia.ParaEstudiantesSecundaria;
-  idUsuario?: string; // Opcional para consulta
-  NivelEducativo?: NivelEducativo; // Requerido para consultas grupales o individuales
-  Grado?: string; // Requerido para consultas grupales o individuales
-  Seccion?: string; // Requerido para consultas grupales o individuales
+  idUsuario?: string; // Optional for query
+  NivelEducativo?: NivelEducativo; // Required for group or individual queries
+  Grado?: string; // Required for group or individual queries
+  Seccion?: string; // Required for group or individual queries
 }
 
 // ------------------------------------------------------------------------
-// |     REGISTRO DE LA ASISTENCIA DE UN ACTOR(PERSONAL / ESTUDIANTE)     |
+// |     REGISTRATION OF THE ATTENDANCE OF AN ACTOR (STAFF / STUDENT)     |
 // ------------------------------------------------------------------------
 
-// ✅ Interface principal (flexible para todos los casos)
+// ✅ Main interface (flexible for all cases)
 export interface RegistrarAsistenciaIndividualRequestBody {
-  Id_Usuario?: string; // ✅ Opcional para registro propio
-  Id_Estudiante?: string; // Solo para estudiantes
+  Id_Usuario?: string; // ✅ Optional for self-registration
+  Id_Estudiante?: string; // Only for students
   TipoAsistencia?: TipoAsistencia;
   Actor?: ActoresSistema | RolesSistema;
   ModoRegistro: ModoRegistro;
-  FechaHoraEsperadaISO?: string; // Solo para Personal(Para un calculo de desfase mas acertado)
-  desfaseSegundosAsistenciaEstudiante?: number; //Solo para estudiantes
-  NivelDelEstudiante?: NivelEducativo; // Solo para estudiantes
-  Grado?: number; // Solo para estudiantes
-  Seccion?: string; // Solo para estudiantes
+  FechaHoraEsperadaISO?: string; // Only for Staff (For a more accurate offset calculation)
+  desfaseSegundosAsistenciaEstudiante?: number; //Only for students
+  NivelDelEstudiante?: NivelEducativo; // Only for students
+  Grado?: number; // Only for students
+  Seccion?: string; // Only for students
 }
 
 // --------------------------------------------------------------------------------------
-// |     CONSULTA DE ASISTENCIAS TOMADAS AGRUPADAS POR ACTOR O PARA UN SOLO PERSONAL    |
+// |     QUERY OF ATTENDANCES TAKEN GROUPED BY ACTOR OR FOR A SINGLE STAFF MEMBER    |
 // --------------------------------------------------------------------------------------
 
 export interface RegistrarAsistenciaIndividualSuccessResponse
@@ -176,7 +176,7 @@ export interface RegistrarAsistenciaIndividualSuccessResponse
 }
 
 // ------------------------------------------------------------------------------
-// |               INTERFACES DE ASISTENCIAS MENSUALES LOCALES                  |
+// |               LOCAL MONTHLY ATTENDANCE INTERFACES                  |
 // ------------------------------------------------------------------------------
 
 export interface AsistenciaMensualPersonal {
@@ -186,7 +186,7 @@ export interface AsistenciaMensualPersonal {
   registros: Record<string, RegistroEntradaSalida>;
 }
 
-// REGISTROS DE ENTRADA/SALIDA LOCALES PARA PERSONAL
+// LOCAL ENTRY/EXIT RECORDS FOR STAFF
 export interface RegistroEntradaSalida {
   timestamp: number;
   desfaseSegundos: number;
@@ -194,7 +194,7 @@ export interface RegistroEntradaSalida {
 }
 
 // --------------------------------------------------------------------------------
-// |                   ELIMINACION DE ASISTENCIAS RECIEN TOMADAS                  |
+// |                   DELETION OF RECENTLY TAKEN ATTENDANCES                  |
 // --------------------------------------------------------------------------------
 
 export interface EliminarAsistenciaRequestBody {
@@ -203,16 +203,16 @@ export interface EliminarAsistenciaRequestBody {
   ModoRegistro: ModoRegistro;
   TipoAsistencia: TipoAsistencia;
 
-  // Fecha específica (opcional, por defecto usa fecha actual)
-  Fecha?: string; // Formato YYYY-MM-DD
+  // Specific date (optional, defaults to current date)
+  Fecha?: string; // YYYY-MM-DD format
 
-  // Para estudiantes (opcionales si no se especifican, se busca por patrón)
+  // For students (optional if not specified, searched by pattern)
   NivelEducativo?: NivelEducativo;
   Grado?: number;
   Seccion?: string;
 }
 
-// Interface para la respuesta exitosa
+// Interface for successful response
 export interface EliminarAsistenciaSuccessResponse {
   success: true;
   message: string;

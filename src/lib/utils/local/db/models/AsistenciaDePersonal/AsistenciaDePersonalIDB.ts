@@ -38,23 +38,23 @@ import { AsistenciaDePersonalAPIClient } from "./services/AsistenciaDePersonalAP
 import { AsistenciaPersonalSyncService } from "./services/AsistenciaDePersonalSyncService";
 
 /**
- * 🎯 RESPONSABILIDAD: Orquestación y coordinación de servicios
- * - Actúa como fachada principal para el manejo de asistencia de personal
- * - Coordina la interacción entre todos los servicios especializados
- * - Mantiene compatibilidad TOTAL con la interfaz original
- * - Proporciona métodos de alto nivel para operaciones complejas
+ * 🎯 RESPONSIBILITY: Orchestration and coordination of services
+ * - Acts as the main facade for handling staff attendance
+ * - Coordinates the interaction between all specialized services
+ * - Maintains TOTAL compatibility with the original interface
+ * - Provides high-level methods for complex operations
  *
- * ✨ PRINCIPIOS SOLID APLICADOS:
- * - Single Responsibility: Cada servicio tiene una responsabilidad específica
- * - Open/Closed: Extensible sin modificar código existente
- * - Liskov Substitution: Servicios intercambiables
- * - Interface Segregation: Interfaces específicas por responsabilidad
- * - Dependency Inversion: Depende de abstracciones, no de implementaciones
+ * ✨ SOLID PRINCIPLES APPLIED:
+ * - Single Responsibility: Each service has a specific responsibility
+ * - Open/Closed: Extensible without modifying existing code
+ * - Liskov Substitution: Interchangeable services
+ * - Interface Segregation: Specific interfaces for each responsibility
+ * - Dependency Inversion: Depends on abstractions, not implementations
  *
- * 🔄 COMPATIBILIDAD: Misma interfaz que AsistenciaDePersonalIDB original
+ * 🔄 COMPATIBILITY: Same interface as the original AsistenciaDePersonalIDB
  */
 export class AsistenciaDePersonalIDB {
-  // Servicios especializados
+  // Specialized services
   private mapper: AsistenciaDePersonalMapper;
   private dateHelper: AsistenciaDateHelper;
   private validator: AsistenciaDePersonalValidator;
@@ -70,7 +70,7 @@ export class AsistenciaDePersonalIDB {
     setError?: (error: ErrorResponseAPIBase | null) => void,
     setSuccessMessage?: (message: MessageProperty | null) => void
   ) {
-    // Inicializar servicios base
+    // Initialize base services
     this.mapper = new AsistenciaDePersonalMapper();
     this.dateHelper = new AsistenciaDateHelper();
     this.errorHandler = new AsistenciaDePersonalErrorHandler(
@@ -79,7 +79,7 @@ export class AsistenciaDePersonalIDB {
       setSuccessMessage
     );
 
-    // Inicializar servicios que dependen de los base
+    // Initialize services that depend on the base ones
     this.validator = new AsistenciaDePersonalValidator(this.dateHelper);
     this.repository = new AsistenciaDePersonalRepository(
       this.mapper,
@@ -100,7 +100,7 @@ export class AsistenciaDePersonalIDB {
       this.validator
     );
 
-    // Inicializar servicio de sincronización que coordina todos los demás
+    // Initialize synchronization service that coordinates all others
     this.syncService = new AsistenciaPersonalSyncService(
       this.repository,
       this.validator,
@@ -112,12 +112,12 @@ export class AsistenciaDePersonalIDB {
   }
 
   // ========================================================================================
-  // MÉTODOS PÚBLICOS PRINCIPALES (Interfaz IDÉNTICA a la versión original)
+  // MAIN PUBLIC METHODS (Interface IDENTICAL to the original version)
   // ========================================================================================
 
   /**
-   * 🚀 MÉTODO PRINCIPAL: Marca asistencia con nueva lógica optimizada
-   * Si NO existe registro mensual, guarda en cache Redis en lugar de consultar API
+   * 🚀 MAIN METHOD: Marks attendance with new optimized logic
+   * If there is NO monthly record, it saves in Redis cache instead of querying the API
    */
   public async marcarAsistencia(
     params: ParametrosMarcadoAsistencia,
@@ -130,16 +130,16 @@ export class AsistenciaDePersonalIDB {
       const { datos } = params;
       const { ModoRegistro: modoRegistro, DNI: dni, Rol: rol } = datos;
 
-      // 🎯 NUEVO: Obtener información de fecha ANTES de marcar en Redis
+      // 🎯 NEW: Get date information BEFORE marking in Redis
       const infoFecha = this.dateHelper.obtenerInfoFechaActual();
       if (!infoFecha) {
-        throw new Error("No se pudo obtener información de fecha");
+        throw new Error("Could not get date information");
       }
 
       const { diaActual, mesActual } = infoFecha;
 
-      // ✅ PASO 1: Marcar en Redis (como antes)
-      console.log(`🚀 Marcando asistencia vía API: ${dni} - ${modoRegistro}`);
+      // ✅ STEP 1: Mark in Redis (as before)
+      console.log(`🚀 Marking attendance via API: ${dni} - ${modoRegistro}`);
       const resultadoMarcado = await this.apiClient.marcarAsistenciaEnRedis(
         dni,
         rol,
@@ -148,7 +148,7 @@ export class AsistenciaDePersonalIDB {
       );
 
       if (resultadoMarcado.exitoso) {
-        // ✅ PASO 2: NUEVO - Sincronizar con registro mensual
+        // ✅ STEP 2: NEW - Synchronize with monthly record
         await this.sincronizarMarcadoConRegistroMensual(
           dni,
           rol,
@@ -159,14 +159,14 @@ export class AsistenciaDePersonalIDB {
         );
 
         console.log(
-          `✅ Asistencia marcada y sincronizada: ${resultadoMarcado.mensaje}`
+          `✅ Attendance marked and synchronized: ${resultadoMarcado.mensaje}`
         );
-        this.errorHandler.handleSuccess("Asistencia registrada exitosamente");
+        this.errorHandler.handleSuccess("Attendance registered successfully");
       } else {
         throw new Error(resultadoMarcado.mensaje);
       }
     } catch (error) {
-      console.error(`❌ Error al marcar asistencia:`, error);
+      console.error(`❌ Error marking attendance:`, error);
       this.errorHandler.handleErrorWithRecovery(error, "marcar asistencia");
       throw error;
     } finally {

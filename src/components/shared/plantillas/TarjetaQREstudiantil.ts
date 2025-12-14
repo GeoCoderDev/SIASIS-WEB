@@ -5,17 +5,17 @@ import { NOMBRE_ACTUAL_SISTEMA } from "@/constants/NOMBRE_SISTEMA";
 import { NOMBRE_INSTITUCION_PARA_TARJETAS_QR } from "@/constants/NOMBRE_INSITITUCION";
 import { EstudianteConAula } from "@/interfaces/shared/Estudiantes";
 
-export const generarTarjetaQREstudiantil = (
-  estudiante: EstudianteConAula,
+export const generateStudentQRCard = (
+  student: EstudianteConAula,
   index: number
 ): string => {
-  const nombreCorto = `${estudiante.Nombres.split(" ")[0]} ${
-    estudiante.Apellidos.split(" ")[0]
-  } ${estudiante.Apellidos.split(" ")[1]?.at(0) || ""}.`;
+  const shortName = `${student.Nombres.split(" ")[0]} ${
+    student.Apellidos.split(" ")[0]
+  } ${student.Apellidos.split(" ")[1]?.at(0) || ""}.`;
 
-  const grado = GradosTextos[estudiante.aula!.Grado].abreviado;
-  const nivel = NivelEducativoTextos[estudiante.aula!.Nivel as NivelEducativo];
-  const año = new Date().getFullYear();
+  const grade = GradosTextos[student.aula!.Grado].abreviado;
+  const level = NivelEducativoTextos[student.aula!.Nivel as NivelEducativo];
+  const year = new Date().getFullYear();
 
   return `
     <div class="student-card" style="
@@ -125,7 +125,7 @@ export const generarTarjetaQREstudiantil = (
           margin: 0;
           padding: 0;
           font-family: 'B612', Arial, sans-serif;
-        ">${nombreCorto}</h1>
+        ">${shortName}</h1>
         
         <div style="
           display: flex;
@@ -159,7 +159,7 @@ export const generarTarjetaQREstudiantil = (
           margin: -10px 0 0 0;
           margin-top: -1.8rem;
           font-family: 'B612', Arial, sans-serif;
-        ">${grado} - ${nivel}</h2>
+        ">${grade} - ${level}</h2>
         
         <div style="
           width: 67px;
@@ -174,7 +174,7 @@ export const generarTarjetaQREstudiantil = (
           box-sizing: border-box;
           position: relative;
         ">
-          <span style="margin-top: -1.2rem; position: absolute; top: 13px; left: 15px;">${año}</span>
+          <span style="margin-top: -1.2rem; position: absolute; top: 13px; left: 15px;">${year}</span>
         </div>
       </div>
     </div>

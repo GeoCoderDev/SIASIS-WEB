@@ -1,29 +1,29 @@
-export const GradosTextos: Record<
+export const GradesTexts: Record<
   number,
-  { abreviado: string; completo: string }
+  { abbreviated: string; complete: string }
 > = {
   1: {
-    abreviado: "1ro",
-    completo: "Primero",
+    abbreviated: "1st",
+    complete: "First",
   },
   2: {
-    abreviado: "2do",
-    completo: "Segundo",
+    abbreviated: "2nd",
+    complete: "Second",
   },
   3: {
-    abreviado: "3ro",
-    completo: "Tercero",
+    abbreviated: "3rd",
+    complete: "Third",
   },
   4: {
-    abreviado: "4to",
-    completo: "Cuarto",
+    abbreviated: "4th",
+    complete: "Fourth",
   },
   5: {
-    abreviado: "5to",
-    completo: "Quinto",
+    abbreviated: "5th",
+    complete: "Fifth",
   },
   6: {
-    abreviado: "6to",
-    completo: "Sexto",
+    abbreviated: "6th",
+    complete: "Sixth",
   },
 };

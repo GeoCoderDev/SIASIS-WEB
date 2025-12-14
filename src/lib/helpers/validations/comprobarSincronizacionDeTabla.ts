@@ -5,74 +5,74 @@ import { SiasisAPIS } from "@/interfaces/shared/SiasisComponents";
 import UltimaModificacionTablasIDB from "../../utils/local/db/models/UltimaModificacionTablasIDB";
 
 /**
- * Comprueba si la fecha de actualización local es mayor que la fecha de modificación remota
- * para una tabla específica
+ * Checks if the local update date is greater than the remote modification date
+ * for a specific table
  *
- * @param tablaInfo Información de la tabla a comprobar
- * @param siasisAPI API a utilizar para consultas remotas
- * @returns Promise que se resuelve con true si la actualización es más reciente que la modificación, false en caso contrario
+ * @param tablaInfo Information of the table to check
+ * @param siasisAPI API to use for remote queries
+ * @returns Promise that resolves to true if the update is more recent than the modification, false otherwise
  */
 export const comprobarSincronizacionDeTabla = async (
   tablaInfo: ITablaInfo,
   siasisAPI: SiasisAPIS | SiasisAPIS[]
 ): Promise<boolean> => {
   try {
-    // Obtener la última actualización local
+    // Get the last local update
     const ultimaActualizacion =
       await ultimaActualizacionTablasLocalesIDB.getByTabla(
         tablaInfo.nombreLocal!
       );
 
-    // Obtener la última modificación remota
+    // Get the last remote modification
     const ultimaModificacion = await new UltimaModificacionTablasIDB(
       siasisAPI
     ).getByTabla(tablaInfo.nombreRemoto!);
 
-    // Si no hay actualización local, talvez aun no se ha hecho una peticion como tal a la BD
+    // If there is no local update, maybe a request has not yet been made to the DB as such
     if (!ultimaActualizacion) {
       return true;
     }
 
-    // Si no hay modificación remota, consideramos que la actualización es más reciente
+    // If there is no remote modification, we consider that the update is more recent
     if (!ultimaModificacion) {
       return true;
     }
 
-    // Convertir la fecha de actualización local a timestamp
-    // (Ya está en zona horaria local)
+    // Convert the local update date to timestamp
+    // (It is already in local time zone)
     const fechaActualizacionLocal =
       typeof ultimaActualizacion.Fecha_Actualizacion === "number"
         ? ultimaActualizacion.Fecha_Actualizacion
         : new Date(ultimaActualizacion.Fecha_Actualizacion).getTime();
 
-    // Convertir la fecha de modificación remota (ISO string en UTC) a timestamp local
-    // Primero creamos un objeto Date que automáticamente convertirá la fecha UTC a local
+    // Convert the remote modification date (ISO string in UTC) to local timestamp
+    // First we create a Date object that will automatically convert the UTC date to local
     const fechaModificacionUTC = new Date(
       ultimaModificacion.Fecha_Modificacion
     );
 
-    // Luego obtenemos el timestamp local que ya tiene en cuenta la diferencia horaria
+    // Then we get the local timestamp that already takes into account the time difference
     const fechaModificacionRemota = fechaModificacionUTC.getTime();
 
-    // Mostrar información para depuración
+    // Show information for debugging
     console.log(
-      "Fecha actualización local:",
+      "Local update date:",
       new Date(fechaActualizacionLocal).toLocaleString()
     );
     console.log(
-      "Fecha modificación remota (convertida a local):",
+      "Remote modification date (converted to local):",
       new Date(fechaModificacionRemota).toLocaleString()
     );
 
-    // Si la fecha de actualizacion remota es mayor que la local, significa que la tabla remota ha sido modificada más recientemente
-    // y por lo tanto la tabla local necesita ser actualizada
+    // If the remote update date is greater than the local one, it means that the remote table has been modified more recently
+    // and therefore the local table needs to be updated
     return fechaActualizacionLocal < fechaModificacionRemota;
   } catch (error) {
     console.error(
-      "Error al comparar fechas de actualización y modificación:",
+      "Error comparing update and modification dates:",
       error
     );
-    return false; // En caso de error, asumimos que la actualización no es más reciente
+    return false; // In case of error, we assume that the update is not more recent
   }
 };
 

@@ -52,17 +52,17 @@ export const getRandomRedisClient = (
     const instances = redisInstances[grupoInstancias];
     if (!instances || instances.length === 0) {
       throw new Error(
-        `No hay instancias disponibles para el grupo de instancias: ${grupoInstancias}`
+        `No available instances for instance group: ${grupoInstancias}`
       );
     }
 
     const randomIndex = Math.floor(Math.random() * instances.length);
     return instances[randomIndex];
   } else {
-    // Si no se especifica tipo, elegimos aleatoriamente entre todas las instancias
+    // If no type is specified, we randomly choose from all instances
     const allInstances = Object.values(redisInstances).flat();
     if (allInstances.length === 0) {
-      throw new Error("No hay instancias de Redis disponibles");
+      throw new Error("No Redis instances available");
     }
 
     const randomIndex = Math.floor(Math.random() * allInstances.length);
@@ -207,7 +207,7 @@ export const checkConsistency = async (
     }
   });
 
-  // Verificar si todos los valores son iguales
+  // Check if all values are equal
   const firstValue = values[0];
   const isConsistent = values.every(
     (value) => JSON.stringify(value) === JSON.stringify(firstValue)
@@ -237,9 +237,9 @@ export const redisClient = (grupoInstancias?: GruposIntanciasDeRedis) => {
         } else {
           await setInAllInstances(key, value, expireIn);
         }
-        return "OK"; // Devuelve "OK" para mantener compatibilidad
+        return "OK"; // Returns "OK" to maintain compatibility
       } catch (error) {
-        console.error("Error en operación SET:", error);
+        console.error("Error in SET operation:", error);
         throw error;
       }
     },
@@ -311,7 +311,7 @@ export const redisClient = (grupoInstancias?: GruposIntanciasDeRedis) => {
         return await checkConsistency(grupoInstancias, key);
       } else {
         throw new Error(
-          "checkConsistency requiere especificar un grupo de instancias"
+          "checkConsistency requires specifying an instance group"
         );
       }
     },

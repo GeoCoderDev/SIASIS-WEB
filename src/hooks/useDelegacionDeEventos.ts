@@ -3,8 +3,8 @@ import { TypeEventAvailable } from "@/lib/utils/interfaces/TypeEventAvailable";
 import { useEffect, useState } from "react";
 
 
-export const useDelegacionEventos = () => {
-  const [delegarEvento, setDelegarEvento] =
+export const useEventDelegation = () => {
+  const [delegateEvent, setDelegateEvent] =
     useState<
       (
         typeEvent: TypeEventAvailable,
@@ -13,22 +13,22 @@ export const useDelegacionEventos = () => {
         except?: boolean
       ) => number
     >();
-  const [eliminarEvento, setEliminarEvento] =
-    useState<(typeEvent: TypeEventAvailable, idEvento: number) => void>();
+  const [removeEvent, setRemoveEvent] =
+    useState<(typeEvent: TypeEventAvailable, eventId: number) => void>();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       import("../lib/utils/delegacionEventos").then(({ initializeDelegacion }) => {
         const {
-          delegarEvento: delegarEventoRec,
-          eliminarEventoDelegado: eliminarEventoRec,
+          delegarEvento: delegateEventRec,
+          eliminarEventoDelegado: removeEventRec,
         } = initializeDelegacion();
 
-        setDelegarEvento(() => delegarEventoRec);
-        setEliminarEvento(() => eliminarEventoRec);
+        setDelegateEvent(() => delegateEventRec);
+        setRemoveEvent(() => removeEventRec);
       });
     }
   }, []);
 
-  return { delegarEvento, eliminarEvento };
+  return { delegateEvent, removeEvent };
 };

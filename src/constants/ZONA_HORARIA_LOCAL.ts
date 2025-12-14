@@ -1,1 +1,1 @@
-export const ZONA_HORARIA_LOCAL = "America/Lima";
+export const LOCAL_TIME_ZONE = "America/Lima";

@@ -6,6 +6,6 @@ export enum TiposIdentificadores {
 
 export const TiposIdentificadoresTextos: Record<TiposIdentificadores, string> = {
   [TiposIdentificadores.DNI]: "DNI",
-  [TiposIdentificadores.CARNET_EXTRANJERIA]: "Carnet de Extranjería",
-  [TiposIdentificadores.CODIGO_ESCUELA]: "Código de Escuela",
+  [TiposIdentificadores.CARNET_EXTRANJERIA]: "Foreigner's ID",
+  [TiposIdentificadores.CODIGO_ESCUELA]: "School Code",
 };

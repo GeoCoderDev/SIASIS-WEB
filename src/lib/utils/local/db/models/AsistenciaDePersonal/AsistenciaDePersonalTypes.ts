@@ -6,14 +6,14 @@ import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import { ActoresSistema } from "@/interfaces/shared/ActoresSistema";
 import { TipoAsistencia } from "../../../../../../interfaces/shared/AsistenciaRequests";
 
-// Re-exportar tipos existentes para facilitar el acceso
+// Re-export existing types for easier access
 export { ModoRegistro } from "@/interfaces/shared/ModoRegistro";
 export { EstadosAsistenciaPersonal } from "@/interfaces/shared/EstadosAsistenciaPersonal";
 export { RolesSistema } from "@/interfaces/shared/RolesSistema";
 export { ActoresSistema } from "@/interfaces/shared/ActoresSistema";
 export { TipoAsistencia } from "../../../../../../interfaces/shared/AsistenciaRequests";
 
-// Enumeración para los diferentes tipos de personal
+// Enumeration for the different types of staff
 export enum TipoPersonal {
   DIRECTIVO = "directivo",
   PROFESOR_PRIMARIA = "profesor_primaria",
@@ -23,37 +23,37 @@ export enum TipoPersonal {
 }
 
 // ========================================================================================
-// ✅ INTERFACES ACTUALIZADAS PARA FLUJO INTELIGENTE
+// ✅ UPDATED INTERFACES FOR SMART FLOW
 // ========================================================================================
 
-// Interfaces para los registros de entrada/salida
+// Interfaces for entry/exit records
 export interface RegistroEntradaSalida {
   timestamp: number;
   desfaseSegundos: number;
   estado: EstadosAsistenciaPersonal;
 }
 
-// ✅ INTERFAZ PRINCIPAL ACTUALIZADA: Asistencia mensual con campo obligatorio
+// ✅ UPDATED MAIN INTERFACE: Monthly attendance with mandatory field
 export interface AsistenciaMensualPersonalLocal {
   Id_Registro_Mensual: number;
   mes: Meses;
   idUsuario_Personal: string;
   registros: Record<string, RegistroEntradaSalida>;
-  // ✅ NUEVO CAMPO OBLIGATORIO para flujo inteligente
-  ultima_fecha_actualizacion: number; // Timestamp peruano
+  // ✅ NEW MANDATORY FIELD for smart flow
+  ultima_fecha_actualizacion: number; // Peruvian timestamp
 }
 
-// ✅ NUEVA INTERFAZ: Para datos raw que vienen de API/BD (con entradas/salidas nullable)
+// ✅ NEW INTERFACE: For raw data from API/DB (with nullable entries/exits)
 export interface AsistenciaMensualPersonalRaw {
   Id_Registro_Mensual: number;
   Mes: number;
   idUsuario_Personal: string;
-  Entradas: string | null; // ✅ PERMITE NULL para 404s
-  Salidas: string | null; // ✅ PERMITE NULL para 404s
-  ultima_fecha_actualizacion: number; // ✅ OBLIGATORIO
+  Entradas: string | null; // ✅ ALLOWS NULL for 404s
+  Salidas: string | null; // ✅ ALLOWS NULL for 404s
+  ultima_fecha_actualizacion: number; // ✅ MANDATORY
 }
 
-// ✅ NUEVA INTERFAZ: Para optimización de consultas
+// ✅ NEW INTERFACE: For query optimization
 export interface EstrategiaConsulta {
   tipo: "MES_FUTURO" | "MES_ANTERIOR" | "MES_ACTUAL";
   estrategia:
@@ -69,7 +69,7 @@ export interface EstrategiaConsulta {
   usarCache?: boolean;
 }
 
-// ✅ NUEVA INTERFAZ: Para validación de datos existentes
+// ✅ NEW INTERFACE: For validation of existing data
 export interface ValidacionDatosExistentes {
   existeEnIndexedDB: boolean;
   tieneUltimaActualizacion: boolean;
@@ -78,26 +78,26 @@ export interface ValidacionDatosExistentes {
   razon: string;
 }
 
-// Interface para el resultado de operaciones
+// Interface for operation results
 export interface OperationResult {
   exitoso: boolean;
   mensaje: string;
   datos?: any;
 }
 
-// ✅ INTERFAZ ACTUALIZADA: Consulta con más información
+// ✅ UPDATED INTERFACE: Query with more information
 export interface ConsultaAsistenciaResult {
   entrada?: AsistenciaMensualPersonalLocal;
   salida?: AsistenciaMensualPersonalLocal;
   encontrado: boolean;
   mensaje: string;
-  // ✅ NUEVOS CAMPOS para diagnóstico
+  // ✅ NEW FIELDS for diagnosis
   estrategiaUsada?: string;
   fuenteDatos?: "INDEXEDDB" | "API" | "REDIS" | "CACHE_LOCAL";
   optimizado?: boolean;
 }
 
-// Interface para verificación de sincronización
+// Interface for synchronization verification
 export interface SincronizacionResult {
   estanSincronizados: boolean;
   razon: string;
@@ -107,7 +107,7 @@ export interface SincronizacionResult {
   diasEscolaresSalida: number;
 }
 
-// ✅ INTERFAZ ACTUALIZADA: Estadísticas con más información
+// ✅ UPDATED INTERFACE: Statistics with more information
 export interface SincronizacionStats {
   totalRegistros: number;
   registrosNuevos: number;
@@ -115,14 +115,14 @@ export interface SincronizacionStats {
   errores: number;
 }
 
-// Interface para configuración de servicios
+// Interface for service configuration
 export interface AsistenciaPersonalConfig {
   setIsSomethingLoading?: (isLoading: boolean) => void;
   setError?: (error: any) => void;
   setSuccessMessage?: (message: any) => void;
 }
 
-// ✅ INTERFAZ ACTUALIZADA: Cache con última actualización
+// ✅ UPDATED INTERFACE: Cache with last update
 export interface CacheData {
   clave: string;
   dni: string;
@@ -134,11 +134,11 @@ export interface CacheData {
   estado: EstadosAsistenciaPersonal;
   fecha: string;
   timestampConsulta: number;
-  // ✅ NUEVO CAMPO
+  // ✅ NEW FIELD
   ultima_fecha_actualizacion: number;
 }
 
-// Interface para consulta de cache
+// Interface for cache query
 export interface ConsultaCache {
   dni: string;
   actor: ActoresSistema;
@@ -147,7 +147,7 @@ export interface ConsultaCache {
   fecha: string;
 }
 
-// ✅ INTERFAZ ACTUALIZADA: Eliminación con más detalles
+// ✅ UPDATED INTERFACE: Deletion with more details
 export interface EliminacionResult {
   exitoso: boolean;
   mensaje: string;
@@ -156,13 +156,13 @@ export interface EliminacionResult {
   eliminadoCache: boolean;
 }
 
-// Interface para validación
+// Interface for validation
 export interface ValidacionResult {
   valido: boolean;
   errores: string[];
 }
 
-// Interface para verificación de marcado
+// Interface for marking verification
 export interface MarcadoHoyResult {
   marcado: boolean;
   timestamp?: number;
@@ -170,7 +170,7 @@ export interface MarcadoHoyResult {
   estado?: string;
 }
 
-// Interface para parámetros de marcado de asistencia
+// Interface for attendance marking parameters
 export interface ParametrosMarcadoAsistencia {
   datos: {
     ModoRegistro: ModoRegistro;
@@ -185,7 +185,7 @@ export interface ParametrosMarcadoAsistencia {
   };
 }
 
-// Interface para parámetros de eliminación
+// Interface for deletion parameters
 export interface ParametrosEliminacionAsistencia {
   idUsuario: string | number;
   rol: RolesSistema;
@@ -195,22 +195,22 @@ export interface ParametrosEliminacionAsistencia {
   siasisAPI?: "API01" | "API02";
 }
 
-// ✅ INTERFAZ ACTUALIZADA: Consulta con opciones de optimización
+// ✅ UPDATED INTERFACE: Query with optimization options
 export interface ParametrosConsultaAsistencia {
   rol: RolesSistema;
   idUsuario: string | number;
   mes: number;
-  // ✅ NUEVOS PARÁMETROS OPCIONALES para flujo inteligente
+  // ✅ NEW OPTIONAL PARAMETERS for smart flow
   forzarActualizacion?: boolean;
   saltarOptimizaciones?: boolean;
   estrategiaPersonalizada?: EstrategiaConsulta;
 }
 
 // ========================================================================================
-// ✅ TYPE GUARDS CORREGIDOS Y ACTUALIZADOS
+// ✅ FIXED AND UPDATED TYPE GUARDS
 // ========================================================================================
 
-// ✅ CORREGIDO: Usaba campo incorrecto
+// ✅ FIXED: Used incorrect field
 export function esAsistenciaMensualPersonal(
   obj: any
 ): obj is AsistenciaMensualPersonalLocal {
@@ -218,13 +218,13 @@ export function esAsistenciaMensualPersonal(
     obj &&
     typeof obj.Id_Registro_Mensual === "number" &&
     typeof obj.mes === "number" &&
-    typeof obj.idUsuario_Personal === "string" && // ✅ CORREGIDO: Era Dni_Personal
+    typeof obj.idUsuario_Personal === "string" && // ✅ FIXED: Was Dni_Personal
     typeof obj.registros === "object" &&
-    typeof obj.ultima_fecha_actualizacion === "number" // ✅ NUEVO campo obligatorio
+    typeof obj.ultima_fecha_actualizacion === "number" // ✅ NEW mandatory field
   );
 }
 
-// ✅ NUEVO: Type guard para datos raw de API/BD
+// ✅ NEW: Type guard for raw API/DB data
 export function esAsistenciaMensualPersonalRaw(
   obj: any
 ): obj is AsistenciaMensualPersonalRaw {
@@ -250,7 +250,7 @@ export function esRegistroEntradaSalida(
   );
 }
 
-// ✅ NUEVO: Type guard para estrategia de consulta
+// ✅ NEW: Type guard for query strategy
 export function esEstrategiaConsulta(obj: any): obj is EstrategiaConsulta {
   return (
     obj &&
@@ -262,10 +262,10 @@ export function esEstrategiaConsulta(obj: any): obj is EstrategiaConsulta {
 }
 
 // ========================================================================================
-// CONSTANTES Y ENUMS ACTUALIZADOS
+// UPDATED CONSTANTS AND ENUMS
 // ========================================================================================
 
-// Constantes útiles
+// Useful constants
 export const ROLES_VALIDOS_PERSONAL = [
   RolesSistema.ProfesorPrimaria,
   RolesSistema.ProfesorSecundaria,
@@ -284,7 +284,7 @@ export const ESTADOS_ASISTENCIA_VALIDOS = [
   EstadosAsistenciaPersonal.Sin_Registro,
 ] as const;
 
-// ✅ NUEVA INTERFAZ: Para consulta específica de asistencia de hoy
+// ✅ NEW INTERFACE: For specific query of today's attendance
 export interface ConsultaMiAsistenciaHoyResult {
   marcada: boolean;
   timestamp?: number;
@@ -293,7 +293,7 @@ export interface ConsultaMiAsistenciaHoyResult {
   mensaje: string;
 }
 
-// ✅ NUEVAS CONSTANTES para flujo inteligente
+// ✅ NEW CONSTANTS for smart flow
 // export const HORARIOS_CONSULTA = {
 //   INICIO_DIA_ESCOLAR: 6,
 //   FIN_ENTRADAS: 12,
@@ -316,6 +316,6 @@ export const TIPOS_CONSULTA = {
   MES_ACTUAL: "MES_ACTUAL",
 } as const;
 
-// ✅ NUEVOS TIPOS PARA RETROCOMPATIBILIDAD
+// ✅ NEW TYPES FOR BACKWARD COMPATIBILITY
 export type TipoConsulta = keyof typeof TIPOS_CONSULTA;
 export type EstrategiaConsultaTipo = keyof typeof ESTRATEGIAS_CONSULTA;

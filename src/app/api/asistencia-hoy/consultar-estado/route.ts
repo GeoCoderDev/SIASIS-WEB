@@ -5,7 +5,7 @@ import { LogoutTypes, ErrorDetailsForLogout } from "@/interfaces/LogoutTypes";
 import { verifyAuthToken } from "@/lib/utils/backend/auth/functions/jwtComprobations";
 import { redirectToLogin } from "@/lib/utils/backend/auth/functions/redirectToLogin";
 import { redisClient } from "../../../../../config/Redis/RedisClient";
-import { obtenerFechaActualPeru } from "../../_helpers/obtenerFechaActualPeru";
+import { getCurrentDateInPeru } from "../../_helpers/obtenerFechaActualPeru";
 import {
   EstadoTomaAsistenciaResponseBody,
   TipoAsistencia,
@@ -32,12 +32,12 @@ export async function GET(req: NextRequest) {
 
     // Get query parameters
     const searchParams = req.nextUrl.searchParams;
-    const tipoAsistenciaParam = searchParams.get(
+    const attendanceTypeParam = searchParams.get(
       "TipoAsistencia"
     ) as TipoAsistencia;
 
     // Validate parameters
-    if (!tipoAsistenciaParam) {
+    if (!attendanceTypeParam) {
       return NextResponse.json(
         {
           success: false,
@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
     // Validate that TipoAsistencia is valid
     if (
       !Object.values(TipoAsistencia).includes(
-        tipoAsistenciaParam as TipoAsistencia
+        attendanceTypeParam as TipoAsistencia
       )
     ) {
       return NextResponse.json(
@@ -63,14 +63,14 @@ export async function GET(req: NextRequest) {
     }
 
     // Get the current date in Peru
-    const fechaActualPeru = await obtenerFechaActualPeru();
-    const [anio, mes, dia] = fechaActualPeru.split("-").map(Number);
+    const currentPeruDate = await getCurrentDateInPeru();
+    const [year, month, day] = currentPeruDate.split("-").map(Number);
 
     // Determine the correct Redis key based on TipoAsistencia
     let redisKey;
-    const tipoAsistencia = tipoAsistenciaParam;
+    const attendanceType = attendanceTypeParam;
 
-    switch (tipoAsistencia) {
+    switch (attendanceType) {
       case TipoAsistencia.ParaPersonal:
         redisKey = NOMBRE_BANDERA_INICIO_TOMA_ASISTENCIA_PERSONAL;
         break;
@@ -89,34 +89,34 @@ export async function GET(req: NextRequest) {
 
     // Get the Redis instance corresponding to the attendance type
     const redisClientInstance = redisClient(
-      GrupoInstaciasDeRedisPorTipoAsistencia[tipoAsistencia]
+      GrupoInstaciasDeRedisPorTipoAsistencia[attendanceType]
     );
 
     // Query the value in Redis
-    const valor = await redisClientInstance.get(redisKey);
+    const value = await redisClientInstance.get(redisKey);
 
     // Determine if attendance has started - If there is no value, we simply consider that it has not started
-    const asistenciaIniciada = valor === "true";
-    console.log("test", valor);
+    const attendanceStarted = value === "true";
+    console.log("test", value);
 
     // Build the response - always return a valid response with the current status
-    const respuesta: EstadoTomaAsistenciaResponseBody = {
-      TipoAsistencia: tipoAsistencia,
-      Dia: dia,
-      Mes: mes as Meses,
-      Anio: anio,
-      AsistenciaIniciada: asistenciaIniciada,
+    const response: EstadoTomaAsistenciaResponseBody = {
+      TipoAsistencia: attendanceType,
+      Dia: day,
+      Mes: month as Meses,
+      Anio: year,
+      AsistenciaIniciada: attendanceStarted,
     };
 
-    return NextResponse.json(respuesta, { status: 200 });
+    return NextResponse.json(response, { status: 200 });
   } catch (error) {
     console.error("Error querying attendance taking status:", error);
 
     // Determine the type of error
     let logoutType: LogoutTypes | null = null;
     const errorDetails: ErrorDetailsForLogout = {
-      mensaje: "Error querying attendance taking status",
-      origen: "api/estado-toma-asistencia",
+      message: "Error querying attendance taking status",
+      origin: "api/estado-toma-asistencia",
       timestamp: Date.now(),
       siasisComponent: "RDP04",
     };
@@ -128,11 +128,11 @@ export async function GET(req: NextRequest) {
         error.message.includes("Redis connection failed") ||
         error.message.includes("Redis connection timed out")
       ) {
-        logoutType = LogoutTypes.ERROR_SISTEMA;
-        errorDetails.mensaje = "Error connecting to the data system";
+        logoutType = LogoutTypes.SYSTEM_ERROR;
+        errorDetails.message = "Error connecting to the data system";
       }
 
-      errorDetails.mensaje += `: ${error.message}`;
+      errorDetails.message += `: ${error.message}`;
     }
 
     // If we identify a critical error, redirect to login

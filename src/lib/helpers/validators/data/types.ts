@@ -1,7 +1,7 @@
 import { ValidationErrorTypes } from "../../../../interfaces/shared/errors";
 
 /**
- * Tipo para los resultados de validación
+ * Type for validation results
  */
 export type ValidationResult = {
   isValid: boolean;
@@ -10,7 +10,7 @@ export type ValidationResult = {
 };
 
 /**
- * Tipo para los validadores configurados en el sistema
+ * Type for validators configured in the system
  */
 export type ValidatorConfig = {
   field: string;

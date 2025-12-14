@@ -1,8 +1,8 @@
 /**
- * Calcula la diferencia entre dos fechas
- * @param fechaInicio Fecha de inicio
- * @param fechaFin Fecha de fin
- * @returns Objeto con la diferencia en días, horas, minutos y segundos
+ * Calculates the difference between two dates
+ * @param fechaInicio Start date
+ * @param fechaFin End date
+ * @returns Object with the difference in days, hours, minutes, and seconds
  */
 export const calcularDiferenciaEntreFechas = (
   fechaInicio: Date | string,

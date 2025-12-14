@@ -2,10 +2,10 @@ import { ValidationErrorTypes } from "../../../../interfaces/shared/errors";
 import { ValidationResult } from "./types";
 
 /**
- * Valida un DNI peruano
- * @param value - Valor a validar
- * @param required - Indica si el campo es obligatorio
- * @returns Resultado de la validación
+ * Validates a Peruvian DNI
+ * @param value - Value to validate
+ * @param required - Indicates if the field is mandatory
+ * @returns Validation result
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function validateDNI(value: any, required: boolean): ValidationResult {
@@ -13,7 +13,7 @@ export function validateDNI(value: any, required: boolean): ValidationResult {
     return {
       isValid: false,
       errorType: ValidationErrorTypes.FIELD_REQUIRED,
-      errorMessage: "El DNI es requerido",
+      errorMessage: "The DNI is required",
     };
   }
 
@@ -25,7 +25,7 @@ export function validateDNI(value: any, required: boolean): ValidationResult {
     return {
       isValid: false,
       errorType: ValidationErrorTypes.INVALID_FORMAT,
-      errorMessage: "El DNI debe ser una cadena de texto",
+      errorMessage: "The DNI must be a string",
     };
   }
 
@@ -34,7 +34,7 @@ export function validateDNI(value: any, required: boolean): ValidationResult {
     return {
       isValid: false,
       errorType: ValidationErrorTypes.INVALID_DNI,
-      errorMessage: "El DNI debe contener exactamente 8 dígitos numéricos",
+      errorMessage: "The DNI must contain exactly 8 numeric digits",
     };
   }
 

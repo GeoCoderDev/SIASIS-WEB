@@ -22,18 +22,18 @@ import { AsistenciaDePersonalAPIClient } from "./AsistenciaDePersonalAPIClient";
 import { AsistenciaDePersonalValidator } from "./AsistenciaDePersonalValidator";
 
 /**
- * 🎯 RESPONSABILIDAD: Manejo del cache de asistencias
- * - Gestionar cache de asistencias de hoy (Redis local)
- * - Integrar datos del cache con registros mensuales
- * - Consultar y actualizar cache
- * - Limpiar cache obsoleto
- * - 🆕 ELIMINAR AUTOMÁTICAMENTE registros del día anterior en cada operación CRUD
+ * 🎯 RESPONSIBILITY: Attendance cache management
+ * - Manage today's attendance cache (local Redis)
+ * - Integrate cache data with monthly records
+ * - Query and update cache
+ * - Clean up obsolete cache
+ * - 🆕 AUTOMATICALLY DELETE records from the previous day in each CRUD operation
  */
 export class AsistenciaDePersonalCacheManager {
   private cacheAsistenciasHoy: AsistenciasTomadasHoyIDB;
   private mapper: AsistenciaDePersonalMapper;
   private dateHelper: AsistenciaDateHelper;
-  private ultimaLimpiezaDiaAnterior: string | null = null; // 🆕 Evita limpiezas duplicadas
+  private ultimaLimpiezaDiaAnterior: string | null = null; // 🆕 Avoids duplicate cleanups
   private apiClient: AsistenciaDePersonalAPIClient;
   private validator: AsistenciaDePersonalValidator;
 
@@ -49,7 +49,7 @@ export class AsistenciaDePersonalCacheManager {
     this.cacheAsistenciasHoy = new AsistenciasTomadasHoyIDB(this.dateHelper);
     this.validator = validator;
     this.limpiarControlesRedisAntiguos();
-    // Inicializar rutinas de mantenimiento del cache
+    // Initialize cache maintenance routines
     // this.cacheAsistenciasHoy.inicializarMantenimiento();
   }
 
@@ -59,43 +59,43 @@ export class AsistenciaDePersonalCacheManager {
 
       if (!fechaHoy) {
         console.warn(
-          "⚠️ No se pudo obtener la fecha actual para limpieza automática"
+          "⚠️ Could not get the current date for automatic cleanup"
         );
         return;
       }
 
-      // 🚀 OPTIMIZACIÓN: Evitar limpiezas duplicadas el mismo día
+      // 🚀 OPTIMIZATION: Avoid duplicate cleanups on the same day
       if (this.ultimaLimpiezaDiaAnterior === fechaHoy) {
         console.log(
-          `⏭️ Limpieza de días anteriores ya ejecutada hoy: ${fechaHoy}`
+          `⏭️ Cleanup of previous days already executed today: ${fechaHoy}`
         );
         return;
       }
 
       console.log(
-        `🧹 Limpiando TODAS las asistencias anteriores a: ${fechaHoy}`
+        `🧹 Cleaning ALL attendances prior to: ${fechaHoy}`
       );
 
-      // ✅ UNA SOLA LLAMADA elimina todo lo anterior al día de hoy
+      // ✅ A SINGLE CALL deletes everything prior to today
       const eliminadas =
         await this.cacheAsistenciasHoy.limpiarAsistenciasAnterioresA(fechaHoy);
 
-      // 📝 MARCAR como ejecutada para evitar duplicados
+      // 📝 MARK as executed to avoid duplicates
       this.ultimaLimpiezaDiaAnterior = fechaHoy;
 
       console.log(
-        `✅ Limpieza automática completada: ${eliminadas} registros eliminados`
+        `✅ Automatic cleanup completed: ${eliminadas} records deleted`
       );
     } catch (error) {
       console.error(
-        "❌ Error en limpieza automática de días anteriores:",
+        "❌ Error in automatic cleanup of previous days:",
         error
       );
     }
   }
 
   /**
-   * ✅ CORREGIDO: Consulta cache con fecha correcta
+   * ✅ FIXED: Query cache with correct date
    */
   public async consultarCacheAsistenciaHoy(
     actor: ActoresSistema,
@@ -104,7 +104,7 @@ export class AsistenciaDePersonalCacheManager {
     fecha: string
   ): Promise<AsistenciaPersonalHoy | null> {
     try {
-      // 🆕 LIMPIAR día anterior automáticamente
+      // 🆕 Automatically clean previous day
       await this.limpiarDiasAnterioresAutomaticamente();
 
       const consulta: ConsultaAsistenciaHoy = {
@@ -116,7 +116,7 @@ export class AsistenciaDePersonalCacheManager {
       };
 
       console.log(
-        `🔍 Consultando cache con fecha VERIFICADA: ${fecha} - ${actor} - ${modoRegistro} - ${idUsuario}`
+        `🔍 Querying cache with VERIFIED date: ${fecha} - ${actor} - ${modoRegistro} - ${idUsuario}`
       );
 
       const resultado = await this.cacheAsistenciasHoy.consultarAsistencia(
@@ -143,36 +143,36 @@ export class AsistenciaDePersonalCacheManager {
   }
 
   /**
-   * Guarda asistencia en el cache
-   * 🆕 INCLUYE limpieza automática del día anterior
+   * Saves attendance in the cache
+   * 🆕 INCLUDES automatic cleanup of the previous day
    */
   public async guardarAsistenciaEnCache(
     asistencia: AsistenciaPersonalHoy
   ): Promise<OperationResult> {
     try {
-      // 🆕 LIMPIAR día anterior automáticamente
+      // 🆕 Automatically clean previous day
       await this.limpiarDiasAnterioresAutomaticamente();
 
       await this.cacheAsistenciasHoy.guardarAsistencia(asistencia);
 
       return {
         exitoso: true,
-        mensaje: "Asistencia guardada en cache exitosamente",
+        mensaje: "Attendance saved in cache successfully",
         datos: asistencia.clave,
       };
     } catch (error) {
-      console.error("Error al guardar asistencia en cache:", error);
+      console.error("Error saving attendance in cache:", error);
       return {
         exitoso: false,
-        mensaje: `Error al guardar en cache: ${
-          error instanceof Error ? error.message : "Error desconocido"
+        mensaje: `Error saving to cache: ${
+          error instanceof Error ? error.message : "Unknown error"
         }`,
       };
     }
   }
 
   /**
-   * ✅ NUEVO: Integra datos directos de Redis con registros históricos
+   * ✅ NEW: Integrates direct data from Redis with historical records
    */
   public async integrarDatosDirectosDeRedis(
     registroEntrada: AsistenciaMensualPersonalLocal | null,
@@ -205,13 +205,13 @@ export class AsistenciaDePersonalCacheManager {
           entrada: entradaFinal || undefined,
           salida: salidaFinal || undefined,
           integrado: false,
-          mensaje: "No se pudo obtener fecha actual",
+          mensaje: "Could not get current date",
         };
       }
 
       const actor = this.mapper.obtenerActorDesdeRol(rol);
 
-      // Integrar entrada desde Redis
+      // Integrate entry from Redis
       if (datosRedis.encontradoEntrada && datosRedis.entrada?.Resultados) {
         const resultado = Array.isArray(datosRedis.entrada.Resultados)
           ? datosRedis.entrada.Resultados[0]
@@ -227,7 +227,7 @@ export class AsistenciaDePersonalCacheManager {
             ModoRegistro.Entrada
           );
 
-          // ✅ CREAR Y GUARDAR EN CACHE LOCAL
+          // ✅ CREATE AND SAVE IN LOCAL CACHE
           const asistenciaEntrada = this.crearAsistenciaParaCache(
             String(idUsuario),
             actor,
@@ -240,7 +240,7 @@ export class AsistenciaDePersonalCacheManager {
 
           await this.guardarAsistenciaEnCache(asistenciaEntrada);
 
-          // ✅ INTEGRAR EN REGISTRO MENSUAL
+          // ✅ INTEGRATE INTO MONTHLY RECORD
           entradaFinal = this.integrarDatosDeCacheEnRegistroMensual(
             entradaFinal,
             asistenciaEntrada,
@@ -252,12 +252,12 @@ export class AsistenciaDePersonalCacheManager {
 
           integrado = true;
           console.log(
-            `✅ Entrada integrada desde Redis y guardada en cache: ${estado}`
+            `✅ Entry integrated from Redis and saved in cache: ${estado}`
           );
         }
       }
 
-      // Integrar salida desde Redis
+      // Integrate exit from Redis
       if (datosRedis.encontradoSalida && datosRedis.salida?.Resultados) {
         const resultado = Array.isArray(datosRedis.salida.Resultados)
           ? datosRedis.salida.Resultados[0]
@@ -273,7 +273,7 @@ export class AsistenciaDePersonalCacheManager {
             ModoRegistro.Salida
           );
 
-          // ✅ CREAR Y GUARDAR EN CACHE LOCAL
+          // ✅ CREATE AND SAVE IN LOCAL CACHE
           const asistenciaSalida = this.crearAsistenciaParaCache(
             String(idUsuario),
             actor,
@@ -286,7 +286,7 @@ export class AsistenciaDePersonalCacheManager {
 
           await this.guardarAsistenciaEnCache(asistenciaSalida);
 
-          // ✅ INTEGRAR EN REGISTRO MENSUAL
+          // ✅ INTEGRATE INTO MONTHLY RECORD
           salidaFinal = this.integrarDatosDeCacheEnRegistroMensual(
             salidaFinal,
             asistenciaSalida,
@@ -298,14 +298,14 @@ export class AsistenciaDePersonalCacheManager {
 
           integrado = true;
           console.log(
-            `✅ Salida integrada desde Redis y guardada en cache: ${estado}`
+            `✅ Exit integrated from Redis and saved in cache: ${estado}`
           );
         }
       }
 
       const mensaje = integrado
-        ? "Datos integrados desde Redis y guardados en cache local"
-        : "No se encontraron datos nuevos en Redis";
+        ? "Data integrated from Redis and saved in local cache"
+        : "No new data found in Redis";
 
       return {
         entrada: entradaFinal || undefined,
@@ -314,21 +314,21 @@ export class AsistenciaDePersonalCacheManager {
         mensaje,
       };
     } catch (error) {
-      console.error("❌ Error al integrar datos directos de Redis:", error);
+      console.error("❌ Error integrating direct data from Redis:", error);
       return {
         entrada: registroEntrada || undefined,
         salida: registroSalida || undefined,
         integrado: false,
-        mensaje: `Error en integración: ${
-          error instanceof Error ? error.message : "Error desconocido"
+        mensaje: `Integration error: ${
+          error instanceof Error ? error.message : "Unknown error"
         }`,
       };
     }
   }
 
   /**
-   * Integra datos del cache en el registro mensual
-   * ✅ SIN CAMBIOS: No requiere limpieza adicional
+   * Integrates cache data into the monthly record
+   * ✅ NO CHANGES: No additional cleanup required
    */
   public integrarDatosDeCacheEnRegistroMensual(
     registroMensual: AsistenciaMensualPersonalLocal | null,
@@ -338,17 +338,17 @@ export class AsistenciaDePersonalCacheManager {
     idUsuario: string | number,
     fecha: string
   ): AsistenciaMensualPersonalLocal {
-    // Si no existe registro mensual, crear uno nuevo
+    // If there is no monthly record, create a new one
     if (!registroMensual) {
       const fechaObj = new Date(fecha);
       const mes = (fechaObj.getMonth() + 1) as Meses;
 
       console.log(
-        `📝 Creando nuevo registro mensual para ${idUsuario} - mes ${mes}`
+        `📝 Creating new monthly record for ${idUsuario} - month ${mes}`
       );
 
       registroMensual = {
-        Id_Registro_Mensual: 0, // ID temporal
+        Id_Registro_Mensual: 0, // Temporary ID
         mes,
         idUsuario_Personal: String(idUsuario),
         registros: {},
@@ -356,7 +356,7 @@ export class AsistenciaDePersonalCacheManager {
       };
     }
 
-    // Agregar/actualizar el día actual con datos del cache
+    // Add/update the current day with cache data
     const registroDia: RegistroEntradaSalida = {
       timestamp: datosCache.timestamp,
       desfaseSegundos: datosCache.desfaseSegundos,
@@ -366,15 +366,15 @@ export class AsistenciaDePersonalCacheManager {
     registroMensual.registros[diaActual.toString()] = registroDia;
 
     console.log(
-      `🔄 Día ${diaActual} integrado desde cache: ${datosCache.estado} (timestamp: ${datosCache.timestamp})`
+      `🔄 Day ${diaActual} integrated from cache: ${datosCache.estado} (timestamp: ${datosCache.timestamp})`
     );
 
     return registroMensual;
   }
 
   /**
-   * Combina datos históricos (IndexedDB) con datos del día actual (cache Redis)
-   * 🆕 INCLUYE limpieza automática del día anterior
+   * Combines historical data (IndexedDB) with current day data (Redis cache)
+   * 🆕 INCLUDES automatic cleanup of the previous day
    */
   public async combinarDatosHistoricosYActuales(
     registroEntrada: AsistenciaMensualPersonalLocal | null,
@@ -390,24 +390,24 @@ export class AsistenciaDePersonalCacheManager {
     encontrado: boolean;
     mensaje: string;
   }> {
-    // 🆕 LIMPIAR día anterior automáticamente
+    // 🆕 Automatically clean previous day
     await this.limpiarDiasAnterioresAutomaticamente();
 
     let entradaFinal = registroEntrada;
     let salidaFinal = registroSalida;
     let encontradoEnCache = false;
 
-    // Integración cache: Solo para consultas del mes actual
+    // Cache integration: Only for current month queries
     if (esConsultaMesActual) {
       console.log(
-        `🔍 Consultando cache Redis para el día actual (${diaActual})...`
+        `🔍 Querying Redis cache for the current day (${diaActual})...`
       );
 
       const actor = this.mapper.obtenerActorDesdeRol(rol);
       const fechaHoy = this.dateHelper.obtenerFechaStringActual();
 
       if (fechaHoy) {
-        // Consultar cache para entrada y salida del día actual
+        // Query cache for current day's entry and exit
         const [entradaCache, salidaCache] = await Promise.all([
           this.consultarCacheAsistenciaHoyDirecto(
             actor,
@@ -423,9 +423,9 @@ export class AsistenciaDePersonalCacheManager {
           ),
         ]);
 
-        // Integrar entrada desde cache
+        // Integrate entry from cache
         if (entradaCache) {
-          console.log(`📱 Entrada del día actual encontrada en cache`);
+          console.log(`📱 Current day's entry found in cache`);
           entradaFinal = this.integrarDatosDeCacheEnRegistroMensual(
             entradaFinal,
             entradaCache,
@@ -437,9 +437,9 @@ export class AsistenciaDePersonalCacheManager {
           encontradoEnCache = true;
         }
 
-        // Integrar salida desde cache
+        // Integrate exit from cache
         if (salidaCache) {
-          console.log(`📱 Salida del día actual encontrada en cache`);
+          console.log(`📱 Current day's exit found in cache`);
           salidaFinal = this.integrarDatosDeCacheEnRegistroMensual(
             salidaFinal,
             salidaCache,
@@ -457,7 +457,7 @@ export class AsistenciaDePersonalCacheManager {
     let mensaje = mensajeBase;
 
     if (encontradoEnCache) {
-      mensaje += " + datos del día actual desde cache Redis";
+      mensaje += " + data for the current day from Redis cache";
     }
 
     return {
@@ -468,11 +468,11 @@ export class AsistenciaDePersonalCacheManager {
     };
   }
 
-  // ✅ NUEVO: Control centralizado de consultas Redis
+  // ✅ NEW: Centralized control of Redis queries
   private static consultasRedisControlGlobal: Map<string, number> = new Map();
 
   /**
-   * ✅ NUEVO: Verifica si ya se consultó Redis para esta persona/fecha/rango
+   * ✅ NEW: Checks if Redis has already been queried for this person/date/range
    */
   private generarClaveControlRedis(
     idUsuario: string | number,
@@ -483,7 +483,7 @@ export class AsistenciaDePersonalCacheManager {
   }
 
   /**
-   * ✅ NUEVO: Verifica si ya se consultó Redis en este rango
+   * ✅ NEW: Checks if Redis has already been queried in this range
    */
   public yaSeConsultoRedisEnRango(
     idUsuario: string | number,
@@ -501,7 +501,7 @@ export class AsistenciaDePersonalCacheManager {
       return {
         yaConsultado: false,
         ultimaConsulta: null,
-        razon: "No se pudo obtener fecha actual",
+        razon: "Could not get current date",
       };
     }
 
@@ -519,7 +519,7 @@ export class AsistenciaDePersonalCacheManager {
       return {
         yaConsultado: false,
         ultimaConsulta: null,
-        razon: `Primera consulta Redis para ${estrategia} en rango ${rangoActual.rango}`,
+        razon: `First Redis query for ${estrategia} in range ${rangoActual.rango}`,
       };
     }
 
@@ -529,12 +529,12 @@ export class AsistenciaDePersonalCacheManager {
     return {
       yaConsultado: controlRango.yaConsultado,
       ultimaConsulta,
-      razon: `${controlRango.razon} (control global)`,
+      razon: `${controlRango.razon} (global control)`,
     };
   }
 
   /**
-   * ✅ NUEVO: Marca que se consultó Redis en este momento
+   * ✅ NEW: Marks that Redis was queried at this moment
    */
   public marcarConsultaRedisRealizada(idUsuario: string | number): void {
     const fechaHoy = this.dateHelper.obtenerFechaStringActual();
@@ -554,7 +554,7 @@ export class AsistenciaDePersonalCacheManager {
       );
 
       console.log(
-        `🔒 Consulta Redis marcada: ${claveControl} - ${this.dateHelper.formatearTimestampLegible(
+        `🔒 Redis query marked: ${claveControl} - ${this.dateHelper.formatearTimestampLegible(
           timestampActual
         )}`
       );
@@ -562,7 +562,7 @@ export class AsistenciaDePersonalCacheManager {
   }
 
   /**
-   * ✅ NUEVO: Limpia controles de consultas de días anteriores
+   * ✅ NEW: Cleans up Redis query controls from previous days
    */
   public limpiarControlesRedisAntiguos(): void {
     const fechaHoy = this.dateHelper.obtenerFechaStringActual();
@@ -588,14 +588,14 @@ export class AsistenciaDePersonalCacheManager {
 
     if (clavesAEliminar.length > 0) {
       console.log(
-        `🧹 Limpieza controles Redis antiguos: ${clavesAEliminar.length} eliminados`
+        `🧹 Cleanup of old Redis controls: ${clavesAEliminar.length} deleted`
       );
     }
   }
 
   /**
-   * 🎯 CONSULTA INTELIGENTE: Verifica cache local primero, luego Redis si es necesario
-   * ✅ INTEGRACIÓN COMPLETA con AsistenciasTomadasHoyIDB según flowchart
+   * 🎯 SMART QUERY: Checks local cache first, then Redis if necessary
+   * ✅ FULL INTEGRATION with AsistenciasTomadasHoyIDB according to flowchart
    */
   public async consultarAsistenciaConFallbackRedis(
     rol: RolesSistema,
@@ -609,7 +609,7 @@ export class AsistenciaDePersonalCacheManager {
     mensaje: string;
   }> {
     try {
-      // 🆕 LIMPIAR día anterior automáticamente
+      // 🆕 Automatically clean previous day
       await this.limpiarDiasAnterioresAutomaticamente();
 
       const actor = this.mapper.obtenerActorDesdeRol(rol);
@@ -619,15 +619,15 @@ export class AsistenciaDePersonalCacheManager {
         return {
           encontrado: false,
           fuente: "NO_ENCONTRADO",
-          mensaje: "No se pudo obtener fecha actual",
+          mensaje: "Could not get current date",
         };
       }
 
       console.log(
-        `🔍 Consulta inteligente: ${idUsuario} - ${modoRegistro} - estrategia: ${estrategia}`
+        `🔍 Smart query: ${idUsuario} - ${modoRegistro} - strategy: ${estrategia}`
       );
 
-      // PASO 1: Consultar cache local (AsistenciasTomadasHoy)
+      // STEP 1: Query local cache (AsistenciasTomadasHoy)
       const datosCache = await this.consultarCacheAsistenciaHoyDirecto(
         actor,
         modoRegistro,
@@ -637,17 +637,17 @@ export class AsistenciaDePersonalCacheManager {
 
       if (datosCache) {
         console.log(
-          `✅ Encontrado en cache local: ${datosCache.estado} (${datosCache.dni})`
+          `✅ Found in local cache: ${datosCache.estado} (${datosCache.dni})`
         );
         return {
           encontrado: true,
           datos: datosCache,
           fuente: "CACHE_LOCAL",
-          mensaje: "Datos obtenidos de cache local",
+          mensaje: "Data obtained from local cache",
         };
       }
 
-      // PASO 2: Validar si debe consultar Redis según estrategia
+      // STEP 2: Validate if Redis should be queried according to the strategy
       const debeConsultarTipoRegistro =
         estrategia === "REDIS_COMPLETO" ||
         (estrategia === "REDIS_ENTRADAS" &&
@@ -655,17 +655,17 @@ export class AsistenciaDePersonalCacheManager {
 
       if (!debeConsultarTipoRegistro) {
         console.log(
-          `⏭️ No corresponde consultar ${modoRegistro} con estrategia ${estrategia}`
+          `⏭️ It is not appropriate to query ${modoRegistro} with strategy ${estrategia}`
         );
         return {
           encontrado: false,
           fuente: "NO_ENCONTRADO",
-          mensaje: `${modoRegistro} no incluido en estrategia ${estrategia}`,
+          mensaje: `${modoRegistro} not included in strategy ${estrategia}`,
         };
       }
 
-      // PASO 3: Consultar Redis como fallback
-      console.log(`☁️ Consultando Redis como fallback para ${modoRegistro}...`);
+      // STEP 3: Query Redis as a fallback
+      console.log(`☁️ Querying Redis as a fallback for ${modoRegistro}...`);
 
       const resultadoRedis = await this.apiClient.consultarRedisEspecifico(
         rol,
@@ -679,7 +679,7 @@ export class AsistenciaDePersonalCacheManager {
           : resultadoRedis.datos.Resultados;
 
         if (resultado?.AsistenciaMarcada && resultado.Detalles) {
-          // Crear asistencia desde datos de Redis
+          // Create attendance from Redis data
           const timestamp =
             resultado.Detalles.Timestamp ||
             this.dateHelper.obtenerTimestampPeruano();
@@ -699,43 +699,43 @@ export class AsistenciaDePersonalCacheManager {
             fechaHoy
           );
 
-          // Guardar en cache local para próximas consultas
+          // Save in local cache for future queries
           await this.guardarAsistenciaEnCache(asistenciaDesdeRedis);
 
           console.log(
-            `✅ Encontrado en Redis y guardado en cache: ${estado} (${idUsuario})`
+            `✅ Found in Redis and saved in cache: ${estado} (${idUsuario})`
           );
 
           return {
             encontrado: true,
             datos: asistenciaDesdeRedis,
             fuente: "REDIS",
-            mensaje: "Datos obtenidos de Redis y guardados en cache local",
+            mensaje: "Data obtained from Redis and saved in local cache",
           };
         }
       }
 
-      console.log(`📭 No encontrado ni en cache local ni en Redis`);
+      console.log(`📭 Not found in local cache or Redis`);
       return {
         encontrado: false,
         fuente: "NO_ENCONTRADO",
-        mensaje: "No se encontró asistencia ni en cache local ni en Redis",
+        mensaje: "Attendance not found in local cache or Redis",
       };
     } catch (error) {
-      console.error("❌ Error en consulta inteligente:", error);
+      console.error("❌ Error in smart query:", error);
       return {
         encontrado: false,
         fuente: "NO_ENCONTRADO",
-        mensaje: `Error en consulta: ${
-          error instanceof Error ? error.message : "Error desconocido"
+        mensaje: `Query error: ${
+          error instanceof Error ? error.message : "Unknown error"
         }`,
       };
     }
   }
 
   /**
-   * 🆕 MÉTODO DIRECTO de consulta al cache sin limpieza automática
-   * 🎯 PROPÓSITO: Evitar llamadas recursivas de limpieza
+   * 🆕 DIRECT METHOD to query the cache without automatic cleanup
+   * 🎯 PURPOSE: Avoid recursive cleanup calls
    */
   public async consultarCacheAsistenciaHoyDirecto(
     actor: ActoresSistema,
@@ -759,7 +759,7 @@ export class AsistenciaDePersonalCacheManager {
       return resultado as AsistenciaPersonalHoy | null;
     } catch (error) {
       console.error(
-        "Error al consultar cache de asistencias (directo):",
+        "Error querying attendance cache (direct):",
         error
       );
       return null;
@@ -767,8 +767,8 @@ export class AsistenciaDePersonalCacheManager {
   }
 
   /**
-   * Obtiene solo datos del día actual cuando no hay datos históricos
-   * 🆕 INCLUYE limpieza automática del día anterior
+   * Gets only data for the current day when there is no historical data
+   * 🆕 INCLUDES automatic cleanup of the previous day
    */
   public async obtenerSoloDatosDelDiaActual(
     rol: RolesSistema,
@@ -780,7 +780,7 @@ export class AsistenciaDePersonalCacheManager {
     encontrado: boolean;
     mensaje: string;
   }> {
-    // 🆕 LIMPIAR día anterior automáticamente
+    // 🆕 Automatically clean previous day
     await this.limpiarDiasAnterioresAutomaticamente();
 
     const actor = this.mapper.obtenerActorDesdeRol(rol);
@@ -789,12 +789,12 @@ export class AsistenciaDePersonalCacheManager {
     if (!fechaHoy) {
       return {
         encontrado: false,
-        mensaje: "No se pudo obtener la fecha actual",
+        mensaje: "Could not get current date",
       };
     }
 
     console.log(
-      `🔍 Buscando datos del día actual en cache para ${idUsuario} - ${fechaHoy}`
+      `🔍 Searching for current day data in cache for ${idUsuario} - ${fechaHoy}`
     );
 
     const [entradaCache, salidaCache] = await Promise.all([
@@ -825,7 +825,7 @@ export class AsistenciaDePersonalCacheManager {
         fechaHoy
       );
       console.log(
-        `✅ Entrada del día actual encontrada en cache: ${entradaCache.estado}`
+        `✅ Current day's entry found in cache: ${entradaCache.estado}`
       );
     }
 
@@ -839,7 +839,7 @@ export class AsistenciaDePersonalCacheManager {
         fechaHoy
       );
       console.log(
-        `✅ Salida del día actual encontrada en cache: ${salidaCache.estado}`
+        `✅ Current day's exit found in cache: ${salidaCache.estado}`
       );
     }
 
@@ -847,11 +847,11 @@ export class AsistenciaDePersonalCacheManager {
 
     if (encontrado) {
       console.log(
-        `🎯 Datos del día actual encontrados en cache: entrada=${!!entrada}, salida=${!!salida}`
+        `🎯 Current day's data found in cache: entry=${!!entrada}, exit=${!!salida}`
       );
     } else {
       console.log(
-        `❌ No se encontraron datos del día actual en cache para ${idUsuario}`
+        `❌ No current day data found in cache for ${idUsuario}`
       );
     }
 
@@ -860,14 +860,14 @@ export class AsistenciaDePersonalCacheManager {
       salida,
       encontrado,
       mensaje: encontrado
-        ? "Solo datos del día actual encontrados en cache Redis"
-        : "No se encontraron registros de asistencia para el mes consultado",
+        ? "Only current day data found in Redis cache"
+        : "No attendance records found for the consulted month",
     };
   }
 
   /**
-   * Crea asistencia para el cache a partir de datos de registro
-   * ✅ SIN CAMBIOS: No requiere limpieza adicional
+   * Creates attendance for the cache from registration data
+   * ✅ NO CHANGES: No additional cleanup required
    */
   public crearAsistenciaParaCache(
     dni: string,
@@ -900,8 +900,8 @@ export class AsistenciaDePersonalCacheManager {
   }
 
   /**
-   * Elimina asistencia del cache de asistencias de hoy
-   * 🆕 INCLUYE limpieza automática del día anterior
+   * Deletes attendance from today's attendance cache
+   * 🆕 INCLUDES automatic cleanup of the previous day
    */
   public async eliminarAsistenciaDelCache(
     idUsuario: string | number,
@@ -910,7 +910,7 @@ export class AsistenciaDePersonalCacheManager {
     fecha: string
   ): Promise<OperationResult> {
     try {
-      // 🆕 LIMPIAR día anterior automáticamente
+      // 🆕 Automatically clean previous day
       await this.limpiarDiasAnterioresAutomaticamente();
 
       const actor = this.mapper.obtenerActorDesdeRol(rol);
@@ -922,21 +922,21 @@ export class AsistenciaDePersonalCacheManager {
         fecha,
       };
 
-      // Verificar si existe en el cache
+      // Check if it exists in the cache
       const asistenciaCache =
         await this.cacheAsistenciasHoy.consultarAsistencia(consulta);
 
       if (!asistenciaCache) {
         console.log(
-          `🗄️ No se encontró asistencia en cache para ${idUsuario} - ${modoRegistro} - ${fecha}`
+          `🗄️ Attendance not found in cache for ${idUsuario} - ${modoRegistro} - ${fecha}`
         );
         return {
           exitoso: false,
-          mensaje: "No se encontró la asistencia en el cache",
+          mensaje: "Attendance not found in cache",
         };
       }
 
-      // Eliminar del cache usando la clave
+      // Delete from cache using the key
       const clave = this.mapper.generarClaveCache(
         actor,
         modoRegistro,
@@ -945,26 +945,26 @@ export class AsistenciaDePersonalCacheManager {
       );
       await this.eliminarAsistenciaEspecificaDelCache(clave);
 
-      console.log(`✅ Asistencia eliminada del cache: ${clave}`);
+      console.log(`✅ Attendance deleted from cache: ${clave}`);
       return {
         exitoso: true,
-        mensaje: "Asistencia eliminada del cache exitosamente",
+        mensaje: "Attendance deleted from cache successfully",
         datos: clave,
       };
     } catch (error) {
-      console.error("Error al eliminar asistencia del cache:", error);
+      console.error("Error deleting attendance from cache:", error);
       return {
         exitoso: false,
-        mensaje: `Error al eliminar del cache: ${
-          error instanceof Error ? error.message : "Error desconocido"
+        mensaje: `Error deleting from cache: ${
+          error instanceof Error ? error.message : "Unknown error"
         }`,
       };
     }
   }
 
   /**
-   * Elimina una asistencia específica del cache por clave
-   * ✅ SIN CAMBIOS: Método auxiliar que no requiere limpieza
+   * Deletes a specific attendance from the cache by key
+   * ✅ NO CHANGES: Auxiliary method that does not require cleaning
    */
   private async eliminarAsistenciaEspecificaDelCache(
     clave: string
@@ -980,14 +980,14 @@ export class AsistenciaDePersonalCacheManager {
         const request = store.delete(clave);
 
         request.onsuccess = () => {
-          console.log(`🗑️ Asistencia eliminada del cache: ${clave}`);
+          console.log(`🗑️ Attendance deleted from cache: ${clave}`);
           resolve();
         };
 
         request.onerror = (event) => {
           reject(
             new Error(
-              `Error al eliminar asistencia del cache: ${
+              `Error deleting attendance from cache: ${
                 (event.target as IDBRequest).error
               }`
             )
@@ -996,7 +996,7 @@ export class AsistenciaDePersonalCacheManager {
       });
     } catch (error) {
       console.error(
-        "Error al eliminar asistencia específica del cache:",
+        "Error deleting specific attendance from cache:",
         error
       );
       throw error;
@@ -1004,17 +1004,17 @@ export class AsistenciaDePersonalCacheManager {
   }
 
   /**
-   * Limpia el cache de asistencias vencidas
-   * 🆕 INCLUYE limpieza automática del día anterior
+   * Clears the cache of expired attendances
+   * 🆕 INCLUDES automatic cleanup of the previous day
    */
   public async limpiarCacheVencido(): Promise<OperationResult> {
     try {
-      // 🆕 LIMPIAR día anterior automáticamente
+      // 🆕 Automatically clean previous day
       await this.limpiarDiasAnterioresAutomaticamente();
 
-      // El cache se auto-limpia, pero podemos forzar la limpieza
+      // The cache self-cleans, but we can force the cleanup
       const ahora = Date.now();
-      const TIEMPO_EXPIRACION = 24 * 60 * 60 * 1000; // 24 horas
+      const TIEMPO_EXPIRACION = 24 * 60 * 60 * 1000; // 24 hours
 
       await IndexedDBConnection.init();
       const store = await IndexedDBConnection.getStore(
@@ -1043,7 +1043,7 @@ export class AsistenciaDePersonalCacheManager {
             .then(() => {
               resolve({
                 exitoso: true,
-                mensaje: `Cache limpiado: ${eliminados} registros eliminados`,
+                mensaje: `Cache cleaned: ${eliminados} records deleted`,
                 datos: { eliminados },
               });
             })
@@ -1055,7 +1055,7 @@ export class AsistenciaDePersonalCacheManager {
         request.onerror = (event) => {
           reject(
             new Error(
-              `Error al obtener registros del cache: ${
+              `Error getting records from cache: ${
                 (event.target as IDBRequest).error
               }`
             )
@@ -1063,19 +1063,19 @@ export class AsistenciaDePersonalCacheManager {
         };
       });
     } catch (error) {
-      console.error("Error al limpiar cache vencido:", error);
+      console.error("Error cleaning expired cache:", error);
       return {
         exitoso: false,
-        mensaje: `Error al limpiar cache: ${
-          error instanceof Error ? error.message : "Error desconocido"
+        mensaje: `Error cleaning cache: ${
+          error instanceof Error ? error.message : "Unknown error"
         }`,
       };
     }
   }
 
   /**
-   * Obtiene estadísticas del cache
-   * 🆕 INCLUYE limpieza automática del día anterior
+   * Gets cache statistics
+   * 🆕 INCLUDES automatic cleanup of the previous day
    */
   public async obtenerEstadisticasCache(): Promise<{
     totalRegistros: number;
@@ -1083,7 +1083,7 @@ export class AsistenciaDePersonalCacheManager {
     registrosVencidos: number;
   }> {
     try {
-      // 🆕 LIMPIAR día anterior automáticamente
+      // 🆕 Automatically clean previous day
       await this.limpiarDiasAnterioresAutomaticamente();
 
       await IndexedDBConnection.init();
@@ -1098,7 +1098,7 @@ export class AsistenciaDePersonalCacheManager {
         request.onsuccess = () => {
           const registros = request.result as AsistenciaPersonalHoy[];
           const ahora = Date.now();
-          const TIEMPO_EXPIRACION = 24 * 60 * 60 * 1000; // 24 horas
+          const TIEMPO_EXPIRACION = 24 * 60 * 60 * 1000; // 24 hours
           const fechaHoy = this.dateHelper.obtenerFechaStringActual();
 
           let registrosHoy = 0;
@@ -1125,7 +1125,7 @@ export class AsistenciaDePersonalCacheManager {
         request.onerror = (event) => {
           reject(
             new Error(
-              `Error al obtener estadísticas del cache: ${
+              `Error getting cache statistics: ${
                 (event.target as IDBRequest).error
               }`
             )
@@ -1133,7 +1133,7 @@ export class AsistenciaDePersonalCacheManager {
         };
       });
     } catch (error) {
-      console.error("Error al obtener estadísticas del cache:", error);
+      console.error("Error getting cache statistics:", error);
       return {
         totalRegistros: 0,
         registrosHoy: 0,
@@ -1143,8 +1143,8 @@ export class AsistenciaDePersonalCacheManager {
   }
 
   /**
-   * 🆕 MÉTODO PÚBLICO para forzar limpieza del día anterior
-   * 🎯 ÚTIL: Para casos donde se necesite limpiar manualmente
+   * 🆕 PUBLIC METHOD to force cleanup of the previous day
+   * 🎯 USEFUL: For cases where manual cleanup is needed
    */
   public async forzarLimpiezaDiaAnterior(): Promise<OperationResult> {
     try {
@@ -1152,7 +1152,7 @@ export class AsistenciaDePersonalCacheManager {
       if (!fechaHoy) {
         return {
           exitoso: false,
-          mensaje: "No se pudo obtener la fecha actual",
+          mensaje: "Could not get current date",
         };
       }
 
@@ -1162,34 +1162,34 @@ export class AsistenciaDePersonalCacheManager {
 
       const fechaAyerString = fechaAyer.toISOString().split("T")[0];
 
-      console.log(`🧹 Forzando limpieza del día anterior: ${fechaAyerString}`);
+      console.log(`🧹 Forcing cleanup of the previous day: ${fechaAyerString}`);
 
       await this.cacheAsistenciasHoy.limpiarAsistenciasPorFecha(
         fechaAyerString
       );
 
-      // Resetear el control de limpieza para permitir la próxima automática
+      // Reset the cleanup control to allow the next automatic one
       this.ultimaLimpiezaDiaAnterior = null;
 
       return {
         exitoso: true,
-        mensaje: `Limpieza forzada completada para: ${fechaAyerString}`,
+        mensaje: `Forced cleanup completed for: ${fechaAyerString}`,
         datos: { fechaLimpiada: fechaAyerString },
       };
     } catch (error) {
-      console.error("Error al forzar limpieza del día anterior:", error);
+      console.error("Error forcing cleanup of the previous day:", error);
       return {
         exitoso: false,
-        mensaje: `Error al forzar limpieza: ${
-          error instanceof Error ? error.message : "Error desconocido"
+        mensaje: `Error forcing cleanup: ${
+          error instanceof Error ? error.message : "Unknown error"
         }`,
       };
     }
   }
 
   /**
-   * 🆕 MÉTODO PÚBLICO para obtener información de limpieza
-   * 📊 PROPÓSITO: Monitoreo y depuración del sistema de limpieza automática
+   * 🆕 PUBLIC METHOD to get cleanup information
+   * 📊 PURPOSE: Monitoring and debugging of the automatic cleanup system
    */
   public obtenerInfoLimpiezaAutomatica(): {
     ultimaLimpiezaDiaAnterior: string | null;

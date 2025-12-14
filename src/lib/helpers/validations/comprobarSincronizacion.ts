@@ -1,11 +1,11 @@
 import userStorage from "@/lib/utils/local/db/models/UserStorage";
 
 /**
- * Comprueba si debe realizarse una sincronización basado en un intervalo de tiempo aleatorio
- * @param minSegundos Tiempo mínimo en segundos que debe pasar antes de sincronizar (por defecto 180 - 3 minutos)
- * @param maxSegundos Tiempo máximo en segundos que debe pasar antes de sincronizar (por defecto 360 - 6 minutos)
- * @param forzarSincronizacion Si es true, devuelve true sin importar el tiempo transcurrido
- * @returns Promise que se resuelve con true si se debe sincronizar, false en caso contrario
+ * Checks if a synchronization should be performed based on a random time interval
+ * @param minSegundos Minimum time in seconds that must pass before synchronizing (default 180 - 3 minutes)
+ * @param maxSegundos Maximum time in seconds that must pass before synchronizing (default 360 - 6 minutes)
+ * @param forzarSincronizacion If true, returns true regardless of the time elapsed
+ * @returns Promise that resolves to true if it should synchronize, false otherwise
  */
 export const comprobarSincronizacion = async (
   minSegundos: number = 180,
@@ -13,45 +13,45 @@ export const comprobarSincronizacion = async (
   forzarSincronizacion: boolean = false
 ): Promise<boolean> => {
   try {
-    // Si se debe forzar la sincronización, simplemente regresamos true
+    // If synchronization should be forced, we simply return true
     if (forzarSincronizacion) {
-      // Actualizamos la marca de tiempo antes de retornar
+      // We update the timestamp before returning
       await userStorage.guardarUltimaSincronizacion(Date.now());
       return true;
     }
 
-    // Obtener última sincronización almacenada
+    // Get the last stored synchronization
     const ultimaSincronizacion =
       await userStorage.obtenerUltimaSincronizacion();
 
-    // Si no hay registro previo, debemos sincronizar
+    // If there is no previous record, we must synchronize
     if (!ultimaSincronizacion) {
-      // Guardamos la hora actual como última sincronización
+      // We save the current time as the last synchronization
       await userStorage.guardarUltimaSincronizacion(Date.now());
       return true;
     }
 
-    // Convertir segundos a milisegundos
+    // Convert seconds to milliseconds
     const minInterval = minSegundos * 1000;
     const maxInterval = maxSegundos * 1000;
 
-    // Calcular un intervalo aleatorio entre minInterval y maxInterval
+    // Calculate a random interval between minInterval and maxInterval
     const randomInterval =
       Math.floor(Math.random() * (maxInterval - minInterval + 1)) + minInterval;
 
-    // Calcular si ya pasó el tiempo necesario
+    // Calculate if the necessary time has passed
     const tiempoTranscurrido = Date.now() - ultimaSincronizacion;
     const debeSincronizar = tiempoTranscurrido >= randomInterval;
 
-    // Si debe sincronizar, actualizamos la última hora de sincronización
+    // If it should synchronize, we update the last synchronization time
     if (debeSincronizar) {
       await userStorage.guardarUltimaSincronizacion(Date.now());
     }
 
     return debeSincronizar;
   } catch (error) {
-    console.error("Error al comprobar si se debe sincronizar:", error);
-    return false; // En caso de error, no sincronizamos
+    console.error("Error checking if it should synchronize:", error);
+    return false; // In case of error, we do not synchronize
   }
 };
 

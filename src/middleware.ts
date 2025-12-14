@@ -131,7 +131,7 @@ export async function middleware(request: NextRequest) {
       case RolesSistema.PersonalAdministrativo:
         break;
       default:
-        console.error("Rol no válido en middleware:", rolValue);
+        console.error("Invalid role in middleware:", rolValue);
         return deleteCookies();
     }
 
@@ -162,7 +162,7 @@ export async function middleware(request: NextRequest) {
       // Check if the module is active
       if (!moduleForRoute.active) {
         console.warn(
-          `Acceso denegado: Módulo ${moduleForRoute.route} está inactivo`
+          `Access denied: Module ${moduleForRoute.route} is inactive`
         );
         return redirectToHomeWithError(RedirectionTypes.RUTA_NO_PERMITIDA);
       }
@@ -171,20 +171,20 @@ export async function middleware(request: NextRequest) {
       const decodedPayload = decodeJwtPayload(token.value);
 
       if (!decodedPayload) {
-        console.error("No se pudo decodificar el token");
+        console.error("Could not decode token");
         return deleteCookies();
       }
 
       // Verify that the role in the token matches the role in the cookie
       if (decodedPayload.Rol !== rolValue) {
-        console.error("Rol en token no coincide con rol en cookie");
+        console.error("Role in token does not match role in cookie");
         return deleteCookies();
       }
 
       // Check token expiration
       const now = Math.floor(Date.now() / 1000);
       if (decodedPayload.exp && decodedPayload.exp < now) {
-        console.error("Token expirado");
+        console.error("Token expired");
         return deleteCookies();
       }
 
@@ -193,20 +193,20 @@ export async function middleware(request: NextRequest) {
 
       if (!hasAccess) {
         console.warn(
-          `Acceso denegado: Rol ${rolValue} no autorizado para ${moduleForRoute.route}`
+          `Access denied: Role ${rolValue} not authorized for ${moduleForRoute.route}`
         );
         return redirectToHomeWithError(RedirectionTypes.RUTA_NO_PERMITIDA);
       }
 
       console.log(
-        `Acceso autorizado a ${moduleForRoute.route} para rol ${rolValue}`
+        `Access authorized to ${moduleForRoute.route} for role ${rolValue}`
       );
     }
     // If we don't find the module, allow access (routes like "/" or custom routes)
 
     return NextResponse.next();
   } catch (e) {
-    console.error("Error general en middleware:", e);
+    console.error("General error in middleware:", e);
     return deleteCookies();
   }
 }

@@ -6,8 +6,8 @@ import { verifyAuthToken } from "@/lib/utils/backend/auth/functions/jwtComprobat
 import { redirectToLogin } from "@/lib/utils/backend/auth/functions/redirectToLogin";
 import { redisClient } from "../../../../../config/Redis/RedisClient";
 import {
-  obtenerFechaActualPeru,
-  obtenerFechaHoraActualPeru,
+  getCurrentDateInPeru,
+  getCurrentDateTimeInPeru,
 } from "../../_helpers/obtenerFechaActualPeru";
 import {
   NOMBRE_BANDERA_INICIO_TOMA_ASISTENCIA_PERSONAL,
@@ -26,28 +26,28 @@ import { GrupoInstaciasDeRedisPorTipoAsistencia } from "../marcar/route";
  * Now uses the improved function that handles offsets automatically
  * @returns Seconds until the end of the day in Peru
  */
-async function calcularSegundosHastaFinDiaPeru(): Promise<number> {
+async function calculateSecondsUntilEndOfDayPeru(): Promise<number> {
   // ✅ Use the new function that handles all offsets automatically
-  const fechaActualPeru = await obtenerFechaHoraActualPeru();
+  const currentPeruDate = await getCurrentDateTimeInPeru();
 
   // Create a date representing 23:59:59 of the same day in Peru
-  const finDiaPeruano = new Date(fechaActualPeru);
-  finDiaPeruano.setHours(23, 59, 59, 999);
+  const endOfDayPeru = new Date(currentPeruDate);
+  endOfDayPeru.setHours(23, 59, 59, 999);
 
   // Calculate difference in seconds
-  const segundosRestantes = Math.floor(
-    (finDiaPeruano.getTime() - fechaActualPeru.getTime()) / 1000
+  const remainingSeconds = Math.floor(
+    (endOfDayPeru.getTime() - currentPeruDate.getTime()) / 1000
   );
 
   // Log for debugging (keeping useful information)
   console.log(
-    `Current date Peru (with offsets): ${fechaActualPeru.toISOString()}`
+    `Current date Peru (with offsets): ${currentPeruDate.toISOString()}`
   );
-  console.log(`End of Peruvian day: ${finDiaPeruano.toISOString()}`);
-  console.log(`Calculated remaining seconds: ${segundosRestantes}`);
+  console.log(`End of Peruvian day: ${endOfDayPeru.toISOString()}`);
+  console.log(`Calculated remaining seconds: ${remainingSeconds}`);
 
   // Ensure that we return at least 1 second and at most one day
-  return Math.max(Math.min(segundosRestantes, 86400), 1);
+  return Math.max(Math.min(remainingSeconds, 86400), 1);
 }
 
 export async function POST(req: NextRequest) {
@@ -88,21 +88,21 @@ export async function POST(req: NextRequest) {
 
     // ✅ Get the current date in Peru using both functions
     // The original function continues to work for backward compatibility
-    const fechaActualPeru = await obtenerFechaActualPeru();
-    const [anio, mes, dia] = fechaActualPeru.split("-").map(Number);
+    const currentPeruDate = await getCurrentDateInPeru();
+    const [year, month, day] = currentPeruDate.split("-").map(Number);
 
     // ✅ We can also get the full date/time for additional logs if needed
-    const fechaHoraCompletaPeru = await obtenerFechaHoraActualPeru();
+    const fullDateTimePeru = await getCurrentDateTimeInPeru();
     console.log(
-      `📅 Full date Peru (with offsets): ${fechaHoraCompletaPeru.toISOString()}`
+      `📅 Full date Peru (with offsets): ${fullDateTimePeru.toISOString()}`
     );
-    console.log(`📅 Date string Peru: ${fechaActualPeru}`);
+    console.log(`📅 Date string Peru: ${currentPeruDate}`);
 
     // Determine the correct key in Redis according to TipoAsistencia
     let redisKey;
-    const tipoAsistencia = body.TipoAsistencia;
+    const attendanceType = body.TipoAsistencia;
 
-    switch (tipoAsistencia) {
+    switch (attendanceType) {
       case TipoAsistencia.ParaPersonal:
         redisKey = NOMBRE_BANDERA_INICIO_TOMA_ASISTENCIA_PERSONAL;
         break;
@@ -120,32 +120,32 @@ export async function POST(req: NextRequest) {
     }
 
     // ✅ Calculate seconds until the end of the day using the improved function
-    const segundosHastaFinDia = await calcularSegundosHastaFinDiaPeru();
+    const secondsUntilEndOfDay = await calculateSecondsUntilEndOfDayPeru();
 
     console.log(
-      `⏰ Setting flag with expiration of ${segundosHastaFinDia} seconds (until 23:59:59 Peruvian time)`
+      `⏰ Setting flag with expiration of ${secondsUntilEndOfDay} seconds (until 23:59:59 Peruvian time)`
     );
     console.log(
       `⏰ In readable time: ${Math.floor(
-        segundosHastaFinDia / 3600
-      )}h ${Math.floor((segundosHastaFinDia % 3600) / 60)}m ${
-        segundosHastaFinDia % 60
+        secondsUntilEndOfDay / 3600
+      )}h ${Math.floor((secondsUntilEndOfDay % 3600) / 60)}m ${
+        secondsUntilEndOfDay % 60
       }s`
     );
 
     // Get the Redis instance corresponding to the attendance type
     const redisClientInstance = redisClient(
-      GrupoInstaciasDeRedisPorTipoAsistencia[tipoAsistencia]
+      GrupoInstaciasDeRedisPorTipoAsistencia[attendanceType]
     );
 
     // Store in Redis with expiration at the end of the Peruvian day
-    const valorGuardado = await redisClientInstance.set(
+    const savedValue = await redisClientInstance.set(
       redisKey,
       "true",
-      segundosHastaFinDia
+      secondsUntilEndOfDay
     );
 
-    if (valorGuardado !== "OK") {
+    if (savedValue !== "OK") {
       return NextResponse.json(
         {
           success: false,
@@ -156,23 +156,23 @@ export async function POST(req: NextRequest) {
     }
 
     // Build the response
-    const respuesta: EstadoTomaAsistenciaResponseBody = {
-      TipoAsistencia: tipoAsistencia,
-      Dia: dia,
-      Mes: mes as Meses,
-      Anio: anio,
+    const response: EstadoTomaAsistenciaResponseBody = {
+      TipoAsistencia: attendanceType,
+      Dia: day,
+      Mes: month as Meses,
+      Anio: year,
       AsistenciaIniciada: true,
     };
 
-    return NextResponse.json(respuesta, { status: 200 });
+    return NextResponse.json(response, { status: 200 });
   } catch (error) {
     console.error("Error starting attendance taking status:", error);
 
     // Determine the type of error
     let logoutType: LogoutTypes | null = null;
     const errorDetails: ErrorDetailsForLogout = {
-      mensaje: "Error starting attendance taking status",
-      origen: "api/estado-toma-asistencia",
+      message: "Error starting attendance taking status",
+      origin: "api/estado-toma-asistencia",
       timestamp: Date.now(),
       siasisComponent: "RDP05", // Redis component
     };
@@ -184,8 +184,8 @@ export async function POST(req: NextRequest) {
         error.message.includes("Redis connection failed") ||
         error.message.includes("Redis connection timed out")
       ) {
-        logoutType = LogoutTypes.ERROR_SISTEMA;
-        errorDetails.mensaje = "Error connecting to the data system";
+        logoutType = LogoutTypes.SYSTEM_ERROR;
+        errorDetails.message = "Error connecting to the data system";
       }
       // If it's a JSON parsing error
       else if (
@@ -193,11 +193,11 @@ export async function POST(req: NextRequest) {
         error.message.includes("parse") ||
         error.message.includes("Unexpected token")
       ) {
-        logoutType = LogoutTypes.ERROR_DATOS_CORRUPTOS;
-        errorDetails.mensaje = "Error processing request data";
+        logoutType = LogoutTypes.CORRUPT_DATA_ERROR;
+        errorDetails.message = "Error processing request data";
       }
 
-      errorDetails.mensaje += `: ${error.message}`;
+      errorDetails.message += `: ${error.message}`;
     }
 
     // If we identify a critical error, redirect to login

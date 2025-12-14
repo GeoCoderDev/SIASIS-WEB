@@ -2,87 +2,87 @@ import { Genero } from "@/interfaces/shared/Genero";
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 
 // Interface for the specific format of each role by gender
-type GeneroFormat = Record<Genero, string>;
+type GenderFormat = Record<Genero, string>;
 
 // Interface for the device format
-interface DispositivoFormat {
-  desktop: GeneroFormat;
-  mobile: GeneroFormat;
+interface DeviceFormat {
+  desktop: GenderFormat;
+  mobile: GenderFormat;
 }
 
 // We define the complete type using Records
-export type RolesEspañolType = Record<RolesSistema, DispositivoFormat>;
+export type RolesEnglishType = Record<RolesSistema, DeviceFormat>;
 
 // Implementation with Records
-export const RolesTextos: RolesEspañolType = {
+export const RolesTexts: RolesEnglishType = {
   D: {
     desktop: {
-      F: "Directiva",
-      M: "Directivo",
+      F: "Director",
+      M: "Director",
     },
     mobile: {
-      F: "Directiva",
-      M: "Directivo",
+      F: "Director",
+      M: "Director",
     },
   },
   PP: {
     desktop: {
-      F: "Profesora de Primaria",
-      M: "Profesor de Primaria",
+      F: "Primary School Teacher",
+      M: "Primary School Teacher",
     },
     mobile: {
-      F: "Prof. Primaria",
-      M: "Prof. Primaria",
+      F: "Prim. Teacher",
+      M: "Prim. Teacher",
     },
   },
   A: {
     desktop: {
-      F: "Auxiliar",
-      M: "Auxiliar",
+      F: "Assistant",
+      M: "Assistant",
     },
     mobile: {
-      F: "Auxiliar",
-      M: "Auxiliar",
+      F: "Assistant",
+      M: "Assistant",
     },
   },
   PS: {
     desktop: {
-      F: "Profesora de Secundaria",
-      M: "Profesor de Secundaria",
+      F: "Secondary School Teacher",
+      M: "Secondary School Teacher",
     },
     mobile: {
-      F: "Prof. Secundaria",
-      M: "Prof. Secundaria",
+      F: "Sec. Teacher",
+      M: "Sec. Teacher",
     },
   },
   T: {
     desktop: {
-      F: "Tutora de Secundaria",
-      M: "Tutor de Secundaria",
+      F: "Secondary School Tutor",
+      M: "Secondary School Tutor",
     },
     mobile: {
-      F: "Tutora Sec.",
-      M: "Tutor Sec.",
+      F: "Sec. Tutor",
+      M: "Sec. Tutor",
     },
   },
   R: {
     desktop: {
-      F: "Responsable",
-      M: "Responsable",
+      F: "Guardian",
+      M: "Guardian",
     },
     mobile: {
-      F: "Responsable",
-      M: "Responsable",
+      F: "Guardian",
+      M: "Guardian",
     },
   },
   PA: {
     desktop: {
-      F: "Personal Administrativo",
-      M: "Personal Administrativo",
+      F: "Administrative Staff",
+      M: "Administrative Staff",
     },
     mobile: {
-      F: "P. Administrativo",
-      M: "P. Administrativo",
+      F: "Admin. Staff",
+      M: "Admin. Staff",
     },
   },
 };

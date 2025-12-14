@@ -1,6 +1,6 @@
-export const MAX_DIAS_HABILES_REPORTE_ASISTENCIAS_ESCOLARES_POR_DIA = 20;
+export const MAX_BUSINESS_DAYS_FOR_DAILY_SCHOOL_ATTENDANCE_REPORT = 20;
 
 /**
- * Tiempo de expiración para reportes en Redis (12 horas en segundos)
+ * Expiration time for reports in Redis (12 hours in seconds)
  */
-export const TIEMPO_EXPIRACION_REPORTES_ASISTENCIAS_ESCOLARES_SEGUNDOS_CACHE_REDIS = 12 * 60 * 60; // 12 horas = 43200 segundos
+export const SCHOOL_ATTENDANCE_REPORTS_EXPIRATION_TIME_SECONDS_REDIS_CACHE = 12 * 60 * 60; // 12 hours = 43200 seconds

@@ -23,14 +23,14 @@ import { DatosAsistenciaHoyHelper } from "../../_utils/DatosAsistenciaHoyHelper"
 // ✅ Main change: params is now a Promise and must be awaited
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ Combinacion_Parametros: string }> }
+  { params }: { params: Promise<{ ParameterCombination: string }> }
 ) {
   try {
     // ✅ Await params before using them
-    const { Combinacion_Parametros } = await params;
+    const { ParameterCombination } = await params;
 
     // ✅ AUTHENTICATION
-    const { error, rol, decodedToken } = await verifyAuthToken(req, [
+    const { error, rol: role, decodedToken } = await verifyAuthToken(req, [
       RolesSistema.Directivo,
       RolesSistema.Auxiliar,
       RolesSistema.ProfesorPrimaria,
@@ -38,16 +38,16 @@ export async function GET(
       RolesSistema.Tutor,
     ]);
 
-    if (error && !rol && !decodedToken) return error;
+    if (error && !role && !decodedToken) return error;
 
-    console.log(`🔐 Authenticated user: ${rol} - ${decodedToken.ID_Usuario}`);
+    console.log(`🔐 Authenticated user: ${role} - ${decodedToken.ID_Usuario}`);
 
     // Validate that the parameter was received
-    if (!Combinacion_Parametros) {
+    if (!ParameterCombination) {
       return NextResponse.json(
         {
           success: false,
-          message: "The Combinacion_Parametros parameter is required",
+          message: "The ParameterCombination parameter is required",
           errorType: RequestErrorTypes.INVALID_PARAMETERS,
         } as ErrorResponseAPIBase,
         { status: 400 }
@@ -55,12 +55,12 @@ export async function GET(
     }
 
     // Validate parameter length (maximum 40 characters according to schema)
-    if (Combinacion_Parametros.length > 40) {
+    if (ParameterCombination.length > 40) {
       return NextResponse.json(
         {
           success: false,
           message:
-            "The Combinacion_Parametros parameter exceeds the maximum allowed length (40 characters)",
+            "The ParameterCombination parameter exceeds the maximum allowed length (40 characters)",
           errorType: RequestErrorTypes.INVALID_PARAMETERS,
         } as ErrorResponseAPIBase,
         { status: 400 }
@@ -68,12 +68,12 @@ export async function GET(
     }
 
     // ✅ VALIDATE that the parameter combination is valid using the decoding function
-    const parametrosDecodificados =
+    const decodedParameters =
       decodificarCombinacionParametrosParaReporteEscolar(
-        Combinacion_Parametros
+        ParameterCombination
       );
 
-    if (parametrosDecodificados === false) {
+    if (decodedParameters === false) {
       return NextResponse.json(
         {
           success: false,
@@ -87,28 +87,28 @@ export async function GET(
 
     console.log(
       `🔍 Querying report with decoded parameters:`,
-      JSON.stringify(parametrosDecodificados, null, 2)
+      JSON.stringify(decodedParameters, null, 2)
     );
 
     // ✅ VALIDATE PERMISSIONS using the helper
-    const helperAsistencia = await DatosAsistenciaHoyHelper.obtenerInstancia();
-    const validacionPermisos = helperAsistencia.validarPermisosReporte(
-      rol!,
+    const attendanceHelper = await DatosAsistenciaHoyHelper.obtenerInstancia();
+    const permissionValidation = attendanceHelper.validarPermisosReporte(
+      role!,
       decodedToken.ID_Usuario,
-      parametrosDecodificados.aulasSeleccionadas.Nivel,
-      parametrosDecodificados.aulasSeleccionadas.Grado,
-      parametrosDecodificados.aulasSeleccionadas.Seccion
+      decodedParameters.aulasSeleccionadas.Nivel,
+      decodedParameters.aulasSeleccionadas.Grado,
+      decodedParameters.aulasSeleccionadas.Seccion
     );
 
-    if (!validacionPermisos.tienePermiso) {
+    if (!permissionValidation.tienePermiso) {
       console.log(
-        `❌ Permission denied for ${rol}: ${validacionPermisos.mensaje}`
+        `❌ Permission denied for ${role}: ${permissionValidation.mensaje}`
       );
       return NextResponse.json(
         {
           success: false,
           message:
-            validacionPermisos.mensaje ||
+            permissionValidation.mensaje ||
             "You do not have permission to query this report",
           errorType: PermissionErrorTypes.INSUFFICIENT_PERMISSIONS,
         } as ErrorResponseAPIBase,
@@ -116,7 +116,7 @@ export async function GET(
       );
     }
 
-    console.log(`✅ Permissions successfully validated for role ${rol}`);
+    console.log(`✅ Permissions successfully validated for role ${role}`);
 
     // Get Redis instance for school attendance reports
     const redisClientInstance = redisClient(
@@ -124,10 +124,10 @@ export async function GET(
     );
 
     // Search for the report in Redis using the parameter combination as key
-    const reporteData = await redisClientInstance.get(Combinacion_Parametros);
+    const reportData = await redisClientInstance.get(ParameterCombination);
 
     // If the report doesn't exist, return 404
-    if (!reporteData) {
+    if (!reportData) {
       return NextResponse.json(
         {
           success: false,
@@ -140,31 +140,31 @@ export async function GET(
     }
 
     // Parse the data from Redis (may come as JSON string)
-    const reporteCompleto: T_Reportes_Asistencia_Escolar =
-      typeof reporteData === "string" ? JSON.parse(reporteData) : reporteData;
+    const completeReport: T_Reportes_Asistencia_Escolar =
+      typeof reportData === "string" ? JSON.parse(reportData) : reportData;
 
     // Validate that the report status is valid
     if (
       !Object.values(EstadoReporteAsistenciaEscolar).includes(
-        reporteCompleto.Estado_Reporte as EstadoReporteAsistenciaEscolar
+        completeReport.Estado_Reporte as EstadoReporteAsistenciaEscolar
       )
     ) {
       console.warn(
-        `⚠️ Invalid report status found: ${reporteCompleto.Estado_Reporte}`
+        `⚠️ Invalid report status found: ${completeReport.Estado_Reporte}`
       );
     }
 
     // Filter only the data needed by the ReporteAsistenciaEscolarAnonimo interface
-    const reporteAnonimo: ReporteAsistenciaEscolarAnonimo = {
+    const anonymousReport: ReporteAsistenciaEscolarAnonimo = {
       Combinacion_Parametros_Reporte:
-        reporteCompleto.Combinacion_Parametros_Reporte,
-      Estado_Reporte: reporteCompleto.Estado_Reporte,
-      Datos_Google_Drive_Id: reporteCompleto.Datos_Google_Drive_Id,
-      Fecha_Generacion: reporteCompleto.Fecha_Generacion,
+        completeReport.Combinacion_Parametros_Reporte,
+      Estado_Reporte: completeReport.Estado_Reporte,
+      Datos_Google_Drive_Id: completeReport.Datos_Google_Drive_Id,
+      Fecha_Generacion: completeReport.Fecha_Generacion,
     };
 
     console.log(
-      `✅ Report successfully queried: ${Combinacion_Parametros} - Status: ${reporteCompleto.Estado_Reporte} - Type: ${parametrosDecodificados.tipoReporte} - Level: ${parametrosDecodificados.aulasSeleccionadas.Nivel} - Grade: ${parametrosDecodificados.aulasSeleccionadas.Grado}${parametrosDecodificados.aulasSeleccionadas.Seccion}`
+      `✅ Report successfully queried: ${ParameterCombination} - Status: ${completeReport.Estado_Reporte} - Type: ${decodedParameters.tipoReporte} - Level: ${decodedParameters.aulasSeleccionadas.Nivel} - Grade: ${decodedParameters.aulasSeleccionadas.Grado}${decodedParameters.aulasSeleccionadas.Seccion}`
     );
 
     // Return successful response with filtered data
@@ -172,7 +172,7 @@ export async function GET(
       {
         success: true,
         message: "Report found successfully",
-        data: reporteAnonimo,
+        data: anonymousReport,
       },
       { status: 200 }
     );

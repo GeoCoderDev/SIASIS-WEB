@@ -1,31 +1,31 @@
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 
-export const DIRECTIVO_SESSION_EXPIRATION_seg = 60 * 60 * 13; // 13 horas para no cerrar el sistema durante todo lo que dure la toma de asistencia de cierto dia
-export const PROFESOR_PRIMARIA_SESSION_EXPIRATION_seg = 60 * 60 * 5; // 5 horas
-export const AUXILIAR_SESSION_EXPIRATION_seg = 60 * 60 * 5; // 5 horas
-export const PROFESOR_SECUNDARIA_SESSION_EXPIRATION_seg = 60 * 60 * 5; // 5 horas
-export const TUTOR_SESSION_EXPIRATION_seg = 60 * 60 * 5; // 5 horas
-export const RESPONSABLE_SESSION_EXPIRATION_seg = 60 * 60 * 5; // 5 horas
-export const PERSONAL_ADMINISTRATIVO_SESSION_EXPIRATION_seg = 60 * 60 * 5; // 5 horas
+export const DIRECTOR_SESSION_EXPIRATION_sec = 60 * 60 * 13; // 13 hours to avoid closing the system during the entire attendance taking of a certain day
+export const PRIMARY_TEACHER_SESSION_EXPIRATION_sec = 60 * 60 * 5; // 5 hours
+export const ASSISTANT_SESSION_EXPIRATION_sec = 60 * 60 * 5; // 5 hours
+export const SECONDARY_TEACHER_SESSION_EXPIRATION_sec = 60 * 60 * 5; // 5 hours
+export const TUTOR_SESSION_EXPIRATION_sec = 60 * 60 * 5; // 5 hours
+export const GUARDIAN_SESSION_EXPIRATION_sec = 60 * 60 * 5; // 5 hours
+export const ADMINISTRATIVE_STAFF_SESSION_EXPIRATION_sec = 60 * 60 * 5; // 5 hours
 
-export const HORA_MAXIMA_EXPIRACION_PARA_REGISTROS_EN_REDIS = 23; // 11 PM
+export const MAX_EXPIRATION_HOUR_FOR_RECORDS_IN_REDIS = 23; // 11 PM
 
 
-export function getExpirationSessionForRolInSeg(rol: RolesSistema) {
-  switch (rol) {
+export function getExpirationSessionForRoleInSec(role: RolesSistema) {
+  switch (role) {
     case RolesSistema.Directivo:
-      return DIRECTIVO_SESSION_EXPIRATION_seg;
+      return DIRECTOR_SESSION_EXPIRATION_sec;
     case RolesSistema.ProfesorPrimaria:
-      return PROFESOR_PRIMARIA_SESSION_EXPIRATION_seg;
+      return PRIMARY_TEACHER_SESSION_EXPIRATION_sec;
     case RolesSistema.Auxiliar:
-      return AUXILIAR_SESSION_EXPIRATION_seg;
+      return ASSISTANT_SESSION_EXPIRATION_sec;
     case RolesSistema.ProfesorSecundaria:
-      return PROFESOR_SECUNDARIA_SESSION_EXPIRATION_seg;
+      return SECONDARY_TEACHER_SESSION_EXPIRATION_sec;
     case RolesSistema.Tutor:
-      return TUTOR_SESSION_EXPIRATION_seg;
+      return TUTOR_SESSION_EXPIRATION_sec;
     case RolesSistema.Responsable:
-      return RESPONSABLE_SESSION_EXPIRATION_seg;
+      return GUARDIAN_SESSION_EXPIRATION_sec;
     case RolesSistema.PersonalAdministrativo:
-      return PERSONAL_ADMINISTRATIVO_SESSION_EXPIRATION_seg;
+      return ADMINISTRATIVE_STAFF_SESSION_EXPIRATION_sec;
   }
 }

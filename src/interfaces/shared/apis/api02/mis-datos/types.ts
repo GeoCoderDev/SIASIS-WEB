@@ -2,29 +2,29 @@ import { T_Responsables } from "@prisma/client";
 import { ApiResponseBase, ErrorResponseAPIBase, SuccessResponseAPIBase } from "../../types";
 
 // -----------------------------------------
-//                METODO GET
+//                GET METHOD
 // -----------------------------------------
 
 /**
- * Datos de Responsable
+ * Guardian's Data
  */
 export type MisDatosResponsable = Omit<T_Responsables, "Contraseña">;
 
 /**
- * Datos para responsables (API02)
- * Responde a: /api/mis-datos para rol de responsable
+ * Data for guardians (API02)
+ * Responds to: /api/mis-datos for guardian role
  */
 export type MisDatosSuccessAPI02Data = MisDatosResponsable;
 
 /**
- * Respuesta completa para responsables
+ * Complete response for guardians
  */
 export interface SuccesMisDatosResponseAPI02 extends ApiResponseBase {
   data: MisDatosSuccessAPI02Data;
 }
 
 // -----------------------------------------
-//                METODO PUT
+//                PUT METHOD
 // -----------------------------------------
 
 export type ActualizarMisDatosResponsableRequestBody = Partial<
@@ -34,12 +34,12 @@ export type ActualizarMisDatosResponsableRequestBody = Partial<
 export type ActualizarMisDatoUsuarioRequestBodyAPI02 =
   ActualizarMisDatosResponsableRequestBody;
 
-// Interfaz para la respuesta exitosa
+// Interface for successful response
 export interface ActualizarUsuarioSuccessResponseAPI02
   extends SuccessResponseAPIBase {
   success: true;
   message: string;
-  data: ActualizarMisDatoUsuarioRequestBodyAPI02; // Los datos que se actualizaron
+  data: ActualizarMisDatoUsuarioRequestBodyAPI02; // The data that was updated
 }
 
 export type ObtenerMisDatosSuccessAPI02Data = MisDatosResponsable;
@@ -48,12 +48,12 @@ export interface MisDatosSuccessResponseAPI02 extends SuccessResponseAPIBase {
   data: ObtenerMisDatosSuccessAPI02Data;
 }
 
-// Interfaz para la respuesta exitosa
+// Interface for successful response
 export interface ActualizarUsuarioSuccessResponseAPI02
   extends SuccessResponseAPIBase {
   success: true;
   message: string;
-  data: ActualizarMisDatoUsuarioRequestBodyAPI02; // Los datos que se actualizaron
+  data: ActualizarMisDatoUsuarioRequestBodyAPI02; // The data that was updated
 }
 
 

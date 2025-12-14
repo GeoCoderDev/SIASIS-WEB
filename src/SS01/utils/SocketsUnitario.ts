@@ -6,7 +6,7 @@ const ENABLE_SOCKET_LOGS = false; // Change to false to disable logs
 export class SocketEmitter<T> {
   constructor(
     private socketConnection: Socket | SocketIOClient.Socket,
-    private nombreEvento: string,
+    private eventName: string,
     private data?: T
   ) {}
 
@@ -16,7 +16,7 @@ export class SocketEmitter<T> {
       if (!this.socketConnection) {
         if (ENABLE_SOCKET_LOGS) {
           console.error(
-            `❌ [SocketEmitter] No hay conexión disponible para evento: ${this.nombreEvento}`
+            `❌ [SocketEmitter] No connection available for event: ${this.eventName}`
           );
         }
         return false;
@@ -25,7 +25,7 @@ export class SocketEmitter<T> {
       if (!this.socketConnection.connected) {
         if (ENABLE_SOCKET_LOGS) {
           console.error(
-            `❌ [SocketEmitter] Socket no conectado para evento: ${this.nombreEvento}`
+            `❌ [SocketEmitter] Socket not connected for event: ${this.eventName}`
           );
         }
         return false;
@@ -34,18 +34,18 @@ export class SocketEmitter<T> {
       // If there's data, send it; if not, send event without payload
       if (this.data !== undefined) {
         // Don't serialize to JSON here, leave it as object
-        this.socketConnection.emit(this.nombreEvento, this.data);
+        this.socketConnection.emit(this.eventName, this.data);
         if (ENABLE_SOCKET_LOGS) {
           console.log(
-            `📤 [SocketEmitter] Evento enviado: ${this.nombreEvento}`,
+            `📤 [SocketEmitter] Event sent: ${this.eventName}`,
             this.data
           );
         }
       } else {
-        this.socketConnection.emit(this.nombreEvento);
+        this.socketConnection.emit(this.eventName);
         if (ENABLE_SOCKET_LOGS) {
           console.log(
-            `📤 [SocketEmitter] Evento enviado: ${this.nombreEvento} (sin payload)`
+            `📤 [SocketEmitter] Event sent: ${this.eventName} (without payload)`
           );
         }
       }
@@ -54,7 +54,7 @@ export class SocketEmitter<T> {
     } catch (error) {
       if (ENABLE_SOCKET_LOGS) {
         console.error(
-          `❌ [SocketEmitter] Error al enviar evento ${this.nombreEvento}:`,
+          `❌ [SocketEmitter] Error sending event ${this.eventName}:`,
           error
         );
       }
@@ -69,7 +69,7 @@ export class SocketHandler<T> {
 
   constructor(
     private socketConnection: Socket | SocketIOClient.Socket,
-    private nombreEvento: string,
+    private eventName: string,
     private callback: (data: T) => void
   ) {}
 
@@ -79,7 +79,7 @@ export class SocketHandler<T> {
       if (!this.socketConnection) {
         if (ENABLE_SOCKET_LOGS) {
           console.error(
-            `❌ [SocketHandler] No hay conexión disponible para evento: ${this.nombreEvento}`
+            `❌ [SocketHandler] No connection available for event: ${this.eventName}`
           );
         }
         return false;
@@ -89,7 +89,7 @@ export class SocketHandler<T> {
       if (this.listenerAttached) {
         if (ENABLE_SOCKET_LOGS) {
           console.warn(
-            `⚠️ [SocketHandler] Listener ya está registrado para: ${this.nombreEvento}`
+            `⚠️ [SocketHandler] Listener is already registered for: ${this.eventName}`
           );
         }
         return true;
@@ -99,7 +99,7 @@ export class SocketHandler<T> {
         try {
           if (ENABLE_SOCKET_LOGS) {
             console.log(
-              `📥 [SocketHandler] Evento recibido: ${this.nombreEvento}`,
+              `📥 [SocketHandler] Event received: ${this.eventName}`,
               data
             );
           }
@@ -107,18 +107,18 @@ export class SocketHandler<T> {
         } catch (error) {
           if (ENABLE_SOCKET_LOGS) {
             console.error(
-              `❌ [SocketHandler] Error en callback para ${this.nombreEvento}:`,
+              `❌ [SocketHandler] Error in callback for ${this.eventName}:`,
               error
             );
           }
         }
       };
 
-      this.socketConnection.on(this.nombreEvento, this._wrappedCallback);
+      this.socketConnection.on(this.eventName, this._wrappedCallback);
       this.listenerAttached = true;
       if (ENABLE_SOCKET_LOGS) {
         console.log(
-          `✅ [SocketHandler] Listener registrado para: ${this.nombreEvento}`
+          `✅ [SocketHandler] Listener registered for: ${this.eventName}`
         );
       }
 
@@ -126,7 +126,7 @@ export class SocketHandler<T> {
     } catch (error) {
       if (ENABLE_SOCKET_LOGS) {
         console.error(
-          `❌ [SocketHandler] Error al registrar listener para ${this.nombreEvento}:`,
+          `❌ [SocketHandler] Error registering listener for ${this.eventName}:`,
           error
         );
       }
@@ -141,13 +141,13 @@ export class SocketHandler<T> {
         return false;
       }
       if (this._wrappedCallback) {
-        this.socketConnection.off(this.nombreEvento, this._wrappedCallback);
+        this.socketConnection.off(this.eventName, this._wrappedCallback);
         this._wrappedCallback = undefined;
       }
       this.listenerAttached = false;
       if (ENABLE_SOCKET_LOGS) {
         console.log(
-          `🗑️ [SocketHandler] Listener removido para: ${this.nombreEvento}`
+          `🗑️ [SocketHandler] Listener removed for: ${this.eventName}`
         );
       }
 
@@ -155,7 +155,7 @@ export class SocketHandler<T> {
     } catch (error) {
       if (ENABLE_SOCKET_LOGS) {
         console.error(
-          `❌ [SocketHandler] Error al remover listener para ${this.nombreEvento}:`,
+          `❌ [SocketHandler] Error removing listener for ${this.eventName}:`,
           error
         );
       }

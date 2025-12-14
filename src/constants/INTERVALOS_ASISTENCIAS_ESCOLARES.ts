@@ -1,4 +1,4 @@
-// Tolerancias para activación del botón
+// Tolerances for button activation
 
-export const HORAS_ANTES_SALIDA_CAMBIO_MODO_PARA_ESTUDIANTES_DE_SECUNDARIA = 1; // 1 hora antes de la salida
-export const HORAS_ANTES_SALIDA_CAMBIO_MODO_PARA_ESTUDIANTES_DE_PRIMARIA = 1; // 1 hora antes de la salida
+export const HOURS_BEFORE_EXIT_MODE_CHANGE_FOR_SECONDARY_STUDENTS = 1; // 1 hour before exit
+export const HOURS_BEFORE_EXIT_MODE_CHANGE_FOR_PRIMARY_STUDENTS = 1; // 1 hour before exit

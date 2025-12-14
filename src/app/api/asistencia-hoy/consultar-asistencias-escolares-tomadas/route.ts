@@ -7,20 +7,20 @@ import {
 } from "@/interfaces/shared/AsistenciaRequests";
 import { Meses } from "@/interfaces/shared/Meses";
 import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
-import { AsistenciasEscolaresHoyRepository } from "./_utils/AsistenciasEscolaresTomadasHoyRepository";
+import { TodaySchoolAttendancesRepository } from "./_utils/AsistenciasEscolaresTomadasHoyRepository";
 
 /**
  * Interface for the student attendance query endpoint response
  */
-interface ConsultarAsistenciasEstudiantesResponseBody {
-  TipoAsistencia: TipoAsistencia;
-  Dia: number;
-  Mes: Meses;
-  Nivel?: string;
-  Grado?: number;
-  Seccion?: string;
-  TotalEstudiantesEsperados?: number;
-  Resultados:
+interface QueryStudentAttendancesResponseBody {
+  AttendanceType: TipoAsistencia;
+  Day: number;
+  Month: Meses;
+  Level?: string;
+  Grade?: number;
+  Section?: string;
+  ExpectedTotalStudents?: number;
+  Results:
     | AsistenciaDiariaEscolarResultado
     | AsistenciaDiariaEscolarResultado[]
     | null;
@@ -30,8 +30,8 @@ interface ConsultarAsistenciasEstudiantesResponseBody {
 /**
  * Maps string to EducationalLevel
  */
-const mapearNivelEducativo = (nivel: string): NivelEducativo => {
-  switch (nivel.toUpperCase()) {
+const mapEducationalLevel = (level: string): NivelEducativo => {
+  switch (level.toUpperCase()) {
     case "P":
     case "PRIMARIA":
       return NivelEducativo.PRIMARIA;
@@ -39,81 +39,81 @@ const mapearNivelEducativo = (nivel: string): NivelEducativo => {
     case "SECUNDARIA":
       return NivelEducativo.SECUNDARIA;
     default:
-      throw new Error(`Invalid educational level: ${nivel}`);
+      throw new Error(`Invalid educational level: ${level}`);
   }
 };
 
 /**
  * Validates permissions according to role for student attendance queries
  */
-const validarPermisosEstudiantes = (
-  rol: RolesSistema,
-  tipoAsistencia: TipoAsistencia,
-  nivel?: string,
-  grado?: number,
-  seccion?: string
-): { esValido: boolean; mensaje?: string } => {
-  switch (rol) {
+const validateStudentPermissions = (
+  role: RolesSistema,
+  attendanceType: TipoAsistencia,
+  level?: string,
+  grade?: number,
+  section?: string
+): { isValid: boolean; message?: string } => {
+  switch (role) {
     case RolesSistema.Directivo:
       // Directors can query any student attendance
-      return { esValido: true };
+      return { isValid: true };
 
     case RolesSistema.Auxiliar:
       // Only secondary students
-      if (tipoAsistencia !== TipoAsistencia.ParaEstudiantesSecundaria) {
+      if (attendanceType !== TipoAsistencia.ParaEstudiantesSecundaria) {
         return {
-          esValido: false,
-          mensaje:
+          isValid: false,
+          message:
             "Assistants can only query secondary students",
         };
       }
-      return { esValido: true };
+      return { isValid: true };
 
     case RolesSistema.ProfesorPrimaria:
       // Only primary students
-      if (tipoAsistencia !== TipoAsistencia.ParaEstudiantesPrimaria) {
+      if (attendanceType !== TipoAsistencia.ParaEstudiantesPrimaria) {
         return {
-          esValido: false,
-          mensaje:
+          isValid: false,
+          message:
             "Primary school teachers can only query primary students",
         };
       }
       // TODO: Here it could be validated that the teacher only queries their assigned classroom
-      return { esValido: true };
+      return { isValid: true };
 
     case RolesSistema.Tutor:
       // Only secondary students
-      if (tipoAsistencia !== TipoAsistencia.ParaEstudiantesSecundaria) {
+      if (attendanceType !== TipoAsistencia.ParaEstudiantesSecundaria) {
         return {
-          esValido: false,
-          mensaje:
+          isValid: false,
+          message:
             "Tutors can only query secondary students",
         };
       }
       // TODO: Here it could be validated that the tutor only queries their assigned classroom
-      return { esValido: true };
+      return { isValid: true };
 
     case RolesSistema.Responsable:
       // Guardians can query students, but only those under their responsibility
       // TODO: This validation would require querying the database to verify the relationship
-      return { esValido: true };
+      return { isValid: true };
 
     case RolesSistema.ProfesorSecundaria:
       return {
-        esValido: false,
-        mensaje:
+        isValid: false,
+        message:
           "Secondary school teachers cannot query student attendances",
       };
 
     case RolesSistema.PersonalAdministrativo:
       return {
-        esValido: false,
-        mensaje:
+        isValid: false,
+        message:
           "Administrative staff cannot query student attendances",
       };
 
     default:
-      return { esValido: false, mensaje: "Unauthorized role" };
+      return { isValid: false, message: "Unauthorized role" };
   }
 };
 
@@ -126,7 +126,7 @@ export async function GET(req: NextRequest) {
 
     // Verify authentication
     console.log(`${logPrefix} 🔐 Verifying authentication...`);
-    const { error, rol, decodedToken } = await verifyAuthToken(req, [
+    const { error, rol: role, decodedToken } = await verifyAuthToken(req, [
       RolesSistema.Directivo,
       RolesSistema.Auxiliar,
       RolesSistema.ProfesorPrimaria,
@@ -134,12 +134,12 @@ export async function GET(req: NextRequest) {
       RolesSistema.Responsable,
     ]);
 
-    if (error && !rol && !decodedToken) {
+    if (error && !role && !decodedToken) {
       console.log(`${logPrefix} ❌ Authentication error`);
       return error;
     }
 
-    console.log(`${logPrefix} ✅ Authenticated user - Role: ${rol}`);
+    console.log(`${logPrefix} ✅ Authenticated user - Role: ${role}`);
     console.log(
       `${logPrefix} 👤 Decoded token:`,
       decodedToken ? Object.keys(decodedToken) : "null"
@@ -147,25 +147,25 @@ export async function GET(req: NextRequest) {
 
     // Get query parameters
     const searchParams = req.nextUrl.searchParams;
-    const tipoAsistenciaParam = searchParams.get(
+    const attendanceTypeParam = searchParams.get(
       "TipoAsistencia"
     ) as TipoAsistencia;
-    const nivelParam = searchParams.get("Nivel");
-    const gradoParam = searchParams.get("Grado");
-    const idEstudianteParam = searchParams.get("idEstudiante");
-    const seccionParam = searchParams.get("Seccion");
-    const totalEstudiantesParam = searchParams.get("totalEstudiantes");
+    const levelParam = searchParams.get("Nivel");
+    const gradeParam = searchParams.get("Grado");
+    const studentIdParam = searchParams.get("idEstudiante");
+    const sectionParam = searchParams.get("Seccion");
+    const totalStudentsParam = searchParams.get("totalEstudiantes");
 
     console.log(`${logPrefix} 📋 Received parameters:`);
-    console.log(`${logPrefix} 📋   TipoAsistencia: ${tipoAsistenciaParam}`);
-    console.log(`${logPrefix} 📋   Nivel: ${nivelParam}`);
-    console.log(`${logPrefix} 📋   Grado: ${gradoParam}`);
-    console.log(`${logPrefix} 📋   idEstudiante: ${idEstudianteParam}`);
-    console.log(`${logPrefix} 📋   Seccion: ${seccionParam}`);
-    console.log(`${logPrefix} 📋   totalEstudiantes: ${totalEstudiantesParam}`);
+    console.log(`${logPrefix} 📋   TipoAsistencia: ${attendanceTypeParam}`);
+    console.log(`${logPrefix} 📋   Nivel: ${levelParam}`);
+    console.log(`${logPrefix} 📋   Grado: ${gradeParam}`);
+    console.log(`${logPrefix} 📋   idEstudiante: ${studentIdParam}`);
+    console.log(`${logPrefix} 📋   Seccion: ${sectionParam}`);
+    console.log(`${logPrefix} 📋   totalEstudiantes: ${totalStudentsParam}`);
 
     // Validate mandatory parameters
-    if (!tipoAsistenciaParam) {
+    if (!attendanceTypeParam) {
       console.log(`${logPrefix} ❌ Missing TipoAsistencia parameter`);
       return NextResponse.json(
         { success: false, message: "The TipoAsistencia parameter is required" },
@@ -173,7 +173,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    if (!nivelParam) {
+    if (!levelParam) {
       console.log(`${logPrefix} ❌ Missing Nivel parameter`);
       return NextResponse.json(
         { success: false, message: "The Nivel parameter is required" },
@@ -181,7 +181,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    if (!gradoParam) {
+    if (!gradeParam) {
       console.log(`${logPrefix} ❌ Missing Grado parameter`);
       return NextResponse.json(
         { success: false, message: "The Grado parameter is required" },
@@ -190,7 +190,7 @@ export async function GET(req: NextRequest) {
     }
 
     // NEW VALIDATION: Section is mandatory for the new structure
-    if (!seccionParam) {
+    if (!sectionParam) {
       console.log(`${logPrefix} ❌ Missing Seccion parameter`);
       return NextResponse.json(
         {
@@ -203,16 +203,16 @@ export async function GET(req: NextRequest) {
     }
 
     // Validate that TipoAsistencia is valid and is for students
-    const tiposValidos = [
+    const validTypes = [
       TipoAsistencia.ParaEstudiantesPrimaria,
       TipoAsistencia.ParaEstudiantesSecundaria,
     ];
 
-    if (!tiposValidos.includes(tipoAsistenciaParam)) {
+    if (!validTypes.includes(attendanceTypeParam)) {
       console.log(
-        `${logPrefix} ❌ Invalid TipoAsistencia: ${tipoAsistenciaParam}`
+        `${logPrefix} ❌ Invalid TipoAsistencia: ${attendanceTypeParam}`
       );
-      console.log(`${logPrefix} 📋 Valid types: ${tiposValidos.join(", ")}`);
+      console.log(`${logPrefix} 📋 Valid types: ${validTypes.join(", ")}`);
       return NextResponse.json(
         {
           success: false,
@@ -224,17 +224,17 @@ export async function GET(req: NextRequest) {
     }
 
     // Determine query type: individual vs classroom
-    const esConsultaIndividual = !!idEstudianteParam;
-    const esConsultaAula = !idEstudianteParam;
+    const isIndividualQuery = !!studentIdParam;
+    const isClassroomQuery = !studentIdParam;
 
     console.log(
       `${logPrefix} 🎯 Query type: ${
-        esConsultaIndividual ? "Individual" : "Full classroom"
+        isIndividualQuery ? "Individual" : "Full classroom"
       }`
     );
 
     // NEW VALIDATION: totalEstudiantes mandatory only for classroom queries
-    if (esConsultaAula && !totalEstudiantesParam) {
+    if (isClassroomQuery && !totalStudentsParam) {
       console.log(
         `${logPrefix} ❌ Missing totalEstudiantes parameter for classroom query`
       );
@@ -249,16 +249,16 @@ export async function GET(req: NextRequest) {
     }
 
     // Validate totalEstudiantes if provided
-    let totalEstudiantes: number | undefined;
-    if (totalEstudiantesParam) {
-      totalEstudiantes = parseInt(totalEstudiantesParam);
+    let totalStudents: number | undefined;
+    if (totalStudentsParam) {
+      totalStudents = parseInt(totalStudentsParam);
       if (
-        isNaN(totalEstudiantes) ||
-        totalEstudiantes < 1 ||
-        totalEstudiantes > 50
+        isNaN(totalStudents) ||
+        totalStudents < 1 ||
+        totalStudents > 50
       ) {
         console.log(
-          `${logPrefix} ❌ Invalid totalEstudiantes: ${totalEstudiantesParam}`
+          `${logPrefix} ❌ Invalid totalEstudiantes: ${totalStudentsParam}`
         );
         return NextResponse.json(
           {
@@ -270,17 +270,17 @@ export async function GET(req: NextRequest) {
         );
       }
       console.log(
-        `${logPrefix} ✅ totalEstudiantes validated: ${totalEstudiantes}`
+        `${logPrefix} ✅ totalEstudiantes validated: ${totalStudents}`
       );
     }
 
     // Convert and validate parameters
-    let nivel: NivelEducativo;
-    let grado: number;
+    let level: NivelEducativo;
+    let grade: number;
 
     try {
-      nivel = mapearNivelEducativo(nivelParam);
-      console.log(`${logPrefix} ✅ Level mapped: ${nivel}`);
+      level = mapEducationalLevel(levelParam);
+      console.log(`${logPrefix} ✅ Level mapped: ${level}`);
     } catch (error) {
       console.log(`${logPrefix} ❌ Error mapping level: ${error}`);
       return NextResponse.json(
@@ -289,9 +289,9 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    grado = parseInt(gradoParam);
-    if (isNaN(grado) || grado < 1 || grado > 6) {
-      console.log(`${logPrefix} ❌ Invalid Grado: ${gradoParam}`);
+    grade = parseInt(gradeParam);
+    if (isNaN(grade) || grade < 1 || grade > 6) {
+      console.log(`${logPrefix} ❌ Invalid Grado: ${gradeParam}`);
       return NextResponse.json(
         { success: false, message: "The Grade must be a number between 1 and 6" },
         { status: 400 }
@@ -299,8 +299,8 @@ export async function GET(req: NextRequest) {
     }
 
     // Validate grade according to level
-    if (nivel === NivelEducativo.SECUNDARIA && grado > 5) {
-      console.log(`${logPrefix} ❌ Invalid Grade for secondary: ${grado}`);
+    if (level === NivelEducativo.SECUNDARIA && grade > 5) {
+      console.log(`${logPrefix} ❌ Invalid Grade for secondary: ${grade}`);
       return NextResponse.json(
         {
           success: false,
@@ -311,9 +311,9 @@ export async function GET(req: NextRequest) {
     }
 
     // Validate section (basic format)
-    if (seccionParam && !/^[A-Z]{1,2}$/i.test(seccionParam)) {
+    if (sectionParam && !/^[A-Z]{1,2}$/i.test(sectionParam)) {
       console.log(
-        `${logPrefix} ❌ Invalid section format: ${seccionParam}`
+        `${logPrefix} ❌ Invalid section format: ${sectionParam}`
       );
       return NextResponse.json(
         {
@@ -324,27 +324,27 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const seccion = seccionParam.toUpperCase();
+    const section = sectionParam.toUpperCase();
     console.log(
-      `${logPrefix} ✅ Parameters validated - Level: ${nivel}, Grade: ${grado}, Section: ${seccion}`
+      `${logPrefix} ✅ Parameters validated - Level: ${level}, Grade: ${grade}, Section: ${section}`
     );
 
     // Validate permissions
-    console.log(`${logPrefix} 🔒 Validating permissions for role: ${rol}`);
-    const validacionPermisos = validarPermisosEstudiantes(
-      rol!,
-      tipoAsistenciaParam,
-      nivelParam || undefined,
-      grado,
-      seccion
+    console.log(`${logPrefix} 🔒 Validating permissions for role: ${role}`);
+    const permissionValidation = validateStudentPermissions(
+      role!,
+      attendanceTypeParam,
+      levelParam || undefined,
+      grade,
+      section
     );
 
-    if (!validacionPermisos.esValido) {
+    if (!permissionValidation.isValid) {
       console.log(
-        `${logPrefix} ❌ Insufficient permissions: ${validacionPermisos.mensaje}`
+        `${logPrefix} ❌ Insufficient permissions: ${permissionValidation.message}`
       );
       return NextResponse.json(
-        { success: false, message: validacionPermisos.mensaje },
+        { success: false, message: permissionValidation.message },
         { status: 403 }
       );
     }
@@ -352,102 +352,102 @@ export async function GET(req: NextRequest) {
     console.log(`${logPrefix} ✅ Permissions validated correctly`);
 
     // Create repository instance
-    const asistenciasRepo = new AsistenciasEscolaresHoyRepository();
+    const attendancesRepo = new TodaySchoolAttendancesRepository();
     console.log(`${logPrefix} 📦 Attendance repository created`);
 
-    let resultados:
+    let results:
       | AsistenciaDiariaEscolarResultado
       | AsistenciaDiariaEscolarResultado[]
       | null;
-    let mensajeDebug = "";
+    let debugMessage = "";
 
-    if (esConsultaIndividual) {
+    if (isIndividualQuery) {
       // Query by specific student ID
       console.log(
-        `${logPrefix} 🔍 STARTING individual query: ${idEstudianteParam}`
+        `${logPrefix} 🔍 STARTING individual query: ${studentIdParam}`
       );
       console.log(
-        `${logPrefix} 🎯 Parameters for query: level=${nivel}, grade=${grado}, section=${seccion}, role=${rol}`
+        `${logPrefix} 🎯 Parameters for query: level=${level}, grade=${grade}, section=${section}, role=${role}`
       );
 
-      const resultado = await asistenciasRepo.consultarPorIdEstudiante(
-        idEstudianteParam!,
-        tipoAsistenciaParam,
-        nivel,
-        grado,
-        seccion,
-        rol!
+      const result = await attendancesRepo.queryByStudentId(
+        studentIdParam!,
+        attendanceTypeParam,
+        level,
+        grade,
+        section,
+        role!
       );
 
-      resultados = resultado.datos;
-      mensajeDebug = resultado.mensaje;
+      results = result.data;
+      debugMessage = result.message;
 
       console.log(`${logPrefix} 📊 Individual query result:`);
       console.log(
         `${logPrefix} 📊   Data: ${
-          resultados ? "Found" : "Not found"
+          results ? "Found" : "Not found"
         }`
       );
-      console.log(`${logPrefix} 📊   Message: ${mensajeDebug}`);
+      console.log(`${logPrefix} 📊   Message: ${debugMessage}`);
     } else {
       // Query by classroom (level, grade, section) - UPDATED WITH totalEstudiantes
       console.log(
-        `${logPrefix} 🏫 STARTING classroom query: ${nivel} ${grado}° ${seccion} (${totalEstudiantes} expected students)`
+        `${logPrefix} 🏫 STARTING classroom query: ${level} ${grade}° ${section} (${totalStudents} expected students)`
       );
 
-      const resultado = await asistenciasRepo.consultarPorAula(
-        tipoAsistenciaParam,
-        nivel!,
-        grado!,
-        seccion!,
-        totalEstudiantes!, // New mandatory parameter
-        rol!
+      const result = await attendancesRepo.queryByClassroom(
+        attendanceTypeParam,
+        level!,
+        grade!,
+        section!,
+        totalStudents!, // New mandatory parameter
+        role!
       );
 
-      resultados = resultado.datos;
-      mensajeDebug = resultado.mensaje;
+      results = result.data;
+      debugMessage = result.message;
 
       console.log(`${logPrefix} 📊 Classroom query result:`);
       console.log(
         `${logPrefix} 📊   Data: ${
-          Array.isArray(resultados)
-            ? `${resultados.length}/${totalEstudiantes} students`
+          Array.isArray(results)
+            ? `${results.length}/${totalStudents} students`
             : "Not found"
         }`
       );
-      console.log(`${logPrefix} 📊   Message: ${mensajeDebug}`);
+      console.log(`${logPrefix} 📊   Message: ${debugMessage}`);
     }
 
     // Get current date for the response
-    const fechaActual = await asistenciasRepo.obtenerFechaActual();
-    const [año, mes, dia] = fechaActual.split("-").map(Number);
+    const currentDate = await attendancesRepo.getCurrentDate();
+    const [year, month, day] = currentDate.split("-").map(Number);
 
     console.log(
-      `${logPrefix} 📅 Current date obtained: ${fechaActual} (${dia}/${mes}/${año})`
+      `${logPrefix} 📅 Current date obtained: ${currentDate} (${day}/${month}/${year})`
     );
 
     // Create response
-    const respuesta: ConsultarAsistenciasEstudiantesResponseBody = {
-      TipoAsistencia: tipoAsistenciaParam,
-      Dia: dia,
-      Mes: mes as Meses,
-      Nivel: nivelParam || undefined,
-      Grado: grado,
-      Seccion: seccion,
-      ...(esConsultaAula &&
-        totalEstudiantes && { TotalEstudiantesEsperados: totalEstudiantes }),
-      Resultados: resultados,
-      _debug: mensajeDebug,
+    const response: QueryStudentAttendancesResponseBody = {
+      AttendanceType: attendanceTypeParam,
+      Day: day,
+      Month: month as Meses,
+      Level: levelParam || undefined,
+      Grade: grade,
+      Section: section,
+      ...(isClassroomQuery &&
+        totalStudents && { ExpectedTotalStudents: totalStudents }),
+      Results: results,
+      _debug: debugMessage,
     };
 
     console.log(`${logPrefix} ✅ QUERY COMPLETED SUCCESSFULLY`);
     console.log(
       `${logPrefix} 📈 Response prepared with ${
-        Array.isArray(resultados) ? resultados.length : resultados ? 1 : 0
+        Array.isArray(results) ? results.length : results ? 1 : 0
       } results`
     );
 
-    return NextResponse.json(respuesta, { status: 200 });
+    return NextResponse.json(response, { status: 200 });
   } catch (error) {
     console.error(`${logPrefix} ❌ CRITICAL ERROR:`, error);
     console.error(

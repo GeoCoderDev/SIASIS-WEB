@@ -14,42 +14,42 @@ import {
 import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
 import { verifyAuthToken } from "@/lib/utils/backend/auth/functions/jwtComprobations";
 import { redirectToLogin } from "@/lib/utils/backend/auth/functions/redirectToLogin";
-import { obtenerDatosAsistenciaHoy } from "../_utils/obtenerDatosAsistenciaHoy";
+import { getTodayAttendanceData } from "../_utils/obtenerDatosAsistenciaHoy";
 
 export async function GET(req: NextRequest) {
   try {
-    const { decodedToken, rol, error } = await verifyAuthToken(req);
+    const { decodedToken, rol: role, error } = await verifyAuthToken(req);
 
     if (error) return error;
 
     // Get data using the new service
     const {
-      datos: datosCompletos,
-      fuente,
-      mensaje,
-    } = await obtenerDatosAsistenciaHoy();
+      data: completeData,
+      source,
+      message,
+    } = await getTodayAttendanceData();
 
     // Filter data according to role
-    const datosFiltrados = filtrarDatosSegunRol(
-      datosCompletos,
-      rol,
+    const filteredData = filterDataByRole(
+      completeData,
+      role,
       decodedToken.ID_Usuario
     );
 
     // Return filtered data with source indicator
     return NextResponse.json({
-      ...datosFiltrados,
-      _debug: mensaje,
-      _fuente: fuente,
+      ...filteredData,
+      _debug: message,
+      _source: source,
     });
   } catch (error) {
     console.error("Error getting attendance data:", error);
 
     // Determine the error type
-    let logoutType = LogoutTypes.ERROR_SISTEMA;
+    let logoutType = LogoutTypes.SYSTEM_ERROR;
     const errorDetails: ErrorDetailsForLogout = {
-      mensaje: "Error retrieving attendance data",
-      origen: "api/datos-asistencia-hoy",
+      message: "Error retrieving attendance data",
+      origin: "api/datos-asistencia-hoy",
       timestamp: Date.now(),
       siasisComponent: "RDP04", // Main component is RDP04 (blob)
     };
@@ -63,8 +63,8 @@ export async function GET(req: NextRequest) {
         error.message.includes("timeout") ||
         error.message.includes("HTTP request timeout")
       ) {
-        logoutType = LogoutTypes.ERROR_RED;
-        errorDetails.mensaje =
+        logoutType = LogoutTypes.NETWORK_ERROR;
+        errorDetails.message =
           "Connection error when getting attendance data";
       }
       // If it's a JSON parsing error
@@ -73,8 +73,8 @@ export async function GET(req: NextRequest) {
         error.message.includes("parse") ||
         error.message.includes("not valid JSON")
       ) {
-        logoutType = LogoutTypes.ERROR_DATOS_CORRUPTOS;
-        errorDetails.mensaje = "Error processing attendance data";
+        logoutType = LogoutTypes.CORRUPT_DATA_ERROR;
+        errorDetails.message = "Error processing attendance data";
         errorDetails.contexto = "Invalid data format";
       }
       // If Redis lookup failed
@@ -83,8 +83,8 @@ export async function GET(req: NextRequest) {
           "Backup file ID not found in Redis"
         )
       ) {
-        logoutType = LogoutTypes.ERROR_DATOS_NO_DISPONIBLES;
-        errorDetails.mensaje =
+        logoutType = LogoutTypes.DATA_NOT_AVAILABLE_ERROR;
+        errorDetails.message =
           "Could not find attendance information";
         errorDetails.siasisComponent = "RDP05"; // Specific Redis error
       }
@@ -92,8 +92,8 @@ export async function GET(req: NextRequest) {
       else if (
         error.message.includes("Main access and backup failed")
       ) {
-        logoutType = LogoutTypes.ERROR_DATOS_NO_DISPONIBLES;
-        errorDetails.mensaje =
+        logoutType = LogoutTypes.DATA_NOT_AVAILABLE_ERROR;
+        errorDetails.message =
           "Could not get attendance information";
         errorDetails.contexto =
           "Failed to access both blob and Google Drive";
@@ -103,13 +103,13 @@ export async function GET(req: NextRequest) {
         error.message.includes("HTTP error in blob") ||
         error.message.includes("HTTP error in backup")
       ) {
-        logoutType = LogoutTypes.ERROR_RED;
-        errorDetails.mensaje =
+        logoutType = LogoutTypes.NETWORK_ERROR;
+        errorDetails.message =
           "Server error when getting attendance data";
         errorDetails.contexto = "Invalid HTTP response";
       }
 
-      errorDetails.mensaje += `: ${error.message}`;
+      errorDetails.message += `: ${error.message}`;
     }
 
     return redirectToLogin(logoutType, errorDetails);
@@ -117,104 +117,104 @@ export async function GET(req: NextRequest) {
 }
 
 // Function to filter data according to role
-function filtrarDatosSegunRol(
-  datos: DatosAsistenciaHoyIE20935,
-  rol: RolesSistema,
-  idUsuario: string
+function filterDataByRole(
+  data: DatosAsistenciaHoyIE20935,
+  role: RolesSistema,
+  userId: string
 ): BaseAsistenciaResponse {
   // Base data for all roles
-  const datosBase: BaseAsistenciaResponse = {
-    DiaEvento: datos.DiaEvento,
-    FechaUTC: datos.FechaUTC,
-    FechaLocalPeru: datos.FechaLocalPeru,
-    FueraAñoEscolar: datos.FueraAñoEscolar,
-    Semana_De_Gestion: datos.Semana_De_Gestion,
-    Vacaciones_Interescolares: datos.Vacaciones_Interescolares,
-    ComunicadosParaMostrarHoy: datos.ComunicadosParaMostrarHoy,
+  const baseData: BaseAsistenciaResponse = {
+    DiaEvento: data.DiaEvento,
+    FechaUTC: data.FechaUTC,
+    FechaLocalPeru: data.FechaLocalPeru,
+    FueraAñoEscolar: data.FueraAñoEscolar,
+    Semana_De_Gestion: data.Semana_De_Gestion,
+    Vacaciones_Interescolares: data.Vacaciones_Interescolares,
+    ComunicadosParaMostrarHoy: data.ComunicadosParaMostrarHoy,
   };
 
-  switch (rol) {
+  switch (role) {
     case RolesSistema.Directivo:
       // Directors have access to all data
       return {
-        ...datosBase,
+        ...baseData,
         ListaDePersonalesAdministrativos:
-          datos.ListaDePersonalesAdministrativos,
-        ListaDeDirectivos: datos.ListaDeDirectivos,
-        ListaDeProfesoresPrimaria: datos.ListaDeProfesoresPrimaria,
-        ListaDeProfesoresSecundaria: datos.ListaDeProfesoresSecundaria,
-        HorariosLaboraresGenerales: datos.HorariosLaboraresGenerales,
-        HorariosEscolares: datos.HorariosEscolares,
-        ListaDeAuxiliares: datos.ListaDeAuxiliares,
+          data.ListaDePersonalesAdministrativos,
+        ListaDeDirectivos: data.ListaDeDirectivos,
+        ListaDeProfesoresPrimaria: data.ListaDeProfesoresPrimaria,
+        ListaDeProfesoresSecundaria: data.ListaDeProfesoresSecundaria,
+        HorariosLaboraresGenerales: data.HorariosLaboraresGenerales,
+        HorariosEscolares: data.HorariosEscolares,
+        ListaDeAuxiliares: data.ListaDeAuxiliares,
       } as DirectivoAsistenciaResponse;
 
     case RolesSistema.ProfesorPrimaria:
       // Primary school teachers receive their schedule and that of primary students
       return {
-        ...datosBase,
+        ...baseData,
         HorarioTomaAsistenciaProfesorPrimaria:
-          datos.HorariosLaboraresGenerales.TomaAsistenciaProfesorPrimaria,
+          data.HorariosLaboraresGenerales.TomaAsistenciaProfesorPrimaria,
         HorarioEscolarPrimaria:
-          datos.HorariosEscolares[NivelEducativo.PRIMARIA],
-        Mi_Identificador: idUsuario,
+          data.HorariosEscolares[NivelEducativo.PRIMARIA],
+        Mi_Identificador: userId,
       } as ProfesorPrimariaAsistenciaResponse;
 
     case RolesSistema.Auxiliar:
       // Auxiliaries receive their schedule and that of secondary students
       return {
-        ...datosBase,
+        ...baseData,
         HorarioTomaAsistenciaAuxiliares:
-          datos.HorariosLaboraresGenerales.TomaAsistenciaAuxiliares,
+          data.HorariosLaboraresGenerales.TomaAsistenciaAuxiliares,
         HorarioEscolarSecundaria:
-          datos.HorariosEscolares[NivelEducativo.SECUNDARIA],
-        Mi_Identificador: idUsuario,
+          data.HorariosEscolares[NivelEducativo.SECUNDARIA],
+        Mi_Identificador: userId,
       } as AuxiliarAsistenciaResponse;
 
     case RolesSistema.ProfesorSecundaria:
     case RolesSistema.Tutor:
       // Secondary school teachers and tutors receive their own schedule and that of secondary students
-      const profesorInfo = datos.ListaDeProfesoresSecundaria.find(
-        (p) => p.Id_Profesor_Secundaria === idUsuario
+      const teacherInfo = data.ListaDeProfesoresSecundaria.find(
+        (p) => p.Id_Profesor_Secundaria === userId
       );
 
       return {
-        ...datosBase,
-        HorarioProfesor: profesorInfo
+        ...baseData,
+        HorarioProfesor: teacherInfo
           ? {
-              Hora_Entrada_Dia_Actual: profesorInfo.Hora_Entrada_Dia_Actual,
-              Hora_Salida_Dia_Actual: profesorInfo.Hora_Salida_Dia_Actual,
+              Hora_Entrada_Dia_Actual: teacherInfo.Hora_Entrada_Dia_Actual,
+              Hora_Salida_Dia_Actual: teacherInfo.Hora_Salida_Dia_Actual,
             }
           : false,
         HorarioEscolarSecundaria:
-          datos.HorariosEscolares[NivelEducativo.SECUNDARIA],
-        Mi_Identificador: idUsuario,
+          data.HorariosEscolares[NivelEducativo.SECUNDARIA],
+        Mi_Identificador: userId,
       } as ProfesorTutorSecundariaAsistenciaResponse;
 
     case RolesSistema.Responsable:
       // Guardians receive primary and secondary school schedules
       return {
-        ...datosBase,
-        HorariosEscolares: datos.HorariosEscolares,
+        ...baseData,
+        HorariosEscolares: data.HorariosEscolares,
       } as ResponsableAsistenciaResponse;
 
     case RolesSistema.PersonalAdministrativo:
       // Administrative staff receive only their own schedule
-      const personalInfo = datos.ListaDePersonalesAdministrativos.find(
-        (p) => p.Id_Personal_Administrativo == idUsuario
+      const staffInfo = data.ListaDePersonalesAdministrativos.find(
+        (p) => p.Id_Personal_Administrativo == userId
       );
       return {
-        ...datosBase,
-        HorarioPersonal: personalInfo
+        ...baseData,
+        HorarioPersonal: staffInfo
           ? {
-              Horario_Laboral_Entrada: personalInfo.Hora_Entrada_Dia_Actual,
-              Horario_Laboral_Salida: personalInfo.Hora_Salida_Dia_Actual,
+              Horario_Laboral_Entrada: staffInfo.Hora_Entrada_Dia_Actual,
+              Horario_Laboral_Salida: staffInfo.Hora_Salida_Dia_Actual,
             }
           : false,
-        Mi_Identificador: idUsuario,
+        Mi_Identificador: userId,
       } as PersonalAdministrativoAsistenciaResponse;
 
     default:
       // By default, only return base data
-      return datosBase;
+      return baseData;
   }
 }

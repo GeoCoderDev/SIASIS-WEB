@@ -25,12 +25,12 @@ import {
 } from "../modals/Comunicados/ComunicadosDeHoy";
 
 export type RolForLogin =
-  | "DIRECTIVO"
-  | "PROFESOR DE PRIMARIA"
-  | "AUXILIAR"
-  | "PROFESOR/TUTOR (Secundaria)"
-  | "RESPONSABLE (Padre/Apoderado)"
-  | "PERSONAL ADMINISTRATIVO";
+  | "DIRECTOR"
+  | "PRIMARY TEACHER"
+  | "ASSISTANT"
+  | "TEACHER/TUTOR (Secondary)"
+  | "GUARDIAN (Parent/Representative)"
+  | "ADMINISTRATIVE STAFF";
 
 export const SE_MOSTRO_TOLTIP_TOMAR_ASISTENCIA_PERSONAL_KEY =
   "toltip-tomar-asistencia-personal-SHOWED";
@@ -93,7 +93,7 @@ const PlantillaLogin = ({ rol, siasisAPI, endpoint }: PlantillaLoginProps) => {
         userAutheticated: false,
       });
 
-      if (!fetchCancellable) throw new Error();
+      if (!fetchCancellable) throw new Error("Request error");
 
       const res = await fetchCancellable.fetch();
 
@@ -145,7 +145,7 @@ const PlantillaLogin = ({ rol, siasisAPI, endpoint }: PlantillaLoginProps) => {
       );
 
       // ALWAYS WHEN IT'S STAFF PERSONNEL
-      if (rol !== "DIRECTIVO" && rol !== "RESPONSABLE (Padre/Apoderado)") {
+      if (rol !== "DIRECTOR" && rol !== "GUARDIAN (Parent/Representative)") {
         // SAVING TOOLTIP DISPLAY VARIABLE
         sessionStorage.setItem(
           SE_MOSTRO_TOLTIP_TOMAR_ASISTENCIA_PERSONAL_KEY,
@@ -162,7 +162,7 @@ const PlantillaLogin = ({ rol, siasisAPI, endpoint }: PlantillaLoginProps) => {
     } catch (e) {
       setIsSomethingLoading(false);
       setError({
-        message: "Ocurrio un error interno en el sistema",
+        message: "An internal system error occurred",
         success: false,
       });
     }
@@ -177,12 +177,12 @@ const PlantillaLogin = ({ rol, siasisAPI, endpoint }: PlantillaLoginProps) => {
             <Link href="/login">
               <button className="flex items-center text-blanco bg-color-interfaz px-4 py-2 rounded-lg">
                 <VolverIcon className="w-5 h-5 mr-2" />
-                Volver
+                Back
               </button>
             </Link>
 
             <h2 className="text-[0.9rem] text-gris-oscuro mt-3">
-              Inicio de Sesión
+              Login
             </h2>
             <h3 className="text-[1.5rem] font-bold text-gris-oscuro text-wrap -break-words">
               {rol}
@@ -199,7 +199,7 @@ const PlantillaLogin = ({ rol, siasisAPI, endpoint }: PlantillaLoginProps) => {
                   name="Nombre_Usuario"
                   onChange={handleChange}
                   value={formularioLogin.Nombre_Usuario}
-                  placeholder="Ingrese su nombre de usuario"
+                  placeholder="Enter your username"
                   className="w-full text-negro placeholder:text-gris-intermedio text-[1rem] outline-none bg-transparent px-2"
                 />
               </div>
@@ -215,13 +215,13 @@ const PlantillaLogin = ({ rol, siasisAPI, endpoint }: PlantillaLoginProps) => {
                   name="Contraseña"
                   onChange={handleChange}
                   value={formularioLogin.Contraseña}
-                  placeholder="Ingrese su contraseña"
+                  placeholder="Enter your password"
                   className="w-full text-negro placeholder:text-gris-intermedio text-[1rem] outline-none bg-transparent px-2"
                 />
               </div>
 
               <p className="text-gris-oscuro text-[0.9rem]">
-                Intentos disponibles:{" "}
+                Available attempts:{" "}
                 <span className="font-bold">{intentosRestantes}</span>
               </p>
 
@@ -243,7 +243,7 @@ const PlantillaLogin = ({ rol, siasisAPI, endpoint }: PlantillaLoginProps) => {
                 }
                 className="mt-3 w-full bg-color-interfaz text-blanco rounded-lg text-[1rem] flex gap-4 items-center justify-center py-3 disabled:grayscale-[0.75] pointer"
               >
-                Ingresar
+                Login
                 {isSomethingLoading && !error && (
                   <Loader className="w-[1.5rem] bg-white p-[0.3rem]" />
                 )}

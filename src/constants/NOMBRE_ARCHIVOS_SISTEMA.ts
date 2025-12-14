@@ -1,47 +1,47 @@
 import { NivelEducativo } from "../interfaces/shared/NivelEducativo";
 import { GradosPrimaria, GradosSecundaria } from "./GRADOS_POR_NIVEL_EDUCATIVO";
 
-export const NOMBRE_ARCHIVO_CON_DATOS_ASISTENCIA_DIARIOS =
+export const DAILY_ATTENDANCE_DATA_FILENAME =
   "datos-asistencia-hoy-ie20935.json";
 
-// RELACIONADO A LOS ARCHIVOS DE LISTAS DE ESTUDIANTES DE SECUNDARIA Y
-// PRIMARIA A GUARDAR EN BLOBS Y GOOGLE DRIVE
-export type GradoPorNivel<N extends NivelEducativo> =
+// RELATED TO THE FILES OF LISTS OF SECONDARY AND
+// PRIMARY SCHOOL STUDENTS TO BE SAVED IN BLOBS AND GOOGLE DRIVE
+export type GradeByLevel<N extends NivelEducativo> =
   N extends NivelEducativo.PRIMARIA
     ? GradosPrimaria
     : N extends NivelEducativo.SECUNDARIA
     ? GradosSecundaria
     : never;
 
-export type NOMBRE_ARCHIVO_LISTA_ESTUDIANTES_PRIMARIA =
-  (typeof NOMBRES_ARCHIVOS_LISTAS_ESTUDIANTES_DIARIAS)[NivelEducativo.PRIMARIA][keyof (typeof NOMBRES_ARCHIVOS_LISTAS_ESTUDIANTES_DIARIAS)[NivelEducativo.PRIMARIA]];
-export type NOMBRE_ARCHIVO_LISTA_ESTUDIANTES_SECUNDARIA =
-  (typeof NOMBRES_ARCHIVOS_LISTAS_ESTUDIANTES_DIARIAS)[NivelEducativo.SECUNDARIA][keyof (typeof NOMBRES_ARCHIVOS_LISTAS_ESTUDIANTES_DIARIAS)[NivelEducativo.SECUNDARIA]];
+export type PRIMARY_STUDENT_LIST_FILENAME =
+  (typeof DAILY_STUDENT_LIST_FILENAMES)[NivelEducativo.PRIMARIA][keyof (typeof DAILY_STUDENT_LIST_FILENAMES)[NivelEducativo.PRIMARIA]];
+export type SECONDARY_STUDENT_LIST_FILENAME =
+  (typeof DAILY_STUDENT_LIST_FILENAMES)[NivelEducativo.SECUNDARIA][keyof (typeof DAILY_STUDENT_LIST_FILENAMES)[NivelEducativo.SECUNDARIA]];
 
-export type NOMBRE_ARCHIVO_LISTA_ESTUDIANTES<
+export type STUDENT_LIST_FILENAME<
   N extends NivelEducativo = NivelEducativo
-> = N extends NivelEducativo ? `Estudiantes_${N}_${GradoPorNivel<N>}` : never;
+> = N extends NivelEducativo ? `Students_${N}_${GradeByLevel<N>}` : never;
 
-export const NOMBRES_ARCHIVOS_LISTAS_ESTUDIANTES_DIARIAS: Record<
+export const DAILY_STUDENT_LIST_FILENAMES: Record<
   NivelEducativo,
-  Record<number, NOMBRE_ARCHIVO_LISTA_ESTUDIANTES>
+  Record<number, STUDENT_LIST_FILENAME>
 > = {
   [NivelEducativo.PRIMARIA]: {
-    1: "Estudiantes_P_1",
-    2: "Estudiantes_P_2",
-    3: "Estudiantes_P_3",
-    4: "Estudiantes_P_4",
-    5: "Estudiantes_P_5",
-    6: "Estudiantes_P_6",
+    1: "Students_P_1",
+    2: "Students_P_2",
+    3: "Students_P_3",
+    4: "Students_P_4",
+    5: "Students_P_5",
+    6: "Students_P_6",
   },
   [NivelEducativo.SECUNDARIA]: {
-    1: "Estudiantes_S_1",
-    2: "Estudiantes_S_2",
-    3: "Estudiantes_S_3",
-    4: "Estudiantes_S_4",
-    5: "Estudiantes_S_5",
+    1: "Students_S_1",
+    2: "Students_S_2",
+    3: "Students_S_3",
+    4: "Students_S_4",
+    5: "Students_S_5",
   },
 };
 
-export const NOMBRE_ARCHIVO_REPORTE_ACTUALIZACION_DE_LISTAS_DE_ESTUDIANTES =
+export const STUDENT_LIST_UPDATE_REPORT_FILENAME =
   "reporte-actualizacion-listas-estudiantes.json";

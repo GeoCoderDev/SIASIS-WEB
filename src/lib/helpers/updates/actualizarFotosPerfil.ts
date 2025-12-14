@@ -1,35 +1,35 @@
 import { NOMBRE_CLASE_IMAGENES_FOTO_PERFIL_USUARIO } from "@/Assets/others/ClasesCSS";
 
 /**
- * Modifica el atributo src de las imágenes con clase "Foto-Perfil-Usuario"
- * @param newSrc - La nueva URL de imagen que se asignará
+ * Modifies the src attribute of images with the "Foto-Perfil-Usuario" class
+ * @param newSrc - The new image URL to be assigned
  */
 export async function modificarFotosPerfilUsuario(
   Google_Drive_Foto_ID: string
 ): Promise<void> {
-  // Seleccionar todos los elementos img con la clase "Foto-Perfil-Usuario"
+  // Select all img elements with the "Foto-Perfil-Usuario" class
   const imagenesPerfilUsuario = document.querySelectorAll(
     `img.${NOMBRE_CLASE_IMAGENES_FOTO_PERFIL_USUARIO}`
   );
 
-  // Verificar si se encontraron elementos
+  // Check if elements were found
   if (imagenesPerfilUsuario.length === 0) {
     // console.warn(
-    //   'No se encontraron imágenes con la clase "Foto-Perfil-Usuario"'
+    //   'No images with the class "Foto-Perfil-Usuario" were found'
     // );
     return;
   }
 
-  // Modificar el atributo src de cada imagen encontrada
+  // Modify the src attribute of each found image
   imagenesPerfilUsuario.forEach((imagen: Element) => {
     if (imagen instanceof HTMLImageElement) {
-      // Guardar el src anterior para referencia si es necesario
+      // Save the previous src for reference if necessary
       // const srcAnterior = imagen.src;
 
-      // Asignar el nuevo src
+      // Assign the new src
       imagen.src = `https://drive.google.com/thumbnail?id=${Google_Drive_Foto_ID}`;
 
-      // console.log(`Imagen modificada: ${srcAnterior} → ${newSrc}`);
+      // console.log(`Image modified: ${srcAnterior} → ${newSrc}`);
     }
   });
 
@@ -39,6 +39,6 @@ export async function modificarFotosPerfilUsuario(
   });
 
   console.log(
-    `Se modificaron ${imagenesPerfilUsuario.length} imágenes de perfil`
+    `${imagenesPerfilUsuario.length} profile pictures were modified`
   );
 }

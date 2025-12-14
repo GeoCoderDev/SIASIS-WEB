@@ -1,6 +1,6 @@
 import { ModoRegistro } from "./ModoRegistro";
 
-// Interfaz para el registro existente en MongoDB
+// Interface for existing records in MongoDB
 export interface RegistroAsistenciaExistente {
   _id: string;
   Id_Estudiante: string;

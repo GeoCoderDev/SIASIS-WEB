@@ -1,2 +1,2 @@
-export const NOMBRE_INSTITUCION = "IE20935";
-export const NOMBRE_INSTITUCION_PARA_TARJETAS_QR = "I.E.20935 Asunción 8";
+export const INSTITUTION_NAME = "IE20935";
+export const INSTITUTION_NAME_FOR_QR_CARDS = "I.E.20935 Asunción 8";

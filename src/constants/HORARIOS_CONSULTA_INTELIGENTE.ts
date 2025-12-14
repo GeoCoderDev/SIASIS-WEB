@@ -1,36 +1,36 @@
 /**
  * ⏰ CONSTANTS: Schedules for the intelligent attendance query flow
  */
-export const HORARIOS_CONSULTA = {
+export const QUERY_SCHEDULES = {
   // School day schedules
-  INICIO_DIA_ESCOLAR: 6, // 06:00 AM
-  FIN_CONSOLIDACION: 22, // 10:00 PM
-  SEPARACION_ENTRADAS_SALIDAS: 12, // 12:00 PM (noon)
+  SCHOOL_DAY_START: 6, // 06:00 AM
+  CONSOLIDATION_END: 22, // 10:00 PM
+  ENTRY_EXIT_SEPARATOR: 12, // 12:00 PM (noon)
 
   // Special schedules
-  VIERNES_COMPLETO: 20, // 8:00 PM - Hour from which Friday is considered "complete"
+  FRIDAY_COMPLETE: 20, // 8:00 PM - Hour from which Friday is considered "complete"
 
   // Tolerances
-  MINUTOS_TOLERANCIA_CONSULTA: 30, // Tolerance for queries near hour changes
+  QUERY_TOLERANCE_MINUTES: 30, // Tolerance for queries near hour changes
 };
 
 /**
  * 📅 CONSTANTS: Days of the week
  */
-export const DIAS_SEMANA = {
-  DOMINGO: 0,
-  LUNES: 1,
-  MARTES: 2,
-  MIERCOLES: 3,
-  JUEVES: 4,
-  VIERNES: 5,
-  SABADO: 6,
+export const DAYS_OF_WEEK = {
+  SUNDAY: 0,
+  MONDAY: 1,
+  TUESDAY: 2,
+  WEDNESDAY: 3,
+  THURSDAY: 4,
+  FRIDAY: 5,
+  SATURDAY: 6,
 };
 
 /**
  * 🎯 TYPES: For better typing
  */
-export type HoraDelDia =
+export type HourOfDay =
   | 0
   | 1
   | 2
@@ -55,4 +55,4 @@ export type HoraDelDia =
   | 21
   | 22
   | 23;
-export type DiaSemana = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6;

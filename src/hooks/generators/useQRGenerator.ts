@@ -5,7 +5,7 @@ import { downloadBlob } from "@/lib/helpers/downloaders/downloadBlob";
 import { compartirArchivoEnBlobPorNavegador } from "@/lib/helpers/others/compartirArchivoEnBlobPorNavegador";
 import { EstudianteConAulaYRelacion } from "@/interfaces/shared/Estudiantes";
 
-export const useQRGenerator = (estudiante: EstudianteConAulaYRelacion) => {
+export const useQRGenerator = (student: EstudianteConAulaYRelacion) => {
   const hiddenCardsRef = useRef<HTMLDivElement>(null);
   const [selectedQuantity, setSelectedQuantity] = useState<number>(1);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState<boolean>(false);
@@ -27,7 +27,7 @@ export const useQRGenerator = (estudiante: EstudianteConAulaYRelacion) => {
         const pdfService = new GeneradorTarjetaQREstudiantilEnPDF(
           hiddenCardsRef.current
         );
-        const pdfBlob = await pdfService.generatePDF(estudiante, quantity);
+        const pdfBlob = await pdfService.generatePDF(student, quantity);
 
         setCurrentPdfBlob(pdfBlob);
 
@@ -45,15 +45,15 @@ export const useQRGenerator = (estudiante: EstudianteConAulaYRelacion) => {
         setIsGeneratingPDF(false);
       }
     },
-    [estudiante]
+    [student]
   ); // Only depends on the student
 
   const downloadPDF = useCallback(() => {
     if (!currentPdfBlob) return;
 
-    const filename = `QR_${estudiante.Nombres}_${estudiante.Apellidos}.pdf`;
+    const filename = `QR_${student.Nombres}_${student.Apellidos}.pdf`;
     downloadBlob(currentPdfBlob, filename);
-  }, [currentPdfBlob, estudiante]);
+  }, [currentPdfBlob, student]);
 
   const sharePDF = useCallback(async () => {
     if (!currentPdfBlob || !shareSupported) {
@@ -62,8 +62,8 @@ export const useQRGenerator = (estudiante: EstudianteConAulaYRelacion) => {
     }
 
     try {
-      const filename = `QR_${estudiante.Nombres}_${estudiante.Apellidos}.pdf`;
-      const title = `${estudiante.Nombres} ${estudiante.Apellidos}`;
+      const filename = `QR_${student.Nombres}_${student.Apellidos}.pdf`;
+      const title = `${student.Nombres} ${student.Apellidos}`;
       await compartirArchivoEnBlobPorNavegador(currentPdfBlob, filename, title);
     } catch (error) {
       if ((error as Error).name !== "AbortError") {
@@ -71,7 +71,7 @@ export const useQRGenerator = (estudiante: EstudianteConAulaYRelacion) => {
         alert("Error sharing. Use the download button.");
       }
     }
-  }, [currentPdfBlob, shareSupported, estudiante]);
+  }, [currentPdfBlob, shareSupported, student]);
 
   const cleanup = useCallback(() => {
     if (pdfPreviewUrl) {

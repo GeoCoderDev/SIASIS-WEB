@@ -1,68 +1,64 @@
-
-
-
-
-export interface PuntoGeografico {
-  latitud: number;
-  longitud: number;
+export interface GeographicPoint {
+  latitude: number;
+  longitude: number;
 }
 
 
 // src/enums/GeolocationEnums.ts
 
 /**
- * Estados posibles del dispositivo en relación a la geolocalización
+ * Possible states of the device in relation to geolocation
  */
-export enum EstadoDispositivo {
-  DENTRO_DEL_COLEGIO = 'DENTRO_DEL_COLEGIO',
-  FUERA_DEL_COLEGIO = 'FUERA_DEL_COLEGIO',
-  UBICACION_DESCONOCIDA = 'UBICACION_DESCONOCIDA',
-  ERROR_PERMISOS = 'ERROR_PERMISOS',
-  ERROR_TIMEOUT = 'ERROR_TIMEOUT',
-  ERROR_POSICION_NO_DISPONIBLE = 'ERROR_POSICION_NO_DISPONIBLE',
-  ERROR_DESCONOCIDO = 'ERROR_DESCONOCIDO',
-  CARGANDO = 'CARGANDO'
+export enum DeviceStatus {
+  INSIDE_THE_SCHOOL = 'INSIDE_THE_SCHOOL',
+  OUTSIDE_THE_SCHOOL = 'OUTSIDE_THE_SCHOOL',
+  UNKNOWN_LOCATION = 'UNKNOWN_LOCATION',
+  PERMISSION_ERROR = 'PERMISSION_ERROR',
+  TIMEOUT_ERROR = 'TIMEOUT_ERROR',
+  POSITION_UNAVAILABLE_ERROR = 'POSITION_UNAVAILABLE_ERROR',
+  UNKNOWN_ERROR = 'UNKNOWN_ERROR',
+  LOADING = 'LOADING'
 }
 
 /**
- * Estados de permisos de geolocalización
+ * Geolocation permission states
  */
-export enum EstadoPermisos {
-  CONCEDIDO = 'granted',
-  DENEGADO = 'denied',
-  SOLICITADO = 'prompt',
-  NO_SOPORTADO = 'not-supported'
+export enum PermissionStatus {
+  GRANTED = 'granted',
+  DENIED = 'denied',
+  PROMPT = 'prompt',
+  NOT_SUPPORTED = 'not-supported'
 }
 
 /**
- * Tipos de errores de geolocalización
+ * Geolocation error types
  */
-export enum TipoErrorGeolocalizacion {
+export enum GeolocationErrorType {
   PERMISSION_DENIED = 1,
   POSITION_UNAVAILABLE = 2,
   TIMEOUT = 3
 }
 
 /**
- * Tipos de modales a mostrar
+ * Types of modals to display
  */
-export enum TipoModal {
-  BIENVENIDA_DENTRO_COLEGIO = 'BIENVENIDA_DENTRO_COLEGIO',
-  ALERTA_FUERA_COLEGIO = 'ALERTA_FUERA_COLEGIO',
-  ERROR_PERMISOS_UBICACION = 'ERROR_PERMISOS_UBICACION',
-  ERROR_UBICACION_NO_DISPONIBLE = 'ERROR_UBICACION_NO_DISPONIBLE',
-  ERROR_TIMEOUT = 'ERROR_TIMEOUT',
-  CARGANDO_UBICACION = 'CARGANDO_UBICACION',
-  ERROR_GENERICO = 'ERROR_GENERICO'
+export enum ModalType {
+  WELCOME_INSIDE_SCHOOL = 'WELCOME_INSIDE_SCHOOL',
+  ALERT_OUTSIDE_SCHOOL = 'ALERT_OUTSIDE_SCHOOL',
+  LOCATION_PERMISSION_ERROR = 'LOCATION_PERMISSION_ERROR',
+  LOCATION_UNAVAILABLE_ERROR = 'LOCATION_UNAVAILABLE_ERROR',
+  TIMEOUT_ERROR = 'TIMEOUT_ERROR',
+  LOADING_LOCATION = 'LOADING_LOCATION',
+  GENERIC_ERROR = 'GENERIC_ERROR'
 }
 
 /**
- * Acciones disponibles en los modales
+ * Available actions in modals
  */
-export enum AccionModal {
-  REINTENTAR = 'REINTENTAR',
-  CONFIGURAR_PERMISOS = 'CONFIGURAR_PERMISOS',
-  CONTINUAR = 'CONTINUAR',
-  CANCELAR = 'CANCELAR',
-  CERRAR = 'CERRAR'
+export enum ModalAction {
+  RETRY = 'RETRY',
+  CONFIGURE_PERMISSIONS = 'CONFIGURE_PERMISSIONS',
+  CONTINUE = 'CONTINUE',
+  CANCEL = 'CANCEL',
+  CLOSE = 'CLOSE'
 }

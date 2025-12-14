@@ -1,3 +1,3 @@
 export enum RedirectionTypes {
-  RUTA_NO_PERMITIDA = "RUTA_NO_PERMITIDA",
+  UNAUTHORIZED_ROUTE = "UNAUTHORIZED_ROUTE",
 }

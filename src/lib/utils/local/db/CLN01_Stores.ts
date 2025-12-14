@@ -208,13 +208,13 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
   //   indexes: [
   //     {
   //       name: "by_administrative_staff",
-  //       keyPath: "Id_Personal_Administrativo", // Cambió de Id_ a Id_
+  //       keyPath: "Id_Personal_Administrativo", // Changed from Id_ to Id_
   //       options: { unique: false },
   //     },
   //     { name: "by_day", keyPath: "Dia", options: { unique: false } },
   //     {
   //       name: "by_staff_day",
-  //       keyPath: ["Id_Personal_Administrativo", "Dia"], // Cambió de Id_ a Id_
+  //       keyPath: ["Id_Personal_Administrativo", "Dia"], // Changed from Id_ to Id_
   //       options: { unique: true },
   //     },
   //     {

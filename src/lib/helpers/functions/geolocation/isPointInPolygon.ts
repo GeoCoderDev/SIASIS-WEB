@@ -2,7 +2,7 @@
 import { PuntoGeografico } from "@/interfaces/Geolocalizacion";
 
 /**
- * Determina si un punto está dentro de un polígono usando el algoritmo de ray casting.
+ * Determines if a point is inside a polygon using the ray casting algorithm.
  */
 export function isPointInPolygon(
   point: PuntoGeografico,

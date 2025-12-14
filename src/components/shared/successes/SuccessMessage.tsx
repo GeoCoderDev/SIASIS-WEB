@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 interface SuccessMessageProps {
   message: string;
   className?: string;
-  duration?: number; // en milisegundos
+  duration?: number; // in milliseconds
   closable?: boolean;
 }
 
@@ -15,7 +15,7 @@ const SuccessMessage = ({
 }: SuccessMessageProps) => {
   const [visible, setVisible] = useState(true);
 
-  // Efecto para desaparecer automáticamente si se proporciona duration
+  // Effect to automatically disappear if duration is provided
   useEffect(() => {
     if (duration && duration > 0) {
       const timer = setTimeout(() => {
@@ -40,20 +40,20 @@ const SuccessMessage = ({
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1">
-            <h5 className="font-medium text-sm sxs-only:text-xs xs-only:text-xs text-gris-oscuro truncate">Éxito</h5>
+            <h5 className="font-medium text-sm sxs-only:text-xs xs-only:text-xs text-gris-oscuro truncate">Success</h5>
             <span className="block sxs-only:hidden xs-only:hidden sm-only:hidden text-gris-intermedio text-xs">•</span>
             <p className="text-xs sxs-only:hidden xs-only:hidden sm-only:hidden text-gris-oscuro truncate">{message}</p>
           </div>
           <div className="md:hidden lg:hidden xl-only:hidden text-xs text-gris-oscuro mt-0.5 line-clamp-2">{message}</div>
         </div>
 
-        {/* Botón para cerrar si closable es true */}
+        {/* Button to close if closable is true */}
         {closable && (
           <button
             type="button"
             className="ml-1.5 p-1 rounded-md text-gris-intermedio hover:bg-gris-claro hover:text-gris-oscuro transition-colors"
             onClick={() => setVisible(false)}
-            aria-label="Cerrar"
+            aria-label="Close"
           >
             <CloseIcon className="w-3.5 h-3.5" />
           </button>
@@ -63,7 +63,7 @@ const SuccessMessage = ({
   );
 };
 
-// Icono de éxito
+// Success icon
 const SuccessIcon = ({ className = "" }: { className?: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -81,7 +81,7 @@ const SuccessIcon = ({ className = "" }: { className?: string }) => (
   </svg>
 );
 
-// Icono para cerrar
+// Close icon
 const CloseIcon = ({ className = "" }: { className?: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"

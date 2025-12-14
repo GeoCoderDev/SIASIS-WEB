@@ -1,2 +1,2 @@
-// Tipo para colores hexadecimales con validación en tiempo de compilación
+// Type for hexadecimal colors with compile-time validation
 export type ColorHexadecimal = `#${string}`;

@@ -1,4 +1,4 @@
-// interfaces/AsistenciaCalendario.ts
+// interfaces/CalendarAttendance.ts
 import { EstadosAsistenciaEscolar } from "@/interfaces/shared/EstadosAsistenciaEstudiantes";
 import { IProfesorBaseLocal } from "@/lib/utils/local/db/models/Profesores/ProfesoresBaseIDB";
 import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
@@ -8,13 +8,13 @@ import {
   TOLERACIA_MINUTOS_ASISTENCIA_ESCOLAR_SECUNDARIA,
 } from "@/constants/TOLERANCIA_ASISTENCIA_ESCOLAR";
 
-// Constantes para tolerancia (en segundos)
-export const TOLERANCIA_SEGUNDOS_PRIMARIA =
-  TOLERACIA_MINUTOS_ASISTENCIA_ESCOLAR_PRIMARIA * 60; // 5 minutos * 60 segundos
-export const TOLERANCIA_SEGUNDOS_SECUNDARIA =
-  TOLERACIA_MINUTOS_ASISTENCIA_ESCOLAR_SECUNDARIA * 60; // 5 minutos * 60 segundos
+// Constants for tolerance (in seconds)
+export const PRIMARY_TOLERANCE_SECONDS =
+  TOLERACIA_MINUTOS_ASISTENCIA_ESCOLAR_PRIMARIA * 60; // 5 minutes * 60 seconds
+export const SECONDARY_TOLERANCE_SECONDS =
+  TOLERACIA_MINUTOS_ASISTENCIA_ESCOLAR_SECUNDARIA * 60; // 5 minutes * 60 seconds
 
-// Interface base para registro de asistencia
+// Base interface for attendance records
 export interface RegistroAsistenciaBase {
   desfaseSegundos: number | null;
   hora?: string;
@@ -27,7 +27,7 @@ export interface EventoInfo {
   fechaConclusion: string;
 }
 
-// Interface para asistencias procesadas - optimizada
+// Interface for processed attendances - optimized
 export interface AsistenciaEscolarProcesada {
   estado: EstadosAsistenciaEscolar;
   entrada?: {
@@ -40,24 +40,24 @@ export interface AsistenciaEscolarProcesada {
     esValido: boolean;
     hora?: string;
   };
-  // 🆕 AGREGAR esta propiedad opcional para eventos
+  // 🆕 ADD this optional property for events
   eventoInfo?: EventoInfo;
 }
 
-// Interface para datos del calendario - simplificada
+// Interface for calendar data - simplified
 export interface DiaCalendario {
   dia: number;
   asistencia?: AsistenciaEscolarProcesada;
   esDiaEscolar: boolean;
 }
 
-// Interface extendida del estudiante - optimizada
+// Extended student interface - optimized
 export interface EstudianteCompleto extends EstudianteConAulaYRelacion {
   profesor?: IProfesorBaseLocal | null;
   nivelProfesor?: NivelEducativo;
 }
 
-// Interface para estadísticas del mes - optimizada
+// Interface for month statistics - optimized
 export interface EstadisticasMes {
   totalDias: number;
   asistencias: number;
@@ -68,20 +68,20 @@ export interface EstadisticasMes {
   vacaciones: number;
 }
 
-// Interface para horario escolar - unificada
+// Interface for school schedule - unified
 export interface HorarioEscolar {
   inicio: string;
   fin: string;
 }
 
-// Interface para configuración de colores por estado
+// Interface for state color configuration
 export interface ColoresEstado {
   background: string;
   text: string;
   border: string;
 }
 
-// Mapeo de colores para estados
+// Color mapping for states
 export const COLORES_ESTADOS_ASISTENCIA_ESCOLAR: Record<
   EstadosAsistenciaEscolar,
   ColoresEstado
@@ -118,25 +118,25 @@ export const COLORES_ESTADOS_ASISTENCIA_ESCOLAR: Record<
   },
 };
 
-// Interface para información de meses - optimizada
+// Interface for month information - optimized
 export interface MesInfo {
   value: number;
   label: string;
   short: string;
 }
 
-// Datos de meses
+// Month data
 export const MESES: MesInfo[] = [
-  { value: 1, label: "Enero", short: "Ene" },
-  { value: 2, label: "Febrero", short: "Feb" },
-  { value: 3, label: "Marzo", short: "Mar" },
-  { value: 4, label: "Abril", short: "Abr" },
-  { value: 5, label: "Mayo", short: "May" },
-  { value: 6, label: "Junio", short: "Jun" },
-  { value: 7, label: "Julio", short: "Jul" },
-  { value: 8, label: "Agosto", short: "Ago" },
-  { value: 9, label: "Septiembre", short: "Sep" },
-  { value: 10, label: "Octubre", short: "Oct" },
-  { value: 11, label: "Noviembre", short: "Nov" },
-  { value: 12, label: "Diciembre", short: "Dic" },
+  { value: 1, label: "January", short: "Jan" },
+  { value: 2, label: "February", short: "Feb" },
+  { value: 3, label: "March", short: "Mar" },
+  { value: 4, label: "April", short: "Apr" },
+  { value: 5, label: "May", short: "May" },
+  { value: 6, label: "June", short: "Jun" },
+  { value: 7, label: "July", short: "Jul" },
+  { value: 8, label: "August", short: "Aug" },
+  { value: 9, label: "September", short: "Sep" },
+  { value: 10, label: "October", short: "Oct" },
+  { value: 11, label: "November", short: "Nov" },
+  { value: 12, label: "December", short: "Dec" },
 ];

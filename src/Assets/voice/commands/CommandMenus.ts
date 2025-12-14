@@ -36,7 +36,7 @@
 // } from "./AllCommandVoices";
 
 // export const C_M_Home = new CommandMenu(
-//   "Bienvenido. En esta página principal, puedes navegar rápidamente utilizando comandos de voz. Para acceder directamente a los módulos disponibles, di: 'Módulo uno', 'Módulo dos', 'Módulo tres' o 'Módulo cuatro'. Por otro lado para usar el validador de requerimientos puedes decir validador",
+//   "Welcome. On this main page, you can navigate quickly using voice commands. To directly access the available modules, say: 'Module one', 'Module two', 'Module three' or 'Module four'. On the other hand, to use the requirements validator you can say validator",
 //   [
 //     C_V_Modulo_1,
 //     C_V_Modulo_2,
@@ -47,11 +47,11 @@
 // );
 
 // export const C_M_Menu_Modulos = new CommandMenu(
-//   "Puedes decir: 'Buscar' para realizar una búsqueda, para usar el validador de requerimientos puedes decir validador, tambien puedes decir 'Modulo 1', 'Modulo 2', 'Modulo 3' o 'Modulo 4' para acceder a los diferentes módulos. " +
-//     "El Módulo 1 trata sobre 'Origen, Modelos, Normas y Herramientas para la Calidad del Software'. " +
-//     "El Módulo 2 cubre 'Verificación y Validación de la Documentación del Análisis de Requerimientos'. " +
-//     "El Módulo 3 se enfoca en 'Verificación y Validación de la Documentación del Diseño del Sistema'. " +
-//     "Y el Módulo 4 aborda 'Factores Críticos de Éxito para el Desarrollo del Software'.",
+//   "You can say: 'Search' to perform a search, to use the requirements validator you can say validator, you can also say 'Module 1', 'Module 2', 'Module 3' or 'Module 4' to access the different modules. " +
+//     "Module 1 is about 'Origin, Models, Standards and Tools for Software Quality'. " +
+//     "Module 2 covers 'Verification and Validation of Requirements Analysis Documentation'. " +
+//     "Module 3 focuses on 'Verification and Validation of System Design Documentation'. " +
+//     "And Module 4 addresses 'Critical Success Factors for Software Development'.",
 //   [
 //     C_V_Buscar,
 //     C_V_Modulo_1,
@@ -63,19 +63,19 @@
 // );
 
 // export const C_M_Modulo_1 = new CommandMenu(
-//   `Estás en el Módulo 1: *Calidad de Software*. Este módulo consta de cuatro secciones: 
-//   - Di 'Sección 1' para acceder a *Conceptos, modelos y criterios de calidad de software*.
-//   - Di 'Sección 2' para explorar *Herramientas para evaluar la calidad de software*.
-//   - Di 'Sección 3' para visitar *Normas y estándares de calidad de software*.
-//   - Di 'Sección 4' para descubrir *Origen y evolución de la ingeniería de software*.
+//   `You are in Module 1: *Software Quality*. This module consists of four sections:
+//   - Say 'Section 1' to access *Concepts, models and criteria of software quality*.
+//   - Say 'Section 2' to explore *Tools to evaluate software quality*.
+//   - Say 'Section 3' to visit *Software quality standards and norms*.
+//   - Say 'Section 4' to discover *Origin and evolution of software engineering*.
 
-//   Además, puedes:
-//   - Utilizar el comando 'Buscar' para localizar información específica en este módulo.
-//   - Dirigirte a otros módulos: 
-//     - Di 'Módulo 2' para acceder a *Verificación y Validación*.
-//     - Di 'Módulo 3' para explorar *Documentación del Diseño del Sistema*.
-//     - Di 'Módulo 4' para descubrir *Factores Críticos de Éxito para el Desarrollo del Software*. Por otro lado para usar el validador de requerimientos puedes decir validador.
-//   ¿Qué deseas hacer?`,
+//   In addition, you can:
+//   - Use the 'Search' command to locate specific information in this module.
+//   - Go to other modules:
+//     - Say 'Module 2' to access *Verification and Validation*.
+//     - Say 'Module 3' to explore *System Design Documentation*.
+//     - Say 'Module 4' to discover *Critical Success Factors for Software Development*. On the other hand, to use the requirements validator you can say validator.
+//   What do you want to do?`,
 //   [
 //     C_VModulo_1_Seccion_1,
 //     C_VModulo_1_Seccion_2,
@@ -90,20 +90,20 @@
 // );
 
 // export const C_M_Modulo_2 = new CommandMenu(
-//   `Estás en el Módulo 2: *Verificación y Validación*. Este módulo consta de cinco secciones: 
-//   - Di 'Sección 1' para acceder a *Conceptos fundamentales de la Verificación y Validación*.
-//   - Di 'Sección 2' para explorar *Verificación de la documentación de requerimientos*.
-//   - Di 'Sección 3' para visitar *Validación de la documentación de requerimientos*.
-//   - Di 'Sección 4' para descubrir *Revisión formal del documento de requerimientos*.
-//   - Di 'Sección 5' para acceder a *Herramientas para Verificación y Validación en el análisis de requerimientos*.
+//   `You are in Module 2: *Verification and Validation*. This module consists of five sections:
+//   - Say 'Section 1' to access *Fundamental concepts of Verification and Validation*.
+//   - Say 'Section 2' to explore *Verification of requirements documentation*.
+//   - Say 'Section 3' to visit *Validation of requirements documentation*.
+//   - Say 'Section 4' to discover *Formal review of the requirements document*.
+//   - Say 'Section 5' to access *Tools for Verification and Validation in requirements analysis*.
 
-//   También puedes:
-//   - Usar el comando 'Buscar' para localizar información específica en este módulo.
-//   - Navegar a otros módulos:
-//     - Di 'Módulo 1' para explorar *Calidad de Software*.
-//     - Di 'Módulo 3' para acceder a *Documentación del Diseño del Sistema*.
-//     - Di 'Módulo 4' para descubrir *Factores Críticos de Éxito para el Desarrollo del Software*. Por otro lado para usar el validador de requerimientos puedes decir validador.
-//   ¿Qué deseas hacer?`,
+//   You can also:
+//   - Use the 'Search' command to locate specific information in this module.
+//   - Navigate to other modules:
+//     - Say 'Module 1' to explore *Software Quality*.
+//     - Say 'Module 3' to access *System Design Documentation*.
+//     - Say 'Module 4' to discover *Critical Success Factors for Software Development*. On the other hand, to use the requirements validator you can say validator.
+//   What do you want to do?`,
 //   [
 //     C_V_Modulo_2_Seccion_1,
 //     C_V_Modulo_2_Seccion_2,
@@ -119,21 +119,21 @@
 // );
 
 // export const C_M_Modulo_3 = new CommandMenu(
-//   `Estás en el Módulo 3: *Documentación del Diseño del Sistema*. Este módulo consta de cinco secciones: 
-//   - Di 'Sección 1' para acceder a *Conceptos fundamentales del diseño*.
-//   - Di 'Sección 2' para explorar *Verificación de documentación*.
-//   - Di 'Sección 3' para visitar *Validación de documentación*.
-//   - Di 'Sección 4' para descubrir *Revisión formal del diseño*.
-//   - Di 'Sección 5' para acceder a *Herramientas de Verificación y Validación*.
+//   `You are in Module 3: *System Design Documentation*. This module consists of five sections:
+//   - Say 'Section 1' to access *Fundamental design concepts*.
+//   - Say 'Section 2' to explore *Documentation verification*.
+//   - Say 'Section 3' to visit *Documentation validation*.
+//   - Say 'Section 4' to discover *Formal design review*.
+//   - Say 'Section 5' to access *Verification and Validation Tools*.
 
-//   Además:
-//   - Usa el comando 'Buscar' para encontrar información específica en este módulo.
-//   - Navega a otros módulos:
-//     - Di 'Módulo 1' para explorar *Calidad de Software*.
-//     - Di 'Módulo 2' para acceder a *Verificación y Validación*.
-//     - Di 'Módulo 4' para descubrir *Factores Críticos de Éxito para el Desarrollo del Software*. Por otro lado para usar el validador de requerimientos puedes decir validador.
+//   In addition:
+//   - Use the 'Search' command to find specific information in this module.
+//   - Navigate to other modules:
+//     - Say 'Module 1' to explore *Software Quality*.
+//     - Say 'Module 2' to access *Verification and Validation*.
+//     - Say 'Module 4' to discover *Critical Success Factors for Software Development*. On the other hand, to use the requirements validator you can say validator.
 
-//   ¿Qué deseas hacer?`,
+//   What do you want to do?`,
 //   [
 //     C_V_Modulo_3_Seccion_1,
 //     C_V_Modulo_3_Seccion_2,
@@ -149,23 +149,23 @@
 // );
 
 // export const C_M_Modulo_4 = new CommandMenu(
-//   `Estás en el Módulo 4: *Factores Críticos de Éxito para el Desarrollo del Software*. Este módulo consta de siete secciones:
-//   - Di 'Sección 1' para explorar *Definición y características de factores críticos*.
-//   - Di 'Sección 2' para acceder a *Factores técnicos críticos*.
-//   - Di 'Sección 3' para visitar *Factores humanos*.
-//   - Di 'Sección 4' para descubrir *Factores organizacionales*.
-//   - Di 'Sección 5' para explorar *Metodologías y procesos*.
-//   - Di 'Sección 6' para acceder a *Factores externos*.
-//   - Di 'Sección 7' para visitar *Ejemplos de factores críticos*.
+//   `You are in Module 4: *Critical Success Factors for Software Development*. This module consists of seven sections:
+//   - Say 'Section 1' to explore *Definition and characteristics of critical factors*.
+//   - Say 'Section 2' to access *Critical technical factors*.
+//   - Say 'Section 3' to visit *Human factors*.
+//   - Say 'Section 4' to discover *Organizational factors*.
+//   - Say 'Section 5' to explore *Methodologies and processes*.
+//   - Say 'Section 6' to access *External factors*.
+//   - Say 'Section 7' to visit *Examples of critical factors*.
 
-//   Además:
-//   - Usa el comando 'Buscar' para localizar información específica en este módulo.
-//   - Navega a otros módulos:
-//     - Di 'Módulo 1' para explorar *Calidad de Software*.
-//     - Di 'Módulo 2' para acceder a *Verificación y Validación*.
-//     - Di 'Módulo 3' para descubrir *Documentación del Diseño del Sistema*.
-//     Por otro lado para usar el validador de requerimientos puedes decir validador.
-//   ¿Qué deseas hacer?`,
+//   In addition:
+//   - Use the 'Search' command to locate specific information in this module.
+//   - Navigate to other modules:
+//     - Say 'Module 1' to explore *Software Quality*.
+//     - Say 'Module 2' to access *Verification and Validation*.
+//     - Say 'Module 3' to discover *System Design Documentation*.
+//     On the other hand, to use the requirements validator you can say validator.
+//   What do you want to do?`,
 //   [
 //     C_V_Modulo_4_Seccion_1,
 //     C_V_Modulo_4_Seccion_2,
@@ -197,21 +197,21 @@
 //   ],
 //   (currentPath: string) => {
 //     const subsectionTitle = getSubsectionTitle(currentPath);
-//     return `Te encuentras en la subsección: ${subsectionTitle}.
-//     Comandos de voz disponibles:
-//     - Di "leer" para escuchar el contenido.
-//     - Di "siguiente" para avanzar a la siguiente subsección.
-//     - Di "anterior" para regresar a la subsección previa.
-//     - Para detener la lectura en cualquier momento, presiona Control más Alt más X.
+//     return `You are in the subsection: ${subsectionTitle}.
+//     Available voice commands:
+//     - Say "read" to listen to the content.
+//     - Say "next" to advance to the next subsection.
+//     - Say "previous" to return to the previous subsection.
+//     - To stop reading at any time, press Control plus Alt plus X.
 
-//     También puedes dirigirte directamente a cualquiera de los módulos diciendo: 
-//     "módulo uno", "módulo dos", "módulo tres" o "módulo cuatro".
-//      Por otro lado para usar el validador de requerimientos puedes decir validador.
-//     ¿Qué deseas hacer?`;
+//     You can also go directly to any of the modules by saying:
+//     "module one", "module two", "module three" or "module four".
+//      On the other hand, to use the requirements validator you can say validator.
+//     What do you want to do?`;
 //   }
 // );
 
 // export const C_M_Validador_Requerimientos = new CommandMenu(
-//   `Te encuentras en el validador de requerimientos, para volver al inicio puedes decir inicio, si deseas validar algun requerimiento di usar validador`,
+//   `You are in the requirements validator, to return to the home page you can say home, if you want to validate any requirement say use validator`,
 //   [C_V_Home, C_V_Usar_Validador]
 // );
