@@ -1,6 +1,6 @@
 import { Meses, mesesTextos } from "@/interfaces/shared/Meses";
 
-// Function to get available months (up to May or current month)
+// Función para obtener meses disponibles (hasta mayo o mes actual)
 export const getMesesDisponibles = (
   mesActual: number,
   considerarMesActual: boolean = true
@@ -9,7 +9,7 @@ export const getMesesDisponibles = (
   const limiteMaximo = considerarMesActual ? mesActual : mesActual - 1;
 
   for (let mes = 3; mes <= limiteMaximo; mes++) {
-    // Start from March (3)
+    // Empezar desde marzo (3)
     mesesDisponibles.push({
       value: mes.toString(),
       label: mesesTextos[mes as Meses],

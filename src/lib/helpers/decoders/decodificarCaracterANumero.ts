@@ -1,9 +1,9 @@
 /**
- * Decodes a character to its corresponding number 1..31 according to the inverse rule:
+ * Decodifica un carácter a su número correspondiente 1..31 según la regla inversa:
  * - '1'..'9' -> 1..9
- * - 'A'..'V' (or 'a'..'v') -> 10..31
+ * - 'A'..'V' (o 'a'..'v') -> 10..31
  *
- * Returns `number` in 1..31 for valid inputs or `null` for invalid inputs.
+ * Devuelve `number` en 1..31 para entradas válidas o `null` para entradas inválidas.
  */
 export const decodificarCaracterANumero = (caracter: string): number | null => {
   if (!caracter || typeof caracter !== "string") return null;
@@ -13,10 +13,10 @@ export const decodificarCaracterANumero = (caracter: string): number | null => {
 
   const c = char[0];
 
-  // Digits 1..9
+  // Dígitos 1..9
   if (c >= "1" && c <= "9") return parseInt(c, 10);
 
-  // Letters A..V (we accept uppercase and lowercase)
+  // Letras A..V (aceptamos mayúsculas y minúsculas)
   const upper = c.toUpperCase();
   if (upper >= "A" && upper <= "V") {
     const code = upper.charCodeAt(0); // 'A' = 65

@@ -1,5 +1,5 @@
 // ============================================================================
-// Specific implementation for guardians
+//               Implementación específica para responsables
 // ============================================================================
 
 import {
@@ -11,64 +11,64 @@ import AllErrorTypes, { SystemErrorTypes } from "@/interfaces/shared/errors";
 import { Endpoint_Get_MisEstudiantesRelacionados_API02 } from "@/lib/utils/backend/endpoints/api02/Estudiantes";
 import { EstudianteDelResponsable } from "@/interfaces/shared/Estudiantes";
 
-// Specific filters for guardian students (extends base filters)
+// Filtros específicos para estudiantes de responsables (extiende los filtros base)
 export interface IEstudianteResponsableFilter extends IEstudianteBaseFilter {
   Tipo_Relacion?: string;
 }
 
 /**
- * Specific student management for guardians (parents)
- * Inherits from BaseEstudiantesIDB and stores in the common "estudiantes" table
- * Adds specific functionalities for the Tipo_Relacion attribute
+ * Gestión específica de estudiantes para responsables (padres de familia)
+ * Hereda de BaseEstudiantesIDB y almacena en la tabla común "estudiantes"
+ * Añade funcionalidades específicas para el atributo Tipo_Relacion
  */
 export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<EstudianteDelResponsable> {
   /**
-   * Specific synchronization for guardians
-   * Synchronizes only the students related to the authenticated guardian
-   * If there are no related students, logs out with an error
+   * Sincronización específica para responsables
+   * Sincroniza solo los estudiantes relacionados al responsable autenticado
+   * Si no hay estudiantes relacionados, cierra sesión con error
    */
   protected async sync(): Promise<void> {
     try {
-      // Get students from the API with automatic authentication
+      // Obtener estudiantes desde la API con autenticación automática
       const estudiantes = await this.solicitarEstudiantesDesdeAPI();
 
-      // If there are no related students, the guardian does not have valid data
+      // Si no hay estudiantes relacionados, el responsable no tiene datos válidos
       if (estudiantes.length === 0) {
         console.warn(
-          "Guardian without related students - logging out"
+          "Responsable sin estudiantes relacionados - cerrando sesión"
         );
 
-        // Dynamically import logout to avoid circular dependencies
+        // Importar logout dinámicamente para evitar dependencias circulares
         const { logout } = await import("@/lib/utils/frontend/auth/logout");
         const { LogoutTypes } = await import("@/interfaces/LogoutTypes");
 
         await logout(LogoutTypes.ERROR_DATOS_NO_DISPONIBLES, {
-          codigo: "GUARDIAN_WITHOUT_STUDENTS",
+          codigo: "RESPONSABLE_SIN_ESTUDIANTES",
           origen: "EstudiantesParaResponsablesIDB.sync",
-          mensaje: "The guardian has no related students",
+          mensaje: "El responsable no tiene estudiantes relacionados",
           timestamp: Date.now(),
-          contexto: "Synchronization of guardian's students",
+          contexto: "Sincronización de estudiantes del responsable",
           siasisComponent: this.siasisAPI,
         });
 
-        return; // Do not continue execution
+        return; // No continuar con la ejecución
       }
 
-      // Clear the previous guardian's students before synchronizing
+      // Limpiar estudiantes del responsable anterior antes de sincronizar
       await this.limpiarEstudiantesDelResponsableCompleto();
 
-      // Use the inherited method to store in the common table
-      // This will completely replace the guardian's students
+      // Usar el método heredado para almacenar en la tabla común
+      // Esto reemplazará completamente los estudiantes del responsable
       const result = await this.upsertEstudiantesResponsableCompleto(
         estudiantes
       );
 
       console.log(
-        `Guardian's student synchronization completed: ${estudiantes.length} students processed (${result.created} created, ${result.updated} updated, ${result.deleted} deleted, ${result.errors} errors)`
+        `Sincronización de estudiantes del responsable completada: ${estudiantes.length} estudiantes procesados (${result.created} creados, ${result.updated} actualizados, ${result.deleted} eliminados, ${result.errors} errores)`
       );
     } catch (error) {
       console.error(
-        "Error during guardian's student synchronization:",
+        "Error durante la sincronización de estudiantes del responsable:",
         error
       );
       await this.handleSyncError(error);
@@ -76,8 +76,8 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
   }
 
   /**
-   * Completely clears all of the guardian's students from the common table
-   * This ensures that no obsolete data remains
+   * Limpia completamente todos los estudiantes del responsable de la tabla común
+   * Esto asegura que no queden datos obsoletos
    */
   private async limpiarEstudiantesDelResponsableCompleto(): Promise<void> {
     try {
@@ -88,7 +88,7 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
 
       const estudiantesAEliminar: string[] = [];
 
-      // Identify all students with Tipo_Relacion (from the guardian)
+      // Identificar todos los estudiantes con Tipo_Relacion (del responsable)
       await new Promise<void>((resolve, reject) => {
         const request = store.openCursor();
 
@@ -109,23 +109,23 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
         request.onerror = () => reject(request.error);
       });
 
-      // Delete all identified students
+      // Eliminar todos los estudiantes identificados
       for (const id of estudiantesAEliminar) {
         await this.deleteById(id);
       }
 
       console.log(
-        `Deleted ${estudiantesAEliminar.length} students from the previous guardian`
+        `Se eliminaron ${estudiantesAEliminar.length} estudiantes del responsable anterior`
       );
     } catch (error) {
-      console.error("Error clearing guardian's students:", error);
+      console.error("Error al limpiar estudiantes del responsable:", error);
       throw error;
     }
   }
 
   /**
-   * Completely updates the guardian's students in the common table
-   * This ensures that the cache exactly reflects what comes from the server
+   * Actualiza completamente los estudiantes del responsable en la tabla común
+   * Esto asegura que el caché refleje exactamente lo que viene del servidor
    */
   private async upsertEstudiantesResponsableCompleto(
     estudiantes: EstudianteDelResponsable[]
@@ -138,7 +138,7 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
     const result = { created: 0, updated: 0, deleted: 0, errors: 0 };
 
     try {
-      // Process students in batches
+      // Procesar estudiantes en lotes
       const BATCH_SIZE = 20;
 
       for (let i = 0; i < estudiantes.length; i += BATCH_SIZE) {
@@ -146,7 +146,7 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
 
         for (const estudianteServidor of lote) {
           try {
-            // Check if the student already exists
+            // Verificar si el estudiante ya existe
             const existeEstudiante = await this.getEstudiantePorId(
               estudianteServidor.Id_Estudiante
             );
@@ -171,7 +171,7 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
               request.onerror = () => {
                 result.errors++;
                 console.error(
-                  `Error saving student ${estudianteServidor.Id_Estudiante}:`,
+                  `Error al guardar estudiante ${estudianteServidor.Id_Estudiante}:`,
                   request.error
                 );
                 reject(request.error);
@@ -180,20 +180,20 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
           } catch (error) {
             result.errors++;
             console.error(
-              `Error processing student ${estudianteServidor.Id_Estudiante}:`,
+              `Error al procesar estudiante ${estudianteServidor.Id_Estudiante}:`,
               error
             );
           }
         }
 
-        // Give the event loop a break
+        // Dar respiro al bucle de eventos
         await new Promise((resolve) => setTimeout(resolve, 0));
       }
 
       return result;
     } catch (error) {
       console.error(
-        "Error in upsertEstudiantesResponsableCompleto operation:",
+        "Error en la operación upsertEstudiantesResponsableCompleto:",
         error
       );
       result.errors++;
@@ -202,12 +202,12 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
   }
 
   /**
-   * Specific handling of synchronization errors for guardians
-   * Overwrites the base method to include logout logic
+   * Manejo específico de errores de sincronización para responsables
+   * Sobrescribe el método base para incluir lógica de logout
    */
   protected async handleSyncError(error: unknown): Promise<void> {
     let errorType: AllErrorTypes = SystemErrorTypes.UNKNOWN_ERROR;
-    let message = "Error synchronizing guardian's students";
+    let message = "Error al sincronizar estudiantes del responsable";
     let shouldLogout = false;
     let logoutType: any = null;
 
@@ -217,12 +217,12 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
         error.message.includes("fetch")
       ) {
         errorType = SystemErrorTypes.EXTERNAL_SERVICE_ERROR;
-        message = "Network error synchronizing guardian's students";
+        message = "Error de red al sincronizar estudiantes del responsable";
         shouldLogout = true;
-        // Dynamically import to avoid circular dependencies
+        // Importar dinámicamente para evitar dependencias circulares
         const { LogoutTypes } = await import("@/interfaces/LogoutTypes");
         logoutType = LogoutTypes.ERROR_RED;
-      } else if (error.message.includes("get students")) {
+      } else if (error.message.includes("obtener estudiantes")) {
         errorType = SystemErrorTypes.EXTERNAL_SERVICE_ERROR;
         message = error.message;
         shouldLogout = true;
@@ -234,7 +234,7 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
       ) {
         errorType = SystemErrorTypes.DATABASE_ERROR;
         message =
-          "Database error synchronizing guardian's students";
+          "Error de base de datos al sincronizar estudiantes del responsable";
         shouldLogout = true;
         const { LogoutTypes } = await import("@/interfaces/LogoutTypes");
         logoutType = LogoutTypes.ERROR_BASE_DATOS;
@@ -246,7 +246,7 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
       }
     }
 
-    // Set error in state
+    // Establecer error en el estado
     this.setError?.({
       success: false,
       message: message,
@@ -257,10 +257,10 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
       },
     });
 
-    // If it is a critical error, log out
+    // Si es un error crítico, cerrar sesión
     if (shouldLogout && logoutType) {
       console.error(
-        "Critical error in synchronization - logging out:",
+        "Error crítico en sincronización - cerrando sesión:",
         error
       );
 
@@ -268,20 +268,20 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
         const { logout } = await import("@/lib/utils/frontend/auth/logout");
 
         await logout(logoutType, {
-          codigo: "SYNC_ERROR_GUARDIAN",
+          codigo: "SYNC_ERROR_RESPONSABLE",
           origen: "EstudiantesParaResponsablesIDB.handleSyncError",
           mensaje: message,
           timestamp: Date.now(),
           contexto:
-            "Error during guardian's student synchronization",
+            "Error durante sincronización de estudiantes del responsable",
           siasisComponent: this.siasisAPI,
         });
       } catch (logoutError) {
         console.error(
-          "Additional error when trying to log out:",
+          "Error adicional al intentar cerrar sesión:",
           logoutError
         );
-        // Force page reload as a last resort
+        // Forzar recarga de la página como último recurso
         window.location.reload();
       }
     }
@@ -290,7 +290,7 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
   }
 
   /**
-   * Gets students from the API (required by the abstract class)
+   * Obtiene estudiantes desde la API (requerido por la clase abstracta)
    */
   protected async solicitarEstudiantesDesdeAPI(): Promise<
     EstudianteDelResponsable[]
@@ -301,16 +301,16 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
 
       return estudiantes;
     } catch (error) {
-      console.error("Error getting students from API:", error);
+      console.error("Error al obtener estudiantes desde la API:", error);
       throw error;
     }
   }
 
   /**
-   * Gets and synchronizes students related to a specific guardian
-   * Stores them in the common "estudiantes" table
-   * @param forzarActualizacion If it should force a new query to the API
-   * @returns Array of students related to the guardian
+   * Obtiene y sincroniza los estudiantes relacionados a un responsable específico
+   * Los almacena en la tabla común "estudiantes"
+   * @param forzarActualizacion Si debe forzar una nueva consulta a la API
+   * @returns Array de estudiantes relacionados al responsable
    */
   public async obtenerYSincronizarEstudiantesDelResponsable(
     forzarActualizacion: boolean = false
@@ -320,32 +320,32 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
     this.setSuccessMessage?.(null);
 
     try {
-      // If not forcing update, try to get from the common table
-      // filtering by those with Tipo_Relacion (specific to the current guardian)
+      // Si no se fuerza actualización, intentar obtener desde la tabla común
+      // filtrando por los que tienen Tipo_Relacion (específicos del responsable actual)
       if (!forzarActualizacion) {
         const estudiantesCacheados =
           await this.obtenerEstudiantesConTipoRelacion();
         if (estudiantesCacheados.length > 0) {
           this.handleSuccess(
-            `Found ${estudiantesCacheados.length} students (from local cache)`
+            `Se encontraron ${estudiantesCacheados.length} estudiantes (desde caché local)`
           );
           this.setIsSomethingLoading?.(false);
           return estudiantesCacheados;
         }
       }
 
-      // Get from the API and store in the common table
+      // Obtener desde la API y almacenar en la tabla común
       const estudiantes = await this.solicitarEstudiantesDesdeAPI();
 
-      // Use the inherited method to store in the common table
+      // Usar el método heredado para almacenar en la tabla común
       const result = await this.upsertFromServer(estudiantes);
 
       if (estudiantes.length > 0) {
         this.handleSuccess(
-          `Synchronized ${estudiantes.length} related students (${result.created} new, ${result.updated} updated)`
+          `Se sincronizaron ${estudiantes.length} estudiantes relacionados (${result.created} nuevos, ${result.updated} actualizados)`
         );
       } else {
-        this.handleSuccess("No related students found");
+        this.handleSuccess("No se encontraron estudiantes relacionados");
       }
 
       this.setIsSomethingLoading?.(false);
@@ -353,7 +353,7 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
     } catch (error) {
       this.handleIndexedDBError(
         error,
-        "get and synchronize guardian's students"
+        "obtener y sincronizar estudiantes del responsable"
       );
       this.setIsSomethingLoading?.(false);
       return [];
@@ -361,8 +361,8 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
   }
 
   /**
-   * Gets students who have the Tipo_Relacion attribute from the common table
-   * @returns Array of students with relationship type
+   * Obtiene estudiantes que tienen el atributo Tipo_Relacion desde la tabla común
+   * @returns Array de estudiantes con tipo de relación
    */
   private async obtenerEstudiantesConTipoRelacion(): Promise<
     EstudianteDelResponsable[]
@@ -379,7 +379,7 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
             .result as IDBCursorWithValue;
           if (cursor) {
             const estudiante = cursor.value;
-            // Only include students who have the Tipo_Relacion attribute
+            // Solo incluir estudiantes que tengan el atributo Tipo_Relacion
             if (estudiante.Tipo_Relacion && estudiante.Estado === true) {
               estudiantes.push(estudiante as EstudianteDelResponsable);
             }
@@ -393,7 +393,7 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
       });
     } catch (error) {
       console.error(
-        "Error getting students with relationship type:",
+        "Error al obtener estudiantes con tipo de relación:",
         error
       );
       throw error;
@@ -401,10 +401,10 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
   }
 
   /**
-   * Searches for guardian's students by specific relationship type
-   * @param tipoRelacion Relationship type to filter ("HIJO" or "A_CARGO")
-   * @param includeInactive If to include inactive students
-   * @returns Array of students with the specified relationship type
+   * Busca estudiantes del responsable por tipo de relación específico
+   * @param tipoRelacion Tipo de relación a filtrar ("HIJO" o "A_CARGO")
+   * @param includeInactive Si incluir estudiantes inactivos
+   * @returns Array de estudiantes con el tipo de relación especificado
    */
   public async filtrarPorTipoRelacion(
     tipoRelacion: string,
@@ -429,7 +429,7 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
             if (cursor) {
               const estudiante = cursor.value;
 
-              // Filter by relationship type and status
+              // Filtrar por tipo de relación y estado
               if (
                 estudiante.Tipo_Relacion === tipoRelacion &&
                 (includeInactive || estudiante.Estado === true)
@@ -448,29 +448,29 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
 
       if (result.length > 0) {
         this.handleSuccess(
-          `Found ${result.length} students with relationship "${tipoRelacion}"`
+          `Se encontraron ${result.length} estudiantes con relación "${tipoRelacion}"`
         );
       } else {
         this.handleSuccess(
-          `No students found with relationship "${tipoRelacion}"`
+          `No se encontraron estudiantes con relación "${tipoRelacion}"`
         );
       }
 
       this.setIsSomethingLoading?.(false);
       return result;
     } catch (error) {
-      this.handleIndexedDBError(error, "filter by relationship type");
+      this.handleIndexedDBError(error, "filtrar por tipo de relación");
       this.setIsSomethingLoading?.(false);
       return [];
     }
   }
 
   /**
-   * Searches for students applying specific guardian filters
-   * Extends the base functionality by adding filtering by Tipo_Relacion
-   * @param filtros Specific filters for guardian's students
-   * @param includeInactive If to include inactive students
-   * @returns Array of students that meet the filters
+   * Busca estudiantes aplicando filtros específicos de responsable
+   * Extiende la funcionalidad base agregando filtrado por Tipo_Relacion
+   * @param filtros Filtros específicos para estudiantes de responsable
+   * @param includeInactive Si incluir estudiantes inactivos
+   * @returns Array de estudiantes que cumplen los filtros
    */
   public async buscarConFiltrosResponsable(
     filtros: IEstudianteResponsableFilter,
@@ -496,19 +496,19 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
               const estudiante = cursor.value;
               let cumpleFiltros = true;
 
-              // Only consider students who have Tipo_Relacion
+              // Solo considerar estudiantes que tengan Tipo_Relacion
               if (!estudiante.Tipo_Relacion) {
                 cursor.continue();
                 return;
               }
 
-              // Filter by status if not including inactive
+              // Filtro por estado si no se incluyen inactivos
               if (!includeInactive && !estudiante.Estado) {
                 cursor.continue();
                 return;
               }
 
-              // Apply inherited base filters
+              // Aplicar filtros base heredados
               if (
                 filtros.Id_Estudiante &&
                 estudiante.Id_Estudiante !== filtros.Id_Estudiante
@@ -541,7 +541,7 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
                 cumpleFiltros = false;
               }
 
-              // Specific filter by relationship type
+              // Filtro específico por tipo de relación
               if (
                 filtros.Tipo_Relacion &&
                 estudiante.Tipo_Relacion !== filtros.Tipo_Relacion
@@ -564,27 +564,27 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
 
       if (result.length > 0) {
         this.handleSuccess(
-          `Found ${result.length} students with the applied guardian filters`
+          `Se encontraron ${result.length} estudiantes con los filtros de responsable aplicados`
         );
       } else {
         this.handleSuccess(
-          "No students found with the applied guardian filters"
+          "No se encontraron estudiantes con los filtros de responsable aplicados"
         );
       }
 
       this.setIsSomethingLoading?.(false);
       return result;
     } catch (error) {
-      this.handleIndexedDBError(error, "search with guardian filters");
+      this.handleIndexedDBError(error, "buscar con filtros de responsable");
       this.setIsSomethingLoading?.(false);
       return [];
     }
   }
 
   /**
-   * Gets only the guardian's children (Tipo_Relacion = "HIJO")
-   * @param includeInactive If to include inactive students
-   * @returns Array of students who are children
+   * Obtiene solo los hijos del responsable (Tipo_Relacion = "HIJO")
+   * @param includeInactive Si incluir estudiantes inactivos
+   * @returns Array de estudiantes que son hijos
    */
   public async obtenerSoloHijos(
     includeInactive: boolean = false
@@ -593,9 +593,9 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
   }
 
   /**
-   * Gets only the students in the guardian's care (Tipo_Relacion = "A_CARGO")
-   * @param includeInactive If to include inactive students
-   * @returns Array of students who are in care
+   * Obtiene solo los estudiantes a cargo del responsable (Tipo_Relacion = "A_CARGO")
+   * @param includeInactive Si incluir estudiantes inactivos
+   * @returns Array de estudiantes que están a cargo
    */
   public async obtenerSoloACargo(
     includeInactive: boolean = false
@@ -604,10 +604,10 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
   }
 
   /**
-   * Counts guardian's students by relationship type
-   * @param tipoRelacion Specific relationship type (optional)
-   * @param includeInactive If to include inactive in the count
-   * @returns Number of students with the specified relationship type
+   * Cuenta estudiantes del responsable por tipo de relación
+   * @param tipoRelacion Tipo de relación específico (opcional)
+   * @param includeInactive Si incluir inactivos en el conteo
+   * @returns Número de estudiantes con el tipo de relación especificado
    */
   public async contarEstudiantesPorTipoRelacion(
     tipoRelacion?: string,
@@ -628,11 +628,11 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
           if (cursor) {
             const estudiante = cursor.value;
 
-            // Only count students who have Tipo_Relacion
+            // Solo contar estudiantes que tengan Tipo_Relacion
             if (estudiante.Tipo_Relacion) {
-              // Filter by status if necessary
+              // Filtrar por estado si es necesario
               if (includeInactive || estudiante.Estado === true) {
-                // Filter by specific relationship type if provided
+                // Filtrar por tipo de relación específico si se proporciona
                 if (
                   !tipoRelacion ||
                   estudiante.Tipo_Relacion === tipoRelacion
@@ -650,17 +650,17 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
         request.onerror = () => reject(request.error);
       });
     } catch (error) {
-      console.error("Error counting students by relationship type:", error);
+      console.error("Error al contar estudiantes por tipo de relación:", error);
       this.handleIndexedDBError(
         error,
-        "count students by relationship type"
+        "contar estudiantes por tipo de relación"
       );
       return 0;
     }
   }
 
   /**
-   * SIMPLE METHOD: Gets a guardian's student with automatic sync
+   * MÉTODO SIMPLE: Obtiene un estudiante del responsable con sync automático
    */
   public async obtenerMiEstudiantePorId(
     idEstudiante: string,
@@ -671,29 +671,29 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
     this.setSuccessMessage?.(null);
 
     try {
-      // SIMPLE: Just execute sync before querying (like AuxiliaresIDB)
+      // SIMPLE: Solo ejecutar sync antes de consultar (como AuxiliaresIDB)
       await this.sync();
 
-      // Get the student
+      // Obtener el estudiante
       const estudiante = await this.getEstudiantePorId(idEstudiante);
 
       if (!estudiante) {
         this.setError?.({
           success: false,
-          message: `Student with ID not found: ${idEstudiante}`,
+          message: `No se encontró el estudiante con ID: ${idEstudiante}`,
           errorType: "USER_NOT_FOUND" as any,
         });
         this.setIsSomethingLoading?.(false);
         return null;
       }
 
-      // Check that it has Tipo_Relacion (belongs to the guardian)
+      // Verificar que tiene Tipo_Relacion (pertenece al responsable)
       const estudianteDelResponsable = estudiante as EstudianteDelResponsable;
 
       if (!estudianteDelResponsable.Tipo_Relacion) {
         this.setError?.({
           success: false,
-          message: "The student is not related to your account",
+          message: "El estudiante no está relacionado con su cuenta",
           errorType: "UNAUTHORIZED_ACCESS" as any,
         });
         this.setIsSomethingLoading?.(false);
@@ -701,21 +701,21 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
       }
 
       this.handleSuccess(
-        `Data of ${estudianteDelResponsable.Nombres} ${estudianteDelResponsable.Apellidos} obtained successfully`
+        `Datos de ${estudianteDelResponsable.Nombres} ${estudianteDelResponsable.Apellidos} obtenidos exitosamente`
       );
       this.setIsSomethingLoading?.(false);
       return estudianteDelResponsable;
     } catch (error) {
-      this.handleIndexedDBError(error, "get my student by ID");
+      this.handleIndexedDBError(error, "obtener mi estudiante por ID");
       this.setIsSomethingLoading?.(false);
       return null;
     }
   }
 
   /**
-   * Gets a summary of students grouped by relationship type
-   * @param includeInactive If to include inactive students
-   * @returns Object with count by relationship type
+   * Obtiene un resumen de estudiantes agrupados por tipo de relación
+   * @param includeInactive Si incluir estudiantes inactivos
+   * @returns Objeto con conteo por tipo de relación
    */
   public async obtenerResumenPorTipoRelacion(
     includeInactive: boolean = false
@@ -736,15 +736,15 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
         total: hijos + aCargo,
       };
     } catch (error) {
-      console.error("Error getting summary by relationship type:", error);
-      this.handleIndexedDBError(error, "get summary by relationship type");
+      console.error("Error al obtener resumen por tipo de relación:", error);
+      this.handleIndexedDBError(error, "obtener resumen por tipo de relación");
       return { hijos: 0, aCargo: 0, total: 0 };
     }
   }
 
   /**
-   * Clears from the common table only the students who have Tipo_Relacion
-   * (specific to the guardian)
+   * Limpia de la tabla común solo los estudiantes que tienen Tipo_Relacion
+   * (específicos del responsable)
    */
   public async limpiarEstudiantesDelResponsable(): Promise<void> {
     this.setIsSomethingLoading?.(true);
@@ -758,7 +758,7 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
 
       const estudiantesAEliminar: string[] = [];
 
-      // First, identify students with Tipo_Relacion
+      // Primero, identificar estudiantes con Tipo_Relacion
       await new Promise<void>((resolve, reject) => {
         const request = store.openCursor();
 
@@ -779,17 +779,17 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
         request.onerror = () => reject(request.error);
       });
 
-      // Delete the identified students
+      // Eliminar los estudiantes identificados
       for (const id of estudiantesAEliminar) {
         await this.deleteById(id);
       }
 
       this.handleSuccess(
-        `Deleted ${estudiantesAEliminar.length} students of the guardian`
+        `Se eliminaron ${estudiantesAEliminar.length} estudiantes del responsable`
       );
       this.setIsSomethingLoading?.(false);
     } catch (error) {
-      this.handleIndexedDBError(error, "clear guardian's students");
+      this.handleIndexedDBError(error, "limpiar estudiantes del responsable");
       this.setIsSomethingLoading?.(false);
     }
   }

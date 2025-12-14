@@ -2,10 +2,10 @@ import { ValidationErrorTypes } from "../../../../interfaces/shared/errors";
 import { ValidationResult } from "./types";
 
 /**
- * Validates names
- * @param value - Value to validate
- * @param required - Indicates if the field is mandatory
- * @returns Validation result
+ * Valida nombres
+ * @param value - Valor a validar
+ * @param required - Indica si el campo es obligatorio
+ * @returns Resultado de la validación
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function validateNames(value: any, required: boolean): ValidationResult {
@@ -13,7 +13,7 @@ export function validateNames(value: any, required: boolean): ValidationResult {
     return {
       isValid: false,
       errorType: ValidationErrorTypes.FIELD_REQUIRED,
-      errorMessage: "The Names field is required",
+      errorMessage: "El campo Nombres es requerido",
     };
   }
 
@@ -25,18 +25,18 @@ export function validateNames(value: any, required: boolean): ValidationResult {
     return {
       isValid: false,
       errorType: ValidationErrorTypes.INVALID_FORMAT,
-      errorMessage: "The Names field must be a string",
+      errorMessage: "El campo Nombres debe ser una cadena de texto",
     };
   }
 
-  // Allows letters, spaces, apostrophes, and hyphens (for compound names)
+  // Permite letras, espacios, apóstrofes y guiones (para nombres compuestos)
   const nameRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'-]{2,60}$/;
   if (!nameRegex.test(value)) {
     return {
       isValid: false,
       errorType: ValidationErrorTypes.INVALID_NAME,
       errorMessage:
-        "The Names field must be between 2 and 60 characters and can only contain letters, spaces, apostrophes, and hyphens",
+        "El campo Nombres debe tener entre 2 y 60 caracteres y solo puede contener letras, espacios, apóstrofes y guiones",
     };
   }
 

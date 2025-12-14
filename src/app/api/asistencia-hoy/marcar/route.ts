@@ -20,12 +20,12 @@ import {
 } from "@/interfaces/shared/AsistenciaRequests";
 import { HORA_MAXIMA_EXPIRACION_PARA_REGISTROS_EN_REDIS } from "@/constants/expirations";
 import {
-  getCurrentDateInPeru,
-  getCurrentDateTimeInPeru,
+  obtenerFechaActualPeru,
+  obtenerFechaHoraActualPeru,
 } from "../../_helpers/obtenerFechaActualPeru";
 import { verifyAuthToken } from "@/lib/utils/backend/auth/functions/jwtComprobations";
 
-export const RedisInstanceGroupByAttendanceType: Record<
+export const GrupoInstaciasDeRedisPorTipoAsistencia: Record<
   TipoAsistencia,
   GruposIntanciasDeRedis
 > = {
@@ -38,10 +38,10 @@ export const RedisInstanceGroupByAttendanceType: Record<
 };
 
 /**
- * Maps a system role to the corresponding actor for personal attendance registration
+ * Mapea un rol del sistema al actor correspondiente para registro de asistencia personal
  */
-const mapRoleToStaffActor = (role: RolesSistema): ActoresSistema | null => {
-  switch (role) {
+const mapearRolAActorPersonal = (rol: RolesSistema): ActoresSistema | null => {
+  switch (rol) {
     case RolesSistema.Directivo:
       return ActoresSistema.Directivo;
     case RolesSistema.ProfesorPrimaria:
@@ -53,7 +53,7 @@ const mapRoleToStaffActor = (role: RolesSistema): ActoresSistema | null => {
       return ActoresSistema.Auxiliar;
     case RolesSistema.PersonalAdministrativo:
       return ActoresSistema.PersonalAdministrativo;
-    // Guardians don't have personal attendance
+    // Responsables no tienen asistencia personal
     case RolesSistema.Responsable:
       return null;
     default:
@@ -61,212 +61,212 @@ const mapRoleToStaffActor = (role: RolesSistema): ActoresSistema | null => {
   }
 };
 
-// Function to validate registration permissions by role
-const validateRegistrationPermissions = (
-  role: RolesSistema,
+// Función para validar permisos de registro según rol
+const validarPermisosRegistro = (
+  rol: RolesSistema,
   actor: ActoresSistema,
-  attendanceType: TipoAsistencia,
-  idToRegister: string,
-  myId: string,
-  isOwnRegistration: boolean = false,
-  grade?: number,
-  section?: string,
-  educationalLevel?: string
-): { isValid: boolean; message?: string } => {
-  switch (role) {
+  tipoAsistencia: TipoAsistencia,
+  idARegistrar: string,
+  miid: string,
+  esRegistroPropio: boolean = false,
+  grado?: number,
+  seccion?: string,
+  nivelEducativo?: string
+): { esValido: boolean; mensaje?: string } => {
+  switch (rol) {
     case RolesSistema.Directivo:
-      // Directors can register staff attendance (including other directors)
-      // BUT CANNOT register student attendance
+      // Los directivos pueden registrar asistencias de personal (incluyendo otros directivos)
+      // PERO NO pueden registrar asistencias de estudiantes
       if (actor === ActoresSistema.Estudiante) {
         return {
-          isValid: false,
-          message:
-            "Directors cannot register student attendances",
+          esValido: false,
+          mensaje:
+            "Los directivos no pueden registrar asistencias de estudiantes",
         };
       }
 
-      // For staff: they can register any staff member
-      if (attendanceType !== TipoAsistencia.ParaPersonal) {
+      // Para personal: pueden registrar cualquier personal
+      if (tipoAsistencia !== TipoAsistencia.ParaPersonal) {
         return {
-          isValid: false,
-          message:
-            "Directors can only register staff attendances",
+          esValido: false,
+          mensaje:
+            "Los directivos solo pueden registrar asistencias de personal",
         };
       }
-      return { isValid: true };
+      return { esValido: true };
 
     case RolesSistema.Auxiliar:
       if (actor === ActoresSistema.Estudiante) {
-        // Only secondary students
-        if (attendanceType !== TipoAsistencia.ParaEstudiantesSecundaria) {
+        // Solo estudiantes de secundaria
+        if (tipoAsistencia !== TipoAsistencia.ParaEstudiantesSecundaria) {
           return {
-            isValid: false,
-            message:
-              "Assistants can only register secondary students",
+            esValido: false,
+            mensaje:
+              "Los auxiliares solo pueden registrar estudiantes de secundaria",
           };
         }
-        // For students requires level, grade and section
-        if (!educationalLevel || !grade || !section) {
+        // Para estudiantes requiere nivel, grado y sección
+        if (!nivelEducativo || !grado || !seccion) {
           return {
-            isValid: false,
-            message:
-              "Educational level, grade and section are required to register students",
+            esValido: false,
+            mensaje:
+              "Se requieren nivel educativo, grado y sección para registrar estudiantes",
           };
         }
       } else {
-        // For personal attendance: only their own record
-        if (!isOwnRegistration && idToRegister !== myId) {
+        // Para asistencia personal: solo su propio registro
+        if (!esRegistroPropio && idARegistrar !== miid) {
           return {
-            isValid: false,
-            message:
-              "Assistants can only register their own personal attendance",
+            esValido: false,
+            mensaje:
+              "Los auxiliares solo pueden registrar su propia asistencia de personal",
           };
         }
-        // Must be Personal type
-        if (attendanceType !== TipoAsistencia.ParaPersonal) {
+        // Debe ser tipo Personal
+        if (tipoAsistencia !== TipoAsistencia.ParaPersonal) {
           return {
-            isValid: false,
-            message:
-              "Assistants can only register Personal type attendance for themselves",
+            esValido: false,
+            mensaje:
+              "Los auxiliares solo pueden registrar asistencia de tipo Personal para sí mismos",
           };
         }
       }
-      return { isValid: true };
+      return { esValido: true };
 
     case RolesSistema.ProfesorPrimaria:
       if (actor === ActoresSistema.Estudiante) {
-        // Only primary students
-        if (attendanceType !== TipoAsistencia.ParaEstudiantesPrimaria) {
+        // Solo estudiantes de primaria
+        if (tipoAsistencia !== TipoAsistencia.ParaEstudiantesPrimaria) {
           return {
-            isValid: false,
-            message:
-              "Primary school teachers can only register primary students",
+            esValido: false,
+            mensaje:
+              "Los profesores de primaria solo pueden registrar estudiantes de primaria",
           };
         }
-        // For students requires level, grade and section
-        if (!educationalLevel || !grade || !section) {
+        // Para estudiantes requiere nivel, grado y sección
+        if (!nivelEducativo || !grado || !seccion) {
           return {
-            isValid: false,
-            message:
-              "Educational level, grade and section are required to register students",
+            esValido: false,
+            mensaje:
+              "Se requieren nivel educativo, grado y sección para registrar estudiantes",
           };
         }
       } else {
-        // For personal attendance: only their own record
-        if (!isOwnRegistration && idToRegister !== myId) {
+        // Para asistencia personal: solo su propio registro
+        if (!esRegistroPropio && idARegistrar !== miid) {
           return {
-            isValid: false,
-            message:
-              "Primary school teachers can only register their own personal attendance",
+            esValido: false,
+            mensaje:
+              "Los profesores de primaria solo pueden registrar su propia asistencia de personal",
           };
         }
-        // Must be Personal type
-        if (attendanceType !== TipoAsistencia.ParaPersonal) {
+        // Debe ser tipo Personal
+        if (tipoAsistencia !== TipoAsistencia.ParaPersonal) {
           return {
-            isValid: false,
-            message:
-              "Primary school teachers can only register Personal type attendance for themselves",
+            esValido: false,
+            mensaje:
+              "Los profesores de primaria solo pueden registrar asistencia de tipo Personal para sí mismos",
           };
         }
       }
-      return { isValid: true };
+      return { esValido: true };
 
     case RolesSistema.ProfesorSecundaria:
     case RolesSistema.Tutor:
       if (actor === ActoresSistema.Estudiante) {
         return {
-          isValid: false,
-          message:
-            "Secondary school teachers/tutors cannot register student attendances",
+          esValido: false,
+          mensaje:
+            "Los profesores/tutores de secundaria no pueden registrar asistencias de estudiantes",
         };
       } else {
-        // For personal attendance: only their own record
-        if (!isOwnRegistration && idToRegister !== myId) {
+        // Para asistencia personal: solo su propio registro
+        if (!esRegistroPropio && idARegistrar !== miid) {
           return {
-            isValid: false,
-            message:
-              "Secondary school teachers/tutors can only register their own attendance",
+            esValido: false,
+            mensaje:
+              "Los profesores/tutores de secundaria solo pueden registrar su propia asistencia",
           };
         }
-        // Must be Personal type
-        if (attendanceType !== TipoAsistencia.ParaPersonal) {
+        // Debe ser tipo Personal
+        if (tipoAsistencia !== TipoAsistencia.ParaPersonal) {
           return {
-            isValid: false,
-            message:
-              "Secondary school teachers/tutors can only register Personal type attendance for themselves",
+            esValido: false,
+            mensaje:
+              "Los profesores/tutores de secundaria solo pueden registrar asistencia de tipo Personal para sí mismos",
           };
         }
       }
-      return { isValid: true };
+      return { esValido: true };
 
     case RolesSistema.PersonalAdministrativo:
       if (actor === ActoresSistema.Estudiante) {
         return {
-          isValid: false,
-          message:
-            "Administrative staff cannot register student attendances",
+          esValido: false,
+          mensaje:
+            "El personal administrativo no puede registrar asistencias de estudiantes",
         };
       } else {
-        // For personal attendance: only their own record
-        if (!isOwnRegistration && idToRegister !== myId) {
+        // Para asistencia personal: solo su propio registro
+        if (!esRegistroPropio && idARegistrar !== miid) {
           return {
-            isValid: false,
-            message:
-              "Administrative staff can only register their own attendance",
+            esValido: false,
+            mensaje:
+              "El personal administrativo solo puede registrar su propia asistencia",
           };
         }
-        // Must be Personal type
-        if (attendanceType !== TipoAsistencia.ParaPersonal) {
+        // Debe ser tipo Personal
+        if (tipoAsistencia !== TipoAsistencia.ParaPersonal) {
           return {
-            isValid: false,
-            message:
-              "Administrative staff can only register Personal type attendance for themselves",
+            esValido: false,
+            mensaje:
+              "El personal administrativo solo puede registrar asistencia de tipo Personal para sí mismo",
           };
         }
       }
-      return { isValid: true };
+      return { esValido: true };
 
     case RolesSistema.Responsable:
-      // Guardians cannot register attendances
+      // Los responsables no pueden registrar asistencias
       return {
-        isValid: false,
-        message: "Guardians cannot register attendances",
+        esValido: false,
+        mensaje: "Los responsables no pueden registrar asistencias",
       };
 
     default:
-      return { isValid: false, message: "Unauthorized role" };
+      return { esValido: false, mensaje: "Rol no autorizado" };
   }
 };
 
-const calculateSecondsUntilExpiration = async (): Promise<number> => {
-  // ✅ Use the new function that handles all offsets
-  const currentPeruDate = await getCurrentDateTimeInPeru();
+const calcularSegundosHastaExpiracion = async (): Promise<number> => {
+  // ✅ Usar la nueva función que maneja todos los offsets
+  const fechaActualPeru = await obtenerFechaHoraActualPeru();
 
-  // Create target date at 20:00 of the same day
-  const expirationDate = new Date(currentPeruDate);
-  expirationDate.setHours(
+  // Crear fecha objetivo a las 20:00 del mismo día
+  const fechaExpiracion = new Date(fechaActualPeru);
+  fechaExpiracion.setHours(
     HORA_MAXIMA_EXPIRACION_PARA_REGISTROS_EN_REDIS,
     0,
     0,
     0
   );
 
-  // If current time already passed 20:00, set for 20:00 of next day
-  if (currentPeruDate >= expirationDate) {
-    expirationDate.setDate(expirationDate.getDate() + 1);
+  // Si la hora actual ya pasó las 20:00, establecer para las 20:00 del día siguiente
+  if (fechaActualPeru >= fechaExpiracion) {
+    fechaExpiracion.setDate(fechaExpiracion.getDate() + 1);
   }
 
-  // Calculate difference in seconds
-  const secondsUntilExpiration = Math.floor(
-    (expirationDate.getTime() - currentPeruDate.getTime()) / 1000
+  // Calcular diferencia en segundos
+  const segundosHastaExpiracion = Math.floor(
+    (fechaExpiracion.getTime() - fechaActualPeru.getTime()) / 1000
   );
-  return Math.max(1, secondsUntilExpiration); // Minimum 1 second to avoid negative or zero values
+  return Math.max(1, segundosHastaExpiracion); // Mínimo 1 segundo para evitar valores negativos o cero
 };
 
 export async function POST(req: NextRequest) {
   try {
-    // Verify authentication
-    const { error, rol: role, decodedToken } = await verifyAuthToken(req, [
+    // Verificar autenticación
+    const { error, rol, decodedToken } = await verifyAuthToken(req, [
       RolesSistema.Directivo,
       RolesSistema.Auxiliar,
       RolesSistema.ProfesorPrimaria,
@@ -275,191 +275,191 @@ export async function POST(req: NextRequest) {
       RolesSistema.PersonalAdministrativo,
     ]);
 
-    if (error && !role && !decodedToken) return error;
+    if (error && !rol && !decodedToken) return error;
 
-    const myId = decodedToken.ID_Usuario; // ✅ For directors: ID, for others: DNI
+    const MI_idUsuario = decodedToken.ID_Usuario; // ✅ Para directivos: ID, para otros: DNI
 
-    // Parse request body as JSON
+    // Parsear el cuerpo de la solicitud como JSON
     const body =
       (await req.json()) as Partial<RegistrarAsistenciaIndividualRequestBody>;
 
     const {
-      Actor: actor,
-      Id_Usuario: userId,
-      Id_Estudiante: studentId,
-      FechaHoraEsperadaISO: expectedDateTimeISO,
-      ModoRegistro: registrationMode,
-      TipoAsistencia: attendanceTypeParam,
-      desfaseSegundosAsistenciaEstudiante: studentAttendanceOffsetSeconds,
-      NivelDelEstudiante: studentLevel,
-      Grado: grade,
-      Seccion: section,
+      Actor,
+      Id_Usuario,
+      Id_Estudiante,
+      FechaHoraEsperadaISO,
+      ModoRegistro,
+      TipoAsistencia: tipoAsistenciaParam,
+      desfaseSegundosAsistenciaEstudiante,
+      NivelDelEstudiante,
+      Grado,
+      Seccion,
     } = body;
 
-    // ✅ NEW LOGIC: Determine registration type
-    const isStudentRegistration = !!(
-      studentId && typeof studentAttendanceOffsetSeconds === "number"
+    // ✅ NUEVA LÓGICA: Determinar tipo de registro
+    const esRegistroEstudiante = !!(
+      Id_Estudiante && typeof desfaseSegundosAsistenciaEstudiante === "number"
     );
-    const isStaffRegistration = !!(userId && expectedDateTimeISO);
-    const isOwnRegistration = !isStudentRegistration && !isStaffRegistration;
+    const esRegistroPersonal = !!(Id_Usuario && FechaHoraEsperadaISO);
+    const esRegistroPropio = !esRegistroEstudiante && !esRegistroPersonal;
 
-    let finalActor: ActoresSistema;
-    let finalId: string;
-    let finalAttendanceType: TipoAsistencia;
-    let offsetSeconds: number;
-    let currentTimestamp: number = 0;
+    let actorFinal: ActoresSistema;
+    let idFinal: string;
+    let tipoAsistenciaFinal: TipoAsistencia;
+    let desfaseSegundos: number;
+    let timestampActual: number = 0;
 
-    if (isOwnRegistration) {
-      // ✅ OWN REGISTRATION: Only requires ModoRegistro and FechaHoraEsperadaISO
-      console.log(`🔍 Own registration detected for role: ${role}`);
+    if (esRegistroPropio) {
+      // ✅ REGISTRO PROPIO: Solo requiere ModoRegistro y FechaHoraEsperadaISO
+      console.log(`🔍 Registro propio detectado para rol: ${rol}`);
 
-      if (!expectedDateTimeISO) {
+      if (!FechaHoraEsperadaISO) {
         return NextResponse.json(
           {
             success: false,
-            message: "FechaHoraEsperadaISO is required for own registration",
+            message: "Se requiere FechaHoraEsperadaISO para registro propio",
             errorType: RequestErrorTypes.INVALID_PARAMETERS,
           },
           { status: 400 }
         );
       }
 
-      // Map role to actor
-      const mappedActor = mapRoleToStaffActor(role!);
-      if (!mappedActor) {
+      // Mapear rol a actor
+      const actorMapeado = mapearRolAActorPersonal(rol!);
+      if (!actorMapeado) {
         return NextResponse.json(
           {
             success: false,
-            message: `Role ${role} cannot register personal attendance`,
+            message: `El rol ${rol} no puede registrar asistencia personal`,
             errorType: RequestErrorTypes.INVALID_PARAMETERS,
           },
           { status: 400 }
         );
       }
 
-      finalActor = mappedActor;
-      finalId = myId; // ✅ Use ID/DNI from token
-      finalAttendanceType = TipoAsistencia.ParaPersonal; // ✅ Always Personal for own registration
+      actorFinal = actorMapeado;
+      idFinal = MI_idUsuario; // ✅ Usar ID/DNI del token
+      tipoAsistenciaFinal = TipoAsistencia.ParaPersonal; // ✅ Siempre Personal para registro propio
 
-      // Calculate offset for own registration
-      const currentPeruDate = await getCurrentDateTimeInPeru();
-      currentTimestamp = currentPeruDate.getTime();
-      offsetSeconds = Math.floor(
-        (currentTimestamp - new Date(expectedDateTimeISO).getTime()) / 1000
+      // Calcular desfase para registro propio
+      const fechaActualPeru = await obtenerFechaHoraActualPeru();
+      timestampActual = fechaActualPeru.getTime();
+      desfaseSegundos = Math.floor(
+        (timestampActual - new Date(FechaHoraEsperadaISO).getTime()) / 1000
       );
-    } else if (isStudentRegistration) {
-      // ✅ STUDENT REGISTRATION: Requires Id_Estudiante + desfaseSegundosAsistenciaEstudiante
-      console.log(`🔍 Student registration detected`);
+    } else if (esRegistroEstudiante) {
+      // ✅ REGISTRO DE ESTUDIANTE: Requiere Id_Estudiante + desfaseSegundosAsistenciaEstudiante
+      console.log(`🔍 Registro de estudiante detectado`);
 
-      // Validate student ID
-      const idValidation = validateIdActor(studentId!, true);
+      // Validar ID del estudiante
+      const idValidation = validateIdActor(Id_Estudiante!, true);
       if (!idValidation.isValid) {
         return NextResponse.json(
           {
             success: false,
-            message: `Invalid student ID: ${idValidation.errorMessage}`,
+            message: `ID de estudiante inválido: ${idValidation.errorMessage}`,
             errorType: idValidation.errorType,
           },
           { status: 400 }
         );
       }
 
-      // Validate classroom data for students
-      if (!studentLevel || !grade || !section) {
+      // Validar datos de aula para estudiantes
+      if (!NivelDelEstudiante || !Grado || !Seccion) {
         return NextResponse.json(
           {
             success: false,
             message:
-              "Educational level, grade and section are required to register students",
+              "Se requieren nivel educativo, grado y sección para registrar estudiantes",
             errorType: RequestErrorTypes.INVALID_PARAMETERS,
           },
           { status: 400 }
         );
       }
 
-      // Validate that grade is numeric and in valid range
-      if (typeof grade !== "number" || grade < 1 || grade > 6) {
+      // Validar que el grado sea numérico y esté en rango válido
+      if (typeof Grado !== "number" || Grado < 1 || Grado > 6) {
         return NextResponse.json(
           {
             success: false,
-            message: "The grade must be a number between 1 and 6",
+            message: "El grado debe ser un número entre 1 y 6",
             errorType: RequestErrorTypes.INVALID_PARAMETERS,
           },
           { status: 400 }
         );
       }
 
-      // Validate that section is a valid letter
-      if (typeof section !== "string" || !/^[A-Z]$/.test(section)) {
+      // Validar que la sección sea una letra válida
+      if (typeof Seccion !== "string" || !/^[A-Z]$/.test(Seccion)) {
         return NextResponse.json(
           {
             success: false,
-            message: "The section must be an uppercase letter (A-Z)",
+            message: "La sección debe ser una letra mayúscula (A-Z)",
             errorType: RequestErrorTypes.INVALID_PARAMETERS,
           },
           { status: 400 }
         );
       }
 
-      finalActor = ActoresSistema.Estudiante;
-      finalId = studentId!;
-      offsetSeconds = studentAttendanceOffsetSeconds!;
+      actorFinal = ActoresSistema.Estudiante;
+      idFinal = Id_Estudiante!;
+      desfaseSegundos = desfaseSegundosAsistenciaEstudiante!;
 
-      // Determine attendance type based on educational level
-      if (studentLevel.toLowerCase().includes("primaria")) {
-        finalAttendanceType = TipoAsistencia.ParaEstudiantesPrimaria;
+      // Determinar tipo de asistencia basado en nivel educativo
+      if (NivelDelEstudiante.toLowerCase().includes("primaria")) {
+        tipoAsistenciaFinal = TipoAsistencia.ParaEstudiantesPrimaria;
       } else {
-        finalAttendanceType = TipoAsistencia.ParaEstudiantesSecundaria;
+        tipoAsistenciaFinal = TipoAsistencia.ParaEstudiantesSecundaria;
       }
-    } else if (isStaffRegistration) {
-      // ✅ STAFF REGISTRATION: Requires Id_Usuario + FechaHoraEsperadaISO
-      console.log(`🔍 Staff registration detected`);
+    } else if (esRegistroPersonal) {
+      // ✅ REGISTRO DE PERSONAL: Requiere Id_Usuario + FechaHoraEsperadaISO
+      console.log(`🔍 Registro de personal detectado`);
 
-      // Validate required fields
-      if (!actor || !attendanceTypeParam) {
+      // Validar campos necesarios
+      if (!Actor || !tipoAsistenciaParam) {
         return NextResponse.json(
           {
             success: false,
             message:
-              "Actor and TipoAsistencia are required to register staff",
+              "Para registrar personal se requieren Actor y TipoAsistencia",
             errorType: RequestErrorTypes.INVALID_PARAMETERS,
           },
           { status: 400 }
         );
       }
 
-      // Validate Actor
-      if (!Object.values(ActoresSistema).includes(actor as ActoresSistema)) {
+      // Validar Actor
+      if (!Object.values(ActoresSistema).includes(Actor as ActoresSistema)) {
         return NextResponse.json(
           {
             success: false,
-            message: "Invalid Actor",
+            message: "Actor no válido",
             errorType: RequestErrorTypes.INVALID_PARAMETERS,
           },
           { status: 400 }
         );
       }
 
-      // Validate TipoAsistencia
-      if (!Object.values(TipoAsistencia).includes(attendanceTypeParam)) {
+      // Validar TipoAsistencia
+      if (!Object.values(TipoAsistencia).includes(tipoAsistenciaParam)) {
         return NextResponse.json(
           {
             success: false,
-            message: "Invalid TipoAsistencia",
+            message: "TipoAsistencia no válido",
             errorType: RequestErrorTypes.INVALID_PARAMETERS,
           },
           { status: 400 }
         );
       }
 
-      // ✅ ID validation according to actor
-      if (actor !== ActoresSistema.Directivo) {
-        const idValidation = validateIdActor(userId!, true);
+      // ✅ Validación de ID según el actor
+      if (Actor !== ActoresSistema.Directivo) {
+        const idValidation = validateIdActor(Id_Usuario!, true);
         if (!idValidation.isValid) {
           return NextResponse.json(
             {
               success: false,
-              message: `Invalid user ID for ${actor}: ${idValidation.errorMessage}`,
+              message: `ID de usuario inválido para ${Actor}: ${idValidation.errorMessage}`,
               errorType: idValidation.errorType,
             },
             { status: 400 }
@@ -467,136 +467,136 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      finalActor = actor as ActoresSistema;
-      finalId = userId!;
-      finalAttendanceType = attendanceTypeParam;
+      actorFinal = Actor as ActoresSistema;
+      idFinal = Id_Usuario!;
+      tipoAsistenciaFinal = tipoAsistenciaParam;
 
-      // Calculate offset for staff registration
-      const currentPeruDate = await getCurrentDateTimeInPeru();
-      currentTimestamp = currentPeruDate.getTime();
-      offsetSeconds = Math.floor(
-        (currentTimestamp - new Date(expectedDateTimeISO).getTime()) / 1000
+      // Calcular desfase para registro de personal
+      const fechaActualPeru = await obtenerFechaHoraActualPeru();
+      timestampActual = fechaActualPeru.getTime();
+      desfaseSegundos = Math.floor(
+        (timestampActual - new Date(FechaHoraEsperadaISO).getTime()) / 1000
       );
     } else {
       return NextResponse.json(
         {
           success: false,
           message:
-            "You must specify either student registration (Id_Estudiante + offset) or staff (Id_Usuario + FechaHoraEsperadaISO)",
+            "Debe especificar o registro de estudiante (Id_Estudiante + desfase) o personal (Id_Usuario + FechaHoraEsperadaISO)",
           errorType: RequestErrorTypes.INVALID_PARAMETERS,
         },
         { status: 400 }
       );
     }
 
-    // Validate ModoRegistro
-    if (!registrationMode || !Object.values(ModoRegistro).includes(registrationMode)) {
+    // Validar ModoRegistro
+    if (!ModoRegistro || !Object.values(ModoRegistro).includes(ModoRegistro)) {
       return NextResponse.json(
         {
           success: false,
-          message: "A valid ModoRegistro is required",
+          message: "Se requiere un ModoRegistro válido",
           errorType: RequestErrorTypes.INVALID_PARAMETERS,
         },
         { status: 400 }
       );
     }
 
-    // ✅ PERMISSIONS VALIDATION
-    const permissionValidation = validateRegistrationPermissions(
-      role!,
-      finalActor,
-      finalAttendanceType,
-      finalId,
-      myId,
-      isOwnRegistration,
-      grade,
-      section,
-      studentLevel
+    // ✅ VALIDACIÓN DE PERMISOS
+    const validacionPermisos = validarPermisosRegistro(
+      rol!,
+      actorFinal,
+      tipoAsistenciaFinal,
+      idFinal,
+      MI_idUsuario,
+      esRegistroPropio,
+      Grado,
+      Seccion,
+      NivelDelEstudiante
     );
 
-    if (!permissionValidation.isValid) {
+    if (!validacionPermisos.esValido) {
       return NextResponse.json(
         {
           success: false,
-          message: permissionValidation.message,
+          message: validacionPermisos.mensaje,
           errorType: PermissionErrorTypes.INSUFFICIENT_PERMISSIONS,
         },
         { status: 403 }
       );
     }
 
-    // Create key for Redis
-    const todayDate = await getCurrentDateInPeru();
-    let key: string;
+    // Crear clave para Redis
+    const fechaHoy = await obtenerFechaActualPeru();
+    let clave: string;
 
-    if (isStudentRegistration) {
-      // For students: include level, grade and section in key
-      key = `${todayDate}:${registrationMode}:${finalActor}:${studentLevel}:${grade}:${section}:${finalId}`;
+    if (esRegistroEstudiante) {
+      // Para estudiantes: incluir nivel, grado y sección en la clave
+      clave = `${fechaHoy}:${ModoRegistro}:${actorFinal}:${NivelDelEstudiante}:${Grado}:${Seccion}:${idFinal}`;
     } else {
-      // For staff: traditional key
-      key = `${todayDate}:${registrationMode}:${finalActor}:${finalId}`;
+      // Para personal: clave tradicional
+      clave = `${fechaHoy}:${ModoRegistro}:${actorFinal}:${idFinal}`;
     }
 
-    // Use the determined TipoAsistencia
+    // Usar el TipoAsistencia determinado
     const redisClientInstance = redisClient(
-      RedisInstanceGroupByAttendanceType[finalAttendanceType]
+      GrupoInstaciasDeRedisPorTipoAsistencia[tipoAsistenciaFinal]
     );
 
-    // Check if a record already exists in Redis
-    const existingRecord = await redisClientInstance.get(key);
-    const isNewRecord = !existingRecord;
+    // Verificar si ya existe un registro en Redis
+    const registroExistente = await redisClientInstance.get(clave);
+    const esNuevoRegistro = !registroExistente;
 
-    if (isNewRecord) {
-      // Set the expiration
-      const secondsUntilExpiration = await calculateSecondsUntilExpiration();
+    if (esNuevoRegistro) {
+      // Establecer la expiración
+      const segundosHastaExpiracion = await calcularSegundosHastaExpiracion();
 
-      if (isStudentRegistration) {
-        // ✅ For students: Only [desfaseSegundos]
-        const value = [offsetSeconds.toString()];
-        await redisClientInstance.set(key, value, secondsUntilExpiration);
+      if (esRegistroEstudiante) {
+        // ✅ Para estudiantes: Solo [desfaseSegundos]
+        const valor = [desfaseSegundos.toString()];
+        await redisClientInstance.set(clave, valor, segundosHastaExpiracion);
       } else {
-        // ✅ For staff: [timestamp, desfaseSegundos] (no changes)
-        const value = [currentTimestamp.toString(), offsetSeconds.toString()];
-        await redisClientInstance.set(key, value, secondsUntilExpiration);
+        // ✅ Para personal: [timestamp, desfaseSegundos] (sin cambios)
+        const valor = [timestampActual.toString(), desfaseSegundos.toString()];
+        await redisClientInstance.set(clave, valor, segundosHastaExpiracion);
       }
     }
 
     console.log(
-      `✅ Attendance record: ${
-        isOwnRegistration
-          ? "OWN"
-          : isStudentRegistration
-          ? "STUDENT"
-          : "STAFF"
-      } - Actor: ${finalActor} - ${
-        isNewRecord ? "NEW" : "EXISTING"
-      } - Offset: ${offsetSeconds}s`
+      `✅ Registro de asistencia: ${
+        esRegistroPropio
+          ? "PROPIO"
+          : esRegistroEstudiante
+          ? "ESTUDIANTE"
+          : "PERSONAL"
+      } - Actor: ${actorFinal} - ${
+        esNuevoRegistro ? "NUEVO" : "EXISTENTE"
+      } - Desfase: ${desfaseSegundos}s`
     );
 
     return NextResponse.json(
       {
         success: true,
-        message: isNewRecord
-          ? "Attendance recorded successfully"
-          : "Attendance has already been recorded previously",
+        message: esNuevoRegistro
+          ? "Asistencia registrada correctamente"
+          : "La asistencia ya había sido registrada anteriormente",
         data: {
-          timestamp: currentTimestamp || Date.now(), // For students it will be the approximate current date
-          offsetSeconds,
-          isNewRecord,
-          isOwnRegistration,
-          registeredActor: finalActor,
-          attendanceType: finalAttendanceType,
+          timestamp: timestampActual || Date.now(), // Para estudiantes será la fecha actual aproximada
+          desfaseSegundos,
+          esNuevoRegistro,
+          esRegistroPropio,
+          actorRegistrado: actorFinal,
+          tipoAsistencia: tipoAsistenciaFinal,
         },
       } as RegistrarAsistenciaIndividualSuccessResponse,
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error registering attendance:", error);
+    console.error("Error al registrar asistencia:", error);
 
     return NextResponse.json(
       {
         success: false,
-        message: "Error registering attendance",
+        message: "Error al registrar asistencia",
         errorType: SystemErrorTypes.UNKNOWN_ERROR,
         ErrorDetails: error instanceof Error ? error.message : String(error),
       } as ErrorResponseAPIBase,

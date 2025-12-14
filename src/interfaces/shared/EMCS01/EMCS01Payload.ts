@@ -1,7 +1,7 @@
 import { RDP02 } from "../RDP02Instancias";
 import { RDP03 } from "../RDP03Instancias";
 
-// Interface for the webhook payload
+// Interfaz para la carga útil del webhook
 export interface EMCS01Payload {
   event_type: string;
   client_payload: {

@@ -20,10 +20,10 @@ import { HandlerAuxiliarAsistenciaResponse } from "@/lib/utils/local/db/models/D
 import { HORAS_ANTES_SALIDA_CAMBIO_MODO_PARA_ESTUDIANTES_DE_SECUNDARIA } from "@/constants/INTERVALOS_ASISTENCIAS_ESCOLARES";
 import { alterarUTCaZonaPeruana } from "@/lib/helpers/alteradores/alterarUTCaZonaPeruana";
 import { CONTROL_ASISTENCIA_DE_SALIDA_SECUNDARIA } from "@/constants/ASISTENCIA_ENTRADA_SALIDA_ESCOLAR";
-import FotoPerfilClientSide from "../utils/photos/FotoPerfilClientSide";
-import { extraerTipoDeIdentificador } from "@/lib/helpers/extractors/extraerTipoDeIdentificador";
 import { TiposIdentificadoresTextos } from "@/interfaces/shared/TiposIdentificadores";
+import { extraerTipoDeIdentificador } from "@/lib/helpers/extractors/extraerTipoDeIdentificador";
 import { extraerIdentificador } from "@/lib/helpers/extractors/extraerIdentificador";
+import FotoPerfilClientSide from "../utils/photos/FotoPerfilClientSide";
 import Play_1_Icon from "../icons/Play_1_Icon";
 import Pause_1_Icon from "../icons/Pause_1_Icon";
 import Actualizar_1_Icon from "../icons/Actualizar_1_Icon";
@@ -52,7 +52,7 @@ interface RegistroEstudiantesSecundariaPorQRProps {
 const RegistroEstudiantesSecundariaPorQR: React.FC<
   RegistroEstudiantesSecundariaPorQRProps
 > = ({ handlerAuxiliar, fechaHoraActual }) => {
-  // Main states
+  // Estados principales
   const [camarasDisponibles, setCamarasDisponibles] = useState<CamaraInfo[]>(
     []
   );
@@ -61,7 +61,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
   );
   const [escaneando, setEscaneando] = useState(false);
 
-  // Separate states for student and errors
+  // Estados separados para estudiante y errores
   const [estudianteEscaneado, setEstudianteEscaneado] =
     useState<EstudianteConAula | null>(null);
   const [errorQR, setErrorQR] = useState<ErrorQR | null>(null);
@@ -74,11 +74,11 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     useState<boolean>(false);
   const [cargandoCamaras, setCargandoCamaras] = useState<boolean>(false);
 
-  // References
+  // Referencias
   const componenteMontadoRef = useRef(true);
   const timeoutRefs = useRef<NodeJS.Timeout[]>([]);
 
-  // Cleanup on unmount
+  // Cleanup al desmontar
   useEffect(() => {
     return () => {
       componenteMontadoRef.current = false;
@@ -86,7 +86,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     };
   }, []);
 
-  // Function to determine the current registration mode
+  // Función para determinar el modo de registro actual
   const determinarModoRegistro = (): ModoRegistro => {
     if (
       !CONTROL_ASISTENCIA_DE_SALIDA_SECUNDARIA ||
@@ -99,7 +99,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     const horarioSecundaria = handlerAuxiliar.getHorarioEscolarSecundaria();
     const horaActual = new Date(fechaHoraActual.fechaHora);
 
-    // Calculate the cutoff time (1 hour before official exit)
+    // Calcular la hora límite (1 hora antes de la salida oficial)
     const horaLimite = new Date(
       alterarUTCaZonaPeruana(String(horarioSecundaria.Fin))
     );
@@ -111,7 +111,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     return horaActual < horaLimite ? ModoRegistro.Entrada : ModoRegistro.Salida;
   };
 
-  // Main simplified function to get cameras
+  // Función principal simplificada para obtener cámaras
   const inicializarSistemaCamaras = useCallback(async () => {
     if (cargandoCamaras) return;
 
@@ -120,12 +120,12 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     setSistemaInicializado(false);
 
     try {
-      // Check browser support
+      // Verificar soporte del navegador
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error("Your browser does not support camera access");
+        throw new Error("Su navegador no soporta acceso a la cámara");
       }
 
-      // Request permissions if we don't have them
+      // Solicitar permisos si no los tenemos
       let needsPermission = true;
       try {
         const devices = await navigator.mediaDevices.enumerateDevices();
@@ -145,29 +145,29 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
         } catch (error: any) {
           if (error.name === "NotAllowedError") {
             throw new Error(
-              "Camera permissions denied. Please allow camera access."
+              "Permisos de cámara denegados. Por favor, permita el acceso a la cámara."
             );
           } else if (error.name === "NotFoundError") {
-            throw new Error("No cameras found on this device.");
+            throw new Error("No se encontraron cámaras en este dispositivo.");
           } else if (error.name === "NotReadableError") {
-            throw new Error("The camera is being used by another application.");
+            throw new Error("La cámara está siendo usada por otra aplicación.");
           }
           throw error;
         }
       }
 
-      // Get devices after having permissions
+      // Obtener dispositivos después de tener permisos
       const devices = await navigator.mediaDevices.enumerateDevices();
       const cameras = devices.filter((d) => d.kind === "videoinput");
 
       if (cameras.length === 0) {
-        throw new Error("No cameras found on this device.");
+        throw new Error("No se encontraron cámaras en este dispositivo.");
       }
 
-      // Format found cameras
+      // Formatear cámaras encontradas
       const camarasFormateadas: CamaraInfo[] = cameras.map((cam, i) => {
-        let label = cam.label || `Camera ${i + 1}`;
-        let tipo: CamaraInfo["tipo"] = "unknown";
+        let label = cam.label || `Cámara ${i + 1}`;
+        let tipo: CamaraInfo["tipo"] = "desconocida";
 
         const labelLower = label.toLowerCase();
         if (
@@ -175,13 +175,13 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
           labelLower.includes("rear") ||
           labelLower.includes("environment")
         ) {
-          tipo = "rear";
+          tipo = "trasera";
         } else if (
           labelLower.includes("front") ||
           labelLower.includes("user") ||
           labelLower.includes("selfie")
         ) {
-          tipo = "front";
+          tipo = "frontal";
         } else if (
           labelLower.includes("webcam") ||
           labelLower.includes("usb")
@@ -192,7 +192,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
             /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
               navigator.userAgent
             );
-          tipo = esMovil && i === 0 ? "rear" : "webcam";
+          tipo = esMovil && i === 0 ? "trasera" : "webcam";
         }
 
         return {
@@ -202,17 +202,17 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
         };
       });
 
-      // Update states
+      // Actualizar estados
       setCamarasDisponibles(camarasFormateadas);
 
-      // Auto-select the best camera
+      // Auto-seleccionar la mejor cámara
       const camaraPreferida =
-        camarasFormateadas.find((c) => c.tipo === "rear") ||
+        camarasFormateadas.find((c) => c.tipo === "trasera") ||
         camarasFormateadas[0];
       setCamaraSeleccionada(camaraPreferida.deviceId);
       setSistemaInicializado(true);
     } catch (error: any) {
-      let mensajeError = "Unknown error accessing cameras";
+      let mensajeError = "Error desconocido al acceder a las cámaras";
 
       if (error.message) {
         mensajeError = error.message;
@@ -220,18 +220,18 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
 
       setErrorEscaneo(mensajeError);
 
-      // In development, add test cameras
+      // En desarrollo, agregar cámaras de prueba
       if (process.env.NODE_ENV === "development") {
         const camarasPrueba: CamaraInfo[] = [
           {
             deviceId: "mock-trasera",
-            label: "Rear Camera (Dev)",
-            tipo: "rear",
+            label: "Cámara Trasera (Dev)",
+            tipo: "trasera",
           },
           {
             deviceId: "mock-frontal",
-            label: "Front Camera (Dev)",
-            tipo: "front",
+            label: "Cámara Frontal (Dev)",
+            tipo: "frontal",
           },
         ];
         setCamarasDisponibles(camarasPrueba);
@@ -243,7 +243,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     }
   }, [cargandoCamaras]);
 
-  // Function to handle QR result
+  // Función para manejar el resultado del QR
   const handleQRResult = useCallback(
     async (detectedCodes: IDetectedBarcode[]) => {
       if (!detectedCodes || detectedCodes.length === 0) {
@@ -253,15 +253,15 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
       const ultimoQR = detectedCodes.at(-1);
       const studentData = decodificarCadenaQREstudiante(ultimoQR!.rawValue);
 
-      // Check if there was an error in decoding
+      // Verificar si hubo error en la decodificación
       if (!studentData.exito || studentData.error) {
         vibrator.vibrate(VIBRATIONS.LONG);
         const speaker = Speaker.getInstance();
 
-        // Save decoding error
+        // Guardar error de decodificación
         setErrorQR({
           mensaje: studentData.error!,
-          tipo: "decoding",
+          tipo: "decodificacion",
         });
 
         speaker.start(studentData.error!);
@@ -270,14 +270,14 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
         return;
       }
 
-      // If we got here, decoding was successful
+      // Si llegamos aquí, la decodificación fue exitosa
       vibrator.vibrate(VIBRATIONS.SHORT);
 
       const speaker = Speaker.getInstance();
       const estudiantesIDB = new BaseEstudiantesIDB();
       const aulasIDB = new BaseAulasIDB();
 
-      // Search for the student in the local database
+      // Buscar el estudiante en la base de datos local
       const estudianteEncontrado =
         (await estudiantesIDB.getEstudiantePorId(
           studentData.identificadorEstudiante!
@@ -289,20 +289,20 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
       if (!estudianteEncontrado) {
         vibrator.vibrate(VIBRATIONS.MEDIUM);
 
-        // Save student not found error
+        // Guardar error de estudiante no encontrado
         setErrorQR({
-          mensaje: "The student is not found in today's list",
-          tipo: "student_not_found",
+          mensaje: "El estudiante no se encuentra en la lista de hoy",
+          tipo: "estudiante_no_encontrado",
           identificadorEscaneado: studentData.identificadorEstudiante,
         });
 
-        speaker.start("The student is not found in today's list");
+        speaker.start("El estudiante no se encuentra en la lista de hoy");
         setEscaneando(false);
         setErrorEscaneo("");
         return;
       }
 
-      // All successful - save valid student
+      // Todo exitoso - guardar estudiante válido
       const periodoDelDia = determinarPeriodoDia(
         fechaHoraActual.fechaHora || new Date().toISOString()
       );
@@ -312,7 +312,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
         `${obtenerNombreApellidoSimple(
           estudianteEncontrado.Nombres,
           estudianteEncontrado.Apellidos
-        )}, ${dameCualquieraDeEstos(saludo, "Hello", "Good morning", "Come in")}`
+        )}, ${dameCualquieraDeEstos(saludo, "Hola", "Buen día", "Adelante")}`
       );
 
       const estudianteEncontradoConAula =
@@ -325,18 +325,18 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     [fechaHoraActual]
   );
 
-  // Function to handle scanner errors
+  // Función para manejar errores del scanner
   const handleQRError = useCallback((error: any) => {
     if (error && !error.message?.includes("No QR code found")) {
       console.warn("Scanner error:", error.message);
     }
   }, []);
 
-  // Function to mark attendance - WITH SCHEDULE CONTROL
+  // Función para marcar asistencia - CON CONTROL DE HORARIO
   const marcarAsistencia = (estudiante: EstudianteConAula) => {
     if (!handlerAuxiliar || !fechaHoraActual.fechaHora) {
       console.error(
-        "Cannot mark attendance: handler data or current date missing"
+        "No se puede marcar asistencia: faltan datos del handler o fecha actual"
       );
       return;
     }
@@ -354,7 +354,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     let desfaseSegundos: number;
 
     if (CONTROL_ASISTENCIA_DE_SALIDA_SECUNDARIA) {
-      // Original logic with entry/exit
+      // Lógica original con entrada/salida
       const horaLimite = new Date(horaSalidaOficial);
       horaLimite.setHours(
         horaLimite.getHours() -
@@ -374,25 +374,25 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
         );
       }
     } else {
-      // Only entry, always calculate offset with entry time
+      // Solo entrada, siempre calcular desfase con hora de entrada
       modoRegistro = ModoRegistro.Entrada;
       desfaseSegundos = Math.floor(
         (horaActual.getTime() - horaEntradaOficial.getTime()) / 1000
       );
     }
 
-    // Debug to verify calculations
-    console.log("🕒 ATTENDANCE CALCULATION DEBUG:");
+    // Debug para verificar cálculos
+    console.log("🕒 DEBUG CÁLCULO DE ASISTENCIA:");
     console.log(
-      "Entry/exit schedule control:",
+      "Control horario entrada/salida:",
       CONTROL_ASISTENCIA_DE_SALIDA_SECUNDARIA
     );
-    console.log("Current time:", horaActual.toLocaleString("en-US"));
+    console.log("Hora actual:", horaActual.toLocaleString("es-PE"));
     console.log(
-      "Determined mode:",
-      modoRegistro === ModoRegistro.Entrada ? "ENTRY" : "EXIT"
+      "Modo determinado:",
+      modoRegistro === ModoRegistro.Entrada ? "ENTRADA" : "SALIDA"
     );
-    console.log("Calculated offset:", desfaseSegundos, "seconds");
+    console.log("Desfase calculado:", desfaseSegundos, "segundos");
 
     Asistencias_Escolares_QUEUE.enqueue({
       Id_Estudiante: estudiante.Id_Estudiante,
@@ -409,27 +409,27 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     nuevosRegistrados.add(estudiante.Id_Estudiante);
     setEstudiantesRegistrados(nuevosRegistrados);
 
-    // Clear states and continue
+    // Limpiar estados y continuar
     setEstudianteEscaneado(null);
     setErrorQR(null);
     setEscaneando(true);
   };
 
-  // Function to restart scanner after error
+  // Función para reiniciar escáner después de error
   const reiniciarEscaner = () => {
     setEstudianteEscaneado(null);
     setErrorQR(null);
     setEscaneando(true);
   };
 
-  // Function to cancel scanner
+  // Función para cancelar escáner
   const cancelarEscaner = () => {
     setEstudianteEscaneado(null);
     setErrorQR(null);
     setEscaneando(false);
   };
 
-  // Function to change camera
+  // Función para cambiar cámara
   const cambiarCamara = (deviceId: string) => {
     setCamaraSeleccionada(deviceId);
     setErrorEscaneo("");
@@ -445,19 +445,19 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     }
   };
 
-  // Function to toggle scanner
+  // Función para alternar escáner
   const toggleScanner = () => {
     const nuevoEstado = !escaneando;
     setEscaneando(nuevoEstado);
     setErrorEscaneo("");
   };
 
-  // Auxiliary functions for UI
+  // Funciones auxiliares para UI
   const obtenerEmojiCamara = (tipo: CamaraInfo["tipo"]) => {
     switch (tipo) {
-      case "front":
+      case "frontal":
         return "🤳";
-      case "rear":
+      case "trasera":
         return "📷";
       case "webcam":
         return "💻";
@@ -468,22 +468,22 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
 
   const obtenerDescripcionTipo = (tipo: CamaraInfo["tipo"]) => {
     switch (tipo) {
-      case "front":
+      case "frontal":
         return "Frontal";
-      case "rear":
-        return "Rear";
+      case "trasera":
+        return "Trasera";
       case "webcam":
         return "Webcam";
       default:
-        return "Camera";
+        return "Cámara";
     }
   };
 
-  // Function to get button text and style according to mode
+  // Función para obtener texto y estilo del botón según el modo
   const obtenerConfiguracionBoton = () => {
     if (!CONTROL_ASISTENCIA_DE_SALIDA_SECUNDARIA) {
       return {
-        texto: "Confirm",
+        texto: "Confirmar",
         colorClass: "bg-green-500 hover:bg-green-600",
       };
     }
@@ -491,18 +491,18 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     const modoActual = determinarModoRegistro();
     if (modoActual === ModoRegistro.Entrada) {
       return {
-        texto: "Confirm Entry",
+        texto: "Confirmar Entrada",
         colorClass: "bg-green-500 hover:bg-green-600",
       };
     } else {
       return {
-        texto: "Confirm Exit",
+        texto: "Confirmar Salida",
         colorClass: "bg-red-500 hover:bg-red-600",
       };
     }
   };
 
-  // Component to display QR errors
+  // Componente para mostrar errores de QR
   const ErrorQRDisplay = ({ error }: { error: ErrorQR }) => (
     <div className="w-full max-w-xs bg-red-50 border-2 border-red-200 p-3 rounded-lg shadow-lg">
       <div className="text-center mb-3">
@@ -510,7 +510,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
           <span className="text-red-600 text-lg">⚠️</span>
         </div>
         <p className="font-bold text-red-800 text-xs mb-1 leading-tight">
-          QR Error
+          Error en el QR
         </p>
         <p className="text-[0.6rem] text-red-600 mb-1 leading-tight">
           {error.mensaje}
@@ -522,7 +522,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
           onClick={reiniciarEscaner}
           className="flex-1 bg-blue-500 text-white py-2.5 xs:py-3 rounded-lg font-medium hover:bg-blue-600 transition-colors text-xs flex items-center justify-center gap-2"
         >
-          <Actualizar_1_Icon className="w-4" /> Try again
+          <Actualizar_1_Icon className="w-4" /> Intentar de nuevo
         </button>
         <button
           onClick={cancelarEscaner}
@@ -534,7 +534,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     </div>
   );
 
-  // Component to display valid student
+  // Componente para mostrar estudiante válido
   const EstudianteDisplay = ({
     estudiante,
   }: {
@@ -546,19 +546,15 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
       <div className="w-full max-w-xs bg-green-50 border-2 border-green-200 p-3 rounded-lg shadow-lg">
         <div className="text-center mb-3">
           <div className="w-10 h-10 rounded-full bg-gray-300 mx-auto mb-2 overflow-hidden">
-            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-              <FotoPerfilClientSide
-                className="w-full h-full bg-gray-200 flex items-center justify-center object-cover"
-                Google_Drive_Foto_ID={
-                  estudiante.Google_Drive_Foto_ID
-                }
-              />
-            </div>
+            <FotoPerfilClientSide
+              className="w-full h-full bg-gray-200 flex items-center justify-center object-cover"
+              Google_Drive_Foto_ID={estudiante.Google_Drive_Foto_ID}
+            />
           </div>
           <p className="font-bold text-green-800 text-xs mb-1 leading-tight">
             {estudiante.Nombres} {estudiante.Apellidos}
           </p>
-          <p className="text-[0.6rem] text-green-600 mb-1">✅ QR Scanned</p>
+          <p className="text-[0.6rem] text-green-600 mb-1">✅ QR Escaneado</p>
           <p className="text-[0.6rem] text-gray-500 truncate">
             {
               TiposIdentificadoresTextos[
@@ -570,22 +566,17 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
         </div>
 
         <div className="flex gap-1.5">
-          {(() => {
-            const configuracionBoton = obtenerConfiguracionBoton();
-            return (
-              <button
-                onClick={() => marcarAsistencia(estudiante)}
-                className={`flex-1 text-white py-2 rounded-lg font-medium transition-colors text-sm ${configuracionBoton.colorClass}`}
-              >
-                ✓ {configuracionBoton.texto}
-              </button>
-            );
-          })()}
+          <button
+            onClick={() => marcarAsistencia(estudiante)}
+            className={`flex-1 text-white py-2.5 xs:py-3 rounded-lg font-medium transition-colors text-xs ${configuracionBoton.colorClass}`}
+          >
+            ✓ {configuracionBoton.texto}
+          </button>
           <button
             onClick={reiniciarEscaner}
-            className="px-3 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors text-sm"
+            className="px-4 xs:px-5 py-2.5 xs:py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors text-xs"
           >
-            ✕ Cancel
+            ✕
           </button>
         </div>
       </div>
@@ -594,16 +585,16 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
 
   return (
     <div className="max-w-6xl mx-auto p-3 sxs-only:p-2 xs-only:p-3 sm-only:p-4 md-only:p-5 lg-only:p-6 xl-only:p-6">
-      {/* Mobile layout: Vertical stack as before */}
+      {/* Layout para móviles: Stack vertical como antes */}
       <div className="sm:hidden flex flex-col gap-3 xs:gap-4">
-        {/* Main camera panel for mobiles */}
+        {/* Panel principal de cámara para móviles */}
         <div className="bg-white rounded-lg border-2 border-blue-200 p-3 xs:p-4 relative">
           <h3 className="text-base xs:text-lg font-bold text-blue-800 mb-2 xs:mb-3">
-            <span className="hidden xs:inline">QR Code Scanner</span>
-            <span className="xs:hidden">QR Scanner</span>
+            <span className="hidden xs:inline">Escáner de Códigos QR</span>
+            <span className="xs:hidden">Escáner QR</span>
           </h3>
 
-          {/* Scanner area */}
+          {/* Área de scanner */}
           <div className="mb-3 xs:mb-4 relative">
             <div className="w-[70%] max-w-xs mx-auto border-2 border-dashed border-gray-300 rounded-lg overflow-hidden">
               {escaneando && camaraSeleccionada && sistemaInicializado ? (
@@ -638,7 +629,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
                         <div className="w-5 h-5 xs:w-6 xs:h-6 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-2"></div>
                         <span className="text-gray-500 text-xs">
                           <span className="hidden xs:inline">
-                            Detecting...
+                            Detectando...
                           </span>
                           <span className="xs:hidden">...</span>
                         </span>
@@ -650,9 +641,9 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
                         </span>
                         <span className="text-gray-700 block mb-2 font-medium text-xs">
                           <span className="hidden xs:inline">
-                            QR Scanner System
+                            Sistema de Escáner QR
                           </span>
-                          <span className="xs:hidden">QR Scanner</span>
+                          <span className="xs:hidden">Escáner QR</span>
                         </span>
                         <button
                           onClick={inicializarSistemaCamaras}
@@ -661,7 +652,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
                         >
                           <SearchIcon className="w-4 xs:w-5 inline" />
                           <span className="hidden xs:inline ml-1">
-                            Detect Cameras
+                            Detectar Camaras
                           </span>
                         </button>
                       </>
@@ -671,20 +662,20 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
                           📷
                         </span>
                         <span className="text-gray-500 block mb-2 text-xs">
-                          No cameras
+                          Sin cámaras
                         </span>
                         <button
                           onClick={inicializarSistemaCamaras}
                           className="px-3 py-1.5 xs:px-4 xs:py-2 bg-orange-500 text-white rounded text-xs hover:bg-orange-600 transition-colors"
                         >
-                          🔍 Search again
+                          🔍 Buscar
                         </button>
                       </>
                     ) : (
                       <>
                         <EsperandoIcon className="w-6 xs:w-8" />
                         <span className="text-gray-500 text-xs mt-2">
-                          Press the start button
+                          Presione el boton iniciar
                         </span>
                       </>
                     )}
@@ -693,7 +684,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
               )}
             </div>
 
-            {/* Overlay to show student or error */}
+            {/* Overlay para mostrar estudiante o error */}
             {(estudianteEscaneado || errorQR) && (
               <div className="absolute inset-0 bg-white bg-opacity-95 backdrop-blur-sm rounded-lg flex items-center justify-center p-2">
                 {errorQR ? (
@@ -705,15 +696,15 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
             )}
           </div>
 
-          {/* Camera selection for mobiles */}
+          {/* Selección de cámaras para móviles */}
           {sistemaInicializado && camarasDisponibles.length > 0 && (
             <div className="mb-2 xs:mb-3">
               <div className="flex justify-between items-center mb-2">
                 <h4 className="text-xs font-medium text-gray-700">
                   <span className="hidden xs:inline">
-                    Cameras ({camarasDisponibles.length})
+                    Cámaras ({camarasDisponibles.length})
                   </span>
-                  <span className="xs:hidden">Cameras</span>
+                  <span className="xs:hidden">Cámaras</span>
                 </h4>
                 <button
                   onClick={inicializarSistemaCamaras}
@@ -728,7 +719,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
                 onChange={(e) => cambiarCamara(e.target.value)}
                 className="w-full p-2.5 xs:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs bg-white"
               >
-                <option value="">Select camera</option>
+                <option value="">Seleccionar cámara</option>
                 {camarasDisponibles.map((camara, index) => (
                   <option key={camara.deviceId} value={camara.deviceId}>
                     {obtenerEmojiCamara(camara.tipo)} {index + 1}.{" "}
@@ -739,7 +730,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
             </div>
           )}
 
-          {/* Controls for mobiles */}
+          {/* Controles para móviles */}
           <div className="text-center flex flex-col items-center justify-center">
             <button
               onClick={toggleScanner}
@@ -754,18 +745,18 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
             >
               {escaneando ? (
                 <>
-                  <Pause_1_Icon className="w-4 xs:w-5 inline" /> Pause
+                  <Pause_1_Icon className="w-4 xs:w-5 inline" /> Pausar
                 </>
               ) : (
                 <>
-                  <Play_1_Icon className="w-4 xs:w-5 inline" /> Start
+                  <Play_1_Icon className="w-4 xs:w-5 inline" /> Iniciar
                 </>
               )}
             </button>
           </div>
         </div>
 
-        {/* Compact statistics for mobiles */}
+        {/* Estadísticas compactas para móviles */}
         <div className="bg-white rounded-lg border-2 border-green-200 p-2 xs:p-3">
           <div className="flex items-center justify-between">
             <div>
@@ -773,15 +764,15 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
                 {estudiantesRegistrados.size}
               </span>
               <span className="text-green-600 text-sm ml-2">
-                students registered
+                estudiantes registrados
               </span>
             </div>
             <div className="text-xs text-gray-500 flex items-center justify-center gap-1.5">
               {escaneando ? (
-                "🔴 Scanning..."
+                "🔴 Escaneando..."
               ) : (
                 <>
-                  <Pause_1_Icon className="w-4 xs:w-5 inline" /> Paused
+                  <Pause_1_Icon className="w-4 xs:w-5 inline" /> Pausado
                 </>
               )}
             </div>
@@ -789,16 +780,16 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
         </div>
       </div>
 
-      {/* Layout for SM+ screens */}
+      {/* Layout para pantallas SM+ */}
       <div className="hidden sm:grid sm:grid-cols-3 gap-4 lg:gap-6">
-        {/* Section 1: Camera display + controls */}
+        {/* Sección 1: Visualización de cámara + controles */}
         <div className="sm:col-span-2">
           <div className="bg-white rounded-lg border-2 border-blue-200 p-3 md:p-4 lg:p-5">
             <h3 className="text-lg font-bold text-blue-800 mb-3">
-              QR Code Scanner
+              Escáner de Códigos QR
             </h3>
 
-            {/* Scanner area */}
+            {/* Área de scanner */}
             <div className="mb-3 relative">
               <div className="w-[60%] max-w-sm mx-auto border-2 border-dashed border-gray-300 rounded-lg overflow-hidden">
                 {escaneando && camaraSeleccionada && sistemaInicializado ? (
@@ -831,17 +822,17 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
                         <>
                           <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-3"></div>
                           <span className="text-gray-500 text-sm">
-                            Detecting cameras...
+                            Detectando cámaras...
                           </span>
                         </>
                       ) : !sistemaInicializado ? (
                         <>
                           <Camara_2_Icon className="w-8" />
                           <span className="text-gray-700 block mb-3 font-medium">
-                            QR Scanner System
+                            Sistema de Escáner QR
                           </span>
                           <span className="text-gray-500 block mb-4 text-sm">
-                            To start, detect your device's cameras
+                            Para comenzar, detecte las cámaras de su dispositivo
                           </span>
                           <button
                             onClick={inicializarSistemaCamaras}
@@ -850,21 +841,21 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
                           >
                             <SearchIcon className="w-5" />
                             {cargandoCamaras
-                              ? "Detecting..."
-                              : "Detect Cameras"}
+                              ? "Detectando..."
+                              : "Detectar Cámaras"}
                           </button>
                         </>
                       ) : camarasDisponibles.length === 0 ? (
                         <>
                           <span className="text-4xl mb-2 block">📷</span>
                           <span className="text-gray-500 block mb-2">
-                            No cameras detected
+                            No se detectaron cámaras
                           </span>
                           <button
                             onClick={inicializarSistemaCamaras}
                             className="px-3 py-1 bg-orange-500 text-white rounded text-sm hover:bg-orange-600 transition-colors"
                           >
-                            🔍 Search again
+                            🔍 Buscar de nuevo
                           </button>
                         </>
                       ) : (
@@ -872,7 +863,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
                           <EsperandoIcon className="w-12" />
 
                           <span className="text-gray-500 mt-2">
-                            Press the <b>start button</b> to scan
+                            Presione el <b>boton</b> iniciar para escanear
                           </span>
                         </>
                       )}
@@ -882,7 +873,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
               </div>
             </div>
 
-            {/* Controls */}
+            {/* Controles */}
             <div className="text-center flex flex-col items-center justify-center">
               <button
                 onClick={toggleScanner}
@@ -897,24 +888,24 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
               >
                 {escaneando ? (
                   <>
-                    <Pause_1_Icon className="w-5" /> Pause Scanner
+                    <Pause_1_Icon className="w-5" /> Pausar Escáner
                   </>
                 ) : (
                   <>
-                    <Play_1_Icon className="w-5" /> Start Scanner
+                    <Play_1_Icon className="w-5" /> Iniciar Escáner
                   </>
                 )}
               </button>
 
               {!sistemaInicializado && (
                 <p className="text-xs text-gray-600 mt-2">
-                  First initialize the camera system to scan
+                  Primero inicialice el sistema de cámaras para poder escanear
                 </p>
               )}
 
               {escaneando && sistemaInicializado && (
                 <p className="text-xs text-gray-600 mt-2">
-                  Point the camera at the student's QR code
+                  Enfoque el código QR del estudiante hacia la cámara
                 </p>
               )}
             </div>
@@ -927,34 +918,34 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
                   onClick={inicializarSistemaCamaras}
                   className="mt-2 px-3 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
                 >
-                  Try again
+                  Intentar de nuevo
                 </button>
               </div>
             )}
           </div>
         </div>
 
-        {/* Section 2: Attendance registration + Camera selection */}
+        {/* Sección 2: Registro de asistencia + Selección de cámaras */}
         <div className="space-y-3 lg:space-y-4">
-          {/* Attendance Registration */}
+          {/* Registro de Asistencia */}
           <div className="bg-white rounded-lg border-2 border-green-200 p-3 md:p-4 lg:p-5">
             <h3 className="text-lg font-bold text-green-800 mb-3">
-              Attendance Registration
+              Registro de Asistencia
             </h3>
 
-            {/* Statistics */}
+            {/* Estadísticas */}
             <div className="mb-3 p-2 bg-green-50 rounded-lg">
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-700">
                   {estudiantesRegistrados.size}
                 </div>
                 <div className="text-sm text-green-600">
-                  Students registered
+                  Estudiantes registrados
                 </div>
               </div>
             </div>
 
-            {/* Show student or error */}
+            {/* Mostrar estudiante o error */}
             {errorQR ? (
               <div className="bg-red-50 border border-red-200 p-3 rounded-lg">
                 <div className="flex items-center mb-3">
@@ -963,7 +954,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="font-bold text-red-800 text-sm">
-                      QR Error
+                      Error en el QR
                     </p>
                     <p className="text-xs text-red-600 mb-1">
                       {errorQR.mensaje}
@@ -980,13 +971,13 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
                     onClick={reiniciarEscaner}
                     className="flex-1 bg-blue-500 text-white py-2 rounded-lg font-medium hover:bg-blue-600 transition-colors text-sm flex items-center justify-center gap-2"
                   >
-                    <Actualizar_1_Icon className="w-4" /> Try again
+                    <Actualizar_1_Icon className="w-4" /> Intentar de nuevo
                   </button>
                   <button
                     onClick={cancelarEscaner}
                     className="px-3 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors text-sm"
                   >
-                    ✕ Cancel
+                    ✕ Cancelar
                   </button>
                 </div>
               </div>
@@ -1008,7 +999,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
                       {estudianteEscaneado.Nombres}{" "}
                       {estudianteEscaneado.Apellidos}
                     </p>
-                    <p className="text-xs text-green-600">✅ QR Scanned</p>
+                    <p className="text-xs text-green-600">✅ QR Escaneado</p>
                     <p className="text-xs text-gray-500 truncate">
                       {
                         TiposIdentificadoresTextos[
@@ -1038,7 +1029,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
                     onClick={reiniciarEscaner}
                     className="px-3 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors text-sm"
                   >
-                    ✕ Cancel
+                    ✕ Cancelar
                   </button>
                 </div>
               </div>
@@ -1047,9 +1038,9 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
                 {escaneando ? (
                   <>
                     <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-2"></div>
-                    <p className="text-sm">Searching for QR codes...</p>
+                    <p className="text-sm">Buscando códigos QR...</p>
                     <p className="text-xs text-gray-400 mt-1">
-                      Point the camera at the QR code
+                      Apunte la cámara hacia el código QR
                     </p>
                   </>
                 ) : (
@@ -1057,31 +1048,31 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
                     <div className="w-12 h-12 bg-gray-200 rounded-full mx-auto mb-2 flex items-center justify-center">
                       <EscanerQRIcon className="w-6 text-gray-400" />
                     </div>
-                    <p className="text-sm"> Scanner paused</p>
+                    <p className="text-sm"> Escáner pausado</p>
                     <p className="text-xs text-gray-400 mt-1">
-                      Press start to begin
+                      Presione iniciar para comenzar
                     </p>
                   </>
                 )}
               </div>
             )}
 
-            {/* Additional information */}
+            {/* Información adicional */}
             {estudiantesRegistrados.size > 0 && (
               <div className="mt-3 pt-3 border-t border-gray-200">
                 <p className="text-xs text-gray-500">
-                  ✅ {estudiantesRegistrados.size} registration(s) completed
+                  ✅ {estudiantesRegistrados.size} registro(s) completado(s)
                 </p>
               </div>
             )}
           </div>
 
-          {/* Camera selection */}
+          {/* Selección de cámaras */}
           {sistemaInicializado && camarasDisponibles.length > 0 && (
             <div className="bg-white rounded-lg border-2 border-blue-200 p-3 md:p-4 lg:p-5">
               <div className="flex justify-between items-center mb-2">
                 <h4 className="text-sm font-medium text-gray-700">
-                  Available cameras ({camarasDisponibles.length}):
+                  Cámaras disponibles ({camarasDisponibles.length}):
                 </h4>
                 <button
                   onClick={inicializarSistemaCamaras}
@@ -1089,18 +1080,18 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
                   className="px-2 py-1.5 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed flex w-max items-center justify-center gap-1.5 flex-wrap"
                 >
                   <Actualizar_1_Icon className="w-3.5" />{" "}
-                  {cargandoCamaras ? "Searching..." : "Update"}
+                  {cargandoCamaras ? "Buscando..." : "Actualizar"}
                 </button>
               </div>
 
-              {/* Dropdown list up to XL */}
+              {/* Lista desplegable hasta XL */}
               <div className="xl:hidden">
                 <select
                   value={camaraSeleccionada || ""}
                   onChange={(e) => cambiarCamara(e.target.value)}
                   className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs bg-white"
                 >
-                  <option value="">Select camera</option>
+                  <option value="">Seleccionar cámara</option>
                   {camarasDisponibles.map((camara, index) => (
                     <option key={camara.deviceId} value={camara.deviceId}>
                       {obtenerEmojiCamara(camara.tipo)} {index + 1}.{" "}
@@ -1110,7 +1101,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
                 </select>
               </div>
 
-              {/* Wide buttons for XL */}
+              {/* Botones amplios para XL */}
               <div className="hidden xl:grid xl:grid-cols-1 gap-2">
                 {camarasDisponibles.map((camara, index) => (
                   <button

@@ -6,19 +6,19 @@ import { Genero } from "@/interfaces/shared/Genero";
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import { TablasLocal } from "@/interfaces/shared/TablasSistema";
 
-// We extend SuccessLoginData with the new property
+// Extendemos SuccessLoginData con la nueva propiedad
 export interface UserData extends SuccessLoginData {
-  ultimaSincronizacionTablas?: number; // New property added
+  ultimaSincronizacionTablas?: number; // Nueva propiedad añadida
 }
 
 class UserStorage {
   private storeName: TablasLocal = TablasLocal.Tabla_Datos_Usuario;
 
   /**
-   * Handles errors according to their type and performs logout if necessary
-   * @param error Captured error
-   * @param operacion Description of the failed operation
-   * @param detalles Additional error details
+   * Maneja los errores según su tipo y realiza logout si es necesario
+   * @param error Error capturado
+   * @param operacion Descripción de la operación que falló
+   * @param detalles Detalles adicionales del error
    */
   private handleError(
     error: unknown,
@@ -26,9 +26,9 @@ class UserStorage {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     detalles?: Record<string, any>
   ): void {
-    console.error(`Error in UserStorage (${operacion}):`, error);
+    console.error(`Error en UserStorage (${operacion}):`, error);
 
-    // Create object with error details
+    // Crear objeto con detalles del error
     const errorDetails: ErrorDetailsForLogout = {
       origen: `UserStorage.${operacion}`,
       mensaje: error instanceof Error ? error.message : String(error),
@@ -37,7 +37,7 @@ class UserStorage {
       siasisComponent: "CLN01",
     };
 
-    // Determine the error type
+    // Determinar el tipo de error
     let logoutType: LogoutTypes;
 
     if (error instanceof Error) {
@@ -45,7 +45,7 @@ class UserStorage {
         logoutType = LogoutTypes.ERROR_BASE_DATOS;
       } else if (error.name === "AbortError") {
         logoutType = LogoutTypes.ERROR_BASE_DATOS;
-      } else if (error.message.includes("No user data")) {
+      } else if (error.message.includes("No hay datos de usuario")) {
         logoutType = LogoutTypes.SESION_EXPIRADA;
       } else if (error.message.includes("token")) {
         logoutType = LogoutTypes.SESION_EXPIRADA;
@@ -56,35 +56,35 @@ class UserStorage {
       logoutType = LogoutTypes.ERROR_SISTEMA;
     }
 
-    // Log out with error details
+    // Cerrar sesión con los detalles del error
     logout(logoutType, errorDetails);
   }
 
   /**
-   * Saves user data in IndexedDB, updating only the provided properties
-   * @param userData Partial user data to save
-   * @returns Promise that resolves when the data has been saved
+   * Guarda los datos del usuario en IndexedDB, actualizando solo las propiedades proporcionadas
+   * @param userData Datos parciales del usuario a guardar
+   * @returns Promise que se resuelve cuando los datos se han guardado
    */
   public async saveUserData(userData: Partial<UserData>): Promise<void> {
     try {
-      // Make sure the connection is initialized
+      // Asegurarnos de que la conexión está inicializada
       await dbConnection.init();
 
-      // First, we get the current data (if it exists)
+      // Primero, obtenemos los datos actuales (si existen)
       const currentUserData = await this.getUserData();
 
-      // Get the data store
+      // Obtener el almacén de datos
       const store = await dbConnection.getStore(this.storeName, "readwrite");
 
-      // We combine the current data with the new data
-      // If currentUserData is null, we use an empty object
+      // Combinamos los datos actuales con los nuevos datos
+      // Si currentUserData es null, usamos un objeto vacío
       const dataToSave = {
         ...(currentUserData || {}),
-        ...userData, // Only the properties included in userData are overwritten
+        ...userData, // Solo se sobrescriben las propiedades incluidas en userData
         last_updated: Date.now(),
       };
 
-      // We use a fixed ID 'current_user' to always update the same data
+      // Usamos un ID fijo 'current_user' para siempre actualizar los mismos datos
       return new Promise((resolve, reject) => {
         const request = store.put(dataToSave, "current_user");
 
@@ -95,7 +95,7 @@ class UserStorage {
         request.onerror = (event) => {
           reject(
             new Error(
-              `Error saving user data: ${
+              `Error al guardar datos de usuario: ${
                 (event.target as IDBRequest).error
               }`
             )
@@ -112,15 +112,15 @@ class UserStorage {
   }
 
   /**
-   * Gets the stored user data
-   * @returns Promise that resolves with the user data or null if there is no data
+   * Obtiene los datos del usuario almacenados
+   * @returns Promise que se resuelve con los datos del usuario o null si no hay datos
    */
   public async getUserData(): Promise<UserData | null> {
     try {
-      // Make sure the connection is initialized
+      // Asegurarnos de que la conexión está inicializada
       await dbConnection.init();
 
-      // Get the data store
+      // Obtener el almacén de datos
       const store = await dbConnection.getStore(this.storeName, "readonly");
 
       return new Promise((resolve, reject) => {
@@ -133,7 +133,7 @@ class UserStorage {
         request.onerror = (event) => {
           reject(
             new Error(
-              `Error getting user data: ${
+              `Error al obtener datos de usuario: ${
                 (event.target as IDBRequest).error
               }`
             )
@@ -147,19 +147,19 @@ class UserStorage {
   }
 
   /**
-   * Updates only the authentication token
-   * @param token New authentication token
-   * @returns Promise that resolves when the token has been updated
+   * Actualiza solo el token de autenticación
+   * @param token Nuevo token de autenticación
+   * @returns Promise que se resuelve cuando el token se ha actualizado
    */
   public async updateAuthToken(token: string): Promise<void> {
     try {
       const userData = await this.getUserData();
 
       if (!userData) {
-        throw new Error("No user data to update the token");
+        throw new Error("No hay datos de usuario para actualizar el token");
       }
 
-      // Update only the token
+      // Actualizar solo el token
       await this.saveUserData({
         ...userData,
         token,
@@ -173,14 +173,14 @@ class UserStorage {
   }
 
   /**
-   * Gets only the authentication token
-   * @returns Promise that resolves with the token or null if there is no token
+   * Obtiene solo el token de autenticación
+   * @returns Promise que se resuelve con el token o null si no hay token
    */
   public async getAuthToken(): Promise<string> {
     try {
       const userData = await this.getUserData();
       if (!userData?.token) {
-        throw new Error("Token not available in user data");
+        throw new Error("Token no disponible en los datos del usuario");
       }
       return userData.token;
     } catch (error) {
@@ -190,14 +190,14 @@ class UserStorage {
   }
 
   /**
-   * Gets the stored user role
-   * @returns Promise that resolves with the user role or null if there is no data
+   * Obtiene el rol del usuario almacenado
+   * @returns Promise que se resuelve con el rol del usuario o null si no hay datos
    */
   public async getRol(): Promise<RolesSistema> {
     try {
       const userData = await this.getUserData();
       if (!userData?.Rol) {
-        throw new Error("Role not available in user data");
+        throw new Error("Rol no disponible en los datos del usuario");
       }
       return userData.Rol;
     } catch (error) {
@@ -207,8 +207,8 @@ class UserStorage {
   }
 
   /**
-   * Gets the stored user gender
-   * @returns Promise that resolves with the user gender or null if there is no data
+   * Obtiene el género del usuario almacenado
+   * @returns Promise que se resuelve con el género del usuario o null si no hay datos
    */
   public async getGenero(): Promise<Genero | null> {
     try {
@@ -221,14 +221,14 @@ class UserStorage {
   }
 
   /**
-   * Gets the user's full name
-   * @returns Promise that resolves with the full name or null if there is no data
+   * Obtiene el nombre completo del usuario
+   * @returns Promise que se resuelve con el nombre completo o null si no hay datos
    */
   public async getNombres(): Promise<string | null> {
     try {
       const userData = await this.getUserData();
       if (!userData?.Nombres) {
-        throw new Error("Names not available in user data");
+        throw new Error("Nombres no disponibles en los datos del usuario");
       }
       return userData.Nombres;
     } catch (error) {
@@ -238,14 +238,14 @@ class UserStorage {
   }
 
   /**
-   * Gets the user's last names
-   * @returns Promise that resolves with the last names or null if there is no data
+   * Obtiene los apellidos del usuario
+   * @returns Promise que se resuelve con los apellidos o null si no hay datos
    */
   public async getApellidos(): Promise<string | null> {
     try {
       const userData = await this.getUserData();
       if (!userData?.Apellidos) {
-        throw new Error("Last names not available in user data");
+        throw new Error("Apellidos no disponibles en los datos del usuario");
       }
       return userData.Apellidos;
     } catch (error) {
@@ -255,15 +255,15 @@ class UserStorage {
   }
 
   /**
-   * Gets the user's first name
-   * @returns Promise that resolves with the first name or null if there is no data
+   * Obtiene el primer nombre del usuario
+   * @returns Promise que se resuelve con el primer nombre o null si no hay datos
    */
   public async getPrimerNombre(): Promise<string | null> {
     try {
       const nombres = await this.getNombres();
       if (!nombres) return null;
 
-      // Split the name by spaces and take the first element
+      // Dividir el nombre por espacios y tomar el primer elemento
       const primerNombre = nombres.split(" ")[0];
 
       return primerNombre;
@@ -274,8 +274,8 @@ class UserStorage {
   }
 
   /**
-   * Gets the user's first last name
-   * @returns Promise that resolves with the first last name or null if there is no data
+   * Obtiene el primer apellido del usuario
+   * @returns Promise que se resuelve con el primer apellido o null si no hay datos
    */
   public async getPrimerApellido(): Promise<string | null> {
     try {
@@ -283,7 +283,7 @@ class UserStorage {
 
       if (!apellidos) return null;
 
-      // Split the last names by spaces and take the first element
+      // Dividir los apellidos por espacios y tomar el primer elemento
       const primerApellido = apellidos.split(" ")[0];
       return primerApellido;
     } catch (error) {
@@ -293,8 +293,8 @@ class UserStorage {
   }
 
   /**
-   * Gets the user's first name and last name initials
-   * @returns Promise that resolves with the initials or null if there is no data
+   * Obtiene las iniciales del nombre y apellido del usuario
+   * @returns Promise que se resuelve con las iniciales o null si no hay datos
    */
   public async getIniciales(): Promise<string | null> {
     try {
@@ -313,8 +313,8 @@ class UserStorage {
   }
 
   /**
-   * Gets the user's full name (first names + last names)
-   * @returns Promise that resolves with the full name or null if there is no data
+   * Obtiene el nombre completo del usuario (nombres + apellidos)
+   * @returns Promise que se resuelve con el nombre completo o null si no hay datos
    */
   public async getNombreCompleto(): Promise<string | null> {
     try {
@@ -331,8 +331,8 @@ class UserStorage {
   }
 
   /**
-   * Gets the username to display in the interface
-   * @returns Promise that resolves with the formatted username
+   * Obtiene el nombre de usuario para mostrar en la interfaz
+   * @returns Promise que se resuelve con el nombre de usuario formateado
    */
   public async getNombreCompletoCorto(): Promise<string | null> {
     try {
@@ -352,9 +352,9 @@ class UserStorage {
   }
 
   /**
-   * Saves the last synchronization timestamp of the tables
-   * @param timestamp Synchronization timestamp
-   * @returns Promise that resolves when the timestamp has been saved
+   * Guarda la última marca de tiempo de sincronización de las tablas
+   * @param timestamp Marca de tiempo de la sincronización
+   * @returns Promise que se resuelve cuando se ha guardado la marca de tiempo
    */
   public async guardarUltimaSincronizacion(timestamp: number): Promise<void> {
     try {
@@ -371,8 +371,8 @@ class UserStorage {
   }
 
   /**
-   * Gets the last synchronization timestamp of the tables
-   * @returns Promise that resolves with the timestamp or null if there is no timestamp
+   * Obtiene la última marca de tiempo de sincronización de las tablas
+   * @returns Promise que se resuelve con la marca de tiempo o null si no hay marca de tiempo
    */
   public async obtenerUltimaSincronizacion(): Promise<number | null> {
     try {
@@ -385,15 +385,15 @@ class UserStorage {
   }
 
   /**
-   * Deletes all user data
-   * @returns Promise that resolves when the data has been deleted
+   * Elimina todos los datos del usuario
+   * @returns Promise que se resuelve cuando los datos se han eliminado
    */
   public async clearUserData(): Promise<void> {
     try {
-      // Make sure the connection is initialized
+      // Asegurarnos de que la conexión está inicializada
       await dbConnection.init();
 
-      // Get the data store
+      // Obtener el almacén de datos
       const store = await dbConnection.getStore(this.storeName, "readwrite");
 
       return new Promise((resolve, reject) => {
@@ -406,7 +406,7 @@ class UserStorage {
         request.onerror = (event) => {
           reject(
             new Error(
-              `Error deleting user data: ${
+              `Error al eliminar datos de usuario: ${
                 (event.target as IDBRequest).error
               }`
             )
@@ -414,14 +414,14 @@ class UserStorage {
         };
       });
     } catch (error) {
-      // For this particular method, we do not logout as it is probably
-      // already in the process of logging out
-      console.error("Error deleting user data:", error);
+      // Para este método en particular, no hacemos logout ya que probablemente
+      // ya se está en proceso de cerrar sesión
+      console.error("Error al eliminar datos de usuario:", error);
       throw error;
     }
   }
 }
 
-// Export a singleton instance
+// Exportar una instancia singleton
 const userStorage = new UserStorage();
 export default userStorage;

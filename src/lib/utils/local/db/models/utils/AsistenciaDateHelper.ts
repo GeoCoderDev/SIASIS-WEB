@@ -6,36 +6,36 @@ import {
 import store from "@/global/store";
 
 /**
- * 🎯 RESPONSIBILITY: Handling of dates and temporal logic
- * - Get current date from Redux
- * - Calculate school days
- * - Validate date ranges
- * - Determine API query logic
- * - Methods for intelligent query flow
+ * 🎯 RESPONSABILIDAD: Manejo de fechas y lógica temporal
+ * - Obtener fecha actual desde Redux
+ * - Calcular días escolares
+ * - Validar rangos de fechas
+ * - Determinar lógica de consulta a API
+ * -  Métodos para flujo inteligente de consultas
  */
 export class AsistenciaDateHelper {
   /**
-   * Gets the current date from the Redux state
-   * @returns Date object with the current date according to the global state or null if it cannot be obtained.
+   * Obtiene la fecha actual desde el estado de Redux
+   * @returns Objeto Date con la fecha actual según el estado global o null si no se puede obtener.
    */
   public obtenerFechaHoraActualDesdeRedux(): Date | null {
     try {
-      // We get the current state of Redux
+      // Obtenemos el estado actual de Redux
       const state = store.getState();
 
-      // We access the date from the global state
+      // Accedemos a la fecha del estado global
       const fechaHoraRedux = state.others.fechaHoraActualReal.fechaHora;
 
-      // If we have a date in Redux, we use it
+      // Si tenemos fecha en Redux, la usamos
       if (fechaHoraRedux) {
         return new Date(fechaHoraRedux);
       }
 
-      // If the date cannot be obtained from Redux, we return null
+      // Si no se puede obtener la fecha de Redux, retornamos null
       return null;
     } catch (error) {
       console.error(
-        "Error getting date from Redux in AsistenciaPersonalDateHelper:",
+        "Error al obtener fecha desde Redux en AsistenciaPersonalDateHelper:",
         error
       );
       return null;
@@ -43,7 +43,7 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * ✅ NEW: Evaluates if it should query the API according to the last update (flowchart flow)
+   * ✅ NUEVO: Evalúa si debe consultar API según última actualización (flujo del flowchart)
    */
   public evaluarNecesidadConsultaSegunTimestamp(
     ultimaActualizacion: number,
@@ -59,7 +59,7 @@ export class AsistenciaDateHelper {
       if (!fechaActual) {
         return {
           debeConsultar: true,
-          razon: "Could not get current date - query for security",
+          razon: "No se pudo obtener fecha actual - consultar por seguridad",
           esConsultaNecesaria: true,
           esDatoFinalizado: false,
         };
@@ -69,13 +69,13 @@ export class AsistenciaDateHelper {
       const fechaUltimaActualizacion = new Date(ultimaActualizacion);
       const mesUltimaActualizacion = fechaUltimaActualizacion.getMonth() + 1;
 
-      // Case 1: Queried month is before the current one
+      // Caso 1: Mes consultado es anterior al actual
       if (mesConsultado < mesActual) {
         if (mesUltimaActualizacion > mesConsultado) {
           return {
             debeConsultar: false,
             razon:
-              "FINALIZED data - last update was in a later month",
+              "Datos FINALIZADOS - última actualización fue en mes posterior",
             esConsultaNecesaria: false,
             esDatoFinalizado: true,
           };
@@ -83,7 +83,7 @@ export class AsistenciaDateHelper {
           return {
             debeConsultar: true,
             razon:
-              "Data was updated in the same month - may have changed",
+              "Datos fueron actualizados en el mismo mes - pueden haber cambiado",
             esConsultaNecesaria: true,
             esDatoFinalizado: false,
           };
@@ -91,31 +91,31 @@ export class AsistenciaDateHelper {
           return {
             debeConsultar: true,
             razon:
-              "Data may be incomplete - last update before the queried month",
+              "Datos pueden estar incompletos - última actualización anterior al mes consultado",
             esConsultaNecesaria: true,
             esDatoFinalizado: false,
           };
         }
       }
 
-      // Case 2: Queried month is the current one
+      // Caso 2: Mes consultado es el actual
       if (mesConsultado === mesActual) {
-        // For the current month, apply schedule logic
+        // Para mes actual, aplicar lógica de horarios
         return this.evaluarConsultaMesActualSegunHorario(ultimaActualizacion);
       }
 
-      // Case 3: Future month (should not get here if validated before)
+      // Caso 3: Mes futuro (no debería llegar aquí si se valida antes)
       return {
         debeConsultar: false,
-        razon: "Future month - FORCED LOGOUT",
+        razon: "Mes futuro - LOGOUT FORZADO",
         esConsultaNecesaria: false,
         esDatoFinalizado: false,
       };
     } catch (error) {
-      console.error("Error evaluating need for query:", error);
+      console.error("Error al evaluar necesidad de consulta:", error);
       return {
         debeConsultar: true,
-        razon: "Error in evaluation - query for security",
+        razon: "Error en evaluación - consultar por seguridad",
         esConsultaNecesaria: true,
         esDatoFinalizado: false,
       };
@@ -123,10 +123,10 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * ✅ NEW: Gets the current time range
+   * ✅ NUEVO: Obtiene el rango horario actual
    */
   public obtenerRangoHorarioActual(): {
-    rango: "EARLY_MORNING" | "ENTRIES" | "FULL" | "CONSOLIDATED";
+    rango: "MADRUGADA" | "ENTRADAS" | "COMPLETO" | "CONSOLIDADO";
     inicio: number;
     fin: number;
     descripcion: string;
@@ -135,37 +135,37 @@ export class AsistenciaDateHelper {
 
     if (horaActual < 6) {
       return {
-        rango: "EARLY_MORNING",
+        rango: "MADRUGADA",
         inicio: 0,
         fin: 5,
-        descripcion: "00:00-05:59 - Early morning without queries",
+        descripcion: "00:00-05:59 - Madrugada sin consultas",
       };
     } else if (horaActual >= 6 && horaActual < 12) {
       return {
-        rango: "ENTRIES",
+        rango: "ENTRADAS",
         inicio: 6,
         fin: 11,
-        descripcion: "06:00-11:59 - Entries only",
+        descripcion: "06:00-11:59 - Solo entradas",
       };
     } else if (horaActual >= 12 && horaActual < 22) {
       return {
-        rango: "FULL",
+        rango: "COMPLETO",
         inicio: 12,
         fin: 21,
-        descripcion: "12:00-21:59 - Entries and exits",
+        descripcion: "12:00-21:59 - Entradas y salidas",
       };
     } else {
       return {
-        rango: "CONSOLIDATED",
+        rango: "CONSOLIDADO",
         inicio: 22,
         fin: 23,
-        descripcion: "22:00-23:59 - Consolidated data",
+        descripcion: "22:00-23:59 - Datos consolidados",
       };
     }
   }
 
   /**
-   * ✅ FIXED: 45-minute control by range
+   * ✅ CORREGIDO: Control de 45 minutos por rango
    */
   public yaSeConsultoEnRangoActual(ultimaFechaActualizacion: number): {
     yaConsultado: boolean;
@@ -179,9 +179,9 @@ export class AsistenciaDateHelper {
       if (!fechaActual) {
         return {
           yaConsultado: false,
-          rangoActual: "UNKNOWN",
-          rangoUltimaConsulta: "UNKNOWN",
-          razon: "Could not get current date",
+          rangoActual: "DESCONOCIDO",
+          rangoUltimaConsulta: "DESCONOCIDO",
+          razon: "No se pudo obtener fecha actual",
           minutosTranscurridos: 0,
         };
       }
@@ -193,48 +193,48 @@ export class AsistenciaDateHelper {
       const fechaUltimaActualizacion = new Date(ultimaFechaActualizacion);
       const horaUltimaActualizacion = fechaUltimaActualizacion.getHours();
 
-      // Calculate minutes elapsed
+      // Calcular minutos transcurridos
       const diferenciaMs = fechaActual.getTime() - ultimaFechaActualizacion;
       const minutosTranscurridos = Math.floor(diferenciaMs / (1000 * 60));
 
       console.log(
-        `🔍 Range control: last=${fechaUltimaActualizacionString} ${horaUltimaActualizacion}:xx, current=${fechaHoyString} ${horaActual}:xx, elapsed=${minutosTranscurridos}min`
+        `🔍 Control de rangos: última=${fechaUltimaActualizacionString} ${horaUltimaActualizacion}:xx, actual=${fechaHoyString} ${horaActual}:xx, transcurridos=${minutosTranscurridos}min`
       );
 
-      // If the last update is not from today, you can definitely query
+      // Si la última actualización no es de hoy, definitivamente se puede consultar
       if (fechaHoyString !== fechaUltimaActualizacionString) {
         const rangoActual = this.obtenerNombreRango(horaActual);
         return {
           yaConsultado: false,
           rangoActual,
-          rangoUltimaConsulta: "DIFFERENT_DAY",
-          razon: `Last update is not from today (${fechaUltimaActualizacionString} vs today ${fechaHoyString})`,
+          rangoUltimaConsulta: "DIA_DIFERENTE",
+          razon: `Última actualización no es de hoy (${fechaUltimaActualizacionString} vs hoy ${fechaHoyString})`,
           minutosTranscurridos,
         };
       }
 
-      // Both dates are today, compare ranges and time
+      // Ambas fechas son de hoy, comparar rangos y tiempo
       const rangoActual = this.obtenerNombreRango(horaActual);
       const rangoUltimaConsulta = this.obtenerNombreRango(
         horaUltimaActualizacion
       );
 
-      // ✅ NEW LOGIC: Check 45 minutes + range change
+      // ✅ NUEVA LÓGICA: Verificar 45 minutos + cambio de rango
       if (rangoActual === rangoUltimaConsulta && minutosTranscurridos < 45) {
         return {
           yaConsultado: true,
           rangoActual,
           rangoUltimaConsulta,
-          razon: `Already queried in range ${rangoActual} ${minutosTranscurridos}min ago (< 45min limit)`,
+          razon: `Ya consultado en rango ${rangoActual} hace ${minutosTranscurridos}min (< 45min límite)`,
           minutosTranscurridos,
         };
       }
 
-      // If range changed OR 45+ minutes have passed, you can query
+      // Si cambió de rango O pasaron 45+ minutos, puede consultar
       const razonCambio =
         rangoActual !== rangoUltimaConsulta
-          ? `Range change: ${rangoUltimaConsulta} → ${rangoActual}`
-          : `Same range ${rangoActual} but ${minutosTranscurridos}min have passed (≥ 45min)`;
+          ? `Cambio de rango: ${rangoUltimaConsulta} → ${rangoActual}`
+          : `Mismo rango ${rangoActual} pero pasaron ${minutosTranscurridos}min (≥ 45min)`;
 
       return {
         yaConsultado: false,
@@ -244,40 +244,40 @@ export class AsistenciaDateHelper {
         minutosTranscurridos,
       };
     } catch (error) {
-      console.error("Error checking query range:", error);
+      console.error("Error verificando rango de consulta:", error);
       return {
         yaConsultado: false,
         rangoActual: "ERROR",
         rangoUltimaConsulta: "ERROR",
-        razon: "Error in verification",
+        razon: "Error en verificación",
         minutosTranscurridos: 0,
       };
     }
   }
 
   /**
-   * ✅ NEW: Gets the range name according to the time using constants
+   * ✅ NUEVO: Obtiene el nombre del rango según la hora usando las constantes
    */
   private obtenerNombreRango(hora: number): string {
     if (hora < HORARIOS_CONSULTA.INICIO_DIA_ESCOLAR) {
-      return "EARLY_MORNING";
+      return "MADRUGADA";
     } else if (
       hora >= HORARIOS_CONSULTA.INICIO_DIA_ESCOLAR &&
       hora < HORARIOS_CONSULTA.SEPARACION_ENTRADAS_SALIDAS
     ) {
-      return "ENTRIES";
+      return "ENTRADAS";
     } else if (
       hora >= HORARIOS_CONSULTA.SEPARACION_ENTRADAS_SALIDAS &&
       hora < HORARIOS_CONSULTA.FIN_CONSOLIDACION
     ) {
-      return "FULL";
+      return "COMPLETO";
     } else {
-      return "CONSOLIDATED";
+      return "CONSOLIDADO";
     }
   }
 
   /**
-   * ✅ NEW: Gets details of the current time range using constants
+   * ✅ NUEVO: Obtiene detalles del rango horario actual usando las constantes
    */
   public obtenerRangoHorarioActualConConstantes(): {
     rango: string;
@@ -289,19 +289,19 @@ export class AsistenciaDateHelper {
 
     if (horaActual < HORARIOS_CONSULTA.INICIO_DIA_ESCOLAR) {
       return {
-        rango: "EARLY_MORNING",
+        rango: "MADRUGADA",
         inicio: 0,
         fin: HORARIOS_CONSULTA.INICIO_DIA_ESCOLAR - 1,
         descripcion: `00:00-${String(
           HORARIOS_CONSULTA.INICIO_DIA_ESCOLAR - 1
-        ).padStart(2, "0")}:59 - Early morning without queries`,
+        ).padStart(2, "0")}:59 - Madrugada sin consultas`,
       };
     } else if (
       horaActual >= HORARIOS_CONSULTA.INICIO_DIA_ESCOLAR &&
       horaActual < HORARIOS_CONSULTA.SEPARACION_ENTRADAS_SALIDAS
     ) {
       return {
-        rango: "ENTRIES",
+        rango: "ENTRADAS",
         inicio: HORARIOS_CONSULTA.INICIO_DIA_ESCOLAR,
         fin: HORARIOS_CONSULTA.SEPARACION_ENTRADAS_SALIDAS - 1,
         descripcion: `${String(HORARIOS_CONSULTA.INICIO_DIA_ESCOLAR).padStart(
@@ -309,37 +309,37 @@ export class AsistenciaDateHelper {
           "0"
         )}:00-${String(
           HORARIOS_CONSULTA.SEPARACION_ENTRADAS_SALIDAS - 1
-        ).padStart(2, "0")}:59 - Entries only`,
+        ).padStart(2, "0")}:59 - Solo entradas`,
       };
     } else if (
       horaActual >= HORARIOS_CONSULTA.SEPARACION_ENTRADAS_SALIDAS &&
       horaActual < HORARIOS_CONSULTA.FIN_CONSOLIDACION
     ) {
       return {
-        rango: "FULL",
+        rango: "COMPLETO",
         inicio: HORARIOS_CONSULTA.SEPARACION_ENTRADAS_SALIDAS,
         fin: HORARIOS_CONSULTA.FIN_CONSOLIDACION - 1,
         descripcion: `${String(
           HORARIOS_CONSULTA.SEPARACION_ENTRADAS_SALIDAS
         ).padStart(2, "0")}:00-${String(
           HORARIOS_CONSULTA.FIN_CONSOLIDACION - 1
-        ).padStart(2, "0")}:59 - Entries and exits`,
+        ).padStart(2, "0")}:59 - Entradas y salidas`,
       };
     } else {
       return {
-        rango: "CONSOLIDATED",
+        rango: "CONSOLIDADO",
         inicio: HORARIOS_CONSULTA.FIN_CONSOLIDACION,
         fin: 23,
         descripcion: `${String(HORARIOS_CONSULTA.FIN_CONSOLIDACION).padStart(
           2,
           "0"
-        )}:00-23:59 - Consolidated data`,
+        )}:00-23:59 - Datos consolidados`,
       };
     }
   }
 
   /**
-   * ✅ NEW: Generates a key for query control by range
+   * ✅ NUEVO: Genera clave para control de consultas por rango
    */
   public generarClaveControlConsulta(
     idUsuario: string | number,
@@ -347,11 +347,11 @@ export class AsistenciaDateHelper {
     rango: string
   ): string {
     const fecha = this.obtenerFechaStringActual() || "unknown";
-    return `query:${fecha}:${mes}:${idUsuario}:${rango}`;
+    return `consulta:${fecha}:${mes}:${idUsuario}:${rango}`;
   }
 
   /**
-   * ✅ FIXED: Evaluate query for current month - ALWAYS query Redis during school hours
+   * ✅ CORREGIDO: Evaluar consulta para mes actual - SIEMPRE consultar Redis en horario escolar
    */
   private evaluarConsultaMesActualSegunHorario(ultimaActualizacion: number): {
     debeConsultar: boolean;
@@ -366,7 +366,7 @@ export class AsistenciaDateHelper {
       this.convertirTimestampAFechaString(ultimaActualizacion);
     const fechaHoyString = this.obtenerFechaStringActual();
 
-    console.log(`⏰ Evaluating current month query:`, {
+    console.log(`⏰ Evaluando consulta mes actual:`, {
       horaActual,
       esFinDeSemana,
       fechaHoy: fechaHoyString,
@@ -377,13 +377,13 @@ export class AsistenciaDateHelper {
     if (horaActual === null) {
       return {
         debeConsultar: true,
-        razon: "Could not get current time",
+        razon: "No se pudo obtener hora actual",
         esConsultaNecesaria: true,
         esDatoFinalizado: false,
       };
     }
 
-    // Weekend
+    // Fin de semana
     if (esFinDeSemana) {
       const fueViernesCompleto =
         this.fueActualizadoViernesCompleto(ultimaActualizacion);
@@ -392,25 +392,25 @@ export class AsistenciaDateHelper {
         return {
           debeConsultar: false,
           razon:
-            "Weekend - Friday data complete (updated after 20:00)",
+            "Fin de semana - datos del viernes completos (actualizado después de 20:00)",
           esConsultaNecesaria: false,
           esDatoFinalizado: false,
         };
       } else {
         return {
           debeConsultar: true,
-          razon: "Weekend - Friday data incomplete",
+          razon: "Fin de semana - datos del viernes incompletos",
           esConsultaNecesaria: true,
           esDatoFinalizado: false,
         };
       }
     }
 
-    // School day
+    // Día escolar
     if (horaActual < 6) {
       return {
         debeConsultar: false,
-        razon: "Before 6:00 AM - no new attendances",
+        razon: "Antes de 6:00 AM - sin nuevas asistencias",
         esConsultaNecesaria: false,
         esDatoFinalizado: false,
       };
@@ -419,28 +419,28 @@ export class AsistenciaDateHelper {
     if (horaActual >= 22) {
       return {
         debeConsultar: true,
-        razon: "After 22:00 - consolidated data in PostgreSQL",
+        razon: "Después de 22:00 - datos consolidados en PostgreSQL",
         esConsultaNecesaria: true,
         esDatoFinalizado: false,
       };
     }
 
-    // ✅ FIXED: Between 6:00 and 22:00 - ALWAYS query Redis for current day's data
-    // API data is historical, Redis has current day's data
+    // ✅ CORREGIDO: Entre 6:00 y 22:00 - SIEMPRE consultar Redis para datos del día actual
+    // Los datos de API son históricos, Redis tiene datos del día actual
     return {
       debeConsultar: true,
-      razon: `School hours (${horaActual}:xx) - Query Redis for current day's data (API has historical data until ${fechaUltimaActualizacionString})`,
+      razon: `Horario escolar (${horaActual}:xx) - Consultar Redis para datos del día actual (API tiene históricos hasta ${fechaUltimaActualizacionString})`,
       esConsultaNecesaria: true,
       esDatoFinalizado: false,
     };
   }
 
   // ========================================================================================
-  // METHODS FOR INTELLIGENT FLOW
+  // MÉTODOS PARA FLUJO INTELIGENTE
   // ========================================================================================
 
   /**
-   * Gets the current hour from Redux (0-23)
+   * Obtiene la hora actual desde Redux (0-23)
    */
   public obtenerHoraActual(): number | null {
     const fechaActual = this.obtenerFechaHoraActualDesdeRedux();
@@ -448,24 +448,24 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * Checks if it's the weekend (Saturday or Sunday)
+   * Verifica si es fin de semana (Sábado o Domingo)
    */
   public esFinDeSemana(): boolean {
     const fechaActual = this.obtenerFechaHoraActualDesdeRedux();
     if (!fechaActual) return false;
 
-    const diaSemana = fechaActual.getDay(); // 0=sunday, 6=saturday
+    const diaSemana = fechaActual.getDay(); // 0=domingo, 6=sábado
     return diaSemana === 0 || diaSemana === 6;
   }
 
   /**
-   * Gets Peruvian timestamp (Peru time as a number)
-   * For the mandatory field `ultima_fecha_actualizacion`
+   * Obtiene timestamp peruano (hora de Perú como número)
+   * Para el campo obligatorio `ultima_fecha_actualizacion`
    */
   public obtenerTimestampPeruano(): number {
     const fechaActual = this.obtenerFechaHoraActualDesdeRedux();
     if (!fechaActual) {
-      console.warn("Could not get date from Redux, using Date.now()");
+      console.warn("No se pudo obtener fecha desde Redux, usando Date.now()");
       return Date.now();
     }
 
@@ -473,20 +473,20 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * ✅ NEW: Extracts the month from a timestamp
+   * ✅ NUEVO: Extrae el mes de un timestamp
    */
   public extraerMesDeTimestamp(timestamp: number): number {
     try {
       const fecha = new Date(timestamp);
       return fecha.getMonth() + 1; // 1-12
     } catch (error) {
-      console.error("Error extracting month from timestamp:", error);
+      console.error("Error al extraer mes de timestamp:", error);
       return 0;
     }
   }
 
   /**
-   * ✅ NEW: Checks if the last update was on a Friday >= 20:00
+   * ✅ NUEVO: Verifica si la última actualización fue un viernes >= 20:00
    */
   public fueActualizadoViernesCompleto(timestamp: number): boolean {
     try {
@@ -494,29 +494,29 @@ export class AsistenciaDateHelper {
       const diaSemana = fecha.getDay();
       const hora = fecha.getHours();
 
-      const esViernes = diaSemana === DIAS_SEMANA.VIERNES; // ✅ USE CONSTANT
-      const esHoraCompleta = hora >= HORARIOS_CONSULTA.VIERNES_COMPLETO; // ✅ USE CONSTANT
+      const esViernes = diaSemana === DIAS_SEMANA.VIERNES; // ✅ USAR CONSTANTE
+      const esHoraCompleta = hora >= HORARIOS_CONSULTA.VIERNES_COMPLETO; // ✅ USAR CONSTANTE
 
       console.log(
-        `📅 Checking for complete Friday: ${fecha.toLocaleString(
+        `📅 Verificando viernes completo: ${fecha.toLocaleString(
           "es-PE"
-        )} - Day: ${diaSemana} (friday=${esViernes}), Hour: ${hora} (complete=${esHoraCompleta})`
+        )} - Día: ${diaSemana} (viernes=${esViernes}), Hora: ${hora} (completo=${esHoraCompleta})`
       );
 
       return esViernes && esHoraCompleta;
     } catch (error) {
-      console.error("Error checking for complete Friday:", error);
+      console.error("Error al verificar viernes completo:", error);
       return false;
     }
   }
   /**
-   * ✅ NEW: Gets the last N school days of the current month
+   * ✅ NUEVO: Obtiene los últimos N días escolares del mes actual
    */
   public obtenerUltimosDiasEscolares(cantidadDias: number = 5): number[] {
     try {
       const fechaActual = this.obtenerFechaHoraActualDesdeRedux();
       if (!fechaActual) {
-        console.warn("Could not get current date for school days");
+        console.warn("No se pudo obtener fecha actual para días escolares");
         return [];
       }
 
@@ -527,63 +527,63 @@ export class AsistenciaDateHelper {
       const diasEscolares: number[] = [];
       let diasEncontrados = 0;
 
-      // Search backwards from yesterday until N school days are found
+      // Buscar hacia atrás desde ayer hasta encontrar N días escolares
       for (
         let dia = diaActual - 1;
         dia >= 1 && diasEncontrados < cantidadDias;
         dia--
       ) {
         const fecha = new Date(anio, mes, dia);
-        const diaSemana = fecha.getDay(); // 0=sunday, 6=saturday
+        const diaSemana = fecha.getDay(); // 0=domingo, 6=sábado
 
-        // If it's a school day (Monday to Friday)
+        // Si es día escolar (lunes a viernes)
         if (diaSemana >= 1 && diaSemana <= 5) {
-          diasEscolares.unshift(dia); // Add to the beginning to maintain chronological order
+          diasEscolares.unshift(dia); // Agregar al inicio para mantener orden cronológico
           diasEncontrados++;
         }
       }
 
       console.log(
-        `📅 Last ${cantidadDias} school days found:`,
+        `📅 Últimos ${cantidadDias} días escolares encontrados:`,
         diasEscolares
       );
       return diasEscolares;
     } catch (error) {
-      console.error("Error getting last school days:", error);
+      console.error("Error al obtener últimos días escolares:", error);
       return [];
     }
   }
 
   /**
-   * ✅ NEW: Checks if a date is a school day (without specific time)
+   * ✅ NUEVO: Verifica si una fecha es día escolar (sin hora específica)
    */
   public esDiaEscolarFecha(dia: number, mes?: number, anio?: number): boolean {
     try {
       const fechaActual = this.obtenerFechaHoraActualDesdeRedux();
       if (!fechaActual) return false;
 
-      const mesActual = mes !== undefined ? mes - 1 : fechaActual.getMonth(); // Convert to 0-11
+      const mesActual = mes !== undefined ? mes - 1 : fechaActual.getMonth(); // Convertir a 0-11
       const anioActual = anio || fechaActual.getFullYear();
 
       const fecha = new Date(anioActual, mesActual, dia);
-      const diaSemana = fecha.getDay(); // 0=sunday, 6=saturday
+      const diaSemana = fecha.getDay(); // 0=domingo, 6=sábado
 
-      return diaSemana >= 1 && diaSemana <= 5; // Only Monday to Friday
+      return diaSemana >= 1 && diaSemana <= 5; // Solo lunes a viernes
     } catch (error) {
-      console.error("Error checking school day:", error);
+      console.error("Error al verificar día escolar:", error);
       return false;
     }
   }
 
   /**
-   * ✅ UPDATED: Use constants for schedules
+   * ✅ ACTUALIZADO: Usar constantes para horarios
    */
   public determinarEstrategiaSegunHorario(): {
     estrategia:
-      | "DO_NOT_QUERY"
-      | "REDIS_ENTRIES"
-      | "REDIS_FULL"
-      | "API_CONSOLIDATED";
+      | "NO_CONSULTAR"
+      | "REDIS_ENTRADAS"
+      | "REDIS_COMPLETO"
+      | "API_CONSOLIDADO";
     razon: string;
     debeConsultar: boolean;
   } {
@@ -591,61 +591,61 @@ export class AsistenciaDateHelper {
 
     if (horaActual === null) {
       return {
-        estrategia: "API_CONSOLIDATED",
-        razon: "Could not get current time - use API for security",
+        estrategia: "API_CONSOLIDADO",
+        razon: "No se pudo obtener hora actual - usar API por seguridad",
         debeConsultar: true,
       };
     }
 
-    // ✅ USE CONSTANTS instead of hardcoded numbers
+    // ✅ USAR CONSTANTES en lugar de números hardcodeados
     if (horaActual < HORARIOS_CONSULTA.INICIO_DIA_ESCOLAR) {
       return {
-        estrategia: "DO_NOT_QUERY",
-        razon: `Before ${String(
+        estrategia: "NO_CONSULTAR",
+        razon: `Antes de ${String(
           HORARIOS_CONSULTA.INICIO_DIA_ESCOLAR
-        ).padStart(2, "0")}:00 - No new attendances`,
+        ).padStart(2, "0")}:00 - Sin nuevas asistencias`,
         debeConsultar: false,
       };
     }
 
     if (horaActual >= HORARIOS_CONSULTA.FIN_CONSOLIDACION) {
       return {
-        estrategia: "API_CONSOLIDATED",
-        razon: `After ${String(
+        estrategia: "API_CONSOLIDADO",
+        razon: `Después de ${String(
           HORARIOS_CONSULTA.FIN_CONSOLIDACION
-        ).padStart(2, "0")}:00 - Consolidated data in PostgreSQL`,
+        ).padStart(2, "0")}:00 - Datos consolidados en PostgreSQL`,
         debeConsultar: true,
       };
     }
 
     if (horaActual < HORARIOS_CONSULTA.SEPARACION_ENTRADAS_SALIDAS) {
       return {
-        estrategia: "REDIS_ENTRIES",
+        estrategia: "REDIS_ENTRADAS",
         razon: `${String(HORARIOS_CONSULTA.INICIO_DIA_ESCOLAR).padStart(
           2,
           "0"
         )}:00-${String(
           HORARIOS_CONSULTA.SEPARACION_ENTRADAS_SALIDAS - 1
-        ).padStart(2, "0")}:59 - Query Redis for entries only`,
+        ).padStart(2, "0")}:59 - Consultar Redis solo para entradas`,
         debeConsultar: true,
       };
     }
 
     return {
-      estrategia: "REDIS_FULL",
+      estrategia: "REDIS_COMPLETO",
       razon: `${String(HORARIOS_CONSULTA.SEPARACION_ENTRADAS_SALIDAS).padStart(
         2,
         "0"
       )}:00-${String(HORARIOS_CONSULTA.FIN_CONSOLIDACION - 1).padStart(
         2,
         "0"
-      )}:59 - Query Redis for entries and exits`,
+      )}:59 - Consultar Redis para entradas y salidas`,
       debeConsultar: true,
     };
   }
 
   /**
-   * ✅ NEW: Validates if it should query API for previous month according to last update
+   * ✅ NUEVO: Valida si debe consultar API para mes anterior según última actualización
    */
   public debeConsultarAPIMesAnteriorSegunTimestamp(
     ultimaActualizacion: number,
@@ -662,37 +662,37 @@ export class AsistenciaDateHelper {
         return {
           debeConsultar: true,
           razon:
-            "Data was updated in the same queried month - may have changed",
+            "Datos fueron actualizados en el mismo mes consultado - pueden haber cambiado",
           esDatoFinalizado: false,
         };
       } else if (mesActualizacion > mesConsultado) {
         return {
           debeConsultar: false,
           razon:
-            "Data finalized - last update was in a later month than queried",
+            "Datos finalizados - última actualización fue en mes posterior al consultado",
           esDatoFinalizado: true,
         };
       } else {
         return {
           debeConsultar: true,
           razon:
-            "Data may be incomplete - last update was before the queried month",
+            "Datos pueden estar incompletos - última actualización fue antes del mes consultado",
           esDatoFinalizado: false,
         };
       }
     } catch (error) {
-      console.error("Error evaluating query by timestamp:", error);
+      console.error("Error al evaluar consulta por timestamp:", error);
       return {
         debeConsultar: true,
-        razon: "Error evaluating - query API for security",
+        razon: "Error al evaluar - consultar API por seguridad",
         esDatoFinalizado: false,
       };
     }
   }
 
   /**
-   * Validate if it's school hours
-   * Combines existing logic with new validations
+   * Validar si estamos en horario escolar
+   * Combina lógica existente con nuevas validaciones
    */
   public validarHorarioEscolar(): {
     esHorarioEscolar: boolean;
@@ -707,27 +707,27 @@ export class AsistenciaDateHelper {
         esHorarioEscolar: false,
         esDiaEscolar: false,
         horaActual: 0,
-        razon: "Could not get date from Redux",
+        razon: "No se pudo obtener fecha desde Redux",
       };
     }
 
     const horaActual = fechaActual.getHours();
-    const diaSemana = fechaActual.getDay(); // 0=sunday, 6=saturday
-    const esDiaEscolar = diaSemana >= 1 && diaSemana <= 5; // Monday to Friday
+    const diaSemana = fechaActual.getDay(); // 0=domingo, 6=sábado
+    const esDiaEscolar = diaSemana >= 1 && diaSemana <= 5; // Lunes a Viernes
 
-    // Validate school hours (6:00 AM - 10:00 PM)
+    // Validar horario escolar (6:00 AM - 10:00 PM)
     const esHorarioEscolar = horaActual >= 6 && horaActual < 22;
 
     let razon = "";
     if (!esDiaEscolar) {
-      razon = "It's the weekend";
+      razon = "Es fin de semana";
     } else if (!esHorarioEscolar) {
       razon =
         horaActual < 6
-          ? "Too early (before 6:00 AM)"
-          : "Too late (after 10:00 PM)";
+          ? "Muy temprano (antes de 6:00 AM)"
+          : "Muy tarde (después de 10:00 PM)";
     } else {
-      razon = "Valid school hours";
+      razon = "Horario escolar válido";
     }
 
     return {
@@ -739,10 +739,10 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * Determines query type according to month
+   * Determina tipo de consulta según mes
    */
   public determinarTipoConsulta(mes: number): {
-    tipo: "FUTURE_MONTH" | "PREVIOUS_MONTH" | "CURRENT_MONTH";
+    tipo: "MES_FUTURO" | "MES_ANTERIOR" | "MES_ACTUAL";
     debeLogout: boolean;
     razon: string;
   } {
@@ -750,9 +750,9 @@ export class AsistenciaDateHelper {
 
     if (!fechaActual) {
       return {
-        tipo: "CURRENT_MONTH",
+        tipo: "MES_ACTUAL",
         debeLogout: false,
-        razon: "Could not get date from Redux",
+        razon: "No se pudo obtener fecha desde Redux",
       };
     }
 
@@ -760,34 +760,34 @@ export class AsistenciaDateHelper {
 
     if (mes > mesActual) {
       return {
-        tipo: "FUTURE_MONTH",
+        tipo: "MES_FUTURO",
         debeLogout: true,
-        razon: "Query of future month not allowed - forced logout",
+        razon: "Consulta de mes futuro no permitida - logout forzado",
       };
     } else if (mes < mesActual) {
       return {
-        tipo: "PREVIOUS_MONTH",
+        tipo: "MES_ANTERIOR",
         debeLogout: false,
-        razon: "Previous month - apply IndexedDB optimization",
+        razon: "Mes anterior - aplicar optimización IndexedDB",
       };
     } else {
       return {
-        tipo: "CURRENT_MONTH",
+        tipo: "MES_ACTUAL",
         debeLogout: false,
-        razon: "Current month - apply schedule logic",
+        razon: "Mes actual - aplicar lógica de horarios",
       };
     }
   }
 
   /**
-   * Determines query strategy for current month
+   * Determina estrategia de consulta para mes actual
    */
   public determinarEstrategiaConsultaMesActual(): {
     estrategia:
-      | "DO_NOT_QUERY"
-      | "REDIS_ENTRIES"
-      | "REDIS_FULL"
-      | "API_CONSOLIDATED";
+      | "NO_CONSULTAR"
+      | "REDIS_ENTRADAS"
+      | "REDIS_COMPLETO"
+      | "API_CONSOLIDADO";
     razon: string;
     horaActual: number;
   } {
@@ -795,8 +795,8 @@ export class AsistenciaDateHelper {
 
     if (!fechaActual) {
       return {
-        estrategia: "API_CONSOLIDATED",
-        razon: "Could not get date from Redux - use API for security",
+        estrategia: "API_CONSOLIDADO",
+        razon: "No se pudo obtener fecha desde Redux - usar API por seguridad",
         horaActual: 0,
       };
     }
@@ -804,48 +804,48 @@ export class AsistenciaDateHelper {
     const horaActual = fechaActual.getHours();
     const esFinDeSemana = this.esFinDeSemana();
 
-    // ✅ FIXED: Weekends DO allow queries
+    // ✅ CORREGIDO: Fines de semana SÍ permiten consultas
     if (esFinDeSemana) {
-      // On weekends, use consolidated API data
+      // En fines de semana, usar datos consolidados de API
       return {
-        estrategia: "API_CONSOLIDATED",
-        razon: "Weekend - use consolidated API data",
+        estrategia: "API_CONSOLIDADO",
+        razon: "Fin de semana - usar datos consolidados de API",
         horaActual,
       };
     }
 
-    // Schedule logic for school days
+    // Lógica de horarios para días escolares
     if (horaActual < 6) {
       return {
-        estrategia: "API_CONSOLIDATED", // ✅ CHANGED: DO NOT block, use API
-        razon: "Before 6:00 AM - use consolidated API data",
+        estrategia: "API_CONSOLIDADO", // ✅ CAMBIADO: NO bloquear, usar API
+        razon: "Antes de 6:00 AM - usar datos consolidados de API",
         horaActual,
       };
     } else if (horaActual >= 6 && horaActual < 12) {
       return {
-        estrategia: "REDIS_ENTRIES",
+        estrategia: "REDIS_ENTRADAS",
         razon:
-          "Entry hours (6:00-12:00) - query Redis for entries",
+          "Horario de entradas (6:00-12:00) - consultar Redis para entradas",
         horaActual,
       };
     } else if (horaActual >= 12 && horaActual < 22) {
       return {
-        estrategia: "REDIS_FULL",
+        estrategia: "REDIS_COMPLETO",
         razon:
-          "Full hours (12:00-22:00) - query Redis for entries and exits",
+          "Horario completo (12:00-22:00) - consultar Redis para entradas y salidas",
         horaActual,
       };
     } else {
       return {
-        estrategia: "API_CONSOLIDATED",
-        razon: "After 22:00 - consolidated data in PostgreSQL",
+        estrategia: "API_CONSOLIDADO",
+        razon: "Después de 22:00 - datos consolidados en PostgreSQL",
         horaActual,
       };
     }
   }
 
   /**
-   * Validates if it should query API for previous month
+   * Valida si debe consultar API para mes anterior
    */
   public debeConsultarAPIMesAnterior(
     existeEnIndexedDB: boolean,
@@ -858,18 +858,18 @@ export class AsistenciaDateHelper {
     if (!existeEnIndexedDB) {
       return {
         debeConsultar: true,
-        razon: "Does not exist in IndexedDB - initial query required",
+        razon: "No existe en IndexedDB - consulta inicial requerida",
       };
     }
 
     if (!ultimaFechaActualizacion) {
       return {
         debeConsultar: true,
-        razon: "Record without update date - requires update",
+        razon: "Registro sin fecha de actualización - requiere actualización",
       };
     }
 
-    // Extract month from last update
+    // Extraer mes de la última actualización
     const fechaActualizacion = new Date(ultimaFechaActualizacion);
     const mesActualizacion = fechaActualizacion.getMonth() + 1;
 
@@ -877,26 +877,26 @@ export class AsistenciaDateHelper {
       return {
         debeConsultar: true,
         razon:
-          "Data was updated in the same queried month - may have changed",
+          "Datos fueron actualizados en el mismo mes consultado - pueden haber cambiado",
       };
     } else {
       return {
         debeConsultar: false,
         razon:
-          "Data from finalized month - do not query API (optimization applied)",
+          "Datos de mes finalizado - no consultar API (optimización aplicada)",
       };
     }
   }
 
   /**
-   * Create timestamp with current Peru date
+   * Crear timestamp con fecha actual de Perú
    */
   public crearTimestampActual(): number {
     return this.obtenerTimestampPeruano();
   }
 
   /**
-   * Check if a date is in the past
+   * Verificar si una fecha está en el pasado
    */
   public esFechaPasada(timestamp: number): boolean {
     const fechaActual = this.obtenerFechaHoraActualDesdeRedux();
@@ -906,7 +906,7 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * Get difference in days between two timestamps
+   * Obtener diferencia en días entre dos timestamps
    */
   public obtenerDiferenciaDias(timestamp1: number, timestamp2: number): number {
     const diferenciaMilisegundos = Math.abs(timestamp1 - timestamp2);
@@ -914,11 +914,11 @@ export class AsistenciaDateHelper {
   }
 
   // ========================================================================================
-  // ORIGINAL METHODS (NO CHANGES)
+  // MÉTODOS ORIGINALES (SIN CAMBIOS)
   // ========================================================================================
 
   /**
-   * Calculates the school day of the month (not counting weekends)
+   * Calcula el día escolar del mes (sin contar fines de semana)
    */
   public calcularDiaEscolarDelMes(): number {
     const fechaActual = this.obtenerFechaHoraActualDesdeRedux() || new Date();
@@ -928,12 +928,12 @@ export class AsistenciaDateHelper {
 
     let diaEscolar = 0;
 
-    // Count only business days (Monday to Friday) from the beginning of the month until today
+    // Contar solo días hábiles (lunes a viernes) desde el inicio del mes hasta hoy
     for (let dia = 1; dia <= diaActual; dia++) {
       const fecha = new Date(anio, mes, dia);
-      const diaSemana = fecha.getDay(); // 0=sunday, 1=monday, ..., 6=saturday
+      const diaSemana = fecha.getDay(); // 0=domingo, 1=lunes, ..., 6=sábado
 
-      // If it's a business day (Monday to Friday)
+      // Si es día hábil (lunes a viernes)
       if (diaSemana >= 1 && diaSemana <= 5) {
         diaEscolar++;
       }
@@ -943,26 +943,26 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * Determines if we should query the API based on the school day
+   * Determina si debemos consultar la API basándose en el día escolar
    */
   public debeConsultarAPI(diaEscolar: number): boolean {
-    // If we are on the first school day of the month, it is safe that there are no IDs in PostgreSQL
+    // Si estamos en el primer día escolar del mes, es seguro que no hay IDs en PostgreSQL
     if (diaEscolar <= 1) {
       return false;
     }
 
-    // From the second school day, it is likely that we already have records with IDs
+    // A partir del segundo día escolar, es probable que ya tengamos registros con IDs
     return diaEscolar >= DIA_ESCOLAR_MINIMO_PARA_CONSULTAR_API;
   }
 
   /**
-   * Gets all previous business days of the current month (using Redux date)
+   * Obtiene todos los días laborales anteriores al día actual en el mes (usando fecha Redux)
    */
   public obtenerDiasLaboralesAnteriores(): number[] {
     const fechaActual = this.obtenerFechaHoraActualDesdeRedux();
 
     if (!fechaActual) {
-      console.error("Could not get date from Redux");
+      console.error("No se pudo obtener la fecha desde Redux");
       return [];
     }
 
@@ -972,13 +972,13 @@ export class AsistenciaDateHelper {
 
     const diasLaborales: number[] = [];
 
-    // Search for business days (Monday to Friday) from the beginning of the month until YESTERDAY
+    // Buscar días hábiles (lunes a viernes) desde el inicio del mes hasta AYER
     for (let dia = 1; dia < diaActual; dia++) {
-      // Note: dia < diaActual (not <=)
+      // Nota: dia < diaActual (no <=)
       const fecha = new Date(anio, mes, dia);
-      const diaSemana = fecha.getDay(); // 0=sunday, 1=monday, ..., 6=saturday
+      const diaSemana = fecha.getDay(); // 0=domingo, 1=lunes, ..., 6=sábado
 
-      // If it's a business day (Monday to Friday)
+      // Si es día hábil (lunes a viernes)
       if (diaSemana >= 1 && diaSemana <= 5) {
         diasLaborales.push(dia);
       }
@@ -988,7 +988,7 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * Function to check if a day is a school day (Monday to Friday)
+   * Función para verificar si un día es día escolar (lunes a viernes)
    */
   public esDiaEscolar(dia: string, fechaRef?: Date): boolean {
     const fechaActual = fechaRef || this.obtenerFechaHoraActualDesdeRedux();
@@ -1001,12 +1001,12 @@ export class AsistenciaDateHelper {
     const mesActual = fechaActual.getMonth(); // 0-11
 
     const fecha = new Date(añoActual, mesActual, diaNumero);
-    const diaSemana = fecha.getDay(); // 0=sunday, 1=monday, ..., 6=saturday
-    return diaSemana >= 1 && diaSemana <= 5; // Only Monday to Friday
+    const diaSemana = fecha.getDay(); // 0=domingo, 1=lunes, ..., 6=sábado
+    return diaSemana >= 1 && diaSemana <= 5; // Solo lunes a viernes
   }
 
   /**
-   * Checks if it's a query for the current month
+   * Verifica si es una consulta del mes actual
    */
   public esConsultaMesActual(mes: number): boolean {
     const fechaActual = this.obtenerFechaHoraActualDesdeRedux();
@@ -1016,7 +1016,7 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * Gets the current month
+   * Obtiene el mes actual
    */
   public obtenerMesActual(): number | null {
     const fechaActual = this.obtenerFechaHoraActualDesdeRedux();
@@ -1024,7 +1024,7 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * Gets the current day
+   * Obtiene el día actual
    */
   public obtenerDiaActual(): number | null {
     const fechaActual = this.obtenerFechaHoraActualDesdeRedux();
@@ -1032,13 +1032,13 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * ✅ FIXED: Get current date string without double timezone conversion
+   * ✅ CORREGIDO: Obtener fecha string actual sin doble conversión de zona horaria
    */
   public obtenerFechaStringActual(): string | null {
     const fechaActual = this.obtenerFechaHoraActualDesdeRedux();
     if (!fechaActual) return null;
 
-    // ✅ FIXED: Use local methods to avoid UTC conversion
+    // ✅ CORREGIDO: Usar métodos locales para evitar conversión UTC
     const año = fechaActual.getFullYear();
     const mes = (fechaActual.getMonth() + 1).toString().padStart(2, "0");
     const dia = fechaActual.getDate().toString().padStart(2, "0");
@@ -1046,7 +1046,7 @@ export class AsistenciaDateHelper {
     const fechaString = `${año}-${mes}-${dia}`;
 
     console.log(
-      `📅 Generated string date: ${fechaString} (from Redux: ${fechaActual.toLocaleString(
+      `📅 Fecha string generada: ${fechaString} (desde Redux: ${fechaActual.toLocaleString(
         "es-PE"
       )})`
     );
@@ -1055,12 +1055,12 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * ✅ FIXED: Convert timestamp to date string without timezone issues
+   * ✅ CORREGIDO: Convertir timestamp a fecha string sin problemas de zona horaria
    */
   public convertirTimestampAFechaString(timestamp: number): string {
     const fecha = new Date(timestamp);
 
-    // ✅ FIXED: Use local methods to avoid UTC conversion
+    // ✅ CORREGIDO: Usar métodos locales para evitar conversión UTC
     const año = fecha.getFullYear();
     const mes = (fecha.getMonth() + 1).toString().padStart(2, "0");
     const dia = fecha.getDate().toString().padStart(2, "0");
@@ -1068,7 +1068,7 @@ export class AsistenciaDateHelper {
     const fechaString = `${año}-${mes}-${dia}`;
 
     console.log(
-      `🔄 Timestamp ${timestamp} converted to date: ${fechaString} (date object: ${fecha.toLocaleString(
+      `🔄 Timestamp ${timestamp} convertido a fecha: ${fechaString} (fecha objeto: ${fecha.toLocaleString(
         "es-PE"
       )})`
     );
@@ -1077,14 +1077,14 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * Converts a specific date to a YYYY-MM-DD format string
+   * Convierte una fecha específica a string formato YYYY-MM-DD
    */
   public convertirFechaAString(fecha: Date): string {
     return fecha.toISOString().split("T")[0];
   }
 
   /**
-   * ✅ FIXED: Generate date string for specific month and day
+   * ✅ CORREGIDO: Generar fecha string para mes y día específicos
    */
   public generarFechaString(mes: number, dia: number, año?: number): string {
     const añoFinal =
@@ -1097,15 +1097,15 @@ export class AsistenciaDateHelper {
       .padStart(2, "0")}`;
 
     console.log(
-      `🎯 Manually generated date string: ${fechaString} (month: ${mes}, day: ${dia}, year: ${añoFinal})`
+      `🎯 Fecha string generada manualmente: ${fechaString} (mes: ${mes}, día: ${dia}, año: ${añoFinal})`
     );
 
     return fechaString;
   }
 
   /**
-   * Gets complete information of the current date
-   * Replaces direct access to Redux from other classes
+   * Obtiene información completa de la fecha actual
+   * Reemplaza el acceso directo a Redux desde otras clases
    */
   public obtenerInfoFechaActual(): {
     fechaActual: Date;
@@ -1119,7 +1119,7 @@ export class AsistenciaDateHelper {
 
       if (!fechaActual) {
         console.error(
-          "Could not get date from Redux in obtenerInfoFechaActual"
+          "No se pudo obtener fecha desde Redux en obtenerInfoFechaActual"
         );
         return null;
       }
@@ -1129,17 +1129,17 @@ export class AsistenciaDateHelper {
         mesActual: fechaActual.getMonth() + 1,
         diaActual: fechaActual.getDate(),
         añoActual: fechaActual.getFullYear(),
-        esHoy: true, // It's always "today" as it comes from real-time Redux
+        esHoy: true, // Siempre es "hoy" ya que viene de Redux tiempo real
       };
     } catch (error) {
-      console.error("Error getting current date information:", error);
+      console.error("Error al obtener información de fecha actual:", error);
       return null;
     }
   }
 
   /**
-   * Checks if a timestamp is too old (more than 24 hours)
-   * Useful for detecting outdated data
+   * Verifica si un timestamp es muy antiguo (más de 24 horas)
+   * Útil para detectar datos desactualizados
    */
   public esTimestampMuyAntiguo(
     timestamp: number,
@@ -1149,7 +1149,7 @@ export class AsistenciaDateHelper {
       const fechaActual = this.obtenerFechaHoraActualDesdeRedux();
       if (!fechaActual) {
         console.warn(
-          "Could not get current date to check for old timestamp"
+          "No se pudo obtener fecha actual para verificar timestamp antiguo"
         );
         return false;
       }
@@ -1162,21 +1162,21 @@ export class AsistenciaDateHelper {
 
       if (esAntiguo) {
         console.log(
-          `⏰ Old timestamp detected: ${diferenciaHoras.toFixed(
+          `⏰ Timestamp antiguo detectado: ${diferenciaHoras.toFixed(
             1
-          )} hours difference (limit: ${horasLimite}h)`
+          )} horas de diferencia (límite: ${horasLimite}h)`
         );
       }
 
       return esAntiguo;
     } catch (error) {
-      console.error("Error checking if timestamp is old:", error);
+      console.error("Error al verificar si timestamp es antiguo:", error);
       return false;
     }
   }
 
   /**
-   * Formats a timestamp to readable text in Spanish-Peru
+   * Formatea un timestamp a texto legible en español-Perú
    */
   public formatearTimestampLegible(timestamp: number): string {
     try {
@@ -1191,13 +1191,13 @@ export class AsistenciaDateHelper {
         hour12: false,
       });
     } catch (error) {
-      console.error("Error formatting timestamp:", error);
-      return "Invalid date";
+      console.error("Error al formatear timestamp:", error);
+      return "Fecha inválida";
     }
   }
 
   /**
-   * Calculates difference between two timestamps in a readable format
+   * Calcula diferencia entre dos timestamps en formato legible
    */
   public calcularDiferenciaTimestamps(
     timestamp1: number,
@@ -1219,13 +1219,13 @@ export class AsistenciaDateHelper {
 
       let textoLegible = "";
       if (dias > 0) {
-        textoLegible = `${dias} day${dias > 1 ? "s" : ""}`;
+        textoLegible = `${dias} día${dias > 1 ? "s" : ""}`;
       } else if (horas > 0) {
-        textoLegible = `${horas} hour${horas > 1 ? "s" : ""}`;
+        textoLegible = `${horas} hora${horas > 1 ? "s" : ""}`;
       } else if (minutos > 0) {
-        textoLegible = `${minutos} minute${minutos > 1 ? "s" : ""}`;
+        textoLegible = `${minutos} minuto${minutos > 1 ? "s" : ""}`;
       } else {
-        textoLegible = `${segundos} second${segundos > 1 ? "s" : ""}`;
+        textoLegible = `${segundos} segundo${segundos > 1 ? "s" : ""}`;
       }
 
       return {
@@ -1237,23 +1237,23 @@ export class AsistenciaDateHelper {
         textoLegible,
       };
     } catch (error) {
-      console.error("Error calculating timestamp difference:", error);
+      console.error("Error al calcular diferencia de timestamps:", error);
       return {
         milisegundos: 0,
         segundos: 0,
         minutos: 0,
         horas: 0,
         dias: 0,
-        textoLegible: "Error in calculation",
+        textoLegible: "Error en cálculo",
       };
     }
   }
 
   /**
-   * Gets information about the temporal state of the queried month
+   * Obtiene información sobre el estado temporal del mes consultado
    */
   public obtenerEstadoTemporalMes(mes: number): {
-    tipo: "FUTURE_MONTH" | "PREVIOUS_MONTH" | "CURRENT_MONTH";
+    tipo: "MES_FUTURO" | "MES_ANTERIOR" | "MES_ACTUAL";
     descripcion: string;
     debeLogout: boolean;
     esConsultaValida: boolean;
@@ -1263,8 +1263,8 @@ export class AsistenciaDateHelper {
 
       if (!fechaActual) {
         return {
-          tipo: "CURRENT_MONTH",
-          descripcion: "Could not get date from Redux",
+          tipo: "MES_ACTUAL",
+          descripcion: "No se pudo obtener fecha desde Redux",
           debeLogout: false,
           esConsultaValida: false,
         };
@@ -1274,31 +1274,31 @@ export class AsistenciaDateHelper {
 
       if (mes > mesActual) {
         return {
-          tipo: "FUTURE_MONTH",
-          descripcion: `Query of future month (${mes} > ${mesActual}) - Not allowed`,
+          tipo: "MES_FUTURO",
+          descripcion: `Consulta de mes futuro (${mes} > ${mesActual}) - No permitida`,
           debeLogout: true,
           esConsultaValida: false,
         };
       } else if (mes < mesActual) {
         return {
-          tipo: "PREVIOUS_MONTH",
-          descripcion: `Query of previous month (${mes} < ${mesActual}) - IndexedDB optimization applicable`,
+          tipo: "MES_ANTERIOR",
+          descripcion: `Consulta de mes anterior (${mes} < ${mesActual}) - Optimización IndexedDB aplicable`,
           debeLogout: false,
           esConsultaValida: true,
         };
       } else {
         return {
-          tipo: "CURRENT_MONTH",
-          descripcion: `Query of current month (${mes}) - Apply schedule logic`,
+          tipo: "MES_ACTUAL",
+          descripcion: `Consulta del mes actual (${mes}) - Aplicar lógica de horarios`,
           debeLogout: false,
           esConsultaValida: true,
         };
       }
     } catch (error) {
-      console.error("Error getting temporal state of the month:", error);
+      console.error("Error al obtener estado temporal del mes:", error);
       return {
-        tipo: "CURRENT_MONTH",
-        descripcion: "Error determining temporal state",
+        tipo: "MES_ACTUAL",
+        descripcion: "Error al determinar estado temporal",
         debeLogout: false,
         esConsultaValida: false,
       };
@@ -1306,7 +1306,7 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * Validates if a date is within the current academic year
+   * Valida si una fecha está dentro del año académico actual
    */
   public esFechaDelAñoAcademico(timestamp: number): boolean {
     try {
@@ -1317,17 +1317,17 @@ export class AsistenciaDateHelper {
       const añoActual = fechaActual.getFullYear();
       const añoConsultado = fechaConsultada.getFullYear();
 
-      // Academic year generally goes from March of one year to February of the next
-      // For simplicity, we validate that it is within the current or previous year
+      // Año académico generalmente va de marzo de un año a febrero del siguiente
+      // Por simplicidad, validamos que esté dentro del año actual o el anterior
       return añoConsultado === añoActual || añoConsultado === añoActual - 1;
     } catch (error) {
-      console.error("Error validating academic year date:", error);
+      console.error("Error al validar fecha del año académico:", error);
       return false;
     }
   }
 
   /**
-   * Gets timestamp range for a specific month
+   * Obtiene rango de timestamps para un mes específico
    */
   public obtenerRangoTimestampsMes(
     mes: number,
@@ -1342,10 +1342,10 @@ export class AsistenciaDateHelper {
       const añoFinal =
         año || fechaActual?.getFullYear() || new Date().getFullYear();
 
-      // First day of the month at 00:00:00
+      // Primer día del mes a las 00:00:00
       const inicioMes = new Date(añoFinal, mes - 1, 1, 0, 0, 0, 0).getTime();
 
-      // Last day of the month at 23:59:59
+      // Último día del mes a las 23:59:59
       const ultimoDia = new Date(añoFinal, mes, 0).getDate();
       const finMes = new Date(
         añoFinal,
@@ -1363,13 +1363,13 @@ export class AsistenciaDateHelper {
         diasEnMes: ultimoDia,
       };
     } catch (error) {
-      console.error("Error getting month timestamp range:", error);
+      console.error("Error al obtener rango de timestamps del mes:", error);
       return null;
     }
   }
 
   /**
-   * Create timestamp for a specific day of the current month
+   * Crear timestamp para un día específico del mes actual
    */
   public crearTimestampParaDia(
     dia: number,
@@ -1386,7 +1386,7 @@ export class AsistenciaDateHelper {
 
       return nuevaFecha.getTime();
     } catch (error) {
-      console.error("Error creating timestamp for specific day:", error);
+      console.error("Error al crear timestamp para día específico:", error);
       return null;
     }
   }

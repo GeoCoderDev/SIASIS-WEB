@@ -1,5 +1,6 @@
 import { T_Reportes_Asistencia_Escolar } from "@prisma/client";
 import { NivelEducativo } from "./NivelEducativo";
+import { EstadosAsistenciaEscolar } from "./EstadosAsistenciaEstudiantes";
 
 export enum TipoReporteAsistenciaEscolar {
   POR_DIA = "D",
@@ -41,4 +42,34 @@ export type ReporteAsistenciaEscolarAnonimo = Pick<
   | "Estado_Reporte"
   | "Datos_Google_Drive_Id"
   | "Fecha_Generacion"
+>;
+
+export interface ConteoEstadosAsistenciaEscolarPorAula {
+  [EstadosAsistenciaEscolar.Temprano]: number;
+  [EstadosAsistenciaEscolar.Tarde]: number;
+  [EstadosAsistenciaEscolar.Falta]: number;
+}
+
+//{Id_Aula : { Mes: { Dia: } }}
+export type ReporteAsistenciaEscolarPorDias = Record<
+  number,
+  {
+    Total_Estudiante: number;
+    ConteoEstadosAsistencia: Record<
+      number,
+      Record<number, ConteoEstadosAsistenciaEscolarPorAula>
+    >;
+  }
+>;
+
+//{Id_Aula : { Mes: { ..... } }}
+export type ReporteAsistenciaEscolarPorMeses = Record<
+  number,
+  {
+    Total_Estudiante: number;
+    ConteoEstadosAsistencia: Record<
+      number,
+      ConteoEstadosAsistenciaEscolarPorAula
+    >;
+  }
 >;

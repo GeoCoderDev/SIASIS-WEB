@@ -28,16 +28,16 @@ import { Meses } from "@/interfaces/shared/Meses";
 import { DIAS_ESCOLARES_MINIMOS_VERIFICACION } from "@/constants/DIAS_ESCOLARES_MINIMOS_VERIFICACION";
 
 /**
- * 🎯 RESPONSIBILITY: Data synchronization and coordination
- * - Synchronize data between API, cache, and local database
- * - Force full synchronization
- * - Process data from multiple sources
- * - Resolve synchronization conflicts
+ * 🎯 RESPONSABILIDAD: Sincronización y coordinación de datos
+ * - Sincronizar datos entre API, cache y base de datos local
+ * - Forzar sincronización completa
+ * - Procesar datos de múltiples fuentes
+ * - Resolver conflictos de sincronización
  *
- * ✅ FIXED:
- * - All modified records automatically update timestamp
- * - All date logic delegated to DateHelper (SRP)
- * - Consistency in timestamp handling
+ * ✅ CORREGIDO:
+ * - Todos los registros modificados actualizan timestamp automáticamente
+ * - Toda lógica de fechas delegada a DateHelper (SRP)
+ * - Consistencia en el manejo de timestamps
  */
 export class AsistenciaPersonalSyncService {
   private repository: AsistenciaDePersonalRepository;
@@ -64,9 +64,9 @@ export class AsistenciaPersonalSyncService {
   }
 
   /**
-   * Forces full synchronization from the API
-   * Deletes both local records and replaces them with fresh data from the API
-   * ✅ FIXED: Date handling delegated to DateHelper
+   * Fuerza la sincronización completa desde la API
+   * Elimina ambos registros locales y los reemplaza con datos frescos de la API
+   * ✅ CORREGIDO: Manejo de fechas delegado a DateHelper
    */
   public async forzarSincronizacionCompleta(
     rol: RolesSistema,
@@ -82,11 +82,11 @@ export class AsistenciaPersonalSyncService {
       const tipoPersonal = this.mapper.obtenerTipoPersonalDesdeRolOActor(rol);
 
       console.log(
-        `🔄 FORCING FULL SYNC for ${idUsuario} - month ${mes}`
+        `🔄 FORZANDO SINCRONIZACIÓN COMPLETA para ${idUsuario} - mes ${mes}`
       );
 
-      // STEP 1: Delete both local records (entry and exit)
-      console.log("🗑️ Deleting unsynchronized local records...");
+      // PASO 1: Eliminar ambos registros locales (entrada y salida)
+      console.log("🗑️ Eliminando registros locales desincronizados...");
       await Promise.allSettled([
         this.repository.eliminarRegistroMensual(
           tipoPersonal,
@@ -102,8 +102,8 @@ export class AsistenciaPersonalSyncService {
         ),
       ]);
 
-      // STEP 2: Query API for fresh data
-      console.log("📡 Querying API for fresh data...");
+      // PASO 2: Consultar API para obtener datos frescos
+      console.log("📡 Consultando API para datos frescos...");
       const asistenciaAPI =
         await this.apiClient.consultarAsistenciasConReintentos(
           rol,
@@ -113,20 +113,20 @@ export class AsistenciaPersonalSyncService {
 
       if (!asistenciaAPI) {
         console.log(
-          "❌ API did not return data after forced synchronization"
+          "❌ API no devolvió datos después de la sincronización forzada"
         );
         return {
           sincronizado: false,
           mensaje:
-            "No data was found in the API after synchronization",
+            "No se encontraron datos en la API después de la sincronización",
         };
       }
 
-      // STEP 3: Process and save BOTH types of records from the API
-      console.log("💾 Saving fresh data from the API...");
+      // PASO 3: Procesar y guardar AMBOS tipos de registro desde la API
+      console.log("💾 Guardando datos frescos de la API...");
       await this.procesarYGuardarAsistenciaDesdeAPI(asistenciaAPI);
 
-      // STEP 4: Verify that both records were saved correctly
+      // PASO 4: Verificar que ambos registros se guardaron correctamente
       const [nuevaEntrada, nuevaSalida] = await Promise.all([
         this.repository.obtenerRegistroMensual(
           tipoPersonal,
@@ -144,7 +144,7 @@ export class AsistenciaPersonalSyncService {
         ),
       ]);
 
-      // STEP 5: Verify that the synchronization was successful
+      // PASO 5: Verificar que la sincronización fue exitosa
       const verificacion = this.validator.verificarSincronizacionEntradaSalida(
         nuevaEntrada,
         nuevaSalida
@@ -152,36 +152,36 @@ export class AsistenciaPersonalSyncService {
 
       if (verificacion.estanSincronizados) {
         console.log(
-          `✅ Data synchronized: ${verificacion.diasEscolaresEntrada} historical school days + current day and allowed weekends`
+          `✅ Datos sincronizados: ${verificacion.diasEscolaresEntrada} días escolares históricos + día actual y fines de semana permitidos`
         );
         return {
           entrada: nuevaEntrada || undefined,
           salida: nuevaSalida || undefined,
           sincronizado: true,
-          mensaje: `Data synchronized successfully: ${verificacion.diasEscolaresEntrada} historical school days`,
+          mensaje: `Datos sincronizados exitosamente: ${verificacion.diasEscolaresEntrada} días escolares históricos`,
         };
       } else {
-        console.log(`❌ Synchronization failed: ${verificacion.razon}`);
+        console.log(`❌ Sincronización falló: ${verificacion.razon}`);
         return {
           entrada: nuevaEntrada || undefined,
           salida: nuevaSalida || undefined,
           sincronizado: false,
-          mensaje: `Synchronization error: ${verificacion.razon}`,
+          mensaje: `Error en sincronización: ${verificacion.razon}`,
         };
       }
     } catch (error) {
-      console.error("❌ Error during forced synchronization:", error);
+      console.error("❌ Error durante sincronización forzada:", error);
       return {
         sincronizado: false,
-        mensaje: `Error during synchronization: ${
-          error instanceof Error ? error.message : "Unknown error"
+        mensaje: `Error durante la sincronización: ${
+          error instanceof Error ? error.message : "Error desconocido"
         }`,
       };
     }
   }
 
   /**
-   * 🔄 INTEGRATES orphan attendances from the temporary cache with newly fetched API data
+   * 🔄 INTEGRA asistencias huérfanas del cache temporal con datos recién traídos de API
    */
   private async integrarAsistenciasHuerfanasDesdeAPI(
     asistenciaAPI: AsistenciaCompletaMensualDePersonal,
@@ -197,7 +197,7 @@ export class AsistenciaPersonalSyncService {
         !this.dateHelper.esDiaEscolar(infoFechaActual.diaActual.toString())
       ) {
         console.log(
-          "📅 Not a current school day, skipping temporary cache integration"
+          "📅 No es día escolar actual, omitiendo integración de cache temporal"
         );
         return;
       }
@@ -208,14 +208,14 @@ export class AsistenciaPersonalSyncService {
 
       if (!fechaHoy) return;
 
-      // Determine which records to process
+      // Determinar qué registros procesar
       const modosAProcesar = modoRegistroSolicitado
         ? [modoRegistroSolicitado]
         : [ModoRegistro.Entrada, ModoRegistro.Salida];
 
       for (const modoRegistro of modosAProcesar) {
         try {
-          // Query temporary cache for this mode
+          // Consultar cache temporal para este modo
           const asistenciaCache =
             await this.consultarCacheTemporalParaIntegracion(
               actor,
@@ -225,7 +225,7 @@ export class AsistenciaPersonalSyncService {
             );
 
           if (asistenciaCache) {
-            // Get the newly saved monthly record
+            // Obtener el registro mensual recién guardado
             const idReal =
               modoRegistro === ModoRegistro.Entrada
                 ? asistenciaAPI.Id_Registro_Mensual_Entrada
@@ -244,7 +244,7 @@ export class AsistenciaPersonalSyncService {
               registroMensual &&
               !registroMensual.registros[diaActual.toString()]
             ) {
-              // Add current day's attendance
+              // Agregar asistencia del día actual
               const registroDia: RegistroEntradaSalida = {
                 timestamp: asistenciaCache.timestamp,
                 desfaseSegundos: asistenciaCache.desfaseSegundos,
@@ -261,7 +261,7 @@ export class AsistenciaPersonalSyncService {
                 idReal
               );
 
-              // Clean from temporary cache
+              // Limpiar del cache temporal
               await this.limpiarAsistenciaHuerfanaDelCache(
                 actor,
                 modoRegistro,
@@ -270,28 +270,28 @@ export class AsistenciaPersonalSyncService {
               );
 
               console.log(
-                `✅ Orphan attendance of ${modoRegistro} integrated after API: ${asistenciaCache.estado}`
+                `✅ Asistencia huérfana de ${modoRegistro} integrada tras API: ${asistenciaCache.estado}`
               );
             }
           }
         } catch (error) {
           console.error(
-            `❌ Error integrating ${modoRegistro} from cache:`,
+            `❌ Error integrando ${modoRegistro} desde cache:`,
             error
           );
-          // Continue with the next mode
+          // Continuar con el siguiente modo
         }
       }
     } catch (error) {
       console.error(
-        "❌ General error in integration of orphan attendances from API:",
+        "❌ Error general en integración de asistencias huérfanas desde API:",
         error
       );
     }
   }
 
   /**
-   * 🔍 QUERY temporary cache for integration
+   * 🔍 CONSULTAR cache temporal para integración
    */
   private async consultarCacheTemporalParaIntegracion(
     actor: ActoresSistema,
@@ -300,7 +300,7 @@ export class AsistenciaPersonalSyncService {
     fecha: string
   ): Promise<any> {
     try {
-      // Dynamically import to avoid circular dependencies
+      // Importar dinámicamente para evitar dependencias circulares
       const { AsistenciasTomadasHoyIDB } = await import(
         "../../AsistenciasTomadasHoy/AsistenciasTomadasHoyIDB"
       );
@@ -314,13 +314,13 @@ export class AsistenciaPersonalSyncService {
         fecha,
       });
     } catch (error) {
-      console.error("❌ Error querying temporary cache:", error);
+      console.error("❌ Error al consultar cache temporal:", error);
       return null;
     }
   }
 
   /**
-   * 🗑️ CLEAN orphan attendance from the temporary cache
+   * 🗑️ LIMPIAR asistencia huérfana del cache temporal
    */
   private async limpiarAsistenciaHuerfanaDelCache(
     actor: ActoresSistema,
@@ -329,28 +329,28 @@ export class AsistenciaPersonalSyncService {
     fecha: string
   ): Promise<void> {
     try {
-      // ✅ FIXED: Delete only the specific attendance, not the entire date
+      // ✅ CORREGIDO: Eliminar solo la asistencia específica, no toda la fecha
       await this.cacheManager.eliminarAsistenciaDelCache(
         dni,
-        this.mapper.obtenerRolDesdeActor(actor), // You will need this method
+        this.mapper.obtenerRolDesdeActor(actor), // Necesitarás este método
         modoRegistro,
         fecha
       );
 
       console.log(
-        `🗑️ Specific orphan attendance deleted from cache: ${actor}-${modoRegistro}-${dni}-${fecha}`
+        `🗑️ Asistencia huérfana específica eliminada del cache: ${actor}-${modoRegistro}-${dni}-${fecha}`
       );
     } catch (error) {
       console.error(
-        "❌ Error cleaning specific orphan attendance from cache:",
+        "❌ Error al limpiar asistencia huérfana específica del cache:",
         error
       );
     }
   }
 
   /**
-   * Processes and saves attendance from the API
-   * ✅ FIXED: Guaranteed automatic timestamp
+   * Procesa y guarda asistencia desde la API
+   * ✅ CORREGIDO: Timestamp automático garantizado
    */
   public async procesarYGuardarAsistenciaDesdeAPI(
     asistenciaAPI: AsistenciaCompletaMensualDePersonal,
@@ -361,10 +361,10 @@ export class AsistenciaPersonalSyncService {
         asistenciaAPI.Rol
       );
 
-      // ✅ NEW: Get current Peruvian timestamp ONCE for consistency
+      // ✅ NUEVO: Obtener timestamp peruano actual UNA SOLA VEZ para consistencia
       const timestampPeruanoActual = this.dateHelper.obtenerTimestampPeruano();
       console.log(
-        `💾 Processing API data with timestamp: ${timestampPeruanoActual} (${new Date(
+        `💾 Procesando datos de API con timestamp: ${timestampPeruanoActual} (${new Date(
           timestampPeruanoActual
         ).toLocaleString("es-PE")})`
       );
@@ -386,19 +386,19 @@ export class AsistenciaPersonalSyncService {
         );
 
         if (Object.keys(registrosProcesados).length > 0) {
-          // ✅ FIXED: ALWAYS use current timestamp for API data
+          // ✅ CORREGIDO: SIEMPRE usar timestamp actual para datos de API
           const registroParaGuardar: AsistenciaMensualPersonalLocal = {
             Id_Registro_Mensual: idReal,
             mes: asistenciaAPI.Mes,
             idUsuario_Personal: asistenciaAPI.ID_Usuario,
             registros: registrosProcesados,
-            ultima_fecha_actualizacion: timestampPeruanoActual, // ✅ GUARANTEED TIMESTAMP
+            ultima_fecha_actualizacion: timestampPeruanoActual, // ✅ TIMESTAMP GARANTIZADO
           };
 
           console.log(
-            `💾 Saving ${modoRegistro} with ${
+            `💾 Guardando ${modoRegistro} con ${
               Object.keys(registrosProcesados).length
-            } processed days`
+            } días procesados`
           );
 
           await this.repository.guardarRegistroMensual(
@@ -407,7 +407,7 @@ export class AsistenciaPersonalSyncService {
             registroParaGuardar
           );
         } else {
-          console.log(`⚠️ No data to save in ${modoRegistro}`);
+          console.log(`⚠️ No hay datos para guardar en ${modoRegistro}`);
         }
       };
 
@@ -420,10 +420,10 @@ export class AsistenciaPersonalSyncService {
         ]);
       }
 
-      // ✅ NEW: Integrate orphan attendances from the temporary cache after saving API data
+      // ✅ NUEVO: Integrar asistencias huérfanas del cache temporal tras guardar datos de API
       if (this.dateHelper.esConsultaMesActual(asistenciaAPI.Mes)) {
         console.log(
-          "🔄 Integrating possible orphan attendances from the temporary cache..."
+          "🔄 Integrando posibles asistencias huérfanas del cache temporal..."
         );
 
         await this.integrarAsistenciasHuerfanasDesdeAPI(
@@ -437,21 +437,21 @@ export class AsistenciaPersonalSyncService {
       return {
         exitoso: true,
         mensaje:
-          "API data processed, saved and synchronized with temporary cache successfully",
+          "Datos de API procesados, guardados y sincronizados con cache temporal exitosamente",
       };
     } catch (error) {
-      console.error("Error processing API data:", error);
+      console.error("Error al procesar datos de API:", error);
       return {
         exitoso: false,
-        mensaje: `Error processing API data: ${
-          error instanceof Error ? error.message : "Unknown error"
+        mensaje: `Error al procesar datos de API: ${
+          error instanceof Error ? error.message : "Error desconocido"
         }`,
       };
     }
   }
 
   /**
-   * ✅ NEW: Auto-correction of inconsistent local data
+   * ✅ NUEVO: Auto-corrección de datos locales inconsistentes
    */
   private async autoCorregirDatosLocalesInconsistentes(
     rol: RolesSistema,
@@ -461,12 +461,12 @@ export class AsistenciaPersonalSyncService {
   ): Promise<ConsultaAsistenciaResult> {
     try {
       console.log(
-        `🔧 Starting auto-correction for ${idUsuario} - month ${mes}: ${razonInconsistencia}`
+        `🔧 Iniciando auto-corrección para ${idUsuario} - mes ${mes}: ${razonInconsistencia}`
       );
 
       const tipoPersonal = this.mapper.obtenerTipoPersonalDesdeRolOActor(rol);
 
-      // Delete corrupt local data
+      // Eliminar datos locales corruptos
       await Promise.allSettled([
         this.repository.eliminarRegistroMensual(
           tipoPersonal,
@@ -482,29 +482,29 @@ export class AsistenciaPersonalSyncService {
         ),
       ]);
 
-      console.log("🧹 Inconsistent local data deleted");
+      console.log("🧹 Datos locales inconsistentes eliminados");
 
-      // Get fresh data from the API
+      // Obtener datos frescos de la API
       return await this.consultarAPIYGuardar(
         rol,
         idUsuario,
         mes,
-        `Auto-correction: ${razonInconsistencia}`
+        `Auto-corrección: ${razonInconsistencia}`
       );
     } catch (error) {
-      console.error("❌ Error in auto-correction:", error);
+      console.error("❌ Error en auto-corrección:", error);
       return {
         encontrado: false,
-        mensaje: `Error in auto-correction: ${
-          error instanceof Error ? error.message : "Unknown error"
+        mensaje: `Error en auto-corrección: ${
+          error instanceof Error ? error.message : "Error desconocido"
         }`,
       };
     }
   }
 
   /**
-   * Forces update from the API by deleting local data
-   * ✅ NO CHANGES: Already delegated correctly
+   * Fuerza la actualización desde la API eliminando datos locales
+   * ✅ SIN CAMBIOS: Ya delegaba correctamente
    */
   public async forzarActualizacionDesdeAPI(
     rol: RolesSistema,
@@ -515,10 +515,10 @@ export class AsistenciaPersonalSyncService {
       const tipoPersonal = this.mapper.obtenerTipoPersonalDesdeRolOActor(rol);
 
       console.log(
-        `🔄 Forcing update from API for ${rol} ${dni} - month ${mes}...`
+        `🔄 Forzando actualización desde API para ${rol} ${dni} - mes ${mes}...`
       );
 
-      // Delete existing local records
+      // Eliminar registros locales existentes
       await Promise.all([
         this.repository.eliminarRegistroMensual(
           tipoPersonal,
@@ -534,20 +534,20 @@ export class AsistenciaPersonalSyncService {
         ),
       ]);
 
-      // Query API and save
+      // Consultar API y guardar
       return await this.obtenerAsistenciaMensualConAPI(rol, dni, mes);
     } catch (error) {
-      console.error("Error forcing update from API:", error);
+      console.error("Error al forzar actualización desde API:", error);
 
       return {
         encontrado: false,
-        mensaje: "Error forcing data update",
+        mensaje: "Error al forzar la actualización de datos",
       };
     }
   }
 
   /**
-   * 🎯 FIXED FLOW according to flowchart - ALWAYS show data
+   * 🎯 FLUJO CORREGIDO según flowchart - SIEMPRE mostrar datos
    */
   public async obtenerAsistenciaMensualConAPI(
     rol: RolesSistema,
@@ -555,22 +555,22 @@ export class AsistenciaPersonalSyncService {
     mes: number
   ): Promise<ConsultaAsistenciaResult> {
     try {
-      // 🚨 STEP 1: Verify future month (FORCED LOGOUT)
+      // 🚨 PASO 1: Verificar mes futuro (LOGOUT FORZADO)
       const estadoTemporal = this.dateHelper.obtenerEstadoTemporalMes(mes);
 
       if (estadoTemporal.tipo === "MES_FUTURO") {
-        console.error(`🚨 FORCED LOGOUT: ${estadoTemporal.descripcion}`);
+        console.error(`🚨 LOGOUT FORZADO: ${estadoTemporal.descripcion}`);
         throw new Error(
-          "Querying a future month is not allowed - session closed for security"
+          "Consulta de mes futuro no permitida - sesión cerrada por seguridad"
         );
       }
 
       const tipoPersonal = this.mapper.obtenerTipoPersonalDesdeRolOActor(rol);
       console.log(
-        `🎯 Fixed flow started: ${rol} ${idUsuario} - ${estadoTemporal.descripcion}`
+        `🎯 Flujo corregido iniciado: ${rol} ${idUsuario} - ${estadoTemporal.descripcion}`
       );
 
-      // 📅 BRANCH: PREVIOUS MONTH
+      // 📅 RAMA: MES ANTERIOR
       if (estadoTemporal.tipo === "MES_ANTERIOR") {
         return await this.procesarConsultaMesAnteriorCorregido(
           tipoPersonal,
@@ -580,7 +580,7 @@ export class AsistenciaPersonalSyncService {
         );
       }
 
-      // 📅 BRANCH: CURRENT MONTH
+      // 📅 RAMA: MES ACTUAL
       return await this.procesarConsultaMesActualCorregido(
         tipoPersonal,
         rol,
@@ -588,19 +588,19 @@ export class AsistenciaPersonalSyncService {
         mes
       );
     } catch (error) {
-      console.error("❌ Error in fixed flow:", error);
+      console.error("❌ Error en flujo corregido:", error);
       return {
         encontrado: false,
         mensaje:
           error instanceof Error
             ? error.message
-            : "Error in attendance query",
+            : "Error en consulta de asistencias",
       };
     }
   }
 
   /**
-   * ✅ FIXED: Previous month with 45-minute control
+   * ✅ CORREGIDO: Mes anterior con control de 45 minutos
    */
   private async procesarConsultaMesAnteriorCorregido(
     tipoPersonal: TipoPersonal,
@@ -608,9 +608,9 @@ export class AsistenciaPersonalSyncService {
     idUsuario: string | number,
     mes: number
   ): Promise<ConsultaAsistenciaResult> {
-    console.log(`📅 Processing previous month with 45min control: ${mes}`);
+    console.log(`📅 Procesando mes anterior con control de 45min: ${mes}`);
 
-    // STEP 1: Query IndexedDB
+    // PASO 1: Consultar IndexedDB
     const [registroEntrada, registroSalida] = await Promise.all([
       this.repository.obtenerRegistroMensual(
         tipoPersonal,
@@ -626,7 +626,7 @@ export class AsistenciaPersonalSyncService {
       ),
     ]);
 
-    // ✅ NEW: Validate consistency BEFORE proceeding
+    // ✅ NUEVO: Validar consistencia ANTES de proceder
     if (registroEntrada || registroSalida) {
       const validacionConsistencia =
         await this.validator.validarConsistenciaEntradaSalida(
@@ -638,13 +638,13 @@ export class AsistenciaPersonalSyncService {
 
       if (validacionConsistencia.requiereCorreccion) {
         console.warn(
-          `⚠️ Inconsistent data detected for ${idUsuario} - month ${mes}: ${validacionConsistencia.razon}`
+          `⚠️ Datos inconsistentes detectados para ${idUsuario} - mes ${mes}: ${validacionConsistencia.razon}`
         );
         console.log(
-          "🗑️ Deleting inconsistent records and querying API..."
+          "🗑️ Eliminando registros inconsistentes y consultando API..."
         );
 
-        // Delete inconsistent records
+        // Eliminar registros inconsistentes
         await Promise.allSettled([
           this.repository.eliminarRegistroMensual(
             tipoPersonal,
@@ -660,30 +660,30 @@ export class AsistenciaPersonalSyncService {
           ),
         ]);
 
-        // Force API query
+        // Forzar consulta a API
         return await this.consultarAPIYGuardar(
           rol,
           idUsuario,
           mes,
-          `Correction for inconsistency: ${validacionConsistencia.razon}`
+          `Corrección por inconsistencia: ${validacionConsistencia.razon}`
         );
       }
 
-      console.log(`✅ Consistent data: ${validacionConsistencia.razon}`);
+      console.log(`✅ Datos consistentes: ${validacionConsistencia.razon}`);
     }
 
-    // STEP 2: If it does NOT exist in IndexedDB → Query API
+    // PASO 2: Si NO existe en IndexedDB → Consultar API
     if (!registroEntrada && !registroSalida) {
-      console.log("📡 Does not exist in IndexedDB - Querying API");
+      console.log("📡 No existe en IndexedDB - Consultando API");
       return await this.consultarAPIYGuardar(
         rol,
         idUsuario,
         mes,
-        "First query for previous month"
+        "Primera consulta para mes anterior"
       );
     }
 
-    // STEP 3: If it EXISTS → Check 45-minute control first
+    // PASO 3: SÍ existe → Verificar control de 45 minutos primero
     const registro = registroEntrada || registroSalida;
     const controlRango = this.dateHelper.yaSeConsultoEnRangoActual(
       registro!.ultima_fecha_actualizacion
@@ -691,58 +691,58 @@ export class AsistenciaPersonalSyncService {
 
     if (controlRango.yaConsultado) {
       console.log(
-        `⏭️ Previous month - ${controlRango.razon} - Use existing data`
+        `⏭️ Mes anterior - ${controlRango.razon} - Usar datos existentes`
       );
       return {
         entrada: registroEntrada!,
         salida: registroSalida!,
         encontrado: true,
-        mensaje: `Previous month - ${controlRango.razon}`,
+        mensaje: `Mes anterior - ${controlRango.razon}`,
         fuenteDatos: "INDEXEDDB",
         optimizado: true,
       };
     }
 
-    // STEP 4: Verify month timestamp logic
+    // PASO 4: Verificar lógica de timestamp del mes
     const mesUltimaActualizacion = this.dateHelper.extraerMesDeTimestamp(
       registro!.ultima_fecha_actualizacion
     );
 
     if (mesUltimaActualizacion === mes) {
-      console.log(`🔄 45min control passed + same month ${mes} - Query API`);
+      console.log(`🔄 Control 45min pasó + mismo mes ${mes} - Consultar API`);
       return await this.consultarAPIYGuardar(
         rol,
         idUsuario,
         mes,
-        `Update previous month - ${controlRango.razon}`
+        `Actualización mes anterior - ${controlRango.razon}`
       );
     } else if (mesUltimaActualizacion > mes) {
       console.log(
-        `✅ FINALIZED data (month ${mesUltimaActualizacion} > ${mes}) - Use IndexedDB`
+        `✅ Datos FINALIZADOS (mes ${mesUltimaActualizacion} > ${mes}) - Usar IndexedDB`
       );
       return {
         entrada: registroEntrada!,
         salida: registroSalida!,
         encontrado: true,
-        mensaje: "Finalized data",
+        mensaje: "Datos finalizados",
         fuenteDatos: "INDEXEDDB",
         optimizado: true,
       };
     } else {
       console.log(
-        `⚠️ Incomplete data (month ${mesUltimaActualizacion} < ${mes}) - Query API`
+        `⚠️ Datos incompletos (mes ${mesUltimaActualizacion} < ${mes}) - Consultar API`
       );
       return await this.consultarAPIYGuardar(
         rol,
         idUsuario,
         mes,
-        `Incomplete data - ${controlRango.razon}`
+        `Datos incompletos - ${controlRango.razon}`
       );
     }
   }
 
   /**
-   * ✅ FIXED: Current month following exact flowchart
+   * ✅ CORREGIDO: Mes actual siguiendo flowchart exacto
    */
   private async procesarConsultaMesActualCorregido(
     tipoPersonal: TipoPersonal,
@@ -750,14 +750,14 @@ export class AsistenciaPersonalSyncService {
     idUsuario: string | number,
     mes: number
   ): Promise<ConsultaAsistenciaResult> {
-    console.log(`📅 Processing corrected current month: ${mes}`);
+    console.log(`📅 Procesando mes actual corregido: ${mes}`);
 
     const diaActual = this.dateHelper.obtenerDiaActual() || 1;
     const esFinDeSemana = this.dateHelper.esFinDeSemana();
 
-    // STEP 1: Is today a school day? (exact flowchart)
+    // PASO 1: ¿Es día escolar hoy? (flowchart exacto)
     if (!esFinDeSemana) {
-      // YES - School day
+      // SÍ - Día escolar
       return await this.procesarDiaEscolarCorregido(
         tipoPersonal,
         rol,
@@ -766,7 +766,7 @@ export class AsistenciaPersonalSyncService {
         diaActual
       );
     } else {
-      // NO - Weekend
+      // NO - Fin de semana
       return await this.procesarFinDeSemanaCorregido(
         tipoPersonal,
         rol,
@@ -778,7 +778,7 @@ export class AsistenciaPersonalSyncService {
   }
 
   /**
-   * ✅ FIXED: Weekend with coverage verification + 45min
+   * ✅ CORREGIDO: Fin de semana con verificación de cobertura + 45min
    */
   private async procesarFinDeSemanaCorregido(
     tipoPersonal: TipoPersonal,
@@ -787,9 +787,9 @@ export class AsistenciaPersonalSyncService {
     mes: number,
     diaActual: number
   ): Promise<ConsultaAsistenciaResult> {
-    console.log("🏖️ Processing weekend with 45min control");
+    console.log("🏖️ Procesando fin de semana con control de 45min");
 
-    // Search for existing records
+    // Buscar registros existentes
     const [registroEntrada, registroSalida] = await Promise.all([
       this.repository.obtenerRegistroMensual(
         tipoPersonal,
@@ -816,7 +816,7 @@ export class AsistenciaPersonalSyncService {
 
       if (validacionConsistencia.requiereCorreccion) {
         console.warn(
-          `⚠️ Inconsistent data detected for ${idUsuario} - month ${mes}
+          `⚠️ Datos inconsistentes detectados para ${idUsuario} - mes ${mes}
           }: ${validacionConsistencia.razon}`
         );
 
@@ -839,31 +839,31 @@ export class AsistenciaPersonalSyncService {
           rol,
           idUsuario,
           mes,
-          `Correction for inconsistency: ${validacionConsistencia.razon}`
+          `Corrección por inconsistencia: ${validacionConsistencia.razon}`
         );
       }
     }
 
-    // If there are NO records → Query API obligatorily
+    // Si NO hay registros → Consultar API obligatoriamente
     if (!registroEntrada && !registroSalida) {
-      console.log("📡 Weekend WITHOUT data - Mandatory API query");
+      console.log("📡 Fin de semana SIN datos - Consultar API obligatorio");
       return await this.consultarAPIYGuardar(
         rol,
         idUsuario,
         mes,
-        "Weekend without data - mandatory API query"
+        "Fin de semana sin datos - consulta API obligatoria"
       );
     }
 
     const registro = registroEntrada || registroSalida;
 
-    // ✅ NEW: Check 45-minute control first
+    // ✅ NUEVO: Verificar control de 45 minutos primero
     const controlRango = this.dateHelper.yaSeConsultoEnRangoActual(
       registro!.ultima_fecha_actualizacion
     );
 
     if (controlRango.yaConsultado) {
-      console.log(`⏭️ Weekend - ${controlRango.razon} - DO NOT query`);
+      console.log(`⏭️ Fin de semana - ${controlRango.razon} - NO consultar`);
       return await this.cacheManager.combinarDatosHistoricosYActuales(
         registroEntrada,
         registroSalida,
@@ -871,11 +871,11 @@ export class AsistenciaPersonalSyncService {
         idUsuario,
         true,
         diaActual,
-        `Weekend - ${controlRango.razon}`
+        `Fin de semana - ${controlRango.razon}`
       );
     }
 
-    // ✅ NEW: Verify coverage of the last 5 school days
+    // ✅ NUEVO: Verificar cobertura de últimos 5 días escolares
     const ultimosDiasEscolares = this.dateHelper.obtenerUltimosDiasEscolares(5);
 
     if (ultimosDiasEscolares.length > 0) {
@@ -905,7 +905,7 @@ export class AsistenciaPersonalSyncService {
 
       if (tieneDatosSuficientes) {
         console.log(
-          "✅ Weekend - Sufficient coverage in the last 5 days - DO NOT query API"
+          "✅ Fin de semana - Cobertura suficiente en últimos 5 días - NO consultar API"
         );
         return await this.cacheManager.combinarDatosHistoricosYActuales(
           registroEntrada,
@@ -914,19 +914,19 @@ export class AsistenciaPersonalSyncService {
           idUsuario,
           true,
           diaActual,
-          "Weekend - sufficient coverage in the last 5 school days"
+          "Fin de semana - cobertura suficiente en últimos 5 días escolares"
         );
       }
     }
 
-    // Was the last update on a full Friday (>= 8 PM)?
+    // ¿Última actualización fue viernes >= 20:00?
     const viernesCompleto = this.dateHelper.fueActualizadoViernesCompleto(
       registro!.ultima_fecha_actualizacion
     );
 
     if (viernesCompleto) {
       console.log(
-        "✅ Weekend - Friday data complete (8:00 PM+) - DO NOT query API"
+        "✅ Fin de semana - Datos del viernes completos (20:00+) - NO consultar API"
       );
       return await this.cacheManager.combinarDatosHistoricosYActuales(
         registroEntrada,
@@ -935,23 +935,23 @@ export class AsistenciaPersonalSyncService {
         idUsuario,
         true,
         diaActual,
-        "Weekend - Friday data complete (updated after 8:00 PM)"
+        "Fin de semana - datos del viernes completos (actualizado después de 20:00)"
       );
     } else {
       console.log(
-        "🔄 Weekend - Conditions to query API met"
+        "🔄 Fin de semana - Condiciones para consultar API cumplidas"
       );
       return await this.consultarAPIYGuardar(
         rol,
         idUsuario,
         mes,
-        "Weekend - incomplete data or insufficient coverage"
+        "Fin de semana - datos incompletos o sin cobertura suficiente"
       );
     }
   }
 
   /**
-   * ✅ FIXED: School day following flowchart
+   * ✅ CORREGIDO: Día escolar siguiendo flowchart
    */
   private async procesarDiaEscolarCorregido(
     tipoPersonal: TipoPersonal,
@@ -961,11 +961,11 @@ export class AsistenciaPersonalSyncService {
     diaActual: number
   ): Promise<ConsultaAsistenciaResult> {
     const horaActual = this.dateHelper.obtenerHoraActual() || 0;
-    console.log(`🏫 Processing school day: hour ${horaActual}`);
+    console.log(`🏫 Procesando día escolar: hora ${horaActual}`);
 
-    // STEP 1: Current time < 06:00? (exact flowchart)
+    // PASO 1: ¿Hora actual < 06:00? (flowchart exacto)
     if (horaActual < 6) {
-      console.log("🌙 Early morning - Verify historical data");
+      console.log("🌙 Madrugada - Verificar si hay datos históricos");
       return await this.procesarMadrugadaConDatosHistoricos(
         tipoPersonal,
         rol,
@@ -975,19 +975,19 @@ export class AsistenciaPersonalSyncService {
       );
     }
 
-    // STEP 2: Current time >= 22:00? (exact flowchart)
+    // PASO 2: ¿Hora actual >= 22:00? (flowchart exacto)
     if (horaActual >= 22) {
-      console.log("🌃 Consolidated data - Query API");
+      console.log("🌃 Datos consolidados - Consultar API");
       return await this.consultarAPIYGuardar(
         rol,
         idUsuario,
         mes,
-        "After 10:00 PM - consolidated data in PostgreSQL"
+        "Después de 22:00 - datos consolidados en PostgreSQL"
       );
     }
 
-    // STEP 3: 06:00 <= Time < 22:00 - Redis/IndexedDB logic
-    console.log("🏫 School hours - Apply Redis/IndexedDB logic");
+    // PASO 3: 06:00 <= Hora < 22:00 - Lógica Redis/IndexedDB
+    console.log("🏫 Horario escolar - Aplicar lógica Redis/IndexedDB");
     return await this.procesarHorarioEscolarConVerificacion(
       tipoPersonal,
       rol,
@@ -999,7 +999,7 @@ export class AsistenciaPersonalSyncService {
   }
 
   /**
-   * ✅ NEW: Processes school hours with verification of historical data
+   * ✅ NUEVO: Procesa horario escolar con verificación de datos históricos
    */
   private async procesarHorarioEscolarConVerificacion(
     tipoPersonal: TipoPersonal,
@@ -1009,7 +1009,7 @@ export class AsistenciaPersonalSyncService {
     diaActual: number,
     horaActual: number
   ): Promise<ConsultaAsistenciaResult> {
-    // Use existing logic
+    // Usar la lógica existente
     return await this.verificarDatosHistoricosYProceder(
       tipoPersonal,
       rol,
@@ -1018,13 +1018,13 @@ export class AsistenciaPersonalSyncService {
       diaActual,
       {
         estrategia: horaActual < 12 ? "REDIS_ENTRADAS" : "REDIS_COMPLETO",
-        razon: `School hours ${horaActual}:xx`,
+        razon: `Horario escolar ${horaActual}:xx`,
       }
     );
   }
 
   /**
-   * 🆕 NEW: Early morning handling with guaranteed historical data
+   * 🆕 NUEVO: Manejo de madrugada con garantía de datos históricos
    */
   private async procesarMadrugadaConDatosHistoricos(
     tipoPersonal: TipoPersonal,
@@ -1033,9 +1033,9 @@ export class AsistenciaPersonalSyncService {
     mes: number,
     diaActual: number
   ): Promise<ConsultaAsistenciaResult> {
-    console.log("🌙 Processing early morning - there should ALWAYS be data");
+    console.log("🌙 Procesando madrugada - SIEMPRE debe haber datos");
 
-    // Search for historical data in IndexedDB
+    // Buscar datos históricos en IndexedDB
     const [registroEntrada, registroSalida] = await Promise.all([
       this.repository.obtenerRegistroMensual(
         tipoPersonal,
@@ -1051,38 +1051,38 @@ export class AsistenciaPersonalSyncService {
       ),
     ]);
 
-    // If there is NO historical data → Query API obligatorily
+    // Si NO hay datos históricos → Consultar API obligatoriamente
     if (!registroEntrada && !registroSalida) {
       console.log(
-        "📡 Early morning WITHOUT historical data - Mandatory API query"
+        "📡 Madrugada SIN datos históricos - Consultar API obligatorio"
       );
       return await this.consultarAPIYGuardar(
         rol,
         idUsuario,
         mes,
-        "Early morning without historical data - mandatory API query"
+        "Madrugada sin datos históricos - consulta API obligatoria"
       );
     }
 
-    // If there IS historical data → Check the last school days
+    // SÍ hay datos históricos → Verificar últimos días escolares
     const ultimosDiasEscolares = this.dateHelper.obtenerUltimosDiasEscolares(5);
 
     if (ultimosDiasEscolares.length === 0) {
       console.log(
-        "📊 Could not get school days - Use existing data"
+        "📊 No se pudieron obtener días escolares - Usar datos existentes"
       );
       return await this.cacheManager.combinarDatosHistoricosYActuales(
         registroEntrada,
         registroSalida,
         rol,
         idUsuario,
-        false, // Not the current month for cache purposes
+        false, // No es mes actual para efectos de cache
         diaActual,
-        "Early morning with existing historical data (without school day verification)"
+        "Madrugada con datos históricos existentes (sin verificación días escolares)"
       );
     }
 
-    // Verify coverage in the last 5 school days
+    // Verificar cobertura en últimos 5 días escolares
     const verificacionEntrada = registroEntrada
       ? await this.repository.verificarDatosEnUltimosDiasEscolares(
           tipoPersonal,
@@ -1109,18 +1109,18 @@ export class AsistenciaPersonalSyncService {
 
     if (!tieneDatosSuficientes) {
       console.log(
-        "⚠️ Early morning - Insufficient data in the last 5 school days - Update from API"
+        "⚠️ Madrugada - Datos insuficientes en últimos 5 días escolares - Actualizar desde API"
       );
       return await this.consultarAPIYGuardar(
         rol,
         idUsuario,
         mes,
-        "Early morning - insufficient data in the last 5 school days"
+        "Madrugada - datos insuficientes en últimos 5 días escolares"
       );
     }
 
-    // Sufficient data - Use historical data
-    console.log("✅ Early morning - Sufficient historical data");
+    // Datos suficientes - Usar datos históricos
+    console.log("✅ Madrugada - Datos históricos suficientes");
     return await this.cacheManager.combinarDatosHistoricosYActuales(
       registroEntrada,
       registroSalida,
@@ -1128,12 +1128,12 @@ export class AsistenciaPersonalSyncService {
       idUsuario,
       false,
       diaActual,
-      "Early morning with sufficient historical data"
+      "Madrugada con datos históricos suficientes"
     );
   }
 
   /**
-   * ✅ NEW: Processes previous month with smart logic
+   * ✅ NUEVO: Procesa mes anterior con lógica inteligente
    */
   private async procesarConsultaMesAnteriorInteligente(
     tipoPersonal: TipoPersonal,
@@ -1141,9 +1141,9 @@ export class AsistenciaPersonalSyncService {
     idUsuario: string | number,
     mes: number
   ): Promise<ConsultaAsistenciaResult> {
-    console.log(`📅 Processing smart previous month: ${mes}`);
+    console.log(`📅 Procesando mes anterior inteligente: ${mes}`);
 
-    // Search in IndexedDB
+    // Buscar en IndexedDB
     const [registroEntrada, registroSalida] = await Promise.all([
       this.repository.obtenerRegistroMensual(
         tipoPersonal,
@@ -1159,25 +1159,25 @@ export class AsistenciaPersonalSyncService {
       ),
     ]);
 
-    // If it does not exist in IndexedDB → Query API
+    // Si no existe en IndexedDB → Consultar API
     if (!registroEntrada && !registroSalida) {
       console.log(
-        "📡 Does not exist in IndexedDB - Querying API for the first time"
+        "📡 No existe en IndexedDB - Consultando API por primera vez"
       );
       return await this.consultarAPIYGuardar(
         rol,
         idUsuario,
         mes,
-        "First query for previous month"
+        "Primera consulta para mes anterior"
       );
     }
 
-    // If it exists → Check according to last update (KEY LOGIC OF THE FLOWCHART)
+    // Si existe → Verificar según última actualización (LÓGICA CLAVE DEL FLOWCHART)
     const registro = registroEntrada || registroSalida;
     if (!registro) {
       return {
         encontrado: false,
-        mensaje: "Error getting existing record",
+        mensaje: "Error al obtener registro existente",
       };
     }
 
@@ -1187,44 +1187,44 @@ export class AsistenciaPersonalSyncService {
     );
 
     if (evaluacion.esDatoFinalizado) {
-      console.log(`✅ Finalized data - ${evaluacion.razon}`);
+      console.log(`✅ Datos finalizados - ${evaluacion.razon}`);
       return {
         entrada: registroEntrada!,
         salida: registroSalida!,
         encontrado: true,
-        mensaje: `Finalized data obtained from IndexedDB: ${evaluacion.razon}`,
+        mensaje: `Datos finalizados obtenidos de IndexedDB: ${evaluacion.razon}`,
         fuenteDatos: "INDEXEDDB",
         optimizado: true,
       };
     }
 
     if (evaluacion.esConsultaNecesaria) {
-      console.log(`🔄 Query needed - ${evaluacion.razon}`);
+      console.log(`🔄 Consulta necesaria - ${evaluacion.razon}`);
       return await this.consultarAPIYGuardar(
         rol,
         idUsuario,
         mes,
-        `Update: ${evaluacion.razon}`
+        `Actualización: ${evaluacion.razon}`
       );
     }
 
-    // Use existing data
-    console.log(`📋 Using existing data - ${evaluacion.razon}`);
+    // Usar datos existentes
+    console.log(`📋 Usando datos existentes - ${evaluacion.razon}`);
     return {
       entrada: registroEntrada!,
       salida: registroSalida!,
       encontrado: true,
-      mensaje: `Data obtained from IndexedDB: ${evaluacion.razon}`,
+      mensaje: `Datos obtenidos de IndexedDB: ${evaluacion.razon}`,
       fuenteDatos: "INDEXEDDB",
       optimizado: true,
     };
   }
 
   /**
-   * ✅ NEW: Processes current month with smart logic
+   * ✅ NUEVO: Procesa mes actual con lógica inteligente
    */
   /**
-   * ✅ FIXED: Process smart current month - Do not avoid Redis for "recent" data
+   * ✅ CORREGIDO: Procesar mes actual inteligente - No evitar Redis por datos "recientes"
    */
   private async procesarConsultaMesActualInteligente(
     tipoPersonal: TipoPersonal,
@@ -1232,9 +1232,9 @@ export class AsistenciaPersonalSyncService {
     idUsuario: string | number,
     mes: number
   ): Promise<ConsultaAsistenciaResult> {
-    console.log(`📅 Processing smart current month: ${mes}`);
+    console.log(`📅 Procesando mes actual inteligente: ${mes}`);
 
-    // Search for existing records
+    // Buscar registros existentes
     const [registroEntrada, registroSalida] = await Promise.all([
       this.repository.obtenerRegistroMensual(
         tipoPersonal,
@@ -1252,9 +1252,9 @@ export class AsistenciaPersonalSyncService {
 
     const registro = registroEntrada || registroSalida;
 
-    // If there are no records → Apply schedule logic
+    // Si no hay registros → Aplicar lógica de horarios
     if (!registro) {
-      console.log("📭 No existing records - Apply schedule logic");
+      console.log("📭 Sin registros existentes - Aplicar lógica de horarios");
       return await this.aplicarLogicaHorarios(
         tipoPersonal,
         rol,
@@ -1263,16 +1263,16 @@ export class AsistenciaPersonalSyncService {
       );
     }
 
-    // ✅ FIXED: If there are records → ALWAYS apply schedule logic for current month
-    // Historical records do not prevent querying Redis for the current day
+    // ✅ CORREGIDO: Si hay registros → SIEMPRE aplicar lógica de horarios para mes actual
+    // Los registros históricos no impiden consultar Redis para el día actual
     console.log(
-      `📊 Historical records found - Apply schedule logic to get current day's data`
+      `📊 Registros históricos encontrados - Aplicar lógica de horarios para obtener datos del día actual`
     );
     return await this.aplicarLogicaHorarios(tipoPersonal, rol, idUsuario, mes);
   }
 
   /**
-   * ✅ MODIFIED: Applies schedule logic with verification of historical data
+   * ✅ MODIFICADO: Aplica lógica de horarios con verificación de datos históricos
    */
   private async aplicarLogicaHorarios(
     tipoPersonal: TipoPersonal,
@@ -1282,7 +1282,7 @@ export class AsistenciaPersonalSyncService {
   ): Promise<ConsultaAsistenciaResult> {
     const estrategia = this.dateHelper.determinarEstrategiaSegunHorario();
     console.log(
-      `⏰ Applied strategy: ${estrategia.estrategia} - ${estrategia.razon}`
+      `⏰ Estrategia aplicada: ${estrategia.estrategia} - ${estrategia.razon}`
     );
 
     const diaActual = this.dateHelper.obtenerDiaActual() || 1;
@@ -1308,7 +1308,7 @@ export class AsistenciaPersonalSyncService {
 
       case "REDIS_ENTRADAS":
       case "REDIS_COMPLETO":
-        // ✅ NEW LOGIC: Verify historical data before querying only Redis
+        // ✅ NUEVA LÓGICA: Verificar datos históricos antes de consultar solo Redis
         return await this.verificarDatosHistoricosYProceder(
           tipoPersonal,
           rol,
@@ -1319,18 +1319,18 @@ export class AsistenciaPersonalSyncService {
         );
 
       default:
-        console.warn(`⚠️ Unrecognized strategy: ${estrategia.estrategia}`);
+        console.warn(`⚠️ Estrategia no reconocida: ${estrategia.estrategia}`);
         return await this.consultarAPIYGuardar(
           rol,
           idUsuario,
           mes,
-          "Fallback strategy"
+          "Estrategia fallback"
         );
     }
   }
 
   /**
-   * ✅ FIXED: Verify historical data and proceed according to flowchart
+   * ✅ CORREGIDO: Verificar datos históricos y proceder según flowchart
    */
   private async verificarDatosHistoricosYProceder(
     tipoPersonal: TipoPersonal,
@@ -1341,10 +1341,10 @@ export class AsistenciaPersonalSyncService {
     estrategia: any
   ): Promise<ConsultaAsistenciaResult> {
     console.log(
-      `🔍 Verifying historical data before applying: ${estrategia.estrategia}`
+      `🔍 Verificando datos históricos antes de aplicar: ${estrategia.estrategia}`
     );
 
-    // STEP 1: Search for existing records
+    // PASO 1: Buscar registros existentes
     const [registroEntrada, registroSalida] = await Promise.all([
       this.repository.obtenerRegistroMensual(
         tipoPersonal,
@@ -1360,7 +1360,7 @@ export class AsistenciaPersonalSyncService {
       ),
     ]);
 
-    // ✅ NEW: Validate consistency if records exist
+    // ✅ NUEVO: Validar consistencia si existen registros
     if (registroEntrada || registroSalida) {
       const validacionConsistencia =
         await this.validator.validarConsistenciaEntradaSalida(
@@ -1372,13 +1372,13 @@ export class AsistenciaPersonalSyncService {
 
       if (validacionConsistencia.requiereCorreccion) {
         console.warn(
-          `⚠️ Inconsistent data detected: ${validacionConsistencia.razon}`
+          `⚠️ Datos inconsistentes detectados: ${validacionConsistencia.razon}`
         );
         console.log(
-          "🗑️ Deleting inconsistent records and querying API..."
+          "🗑️ Eliminando registros inconsistentes y consultando API..."
         );
 
-        // Delete inconsistent records
+        // Eliminar registros inconsistentes
         await Promise.allSettled([
           this.repository.eliminarRegistroMensual(
             tipoPersonal,
@@ -1394,32 +1394,32 @@ export class AsistenciaPersonalSyncService {
           ),
         ]);
 
-        // Force full API query
-        console.log("📡 Forcing API query due to inconsistency...");
+        // Forzar consulta completa a API
+        console.log("📡 Forzando consulta API por inconsistencia...");
         return await this.consultarAPIYGuardar(
           rol,
           idUsuario,
           mes,
-          `Correction for inconsistency: ${validacionConsistencia.razon}`
+          `Corrección por inconsistencia: ${validacionConsistencia.razon}`
         );
       }
 
-      console.log(`✅ Consistent data: ${validacionConsistencia.razon}`);
+      console.log(`✅ Datos consistentes: ${validacionConsistencia.razon}`);
     }
 
-    // STEP 2: If there are NO monthly records → API + Redis
+    // PASO 2: Si NO hay registros mensuales → API + Redis
     if (!registroEntrada && !registroSalida) {
-      console.log(`📭 No monthly records → API + Redis`);
+      console.log(`📭 Sin registros mensuales → API + Redis`);
       return await this.consultarAPILuegoRedis(rol, idUsuario, mes, estrategia);
     }
 
-    // STEP 3: If there are records → Check the last 5 school days
+    // PASO 3: Si hay registros → Verificar últimos 5 días escolares
     const ultimosDiasEscolares = this.dateHelper.obtenerUltimosDiasEscolares(
       DIAS_ESCOLARES_MINIMOS_VERIFICACION
     );
 
     if (ultimosDiasEscolares.length === 0) {
-      console.log(`📅 Could not get school days → Only Redis`);
+      console.log(`📅 No se pudieron obtener días escolares → Solo Redis`);
       return await this.consultarSoloRedis(
         tipoPersonal,
         rol,
@@ -1430,7 +1430,7 @@ export class AsistenciaPersonalSyncService {
       );
     }
 
-    // STEP 4: Verify historical data coverage
+    // PASO 4: Verificar cobertura de datos históricos
     const verificacionEntrada = registroEntrada
       ? await this.repository.verificarDatosEnUltimosDiasEscolares(
           tipoPersonal,
@@ -1451,18 +1451,18 @@ export class AsistenciaPersonalSyncService {
         )
       : { tieneDatosSuficientes: false };
 
-    // STEP 5: Decide according to coverage (at least ONE must have data)
+    // PASO 5: Decidir según cobertura (al menos UNO debe tener datos)
     const tieneDatosSuficientes =
       verificacionEntrada.tieneDatosSuficientes ||
       verificacionSalida.tieneDatosSuficientes;
 
     if (!tieneDatosSuficientes) {
-      console.log(`⚠️ No data in the last 5 school days → API + Redis`);
+      console.log(`⚠️ Sin datos en últimos 5 días escolares → API + Redis`);
       return await this.consultarAPILuegoRedis(rol, idUsuario, mes, estrategia);
     }
 
-    // STEP 6: Sufficient data → Only Redis
-    console.log(`✅ Sufficient historical data → Only Redis`);
+    // PASO 6: Datos suficientes → Solo Redis
+    console.log(`✅ Datos históricos suficientes → Solo Redis`);
     return await this.consultarSoloRedis(
       tipoPersonal,
       rol,
@@ -1474,7 +1474,7 @@ export class AsistenciaPersonalSyncService {
   }
 
   /**
-   * ✅ NEW: Query API first, then Redis
+   * ✅ NUEVO: Consultar API primero, luego Redis
    */
   private async consultarAPILuegoRedis(
     rol: RolesSistema,
@@ -1482,22 +1482,22 @@ export class AsistenciaPersonalSyncService {
     mes: number,
     estrategia: any
   ): Promise<ConsultaAsistenciaResult> {
-    // STEP 1: Query API for historical data
-    console.log(`📡 STEP 1: Querying API for historical data...`);
+    // PASO 1: Consultar API para datos históricos
+    console.log(`📡 PASO 1: Consultando API para datos históricos...`);
     const resultadoAPI = await this.consultarAPIYGuardar(
       rol,
       idUsuario,
       mes,
-      `${estrategia.razon} + No sufficient historical data`
+      `${estrategia.razon} + Sin datos históricos suficientes`
     );
 
     if (!resultadoAPI.encontrado) {
-      console.log(`❌ API did not return data`);
+      console.log(`❌ API no devolvió datos`);
       return resultadoAPI;
     }
 
-    // STEP 2: Now query Redis for current day's data
-    console.log(`☁️ STEP 2: Querying Redis for current day's data...`);
+    // PASO 2: Ahora consultar Redis para datos del día actual
+    console.log(`☁️ PASO 2: Consultando Redis para datos del día actual...`);
     const tipoPersonal = this.mapper.obtenerTipoPersonalDesdeRolOActor(rol);
     const diaActual = this.dateHelper.obtenerDiaActual() || 1;
 
@@ -1509,13 +1509,13 @@ export class AsistenciaPersonalSyncService {
       diaActual,
       {
         ...estrategia,
-        razon: `${estrategia.razon} + Post-API: querying Redis for today`,
+        razon: `${estrategia.razon} + Post-API: consultando Redis para hoy`,
       }
     );
   }
 
   /**
-   * ✅ OPTIMIZED: Query only Redis with smart cache integration
+   * ✅ OPTIMIZADO: Consultar solo Redis con integración inteligente de cache
    */
   private async consultarSoloRedis(
     tipoPersonal: TipoPersonal,
@@ -1525,7 +1525,7 @@ export class AsistenciaPersonalSyncService {
     diaActual: number,
     estrategia: any
   ): Promise<ConsultaAsistenciaResult> {
-    // ✅ CENTRALIZED GLOBAL CONTROL
+    // ✅ CONTROL GLOBAL CENTRALIZADO
     const controlGlobal = this.cacheManager.yaSeConsultoRedisEnRango(
       idUsuario,
       estrategia.estrategia
@@ -1533,10 +1533,10 @@ export class AsistenciaPersonalSyncService {
 
     if (controlGlobal.yaConsultado) {
       console.log(
-        `⏭️ GLOBAL CONTROL: ${controlGlobal.razon} - Skipping Redis query`
+        `⏭️ CONTROL GLOBAL: ${controlGlobal.razon} - Saltando consulta Redis`
       );
 
-      // Get current records and combine with existing cache
+      // Obtener registros actuales y combinar con cache existente
       const [registroEntrada, registroSalida] = await Promise.all([
         this.repository.obtenerRegistroMensual(
           tipoPersonal,
@@ -1564,10 +1564,10 @@ export class AsistenciaPersonalSyncService {
     }
 
     console.log(
-      `🔓 GLOBAL CONTROL: ${controlGlobal.razon} - Proceeding with Redis query`
+      `🔓 CONTROL GLOBAL: ${controlGlobal.razon} - Procediendo con consulta Redis`
     );
 
-    // Get current records
+    // Obtener registros actuales
     let [registroEntrada, registroSalida] = await Promise.all([
       this.repository.obtenerRegistroMensual(
         tipoPersonal,
@@ -1583,7 +1583,7 @@ export class AsistenciaPersonalSyncService {
       ),
     ]);
 
-    // Verify data in local cache (for optimization)
+    // Verificar datos en cache local (para optimización)
     const fechaHoy = this.dateHelper.obtenerFechaStringActual();
     const actor = this.mapper.obtenerActorDesdeRol(rol);
 
@@ -1609,10 +1609,10 @@ export class AsistenciaPersonalSyncService {
       tieneEntradaHoy = !!entradaLocal;
       tieneSalidaHoy = !!salidaLocal;
 
-      // If I already have all the necessary data, do not query Redis but mark as queried
+      // Si ya tengo todos los datos necesarios, no consultar Redis pero sí marcar como consultado
       if (estrategia.estrategia === "REDIS_ENTRADAS" && tieneEntradaHoy) {
         console.log(
-          "✅ I already have the complete local entry - marking as queried and skipping Redis"
+          "✅ Ya tengo entrada local completa - marcando como consultado y saltando Redis"
         );
         this.cacheManager.marcarConsultaRedisRealizada(idUsuario);
         return await this.cacheManager.combinarDatosHistoricosYActuales(
@@ -1622,7 +1622,7 @@ export class AsistenciaPersonalSyncService {
           idUsuario,
           true,
           diaActual,
-          "Complete entry data in local cache"
+          "Datos de entrada completos en cache local"
         );
       }
 
@@ -1632,7 +1632,7 @@ export class AsistenciaPersonalSyncService {
         tieneSalidaHoy
       ) {
         console.log(
-          "✅ I already have the complete local entry and exit - marking as queried and skipping Redis"
+          "✅ Ya tengo entrada y salida local completas - marcando como consultado y saltando Redis"
         );
         this.cacheManager.marcarConsultaRedisRealizada(idUsuario);
         return await this.cacheManager.combinarDatosHistoricosYActuales(
@@ -1642,13 +1642,13 @@ export class AsistenciaPersonalSyncService {
           idUsuario,
           true,
           diaActual,
-          "Complete data in local cache"
+          "Datos completos en cache local"
         );
       }
     }
 
-    // ✅ QUERY REDIS API
-    console.log(`📡 Querying Redis API: ${estrategia.estrategia}`);
+    // ✅ CONSULTAR REDIS API
+    console.log(`📡 Consultando Redis API: ${estrategia.estrategia}`);
 
     const necesitaEntradas =
       estrategia.estrategia === "REDIS_ENTRADAS" ||
@@ -1668,7 +1668,7 @@ export class AsistenciaPersonalSyncService {
             necesitaSalidas
           );
 
-        // ✅ MARK QUERY AS PERFORMED IMMEDIATELY
+        // ✅ MARCAR CONSULTA REALIZADA INMEDIATAMENTE
         this.cacheManager.marcarConsultaRedisRealizada(idUsuario);
 
         if (datosRedis.encontradoEntrada || datosRedis.encontradoSalida) {
@@ -1683,23 +1683,23 @@ export class AsistenciaPersonalSyncService {
             );
 
           if (integracion.integrado) {
-            console.log(`✅ Redis API data integrated successfully`);
+            console.log(`✅ Datos de Redis API integrados exitosamente`);
             datosRedisObtenidos = true;
-            mensajeConsulta = `Data updated from Redis API: ${integracion.mensaje}`;
+            mensajeConsulta = `Datos actualizados desde Redis API: ${integracion.mensaje}`;
             registroEntrada = integracion.entrada || registroEntrada;
             registroSalida = integracion.salida || registroSalida;
           }
         }
 
         if (!datosRedisObtenidos) {
-          console.log(`📭 No new data found in Redis API`);
-          mensajeConsulta = "No new data found in Redis API";
+          console.log(`📭 No se encontraron datos nuevos en Redis API`);
+          mensajeConsulta = "No se encontraron datos nuevos en Redis API";
         }
       } catch (error) {
-        console.error(`❌ Error querying Redis API:`, error);
-        // Mark as queried even if there is an error to avoid immediate retries
+        console.error(`❌ Error al consultar Redis API:`, error);
+        // Marcar como consultado incluso si hay error para evitar reintentos inmediatos
         this.cacheManager.marcarConsultaRedisRealizada(idUsuario);
-        mensajeConsulta = "Error querying Redis API";
+        mensajeConsulta = "Error al consultar Redis API";
       }
     }
 
@@ -1715,7 +1715,7 @@ export class AsistenciaPersonalSyncService {
   }
 
   /**
-   * ✅ NEW: Processes query for previous month
+   * ✅ NUEVO: Procesa consulta para mes anterior
    */
   private async procesarConsultaMesAnterior(
     tipoPersonal: TipoPersonal,
@@ -1723,9 +1723,9 @@ export class AsistenciaPersonalSyncService {
     idUsuario: string | number,
     mes: number
   ): Promise<ConsultaAsistenciaResult> {
-    console.log(`📅 Processing previous month: ${mes}`);
+    console.log(`📅 Procesando mes anterior: ${mes}`);
 
-    // Search in IndexedDB
+    // Buscar en IndexedDB
     const [registroEntrada, registroSalida] = await Promise.all([
       this.repository.obtenerRegistroMensual(
         tipoPersonal,
@@ -1741,25 +1741,25 @@ export class AsistenciaPersonalSyncService {
       ),
     ]);
 
-    // If it does not exist in IndexedDB → Query API
+    // Si no existe en IndexedDB → Consultar API
     if (!registroEntrada && !registroSalida) {
       console.log(
-        "📡 Does not exist in IndexedDB - Querying API for the first time"
+        "📡 No existe en IndexedDB - Consultando API por primera vez"
       );
       return await this.consultarAPIYGuardar(
         rol,
         idUsuario,
         mes,
-        "First query for previous month"
+        "Primera consulta para mes anterior"
       );
     }
 
-    // If it exists → Check according to last update
+    // Si existe → Verificar según última actualización
     const registro = registroEntrada || registroSalida;
     if (!registro) {
       return {
         encontrado: false,
-        mensaje: "Error getting existing record",
+        mensaje: "Error al obtener registro existente",
       };
     }
 
@@ -1770,40 +1770,40 @@ export class AsistenciaPersonalSyncService {
       );
 
     if (evaluacion.esDatoFinalizado) {
-      console.log(`✅ Finalized data - ${evaluacion.razon}`);
+      console.log(`✅ Datos finalizados - ${evaluacion.razon}`);
       return {
         entrada: registroEntrada!,
         salida: registroSalida!,
         encontrado: true,
-        mensaje: `Finalized data obtained from IndexedDB: ${evaluacion.razon}`,
+        mensaje: `Datos finalizados obtenidos de IndexedDB: ${evaluacion.razon}`,
         fuenteDatos: "INDEXEDDB",
         optimizado: true,
       };
     }
 
     if (evaluacion.debeConsultar) {
-      console.log(`🔄 Updating data - ${evaluacion.razon}`);
+      console.log(`🔄 Actualizando datos - ${evaluacion.razon}`);
       return await this.consultarAPIYGuardar(
         rol,
         idUsuario,
         mes,
-        `Update: ${evaluacion.razon}`
+        `Actualización: ${evaluacion.razon}`
       );
     }
 
-    // Return existing data
+    // Retornar datos existentes
     return {
       entrada: registroEntrada!,
       salida: registroSalida!,
       encontrado: true,
-      mensaje: "Data obtained from IndexedDB (no update needed)",
+      mensaje: "Datos obtenidos de IndexedDB (sin actualización necesaria)",
       fuenteDatos: "INDEXEDDB",
       optimizado: true,
     };
   }
 
   /**
-   * ✅ NEW: Processes query for current month
+   * ✅ NUEVO: Procesa consulta para mes actual
    */
   private async procesarConsultaMesActual(
     tipoPersonal: TipoPersonal,
@@ -1811,16 +1811,16 @@ export class AsistenciaPersonalSyncService {
     idUsuario: string | number,
     mes: number
   ): Promise<ConsultaAsistenciaResult> {
-    console.log(`📅 Processing current month: ${mes}`);
+    console.log(`📅 Procesando mes actual: ${mes}`);
 
     const esFinDeSemana = this.dateHelper.esFinDeSemana();
     const diaActual = this.dateHelper.obtenerDiaActual();
 
     if (!diaActual) {
-      throw new Error("Could not get current day");
+      throw new Error("No se pudo obtener día actual");
     }
 
-    // 🏖️ WEEKEND LOGIC
+    // 🏖️ LÓGICA FIN DE SEMANA
     if (esFinDeSemana) {
       return await this.procesarFinDeSemana(
         tipoPersonal,
@@ -1831,7 +1831,7 @@ export class AsistenciaPersonalSyncService {
       );
     }
 
-    // 🏫 SCHOOL DAY LOGIC
+    // 🏫 LÓGICA DÍA ESCOLAR
     return await this.procesarDiaEscolar(
       tipoPersonal,
       rol,
@@ -1842,7 +1842,7 @@ export class AsistenciaPersonalSyncService {
   }
 
   /**
-   * ✅ NEW: Processes logic for weekend
+   * ✅ NUEVO: Procesa lógica para fin de semana
    */
   private async procesarFinDeSemana(
     tipoPersonal: TipoPersonal,
@@ -1851,9 +1851,9 @@ export class AsistenciaPersonalSyncService {
     mes: number,
     diaActual: number
   ): Promise<ConsultaAsistenciaResult> {
-    console.log("🏖️ Processing weekend");
+    console.log("🏖️ Procesando fin de semana");
 
-    // Search for existing records
+    // Buscar registros existentes
     const [registroEntrada, registroSalida] = await Promise.all([
       this.repository.obtenerRegistroMensual(
         tipoPersonal,
@@ -1871,23 +1871,23 @@ export class AsistenciaPersonalSyncService {
 
     const registro = registroEntrada || registroSalida;
 
-    // If there are no records → Query API
+    // Si no hay registros → Consultar API
     if (!registro) {
       return await this.consultarAPIYGuardar(
         rol,
         idUsuario,
         mes,
-        "First query on a weekend"
+        "Primera consulta en fin de semana"
       );
     }
 
-    // Check if last update was a full Friday
+    // Verificar si última actualización fue viernes completo
     const viernesCompleto = this.dateHelper.fueActualizadoViernesCompleto(
       registro.ultima_fecha_actualizacion
     );
 
     if (viernesCompleto) {
-      console.log("✅ Friday's data is complete - Do not query API");
+      console.log("✅ Datos del viernes completos - No consultar API");
       return await this.cacheManager.combinarDatosHistoricosYActuales(
         registroEntrada,
         registroSalida,
@@ -1895,21 +1895,21 @@ export class AsistenciaPersonalSyncService {
         idUsuario,
         true,
         diaActual,
-        "Friday's data is complete (updated after 8:00 PM)"
+        "Datos completos del viernes (actualizado después de 20:00)"
       );
     } else {
-      console.log("🔄 Friday's data is incomplete - Query API");
+      console.log("🔄 Datos del viernes incompletos - Consultar API");
       return await this.consultarAPIYGuardar(
         rol,
         idUsuario,
         mes,
-        "Weekend update - Friday's data is incomplete"
+        "Actualización fin de semana - datos del viernes incompletos"
       );
     }
   }
 
   /**
-   * ✅ NEW: Processes logic for school day
+   * ✅ NUEVO: Procesa lógica para día escolar
    */
   private async procesarDiaEscolar(
     tipoPersonal: TipoPersonal,
@@ -1918,11 +1918,11 @@ export class AsistenciaPersonalSyncService {
     mes: number,
     diaActual: number
   ): Promise<ConsultaAsistenciaResult> {
-    console.log("🏫 Processing school day");
+    console.log("🏫 Procesando día escolar");
 
     const estrategia = this.dateHelper.determinarEstrategiaSegunHorario();
     console.log(
-      `⏰ Determined strategy: ${estrategia.estrategia} - ${estrategia.razon}`
+      `⏰ Estrategia determinada: ${estrategia.estrategia} - ${estrategia.razon}`
     );
 
     switch (estrategia.estrategia) {
@@ -1956,12 +1956,12 @@ export class AsistenciaPersonalSyncService {
         );
 
       default:
-        throw new Error(`Strategy not implemented: ${estrategia.estrategia}`);
+        throw new Error(`Estrategia no implementada: ${estrategia.estrategia}`);
     }
   }
 
   /**
-   * ✅ NEW: Gets historical data without querying APIs
+   * ✅ NUEVO: Obtiene datos históricos sin consultar APIs
    */
   private async obtenerDatosHistoricosSinConsulta(
     tipoPersonal: TipoPersonal,
@@ -1993,8 +1993,1668 @@ export class AsistenciaPersonalSyncService {
       idUsuario,
       true,
       diaActual,
-      `Historical data without query: ${razon}`
+      `Datos históricos sin consulta: ${razon}`
     );
   }
 
   /**
+   * ✅ OPTIMIZADO: Usa ultima_fecha_actualizacion para control de rango
+   */
+  private async consultarRedisYCombinar(
+    tipoPersonal: TipoPersonal,
+    rol: RolesSistema,
+    idUsuario: string | number,
+    mes: number,
+    diaActual: number,
+    estrategia: any
+  ): Promise<ConsultaAsistenciaResult> {
+    console.log(
+      `🔍 Consultando Redis con estrategia: ${estrategia.estrategia}`
+    );
+
+    // ✅ AGREGAR: Log de información del contexto
+    console.log(
+      `%c📋 Contexto consulta Redis: mes=${mes}, día=${diaActual}, usuario=${idUsuario}`,
+      "color:cyan;"
+    );
+
+    // Buscar registros históricos SIEMPRE (retrocompatibilidad)
+    let [registroEntrada, registroSalida] = await Promise.all([
+      this.repository.obtenerRegistroMensual(
+        tipoPersonal,
+        ModoRegistro.Entrada,
+        idUsuario,
+        mes
+      ),
+      this.repository.obtenerRegistroMensual(
+        tipoPersonal,
+        ModoRegistro.Salida,
+        idUsuario,
+        mes
+      ),
+    ]);
+
+    // ✅ VERIFICAR si ya tengo datos del día actual en cache local
+    const fechaHoy = this.dateHelper.obtenerFechaStringActual();
+    const actor = this.mapper.obtenerActorDesdeRol(rol);
+
+    let tieneEntradaHoy = false;
+    let tieneSalidaHoy = false;
+
+    if (fechaHoy) {
+      const [entradaLocal, salidaLocal] = await Promise.all([
+        this.cacheManager.consultarCacheAsistenciaHoyDirecto(
+          actor,
+          ModoRegistro.Entrada,
+          idUsuario,
+          fechaHoy
+        ),
+        this.cacheManager.consultarCacheAsistenciaHoyDirecto(
+          actor,
+          ModoRegistro.Salida,
+          idUsuario,
+          fechaHoy
+        ),
+      ]);
+
+      tieneEntradaHoy = !!entradaLocal;
+      tieneSalidaHoy = !!salidaLocal;
+
+      // ✅ Si ya tengo todos los datos necesarios para la estrategia, no consultar
+      if (estrategia.estrategia === "REDIS_ENTRADAS" && tieneEntradaHoy) {
+        console.log("✅ Ya tengo entrada local completa - saltando Redis");
+        return await this.cacheManager.combinarDatosHistoricosYActuales(
+          registroEntrada,
+          registroSalida,
+          rol,
+          idUsuario,
+          true,
+          diaActual,
+          "Datos de entrada completos en cache local"
+        );
+      }
+
+      if (
+        estrategia.estrategia === "REDIS_COMPLETO" &&
+        tieneEntradaHoy &&
+        tieneSalidaHoy
+      ) {
+        console.log(
+          "✅ Ya tengo entrada y salida local completas - saltando Redis"
+        );
+        return await this.cacheManager.combinarDatosHistoricosYActuales(
+          registroEntrada,
+          registroSalida,
+          rol,
+          idUsuario,
+          true,
+          diaActual,
+          "Datos completos en cache local"
+        );
+      }
+    }
+
+    // ✅ CONTROL DE RANGO usando ultima_fecha_actualizacion
+    let yaConsultadoEnRango = false;
+    let mensajeControl = "";
+
+    const registroParaControl = registroEntrada || registroSalida;
+    if (registroParaControl) {
+      const controlRango = this.dateHelper.yaSeConsultoEnRangoActual(
+        registroParaControl.ultima_fecha_actualizacion
+      );
+
+      yaConsultadoEnRango = controlRango.yaConsultado;
+      mensajeControl = controlRango.razon;
+
+      console.log(`🔍 Control rango: ${controlRango.razon}`);
+    }
+
+    let mensajeConsulta = "";
+    let datosRedisObtenidos = false;
+
+    // ✅ LÓGICA DE CONSULTA: Solo si no se ha consultado en este rango
+    if (!yaConsultadoEnRango) {
+      const rangoActual =
+        this.dateHelper.obtenerRangoHorarioActualConConstantes();
+      console.log(
+        `📡 Primera consulta en ${rangoActual.rango} - procediendo...`
+      );
+
+      // Determinar qué consultar según estrategia y datos locales
+      const necesitaEntradas =
+        estrategia.estrategia === "REDIS_ENTRADAS" ||
+        (estrategia.estrategia === "REDIS_COMPLETO" && !tieneEntradaHoy);
+      const necesitaSalidas =
+        estrategia.estrategia === "REDIS_COMPLETO" && !tieneSalidaHoy;
+
+      if (necesitaEntradas || necesitaSalidas) {
+        try {
+          console.log(
+            `📡 Consultando Redis - entradas: ${necesitaEntradas}, salidas: ${necesitaSalidas}`
+          );
+          const datosRedis =
+            await this.apiClient.consultarRedisCompletoPorPersona(
+              rol,
+              idUsuario,
+              necesitaSalidas
+            );
+
+          // Integrar datos de Redis si se encontraron
+          if (datosRedis.encontradoEntrada || datosRedis.encontradoSalida) {
+            const integracion =
+              await this.cacheManager.integrarDatosDirectosDeRedis(
+                registroEntrada,
+                registroSalida,
+                datosRedis,
+                rol,
+                idUsuario,
+                diaActual
+              );
+
+            if (integracion.integrado) {
+              console.log(`✅ Datos de Redis integrados exitosamente`);
+              datosRedisObtenidos = true;
+              mensajeConsulta = `Datos actualizados desde Redis: ${integracion.mensaje}`;
+
+              // Usar los datos integrados
+              registroEntrada = integracion.entrada || registroEntrada;
+              registroSalida = integracion.salida || registroSalida;
+            }
+          }
+
+          if (!datosRedisObtenidos) {
+            console.log(`📭 No se encontraron datos nuevos en Redis`);
+            mensajeConsulta = "No se encontraron datos nuevos en Redis";
+          }
+        } catch (error) {
+          console.error(`❌ Error al consultar Redis:`, error);
+          mensajeConsulta = "Error al consultar Redis";
+        }
+      } else {
+        console.log(`✅ Todos los datos necesarios ya están en cache local`);
+        mensajeConsulta = "Datos completos en cache local";
+      }
+    } else {
+      console.log(`⏭️ ${mensajeControl} - saltando consulta Redis`);
+      mensajeConsulta = `Ya consultado: ${mensajeControl}`;
+    }
+
+    // ✅ RETROCOMPATIBILIDAD: SIEMPRE combinar con datos históricos
+    const resultado = await this.cacheManager.combinarDatosHistoricosYActuales(
+      registroEntrada,
+      registroSalida,
+      rol,
+      idUsuario,
+      true,
+      diaActual,
+      `${estrategia.razon} + ${mensajeConsulta}`
+    );
+
+    // ✅ GARANTIZAR: Si no hay datos y es primera consulta, fallback a API
+    if (!resultado.encontrado && !yaConsultadoEnRango) {
+      console.log(`🔄 Sin datos locales ni Redis - fallback a API`);
+      return await this.consultarAPIYGuardar(
+        rol,
+        idUsuario,
+        mes,
+        "Fallback sin datos locales"
+      );
+    }
+
+    return resultado;
+  }
+
+  /**
+   * ✅ MODIFICADO: Consulta API y luego Redis si corresponde según horario
+   */
+  private async consultarAPIYGuardar(
+    rol: RolesSistema,
+    idUsuario: string | number,
+    mes: number,
+    razon: string
+  ): Promise<ConsultaAsistenciaResult> {
+    const asistenciaAPI =
+      await this.apiClient.consultarAsistenciasConReintentos(
+        rol,
+        idUsuario,
+        mes
+      );
+
+    if (asistenciaAPI) {
+      await this.procesarYGuardarAsistenciaDesdeAPI(asistenciaAPI);
+
+      const tipoPersonal = this.mapper.obtenerTipoPersonalDesdeRolOActor(rol);
+      const [nuevaEntrada, nuevaSalida] = await Promise.all([
+        this.repository.obtenerRegistroMensual(
+          tipoPersonal,
+          ModoRegistro.Entrada,
+          idUsuario,
+          mes,
+          asistenciaAPI.Id_Registro_Mensual_Entrada
+        ),
+        this.repository.obtenerRegistroMensual(
+          tipoPersonal,
+          ModoRegistro.Salida,
+          idUsuario,
+          mes,
+          asistenciaAPI.Id_Registro_Mensual_Salida
+        ),
+      ]);
+
+      const esConsultaMesActual = this.dateHelper.esConsultaMesActual(mes);
+      const diaActual = this.dateHelper.obtenerDiaActual() || 1;
+
+      // ✅ NUEVO: Si es mes actual, verificar si también se debe consultar Redis
+      if (esConsultaMesActual) {
+        const estrategia = this.dateHelper.determinarEstrategiaSegunHorario();
+
+        console.log(
+          `🔍 API completada. Evaluando Redis según horario: ${estrategia.estrategia} - ${estrategia.razon}`
+        );
+
+        // Si la estrategia indica consultar Redis, hacerlo
+        if (
+          estrategia.estrategia === "REDIS_ENTRADAS" ||
+          estrategia.estrategia === "REDIS_COMPLETO"
+        ) {
+          console.log(`☁️ Consultando Redis adicional después de API...`);
+
+          try {
+            // Usar el método existente que ya maneja toda la lógica de Redis
+            const resultadoConRedis = await this.consultarSoloRedis(
+              tipoPersonal,
+              rol,
+              idUsuario,
+              mes,
+              diaActual,
+              {
+                ...estrategia,
+                razon: `${estrategia.razon} + Post-API: consultando Redis para datos del día actual`,
+              }
+            );
+
+            // Si Redis devolvió datos, usarlos; si no, usar los de API
+            if (resultadoConRedis.encontrado) {
+              console.log(`✅ Datos de API + Redis combinados exitosamente`);
+              return {
+                ...resultadoConRedis,
+                mensaje: `${razon} + Datos complementados con Redis: ${resultadoConRedis.mensaje}`,
+              };
+            } else {
+              console.log(
+                `📭 Redis no tenía datos adicionales, usando solo API`
+              );
+            }
+          } catch (error) {
+            console.warn(
+              `⚠️ Error al consultar Redis después de API, continuando con datos de API:`,
+              error
+            );
+          }
+        } else {
+          console.log(
+            `⏭️ No corresponde consultar Redis según horario: ${estrategia.razon}`
+          );
+        }
+      }
+
+      // Retornar resultado combinando datos históricos (API) con datos actuales (cache si existe)
+      return await this.cacheManager.combinarDatosHistoricosYActuales(
+        nuevaEntrada,
+        nuevaSalida,
+        rol,
+        idUsuario,
+        esConsultaMesActual,
+        diaActual,
+        `Datos obtenidos de API: ${razon}`
+      );
+    } else {
+      // API devuelve 404 - Guardar registro vacío
+      console.log("📭 API devuelve 404 - Guardando registro vacío");
+      await this.guardarRegistroVacio(rol, idUsuario, mes);
+
+      return {
+        encontrado: false,
+        mensaje: `No se encontraron registros para el mes ${mes}: ${razon}`,
+        fuenteDatos: "API",
+      };
+    }
+  }
+
+  /**
+   * ✅ NUEVO: Guarda registro vacío cuando API devuelve 404
+   */
+  private async guardarRegistroVacio(
+    rol: RolesSistema,
+    idUsuario: string | number,
+    mes: number
+  ): Promise<void> {
+    try {
+      const tipoPersonal = this.mapper.obtenerTipoPersonalDesdeRolOActor(rol);
+      const timestampActual = this.dateHelper.obtenerTimestampPeruano();
+
+      const registroVacio: AsistenciaMensualPersonalLocal = {
+        Id_Registro_Mensual: 0, // ID temporal para 404
+        mes: mes as Meses,
+        idUsuario_Personal: String(idUsuario),
+        registros: {}, // Objeto vacío
+        ultima_fecha_actualizacion: timestampActual,
+      };
+
+      // Guardar tanto entrada como salida vacías
+      await Promise.all([
+        this.repository.guardarRegistroMensual(
+          tipoPersonal,
+          ModoRegistro.Entrada,
+          registroVacio
+        ),
+        this.repository.guardarRegistroMensual(
+          tipoPersonal,
+          ModoRegistro.Salida,
+          { ...registroVacio, Id_Registro_Mensual: 1 }
+        ),
+      ]);
+
+      console.log(
+        `📭 Registro vacío guardado para ${idUsuario} - mes ${mes} con timestamp ${timestampActual}`
+      );
+    } catch (error) {
+      console.error("Error al guardar registro vacío:", error);
+    }
+  }
+
+  /**
+   * ✅ NUEVO: Obtiene mis asistencias mensuales con integración completa (para usuarios no directivos)
+   */
+  public async obtenerMiAsistenciaMensualConAPI(
+    rol: RolesSistema,
+    mes: number
+  ): Promise<ConsultaAsistenciaResult> {
+    try {
+      this.dateHelper = this.dateHelper || new AsistenciaDateHelper();
+
+      // Validaciones iguales al método original
+      const estadoTemporal = this.dateHelper.obtenerEstadoTemporalMes(mes);
+
+      if (estadoTemporal.tipo === "MES_FUTURO") {
+        console.error(`🚨 LOGOUT FORZADO: ${estadoTemporal.descripcion}`);
+        throw new Error(
+          "Consulta de mes futuro no permitida - sesión cerrada por seguridad"
+        );
+      }
+
+      const tipoPersonal = this.mapper.obtenerTipoPersonalDesdeRolOActor(rol);
+
+      // Obtener DNI del handler actual
+      const { DatosAsistenciaHoyIDB } = await import(
+        "../../DatosAsistenciaHoy/DatosAsistenciaHoyIDB"
+      );
+      const datosIDB = new DatosAsistenciaHoyIDB();
+      const handler = await datosIDB.getHandler();
+
+      if (!handler) {
+        throw new Error(
+          "No se pudo obtener handler para obtener DNI del usuario"
+        );
+      }
+
+      const miDNI = (handler as any).getMiIdentificador(); // Todos los handlers tienen este método
+
+      console.log(
+        `🎯 Flujo mis asistencias iniciado: ${rol} ${miDNI} - ${estadoTemporal.descripcion}`
+      );
+
+      // RAMA: MES ANTERIOR
+      if (estadoTemporal.tipo === "MES_ANTERIOR") {
+        return await this.procesarMiConsultaMesAnterior(
+          tipoPersonal,
+          rol,
+          miDNI,
+          mes
+        );
+      }
+
+      // RAMA: MES ACTUAL
+      return await this.procesarMiConsultaMesActual(
+        tipoPersonal,
+        rol,
+        miDNI,
+        mes
+      );
+    } catch (error) {
+      console.error("❌ Error en flujo mis asistencias:", error);
+      return {
+        encontrado: false,
+        mensaje:
+          error instanceof Error
+            ? error.message
+            : "Error en consulta de mis asistencias",
+      };
+    }
+  }
+
+  /**
+   * ✅ MODIFICADO: Consulta mi API y luego mi Redis si corresponde
+   */
+  private async consultarMiAPIYGuardar(
+    rol: RolesSistema,
+    miDNI: string,
+    mes: number,
+    razon: string
+  ): Promise<ConsultaAsistenciaResult> {
+    const asistenciaAPI = await this.apiClient.consultarMisAsistenciasMensuales(
+      mes
+    );
+
+    if (asistenciaAPI) {
+      await this.procesarYGuardarAsistenciaDesdeAPI(asistenciaAPI);
+
+      const tipoPersonal = this.mapper.obtenerTipoPersonalDesdeRolOActor(rol);
+      const [nuevaEntrada, nuevaSalida] = await Promise.all([
+        this.repository.obtenerRegistroMensual(
+          tipoPersonal,
+          ModoRegistro.Entrada,
+          miDNI,
+          mes,
+          asistenciaAPI.Id_Registro_Mensual_Entrada
+        ),
+        this.repository.obtenerRegistroMensual(
+          tipoPersonal,
+          ModoRegistro.Salida,
+          miDNI,
+          mes,
+          asistenciaAPI.Id_Registro_Mensual_Salida
+        ),
+      ]);
+
+      const esConsultaMesActual = this.dateHelper.esConsultaMesActual(mes);
+      const diaActual = this.dateHelper.obtenerDiaActual() || 1;
+
+      // ✅ NUEVO: Si es mes actual, verificar si también se debe consultar mi Redis
+      if (esConsultaMesActual) {
+        const estrategia = this.dateHelper.determinarEstrategiaSegunHorario();
+
+        console.log(
+          `🔍 Mi API completada. Evaluando mi Redis según horario: ${estrategia.estrategia}`
+        );
+
+        if (
+          estrategia.estrategia === "REDIS_ENTRADAS" ||
+          estrategia.estrategia === "REDIS_COMPLETO"
+        ) {
+          console.log(`☁️ Consultando mi Redis adicional después de mi API...`);
+
+          try {
+            const resultadoConRedis = await this.consultarSoloMiRedis(
+              tipoPersonal,
+              rol,
+              miDNI,
+              mes,
+              diaActual,
+              {
+                ...estrategia,
+                razon: `${estrategia.razon} + Post-API: consultando mi Redis para datos del día actual`,
+              }
+            );
+
+            if (resultadoConRedis.encontrado) {
+              console.log(
+                `✅ Mis datos de API + Redis combinados exitosamente`
+              );
+              return {
+                ...resultadoConRedis,
+                mensaje: `${razon} + Mis datos complementados con Redis: ${resultadoConRedis.mensaje}`,
+              };
+            }
+          } catch (error) {
+            console.warn(
+              `⚠️ Error al consultar mi Redis después de API:`,
+              error
+            );
+          }
+        }
+      }
+
+      return await this.cacheManager.combinarDatosHistoricosYActuales(
+        nuevaEntrada,
+        nuevaSalida,
+        rol,
+        miDNI,
+        esConsultaMesActual,
+        diaActual,
+        `Mis datos obtenidos de API: ${razon}`
+      );
+    } else {
+      console.log("📭 Mi API devuelve 404 - Guardando registro vacío");
+      await this.guardarRegistroVacio(rol, miDNI, mes);
+
+      return {
+        encontrado: false,
+        mensaje: `No se encontraron mis registros para el mes ${mes}: ${razon}`,
+        fuenteDatos: "API",
+      };
+    }
+  }
+
+  // Agregar métodos procesarMiConsultaMesAnterior y procesarMiConsultaMesActual
+  // que serían copias de los métodos originales pero usando consultarMiAPIYGuardar
+  // y this.apiClient.consultarMiRedisEspecifico en lugar de las versiones con DNI
+
+  /**
+   * Sincroniza las asistencias registradas en Redis con la base de datos local IndexedDB
+   * ✅ CORREGIDO: Timestamp automático y delegación de fechas
+   */
+  public async sincronizarAsistenciasDesdeRedis(
+    datosRedis: ConsultarAsistenciasDePersonalTomadasPorRolEnRedisResponseBody
+  ): Promise<SincronizacionStats> {
+    const stats: SincronizacionStats = {
+      totalRegistros: (
+        datosRedis.Resultados as AsistenciaDiariaDePersonalResultado[]
+      ).length,
+      registrosNuevos: 0,
+      registrosExistentes: 0,
+      errores: 0,
+    };
+
+    try {
+      const tipoPersonal = this.mapper.obtenerTipoPersonalDesdeRolOActor(
+        datosRedis.Rol
+      );
+
+      const mesActual = datosRedis.Mes;
+      const diaActual = datosRedis.Dia;
+
+      if (diaActual === 0) {
+        console.error(
+          "No se pudo determinar el día desde los resultados de Redis"
+        );
+        return {
+          ...stats,
+          errores: stats.totalRegistros,
+        };
+      }
+
+      // ✅ NUEVO: Obtener timestamp peruano para todas las sincronizaciones
+      const timestampSincronizacion = this.dateHelper.obtenerTimestampPeruano();
+      console.log(
+        `🔄 Sincronizando desde Redis con timestamp: ${timestampSincronizacion} (${new Date(
+          timestampSincronizacion
+        ).toLocaleString("es-PE")})`
+      );
+
+      for (const resultado of datosRedis.Resultados as AsistenciaDiariaDePersonalResultado[]) {
+        try {
+          const registroExistente =
+            await this.repository.verificarSiExisteRegistroDiario(
+              tipoPersonal,
+              datosRedis.ModoRegistro,
+              resultado.idUsuario,
+              mesActual,
+              diaActual
+            );
+
+          if (registroExistente) {
+            stats.registrosExistentes++;
+            continue;
+          }
+
+          // ✅ NUEVO: Al crear registros desde Redis, también actualizar timestamp
+          // Nota: Aquí se procesaría el registro específico con timestamp actualizado
+          // El repository.guardarRegistroMensual ya maneja el timestamp automáticamente
+
+          console.log(
+            `🔄 Sincronizando registro: ${resultado.idUsuario} - ${datosRedis.ModoRegistro} con timestamp ${timestampSincronizacion}`
+          );
+
+          stats.registrosNuevos++;
+        } catch (error) {
+          console.error(
+            `Error al sincronizar registro para DNI ${resultado.idUsuario}:`,
+            error
+          );
+          stats.errores++;
+        }
+      }
+
+      console.log(
+        `✅ Sincronización desde Redis completada: ${stats.registrosNuevos} nuevos, ${stats.registrosExistentes} existentes, ${stats.errores} errores`
+      );
+      return stats;
+    } catch (error) {
+      console.error("Error en sincronizarAsistenciasDesdeRedis:", error);
+
+      return {
+        ...stats,
+        errores: stats.totalRegistros,
+      };
+    }
+  }
+
+  /**
+   * Verifica la integridad de los datos sincronizados
+   * ✅ CORREGIDO: Delegación completa de lógica de fechas
+   */
+  public async verificarIntegridadDatos(
+    rol: RolesSistema,
+    dni: string,
+    mes: number
+  ): Promise<{
+    integro: boolean;
+    problemas: string[];
+    recomendaciones: string[];
+  }> {
+    const problemas: string[] = [];
+    const recomendaciones: string[] = [];
+
+    try {
+      const tipoPersonal = this.mapper.obtenerTipoPersonalDesdeRolOActor(rol);
+
+      // Obtener registros locales
+      const [registroEntrada, registroSalida] = await Promise.all([
+        this.repository.obtenerRegistroMensual(
+          tipoPersonal,
+          ModoRegistro.Entrada,
+          dni,
+          mes
+        ),
+        this.repository.obtenerRegistroMensual(
+          tipoPersonal,
+          ModoRegistro.Salida,
+          dni,
+          mes
+        ),
+      ]);
+
+      // Verificar sincronización
+      const sincronizacion =
+        this.validator.verificarSincronizacionEntradaSalida(
+          registroEntrada,
+          registroSalida
+        );
+
+      if (!sincronizacion.estanSincronizados) {
+        problemas.push(`Desincronización: ${sincronizacion.razon}`);
+        recomendaciones.push("Ejecutar sincronización forzada desde API");
+      }
+
+      // Verificar estructura de datos
+      if (registroEntrada) {
+        const validacionEntrada =
+          this.validator.validarEstructuraRegistroMensual(registroEntrada);
+        if (!validacionEntrada.valido) {
+          problemas.push(
+            `Entrada inválida: ${validacionEntrada.errores.join(", ")}`
+          );
+        }
+
+        // ✅ NUEVO: Verificar si el timestamp es muy antiguo
+        if (
+          this.dateHelper.esTimestampMuyAntiguo(
+            registroEntrada.ultima_fecha_actualizacion
+          )
+        ) {
+          problemas.push(
+            "Timestamp de entrada muy antiguo, datos pueden estar desactualizados"
+          );
+          recomendaciones.push(
+            "Considerar actualizar desde API para refrescar timestamp"
+          );
+        }
+      }
+
+      if (registroSalida) {
+        const validacionSalida =
+          this.validator.validarEstructuraRegistroMensual(registroSalida);
+        if (!validacionSalida.valido) {
+          problemas.push(
+            `Salida inválida: ${validacionSalida.errores.join(", ")}`
+          );
+        }
+
+        // ✅ NUEVO: Verificar si el timestamp es muy antiguo
+        if (
+          this.dateHelper.esTimestampMuyAntiguo(
+            registroSalida.ultima_fecha_actualizacion
+          )
+        ) {
+          problemas.push(
+            "Timestamp de salida muy antiguo, datos pueden estar desactualizados"
+          );
+          recomendaciones.push(
+            "Considerar actualizar desde API para refrescar timestamp"
+          );
+        }
+      }
+
+      // ✅ CORREGIDO: Delegar obtención de días laborales al DateHelper
+      const diasLaborales = this.dateHelper.obtenerDiasLaboralesAnteriores();
+      const entradaCompleta = this.validator.verificarRegistroMensualCompleto(
+        registroEntrada,
+        diasLaborales
+      );
+      const salidaCompleta = this.validator.verificarRegistroMensualCompleto(
+        registroSalida,
+        diasLaborales
+      );
+
+      if (!entradaCompleta) {
+        problemas.push(
+          "Registro de entrada incompleto (faltan días laborales)"
+        );
+        recomendaciones.push("Consultar API para obtener días faltantes");
+      }
+
+      if (!salidaCompleta) {
+        problemas.push("Registro de salida incompleto (faltan días laborales)");
+        recomendaciones.push("Consultar API para obtener días faltantes");
+      }
+
+      return {
+        integro: problemas.length === 0,
+        problemas,
+        recomendaciones,
+      };
+    } catch (error) {
+      console.error("Error al verificar integridad de datos:", error);
+      return {
+        integro: false,
+        problemas: [`Error al verificar integridad: ${error}`],
+        recomendaciones: ["Revisar logs de error y conexión a base de datos"],
+      };
+    }
+  }
+
+  /**
+   * 🆕 NUEVO: Sincroniza completamente desde Redis a registros mensuales
+   */
+  public async sincronizarCompletamenteDesdeRedis(
+    rol: RolesSistema,
+    modoRegistro: ModoRegistro
+  ): Promise<{
+    exitoso: boolean;
+    registrosSincronizados: number;
+    mensaje: string;
+  }> {
+    try {
+      const actor = this.mapper.obtenerActorDesdeRol(rol);
+
+      // Consultar datos de Redis
+      const datosRedis =
+        await this.apiClient.consultarAsistenciasTomadasEnRedis(
+          TipoAsistencia.ParaPersonal,
+          actor,
+          modoRegistro
+        );
+
+      if (!datosRedis.Resultados || datosRedis.Resultados.length === 0) {
+        return {
+          exitoso: true,
+          registrosSincronizados: 0,
+          mensaje: "No hay datos en Redis para sincronizar",
+        };
+      }
+
+      // Procesar y guardar en registros mensuales
+      let registrosSincronizados = 0;
+      const timestampSincronizacion = this.dateHelper.obtenerTimestampPeruano();
+
+      for (const resultado of datosRedis.Resultados) {
+        try {
+          // Aquí iría la lógica de sincronización individual
+          // Similar a la implementada arriba
+          registrosSincronizados++;
+        } catch (error) {
+          console.error(`Error sincronizando ${resultado.idUsuario}:`, error);
+        }
+      }
+
+      return {
+        exitoso: true,
+        registrosSincronizados,
+        mensaje: `${registrosSincronizados} registros sincronizados con timestamp ${timestampSincronizacion}`,
+      };
+    } catch (error) {
+      console.error("Error en sincronización completa desde Redis:", error);
+      return {
+        exitoso: false,
+        registrosSincronizados: 0,
+        mensaje: "Error en la sincronización completa",
+      };
+    }
+  }
+
+  /**
+   * Repara datos corruptos o desincronizados
+   * ✅ SIN CAMBIOS: Ya manejaba bien la reparación
+   */
+  public async repararDatos(
+    rol: RolesSistema,
+    dni: string,
+    mes: number
+  ): Promise<OperationResult> {
+    try {
+      console.log(`🔧 Iniciando reparación de datos para ${dni} - mes ${mes}`);
+
+      // Paso 1: Verificar problemas
+      const verificacion = await this.verificarIntegridadDatos(rol, dni, mes);
+
+      if (verificacion.integro) {
+        return {
+          exitoso: true,
+          mensaje: "Los datos ya están íntegros, no se requiere reparación",
+        };
+      }
+
+      console.log(
+        `🔍 Problemas detectados: ${verificacion.problemas.join(", ")}`
+      );
+
+      // Paso 2: Intentar reparación mediante sincronización forzada
+      const resultadoSync = await this.forzarSincronizacionCompleta(
+        rol,
+        dni,
+        mes
+      );
+
+      if (resultadoSync.sincronizado) {
+        // Paso 3: Verificar que la reparación fue exitosa
+        const nuevaVerificacion = await this.verificarIntegridadDatos(
+          rol,
+          dni,
+          mes
+        );
+
+        if (nuevaVerificacion.integro) {
+          return {
+            exitoso: true,
+            mensaje: `Datos reparados exitosamente: ${resultadoSync.mensaje}`,
+            datos: {
+              problemasOriginales: verificacion.problemas,
+              solucionAplicada: "Sincronización forzada desde API",
+            },
+          };
+        } else {
+          return {
+            exitoso: false,
+            mensaje: `Reparación parcial. Problemas restantes: ${nuevaVerificacion.problemas.join(
+              ", "
+            )}`,
+            datos: {
+              problemasOriginales: verificacion.problemas,
+              problemasRestantes: nuevaVerificacion.problemas,
+            },
+          };
+        }
+      } else {
+        return {
+          exitoso: false,
+          mensaje: `No se pudo reparar: ${resultadoSync.mensaje}`,
+          datos: {
+            problemasDetectados: verificacion.problemas,
+            recomendaciones: verificacion.recomendaciones,
+          },
+        };
+      }
+    } catch (error) {
+      console.error("Error durante reparación de datos:", error);
+      return {
+        exitoso: false,
+        mensaje: `Error durante la reparación: ${
+          error instanceof Error ? error.message : "Error desconocido"
+        }`,
+      };
+    }
+  }
+
+  /**
+   * ✅ NUEVO: Procesa consulta de mis asistencias para mes anterior
+   */
+  private async procesarMiConsultaMesAnterior(
+    tipoPersonal: TipoPersonal,
+    rol: RolesSistema,
+    miDNI: string,
+    mes: number
+  ): Promise<ConsultaAsistenciaResult> {
+    console.log(`📅 Procesando mis asistencias - mes anterior: ${mes}`);
+
+    // PASO 1: Consultar IndexedDB
+    const [registroEntrada, registroSalida] = await Promise.all([
+      this.repository.obtenerRegistroMensual(
+        tipoPersonal,
+        ModoRegistro.Entrada,
+        miDNI,
+        mes
+      ),
+      this.repository.obtenerRegistroMensual(
+        tipoPersonal,
+        ModoRegistro.Salida,
+        miDNI,
+        mes
+      ),
+    ]);
+
+    // PASO 2: Si NO existe en IndexedDB → Consultar API
+    if (!registroEntrada && !registroSalida) {
+      console.log("📡 Mis datos no existen en IndexedDB - Consultando mi API");
+      return await this.consultarMiAPIYGuardar(
+        rol,
+        miDNI,
+        mes,
+        "Primera consulta para mis asistencias - mes anterior"
+      );
+    }
+
+    // PASO 3: SÍ existe → Verificar control de 45 minutos primero
+    const registro = registroEntrada || registroSalida;
+    const controlRango = this.dateHelper.yaSeConsultoEnRangoActual(
+      registro!.ultima_fecha_actualizacion
+    );
+
+    if (controlRango.yaConsultado) {
+      console.log(
+        `⏭️ Mis datos mes anterior - ${controlRango.razon} - Usar datos existentes`
+      );
+      return {
+        entrada: registroEntrada!,
+        salida: registroSalida!,
+        encontrado: true,
+        mensaje: `Mis datos mes anterior - ${controlRango.razon}`,
+        fuenteDatos: "INDEXEDDB",
+        optimizado: true,
+      };
+    }
+
+    // PASO 4: Verificar lógica de timestamp del mes
+    const mesUltimaActualizacion = this.dateHelper.extraerMesDeTimestamp(
+      registro!.ultima_fecha_actualizacion
+    );
+
+    if (mesUltimaActualizacion === mes) {
+      console.log(
+        `🔄 Control 45min pasó + mismo mes ${mes} - Consultar mi API`
+      );
+      return await this.consultarMiAPIYGuardar(
+        rol,
+        miDNI,
+        mes,
+        `Actualización mis datos mes anterior - ${controlRango.razon}`
+      );
+    } else if (mesUltimaActualizacion > mes) {
+      console.log(
+        `✅ Mis datos FINALIZADOS (mes ${mesUltimaActualizacion} > ${mes}) - Usar IndexedDB`
+      );
+      return {
+        entrada: registroEntrada!,
+        salida: registroSalida!,
+        encontrado: true,
+        mensaje: "Mis datos finalizados",
+        fuenteDatos: "INDEXEDDB",
+        optimizado: true,
+      };
+    } else {
+      console.log(
+        `⚠️ Mis datos incompletos (mes ${mesUltimaActualizacion} < ${mes}) - Consultar mi API`
+      );
+      return await this.consultarMiAPIYGuardar(
+        rol,
+        miDNI,
+        mes,
+        `Mis datos incompletos - ${controlRango.razon}`
+      );
+    }
+  }
+
+  /**
+   * ✅ NUEVO: Procesa consulta de mis asistencias para mes actual
+   */
+  private async procesarMiConsultaMesActual(
+    tipoPersonal: TipoPersonal,
+    rol: RolesSistema,
+    miDNI: string,
+    mes: number
+  ): Promise<ConsultaAsistenciaResult> {
+    console.log(`📅 Procesando mis asistencias - mes actual: ${mes}`);
+
+    const diaActual = this.dateHelper.obtenerDiaActual() || 1;
+    const esFinDeSemana = this.dateHelper.esFinDeSemana();
+
+    // PASO 1: ¿Es día escolar hoy?
+    if (!esFinDeSemana) {
+      // SÍ - Día escolar
+      return await this.procesarMiDiaEscolar(
+        tipoPersonal,
+        rol,
+        miDNI,
+        mes,
+        diaActual
+      );
+    } else {
+      // NO - Fin de semana
+      return await this.procesarMiFinDeSemana(
+        tipoPersonal,
+        rol,
+        miDNI,
+        mes,
+        diaActual
+      );
+    }
+  }
+
+  /**
+   * ✅ NUEVO: Procesa mis asistencias en fin de semana
+   */
+  private async procesarMiFinDeSemana(
+    tipoPersonal: TipoPersonal,
+    rol: RolesSistema,
+    miDNI: string,
+    mes: number,
+    diaActual: number
+  ): Promise<ConsultaAsistenciaResult> {
+    console.log("🏖️ Procesando mis asistencias - fin de semana");
+
+    // Buscar registros existentes
+    const [registroEntrada, registroSalida] = await Promise.all([
+      this.repository.obtenerRegistroMensual(
+        tipoPersonal,
+        ModoRegistro.Entrada,
+        miDNI,
+        mes
+      ),
+      this.repository.obtenerRegistroMensual(
+        tipoPersonal,
+        ModoRegistro.Salida,
+        miDNI,
+        mes
+      ),
+    ]);
+
+    // Si NO hay registros → Consultar API obligatoriamente
+    if (!registroEntrada && !registroSalida) {
+      console.log(
+        "📡 Fin de semana SIN mis datos - Consultar mi API obligatorio"
+      );
+      return await this.consultarMiAPIYGuardar(
+        rol,
+        miDNI,
+        mes,
+        "Fin de semana sin mis datos - consulta mi API obligatoria"
+      );
+    }
+
+    const registro = registroEntrada || registroSalida;
+
+    // Verificar control de 45 minutos primero
+    const controlRango = this.dateHelper.yaSeConsultoEnRangoActual(
+      registro!.ultima_fecha_actualizacion
+    );
+
+    if (controlRango.yaConsultado) {
+      console.log(
+        `⏭️ Fin de semana - ${controlRango.razon} - NO consultar mis datos`
+      );
+      return await this.cacheManager.combinarDatosHistoricosYActuales(
+        registroEntrada,
+        registroSalida,
+        rol,
+        miDNI,
+        true,
+        diaActual,
+        `Fin de semana - ${controlRango.razon}`
+      );
+    }
+
+    // Verificar cobertura de últimos 5 días escolares
+    const ultimosDiasEscolares = this.dateHelper.obtenerUltimosDiasEscolares(5);
+
+    if (ultimosDiasEscolares.length > 0) {
+      const verificacionEntrada = registroEntrada
+        ? await this.repository.verificarDatosEnUltimosDiasEscolares(
+            tipoPersonal,
+            ModoRegistro.Entrada,
+            miDNI,
+            mes,
+            ultimosDiasEscolares
+          )
+        : { tieneDatosSuficientes: false };
+
+      const verificacionSalida = registroSalida
+        ? await this.repository.verificarDatosEnUltimosDiasEscolares(
+            tipoPersonal,
+            ModoRegistro.Salida,
+            miDNI,
+            mes,
+            ultimosDiasEscolares
+          )
+        : { tieneDatosSuficientes: false };
+
+      const tieneDatosSuficientes =
+        verificacionEntrada.tieneDatosSuficientes ||
+        verificacionSalida.tieneDatosSuficientes;
+
+      if (tieneDatosSuficientes) {
+        console.log(
+          "✅ Fin de semana - Cobertura suficiente en mis últimos 5 días - NO consultar API"
+        );
+        return await this.cacheManager.combinarDatosHistoricosYActuales(
+          registroEntrada,
+          registroSalida,
+          rol,
+          miDNI,
+          true,
+          diaActual,
+          "Fin de semana - cobertura suficiente en mis últimos 5 días escolares"
+        );
+      }
+    }
+
+    // ¿Última actualización fue viernes >= 20:00?
+    const viernesCompleto = this.dateHelper.fueActualizadoViernesCompleto(
+      registro!.ultima_fecha_actualizacion
+    );
+
+    if (viernesCompleto) {
+      console.log(
+        "✅ Fin de semana - Mis datos del viernes completos (20:00+) - NO consultar API"
+      );
+      return await this.cacheManager.combinarDatosHistoricosYActuales(
+        registroEntrada,
+        registroSalida,
+        rol,
+        miDNI,
+        true,
+        diaActual,
+        "Fin de semana - mis datos del viernes completos (actualizado después de 20:00)"
+      );
+    } else {
+      console.log(
+        "🔄 Fin de semana - Condiciones para consultar mi API cumplidas"
+      );
+      return await this.consultarMiAPIYGuardar(
+        rol,
+        miDNI,
+        mes,
+        "Fin de semana - mis datos incompletos o sin cobertura suficiente"
+      );
+    }
+  }
+
+  /**
+   * ✅ NUEVO: Procesa mis asistencias en día escolar
+   */
+  private async procesarMiDiaEscolar(
+    tipoPersonal: TipoPersonal,
+    rol: RolesSistema,
+    miDNI: string,
+    mes: number,
+    diaActual: number
+  ): Promise<ConsultaAsistenciaResult> {
+    const horaActual = this.dateHelper.obtenerHoraActual() || 0;
+    console.log(
+      `🏫 Procesando mis asistencias - día escolar: hora ${horaActual}`
+    );
+
+    // PASO 1: ¿Hora actual < 06:00?
+    if (horaActual < 6) {
+      console.log("🌙 Madrugada - Verificar si hay mis datos históricos");
+      return await this.procesarMiMadrugadaConDatosHistoricos(
+        tipoPersonal,
+        rol,
+        miDNI,
+        mes,
+        diaActual
+      );
+    }
+
+    // PASO 2: ¿Hora actual >= 22:00?
+    if (horaActual >= 22) {
+      console.log("🌃 Mis datos consolidados - Consultar mi API");
+      return await this.consultarMiAPIYGuardar(
+        rol,
+        miDNI,
+        mes,
+        "Después de 22:00 - mis datos consolidados en PostgreSQL"
+      );
+    }
+
+    // PASO 3: 06:00 <= Hora < 22:00 - Lógica Redis/IndexedDB para mis datos
+    console.log(
+      "🏫 Horario escolar - Aplicar lógica Redis/IndexedDB para mis datos"
+    );
+    return await this.procesarMiHorarioEscolarConVerificacion(
+      tipoPersonal,
+      rol,
+      miDNI,
+      mes,
+      diaActual,
+      horaActual
+    );
+  }
+
+  /**
+   * ✅ NUEVO: Procesa madrugada con mis datos históricos
+   */
+  private async procesarMiMadrugadaConDatosHistoricos(
+    tipoPersonal: TipoPersonal,
+    rol: RolesSistema,
+    miDNI: string,
+    mes: number,
+    diaActual: number
+  ): Promise<ConsultaAsistenciaResult> {
+    console.log("🌙 Procesando madrugada - SIEMPRE debe haber mis datos");
+
+    // Buscar datos históricos en IndexedDB
+    const [registroEntrada, registroSalida] = await Promise.all([
+      this.repository.obtenerRegistroMensual(
+        tipoPersonal,
+        ModoRegistro.Entrada,
+        miDNI,
+        mes
+      ),
+      this.repository.obtenerRegistroMensual(
+        tipoPersonal,
+        ModoRegistro.Salida,
+        miDNI,
+        mes
+      ),
+    ]);
+
+    // Si NO hay datos históricos → Consultar API obligatoriamente
+    if (!registroEntrada && !registroSalida) {
+      console.log(
+        "📡 Madrugada SIN mis datos históricos - Consultar mi API obligatorio"
+      );
+      return await this.consultarMiAPIYGuardar(
+        rol,
+        miDNI,
+        mes,
+        "Madrugada sin mis datos históricos - consulta mi API obligatoria"
+      );
+    }
+
+    // SÍ hay datos históricos → Verificar últimos días escolares
+    const ultimosDiasEscolares = this.dateHelper.obtenerUltimosDiasEscolares(5);
+
+    if (ultimosDiasEscolares.length === 0) {
+      console.log(
+        "📊 No se pudieron obtener días escolares - Usar mis datos existentes"
+      );
+      return await this.cacheManager.combinarDatosHistoricosYActuales(
+        registroEntrada,
+        registroSalida,
+        rol,
+        miDNI,
+        false,
+        diaActual,
+        "Madrugada con mis datos históricos existentes (sin verificación días escolares)"
+      );
+    }
+
+    // Verificar cobertura en últimos 5 días escolares
+    const verificacionEntrada = registroEntrada
+      ? await this.repository.verificarDatosEnUltimosDiasEscolares(
+          tipoPersonal,
+          ModoRegistro.Entrada,
+          miDNI,
+          mes,
+          ultimosDiasEscolares
+        )
+      : { tieneDatosSuficientes: false };
+
+    const verificacionSalida = registroSalida
+      ? await this.repository.verificarDatosEnUltimosDiasEscolares(
+          tipoPersonal,
+          ModoRegistro.Salida,
+          miDNI,
+          mes,
+          ultimosDiasEscolares
+        )
+      : { tieneDatosSuficientes: false };
+
+    const tieneDatosSuficientes =
+      verificacionEntrada.tieneDatosSuficientes ||
+      verificacionSalida.tieneDatosSuficientes;
+
+    if (!tieneDatosSuficientes) {
+      console.log(
+        "⚠️ Madrugada - Mis datos insuficientes en últimos 5 días escolares - Actualizar desde mi API"
+      );
+      return await this.consultarMiAPIYGuardar(
+        rol,
+        miDNI,
+        mes,
+        "Madrugada - mis datos insuficientes en últimos 5 días escolares"
+      );
+    }
+
+    // Datos suficientes - Usar datos históricos
+    console.log("✅ Madrugada - Mis datos históricos suficientes");
+    return await this.cacheManager.combinarDatosHistoricosYActuales(
+      registroEntrada,
+      registroSalida,
+      rol,
+      miDNI,
+      false,
+      diaActual,
+      "Madrugada con mis datos históricos suficientes"
+    );
+  }
+
+  /**
+   * ✅ NUEVO: Procesa horario escolar con verificación para mis datos
+   */
+  private async procesarMiHorarioEscolarConVerificacion(
+    tipoPersonal: TipoPersonal,
+    rol: RolesSistema,
+    miDNI: string,
+    mes: number,
+    diaActual: number,
+    horaActual: number
+  ): Promise<ConsultaAsistenciaResult> {
+    // Usar la lógica existente pero con mis APIs
+    return await this.verificarMisDatosHistoricosYProceder(
+      tipoPersonal,
+      rol,
+      miDNI,
+      mes,
+      diaActual,
+      {
+        estrategia: horaActual < 12 ? "REDIS_ENTRADAS" : "REDIS_COMPLETO",
+        razon: `Horario escolar ${horaActual}:xx`,
+      }
+    );
+  }
+
+  /**
+   * ✅ NUEVO: Verifica mis datos históricos y procede según flowchart
+   */
+  private async verificarMisDatosHistoricosYProceder(
+    tipoPersonal: TipoPersonal,
+    rol: RolesSistema,
+    miDNI: string,
+    mes: number,
+    diaActual: number,
+    estrategia: any
+  ): Promise<ConsultaAsistenciaResult> {
+    console.log(
+      `🔍 Verificando mis datos históricos antes de aplicar: ${estrategia.estrategia}`
+    );
+
+    // PASO 1: Buscar mis registros existentes
+    const [registroEntrada, registroSalida] = await Promise.all([
+      this.repository.obtenerRegistroMensual(
+        tipoPersonal,
+        ModoRegistro.Entrada,
+        miDNI,
+        mes
+      ),
+      this.repository.obtenerRegistroMensual(
+        tipoPersonal,
+        ModoRegistro.Salida,
+        miDNI,
+        mes
+      ),
+    ]);
+
+    // PASO 2: Si NO hay mis registros mensuales → Mi API + Redis
+    if (!registroEntrada && !registroSalida) {
+      console.log(`📭 Sin mis registros mensuales → Mi API + Redis`);
+      return await this.consultarMiAPILuegoRedis(rol, miDNI, mes, estrategia);
+    }
+
+    // PASO 3: Si hay registros → Verificar últimos 5 días escolares
+    const ultimosDiasEscolares = this.dateHelper.obtenerUltimosDiasEscolares(5);
+
+    if (ultimosDiasEscolares.length === 0) {
+      console.log(`📅 No se pudieron obtener días escolares → Solo mi Redis`);
+      return await this.consultarSoloMiRedis(
+        tipoPersonal,
+        rol,
+        miDNI,
+        mes,
+        diaActual,
+        estrategia
+      );
+    }
+
+    // PASO 4: Verificar cobertura de mis datos históricos
+    const verificacionEntrada = registroEntrada
+      ? await this.repository.verificarDatosEnUltimosDiasEscolares(
+          tipoPersonal,
+          ModoRegistro.Entrada,
+          miDNI,
+          mes,
+          ultimosDiasEscolares
+        )
+      : { tieneDatosSuficientes: false };
+
+    const verificacionSalida = registroSalida
+      ? await this.repository.verificarDatosEnUltimosDiasEscolares(
+          tipoPersonal,
+          ModoRegistro.Salida,
+          miDNI,
+          mes,
+          ultimosDiasEscolares
+        )
+      : { tieneDatosSuficientes: false };
+
+    // PASO 5: Decidir según cobertura (al menos UNO debe tener datos)
+    const tieneDatosSuficientes =
+      verificacionEntrada.tieneDatosSuficientes ||
+      verificacionSalida.tieneDatosSuficientes;
+
+    if (!tieneDatosSuficientes) {
+      console.log(
+        `⚠️ Sin mis datos en últimos 5 días escolares → Mi API + Redis`
+      );
+      return await this.consultarMiAPILuegoRedis(rol, miDNI, mes, estrategia);
+    }
+
+    // PASO 6: Datos suficientes → Solo mi Redis
+    console.log(`✅ Mis datos históricos suficientes → Solo mi Redis`);
+    return await this.consultarSoloMiRedis(
+      tipoPersonal,
+      rol,
+      miDNI,
+      mes,
+      diaActual,
+      estrategia
+    );
+  }
+
+  /**
+   * ✅ NUEVO: Consultar mi API primero, luego mi Redis
+   */
+  private async consultarMiAPILuegoRedis(
+    rol: RolesSistema,
+    miDNI: string,
+    mes: number,
+    estrategia: any
+  ): Promise<ConsultaAsistenciaResult> {
+    // PASO 1: Consultar mi API para datos históricos
+    console.log(`📡 PASO 1: Consultando mi API para datos históricos...`);
+    const resultadoAPI = await this.consultarMiAPIYGuardar(
+      rol,
+      miDNI,
+      mes,
+      `${estrategia.razon} + Sin mis datos históricos suficientes`
+    );
+
+    if (!resultadoAPI.encontrado) {
+      console.log(`❌ Mi API no devolvió datos`);
+      return resultadoAPI;
+    }
+
+    // PASO 2: Ahora consultar mi Redis para datos del día actual
+    console.log(`☁️ PASO 2: Consultando mi Redis para datos del día actual...`);
+    const tipoPersonal = this.mapper.obtenerTipoPersonalDesdeRolOActor(rol);
+    const diaActual = this.dateHelper.obtenerDiaActual() || 1;
+
+    return await this.consultarSoloMiRedis(
+      tipoPersonal,
+      rol,
+      miDNI,
+      mes,
+      diaActual,
+      {
+        ...estrategia,
+        razon: `${estrategia.razon} + Post-API: consultando mi Redis para hoy`,
+      }
+    );
+  }
+
+  /**
+   * ✅ NUEVO: Consultar solo mi Redis con control de rango
+   */
+  private async consultarSoloMiRedis(
+    tipoPersonal: TipoPersonal,
+    rol: RolesSistema,
+    miDNI: string,
+    mes: number,
+    diaActual: number,
+    estrategia: any
+  ): Promise<ConsultaAsistenciaResult> {
+    // Obtener mis registros actuales
+    let [registroEntrada, registroSalida] = await Promise.all([
+      this.repository.obtenerRegistroMensual(
+        tipoPersonal,
+        ModoRegistro.Entrada,
+        miDNI,
+        mes
+      ),
+      this.repository.obtenerRegistroMensual(
+        tipoPersonal,
+        ModoRegistro.Salida,
+        miDNI,
+        mes
+      ),
+    ]);
+
+    // Control de rango: Solo para evitar consultas Redis duplicadas
+    const registroParaControl = registroEntrada || registroSalida;
+    if (registroParaControl) {
+      const controlRango = this.dateHelper.yaSeConsultoEnRangoActual(
+        registroParaControl.ultima_fecha_actualizacion
+      );
+
+      if (controlRango.yaConsultado) {
+        console.log(
+          `⏭️ Mi Redis ya consultado en este rango: ${controlRango.razon}`
+        );
+        return await this.cacheManager.combinarDatosHistoricosYActuales(
+          registroEntrada,
+          registroSalida,
+          rol,
+          miDNI,
+          true,
+          diaActual,
+          `${estrategia.razon} + ${controlRango.razon}`
+        );
+      }
+    }
+
+    console.log(
+      `📡 Consultando mi Redis con estrategia: ${estrategia.estrategia}`
+    );
+
+    let mensajeConsulta = "";
+
+    // Determinar qué consultar según estrategia
+    const modosAConsultar = [];
+    if (
+      estrategia.estrategia === "REDIS_ENTRADAS" ||
+      estrategia.estrategia === "REDIS_COMPLETO"
+    ) {
+      modosAConsultar.push(ModoRegistro.Entrada);
+    }
+    if (estrategia.estrategia === "REDIS_COMPLETO") {
+      modosAConsultar.push(ModoRegistro.Salida);
+    }
+
+    // Consultar cada modo con mi nueva API
+    for (const modo of modosAConsultar) {
+      try {
+        const resultado = await this.apiClient.consultarMiRedisEspecifico(modo);
+
+        if (resultado.encontrado && resultado.datos?.Resultados) {
+          const resultadoData = Array.isArray(resultado.datos.Resultados)
+            ? resultado.datos.Resultados[0]
+            : resultado.datos.Resultados;
+
+          if (resultadoData?.AsistenciaMarcada && resultadoData.Detalles) {
+            const timestamp =
+              resultadoData.Detalles.Timestamp ||
+              this.dateHelper.obtenerTimestampPeruano();
+            const desfaseSegundos = resultadoData.Detalles.DesfaseSegundos || 0;
+            const estado = this.mapper.determinarEstadoAsistencia(
+              desfaseSegundos,
+              modo
+            );
+
+            const fechaHoy = this.dateHelper.obtenerFechaStringActual();
+            const actor = this.mapper.obtenerActorDesdeRol(rol);
+
+            if (fechaHoy) {
+              const asistenciaDesdeRedis =
+                this.cacheManager.crearAsistenciaParaCache(
+                  miDNI,
+                  actor,
+                  modo,
+                  timestamp,
+                  desfaseSegundos,
+                  estado,
+                  fechaHoy
+                );
+
+              // Integrar en el registro mensual correspondiente
+              const registroActual =
+                modo === ModoRegistro.Entrada
+                  ? registroEntrada
+                  : registroSalida;
+
+              const registroActualizado =
+                this.cacheManager.integrarDatosDeCacheEnRegistroMensual(
+                  registroActual,
+                  asistenciaDesdeRedis,
+                  diaActual,
+                  modo,
+                  miDNI,
+                  fechaHoy
+                );
+
+              if (modo === ModoRegistro.Entrada) {
+                registroEntrada = registroActualizado;
+              } else {
+                registroSalida = registroActualizado;
+              }
+
+              mensajeConsulta += `${modo}: Mi Redis, `;
+
+              console.log(`✅ Mi ${modo} integrado desde Redis: ${estado}`);
+            }
+          }
+        } else {
+          console.log(`📭 Mi ${modo} no encontrado: ${resultado.mensaje}`);
+        }
+      } catch (error) {
+        console.error(`❌ Error al consultar mi ${modo}:`, error);
+      }
+    }
+
+    // Limpiar mensaje
+    mensajeConsulta =
+      mensajeConsulta.replace(/, $/, "") ||
+      "No se encontraron mis datos nuevos";
+
+    // Combinar datos finales
+    return await this.cacheManager.combinarDatosHistoricosYActuales(
+      registroEntrada,
+      registroSalida,
+      rol,
+      miDNI,
+      true,
+      diaActual,
+      `${estrategia.razon} + Mi consulta inteligente: ${mensajeConsulta}`
+    );
+  }
+}

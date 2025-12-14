@@ -1,5 +1,5 @@
 // =========================================
-// ROUTE: /api/mis-datos
+// RUTA: /api/mis-datos
 // =========================================
 
 import {
@@ -22,18 +22,18 @@ import {
 } from "../../shared/others/types";
 
 // -----------------------------------------
-//                GET METHOD
+//                METODO GET
 // -----------------------------------------
 
 /**
- * Principal's Data
+ * Datos de Directivo
  */
 export type MisDatosDirectivo = DirectivoSinContraseña & {
   Genero: Genero;
 };
 
 /**
- * Primary School Teacher's Data with optional classroom
+ * Datos de Profesor Primaria con aula opcional
  */
 export type MisDatosProfesorPrimaria = ProfesorPrimariaSinContraseña & {
   Genero: Genero;
@@ -44,21 +44,21 @@ export type MisDatosProfesorPrimaria = ProfesorPrimariaSinContraseña & {
 };
 
 /**
- * Assistant's Data
+ * Datos de Auxiliar
  */
 export type MisDatosAuxiliar = AuxiliarSinContraseña & {
   Genero: Genero;
 };
 
 /**
- * Secondary School Teacher's Data
+ * Datos de Profesor Secundaria
  */
 export type MisDatosProfesorSecundaria = ProfesorSecundariaSinContraseña & {
   Genero: Genero;
 };
 
 /**
- * Tutor's Data (Secondary school teacher with classroom)
+ * Datos de Tutor (Profesor secundaria con aula)
  */
 export type MisDatosTutor = ProfesorSecundariaSinContraseña & {
   Genero: Genero;
@@ -66,7 +66,7 @@ export type MisDatosTutor = ProfesorSecundariaSinContraseña & {
 };
 
 /**
- * Administrative Staff's Data
+ * Datos de Personal Administrativo
  */
 export type MisDatosPersonalAdministrativo =
   PersonalAdministrativoSinContraseña & { Genero: Genero };
@@ -86,7 +86,7 @@ export interface MisDatosSuccessResponseAPI01 extends SuccessResponseAPIBase {
 export type MisDatosErrorResponseAPI01 = ErrorResponseAPIBase;
 
 // -----------------------------------------
-//                PUT METHOD
+//                METODO PUT
 // -----------------------------------------
 
 export type ActualizarMisDatosDirectivoRequestBody = Partial<
@@ -121,10 +121,10 @@ export type ActualizarMisDatoUsuarioRequestBodyAPI01 =
   | ActualizarMisDatosTutorRequestBody
   | ActualizarMisDatosPersonalAdministrativoRequestBody;
 
-// Interface for successful response
+// Interfaz para la respuesta exitosa
 export interface ActualizarUsuarioSuccessResponseAPI01
   extends SuccessResponseAPIBase {
   success: true;
   message: string;
-  data: ActualizarMisDatoUsuarioRequestBodyAPI01; // The data that was updated
+  data: ActualizarMisDatoUsuarioRequestBodyAPI01; // Los datos que se actualizaron
 }

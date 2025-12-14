@@ -6,7 +6,7 @@ import { T_Comunicados } from "@prisma/client";
 import React, { useEffect, useState } from "react";
 import ComunicadoModal from "./ComunicadoModal";
 
-export const SE_MOSTRARON_COMUNICADOS_DE_HOY_KEY = "today-communiques-SHOWED";
+export const SE_MOSTRARON_COMUNICADOS_DE_HOY_KEY = "comunicados-de-hoy-SHOWED";
 export const SE_MOSTRARON_COMUNICADOS_DE_HOY_VALOR_INICIAL = "false";
 
 const ComunicadosDeHoy = () => {
@@ -28,7 +28,7 @@ const ComunicadosDeHoy = () => {
 
       if (!handlerAsistenciaResponse) {
         console.warn(
-          "Could not get attendance handler to get communiques. Retrying in 2.5 seconds..."
+          "No se pudo obtener el handler de asistencia para obtener comunicados. Reintentando en 2.5 segundos..."
         );
         setTimeout(() => {
           getComunicadosDeHoy();
@@ -38,9 +38,9 @@ const ComunicadosDeHoy = () => {
       }
 
       const comunicadosDeHoy = handlerAsistenciaResponse.getComunicados();
-      console.info("Today's communiques obtained:", comunicadosDeHoy);
+      console.info("Comunicados de hoy obtenidos:", comunicadosDeHoy);
 
-      // Sort communiques by conclusion date (those that expire first appear first)
+      // Ordenar comunicados por fecha de conclusión (los que vencen primero aparecen primero)
       const comunicadosOrdenados = comunicadosDeHoy.sort((a, b) => {
         const fechaA = new Date(a.Fecha_Conclusion);
         const fechaB = new Date(b.Fecha_Conclusion);
@@ -49,7 +49,7 @@ const ComunicadosDeHoy = () => {
 
       setComunicados(comunicadosOrdenados);
 
-      // Initialize visibility state of all communiques as visible
+      // Inicializar el estado de visibilidad de todos los comunicados como visible
       const estadoVisibilidad: { [key: number]: boolean } = {};
       comunicadosOrdenados.forEach((comunicado) => {
         estadoVisibilidad[comunicado.Id_Comunicado] = true;
@@ -60,19 +60,32 @@ const ComunicadosDeHoy = () => {
     }
   };
 
-  // Check if communiques should be shown
+  // Verificar si se deben mostrar los comunicados
   useEffect(() => {
     const comunicadosMostrados = sessionStorage.getItem(
       SE_MOSTRARON_COMUNICADOS_DE_HOY_KEY
     );
 
-    // If the variable does not exist or is false, show communiques
+    // Si no existe la variable o es false, mostrar comunicados
     if (!comunicadosMostrados || comunicadosMostrados === "false") {
       setMostrarComunicados(true);
     }
   }, []);
 
-  // Function to close a specific communique
+  // Función para volver a mostrar comunicados
+  //   const volverAMostrarComunicados = () => {
+  //     setMostrarComunicados(true);
+  //     sessionStorage.setItem(SE_MOSTRARON_COMUNICADOS_DE_HOY_KEY, "false");
+
+  //     // Reinicializar todos los comunicados como visibles
+  //     const estadoVisibilidad: { [key: number]: boolean } = {};
+  //     comunicados.forEach((comunicado) => {
+  //       estadoVisibilidad[comunicado.Id_Comunicado] = true;
+  //     });
+  //     setComunicadosVisibles(estadoVisibilidad);
+  //   };
+
+  // Función para cerrar un comunicado específico
   const cerrarComunicado = (idComunicado: number) => {
     setComunicadosVisibles((prev) => ({
       ...prev,
@@ -80,14 +93,14 @@ const ComunicadosDeHoy = () => {
     }));
   };
 
-  // Effect to check if all communiques have been closed
+  // Efecto para verificar si todos los comunicados han sido cerrados
   useEffect(() => {
     const todosLosIds = comunicados.map((c) => c.Id_Comunicado);
     const todosCerrados = todosLosIds.every(
       (id) => comunicadosVisibles[id] === false
     );
 
-    // If there are communiques and all are closed, update sessionStorage
+    // Si hay comunicados y todos están cerrados, actualizar sessionStorage
     if (comunicados.length > 0 && todosCerrados) {
       sessionStorage.setItem(SE_MOSTRARON_COMUNICADOS_DE_HOY_KEY, "true");
     }
@@ -102,12 +115,12 @@ const ComunicadosDeHoy = () => {
       {mostrarComunicados &&
         comunicados.map(
           (comunicado, index) =>
-            // Only show the communique if it is marked as visible
+            // Solo mostrar el comunicado si está marcado como visible
             comunicadosVisibles[comunicado.Id_Comunicado] && (
               <div
                 key={comunicado.Id_Comunicado}
                 style={{
-                  zIndex: 1005 + index, // Each successive modal will have a higher z-index
+                  zIndex: 1005 + index, // Cada modal sucesivo tendrá un z-index mayor
                 }}
               >
                 <ComunicadoModal

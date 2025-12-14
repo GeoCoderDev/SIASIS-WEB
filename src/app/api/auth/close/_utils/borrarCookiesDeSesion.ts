@@ -1,6 +1,6 @@
 import { serialize } from "cookie";
 
-export function deleteSessionCookies() {
+export function borrarCookiesDeSesion() {
     const options = {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -19,3 +19,4 @@ export function deleteSessionCookies() {
       ].join(", "),
     };
   }
+  

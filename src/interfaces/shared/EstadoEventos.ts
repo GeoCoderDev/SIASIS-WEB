@@ -1,5 +1,5 @@
 export enum EstadoEvento{
-    Pending = "Pending",
-    Active = "Active",
-    Past = "Past"
+    Pendiente = "Pendiente",
+    Activo = "Activo",
+    Pasado = "Pasado"
 }

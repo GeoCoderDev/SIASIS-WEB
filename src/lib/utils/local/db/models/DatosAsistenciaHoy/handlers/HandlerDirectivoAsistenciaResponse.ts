@@ -1,7 +1,7 @@
 import {
   AuxiliaresParaTomaDeAsistencia,
   DirectivoAsistenciaResponse,
-  DirectivoParaTomaDeAsistencia, // 🆕 NEW IMPORT
+  DirectivoParaTomaDeAsistencia, // 🆕 NUEVA IMPORTACIÓN
   HorarioTomaAsistencia,
   PersonalAdministrativoParaTomaDeAsistencia,
   ProfesoresPrimariaParaTomaDeAsistencia,
@@ -23,7 +23,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
     this.directivoData = asistenciaData;
   }
 
-  // 🆕 NEW METHODS FOR DIRECTORS
+  // 🆕 NUEVOS MÉTODOS PARA DIRECTIVOS
   public getDirectivos(): DirectivoParaTomaDeAsistencia[] {
     return this.directivoData.ListaDeDirectivos || [];
   }
@@ -66,12 +66,12 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
     const ahora = this.getFechaHoraRedux();
     if (!ahora) return false;
 
-    console.log("NOW:", ahora);
+    console.log("AHORA:", ahora);
 
     const horaEntrada = new Date(ahora);
     const horaSalida = new Date(ahora);
-    console.log("NOW entry:", horaEntrada);
-    console.log("NOW exit:", horaSalida);
+    console.log("AHORA entrada:", horaEntrada);
+    console.log("AHORA salida:", horaSalida);
 
     const [entradaHours, entradaMinutes] = String(
       directivo.Hora_Entrada_Dia_Actual
@@ -90,7 +90,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
     return ahora >= horaEntrada && ahora <= horaSalida;
   }
 
-  // EXISTING METHODS FOR ADMINISTRATIVE STAFF
+  // MÉTODOS EXISTENTES PARA PERSONAL ADMINISTRATIVO
   public getPersonalAdministrativo(): PersonalAdministrativoParaTomaDeAsistencia[] {
     return this.directivoData.ListaDePersonalesAdministrativos || [];
   }
@@ -207,12 +207,12 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
     const ahora = this.getFechaHoraRedux();
 
     if (!ahora) return false;
-    console.log("NOW:", ahora);
+    console.log("AHORA:", ahora);
 
     const horaEntrada = new Date(ahora);
     const horaSalida = new Date(ahora);
-    console.log("NOW entry:", horaEntrada);
-    console.log("NOW exit:", horaSalida);
+    console.log("AHORA entrada:", horaEntrada);
+    console.log("AHORA salida:", horaSalida);
 
     const [entradaHours, entradaMinutes] = String(
       personal.Hora_Entrada_Dia_Actual
@@ -234,24 +234,24 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
   }
 
   /**
-   * Gets the list of staff according to the specified role
-   * @param rol Role of the staff to get
-   * @returns Array of staff with unified format
+   * Obtiene la lista de personal según el rol especificado
+   * @param rol Rol del personal a obtener
+   * @returns Array de personal con formato unificado
    */
   public obtenerPersonalPorRol(
     rol: ActoresSistema | RolesSistema
   ): PersonalParaTomarAsistencia[] {
     switch (rol) {
-      // 🆕 NEW CASE FOR DIRECTORS
+      // 🆕 NUEVO CASO PARA DIRECTIVOS
       case ActoresSistema.Directivo:
         return this.getDirectivos().map((directivo) => ({
-          idUsuario: String(directivo.Id_Directivo), // For directors we use DNI as the main identifier
+          idUsuario: String(directivo.Id_Directivo), // Para directivos usamos DNI como identificador principal
           GoogleDriveFotoId: directivo.Google_Drive_Foto_ID,
           Nombres: directivo.Nombres,
           Apellidos: directivo.Apellidos,
           Genero: directivo.Genero as Genero,
-          // Additional fields specific to directors
-          Id_Directivo: directivo.Id_Directivo, // We also save the internal ID
+          // Campos adicionales específicos para directivos
+          Id_Directivo: directivo.Id_Directivo, // Guardamos también el ID interno
         }));
 
       case ActoresSistema.ProfesorPrimaria:
@@ -291,7 +291,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
           Nombres: personal.Nombres,
           Apellidos: personal.Apellidos,
           Genero: personal.Genero as Genero,
-          Cargo: personal.Cargo, // Only for administrative staff
+          Cargo: personal.Cargo, // Solo para personal administrativo
         }));
 
       default:
@@ -300,11 +300,11 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
   }
 
   /**
-   * Gets the time at which the staff should arrive or leave according to their role, DNI and registration mode
-   * @param rol Staff role
-   * @param dni Staff DNI
-   * @param modoRegistro Registration mode (Entry or Exit)
-   * @returns Scheduled time for entry or exit in ISO string format (as it comes from JSON)
+   * Obtiene la hora a la que debe llegar o salir el personal según su rol, DNI y modo de registro
+   * @param rol Rol del personal
+   * @param dni DNI del personal
+   * @param modoRegistro Modo de registro (Entrada o Salida)
+   * @returns Hora programada para entrada o salida en formato ISO string (tal como viene del JSON)
    */
   public obtenerHorarioPersonalISO(
     rol: ActoresSistema | RolesSistema,
@@ -312,14 +312,14 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
     modoRegistro: ModoRegistro
   ): string {
     try {
-      // Special case for students
+      // Caso especial para estudiantes
       if (rol === ActoresSistema.Estudiante) {
         if (this.directivoData.HorariosEscolares[NivelEducativo.PRIMARIA]) {
           return String(
             this.directivoData.HorariosEscolares[NivelEducativo.PRIMARIA].Inicio
           );
         } else {
-          // If no schedule is defined, create a default one
+          // Si no hay horario definido, crear uno predeterminado
           const fechaHoy = new Date();
           fechaHoy.setHours(7, 45, 0, 0);
           return fechaHoy.toISOString();
@@ -327,7 +327,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
       }
 
       switch (rol) {
-        // 🆕 NEW CASE FOR DIRECTORS
+        // 🆕 NUEVO CASO PARA DIRECTIVOS
         case ActoresSistema.Directivo:
           const directivo = this.buscarDirectivoPorId(idUsuario as number);
 
@@ -343,7 +343,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
             ) {
               return String(directivo.Hora_Salida_Dia_Actual);
             } else {
-              // Fallback to general schedule
+              // Fallback al horario general
               const horarioGeneral = this.getHorarioTomaAsistenciaGeneral();
 
               if (modoRegistro === ModoRegistro.Entrada) {
@@ -383,7 +383,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
             ) {
               return String(profesorSecundaria.Hora_Salida_Dia_Actual);
             } else {
-              // Fallback to general secondary schedule
+              // Fallback al horario general de secundaria
               if (
                 this.directivoData.HorariosEscolares[NivelEducativo.SECUNDARIA]
               ) {
@@ -428,7 +428,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
             ) {
               return String(personal.Hora_Salida_Dia_Actual);
             } else {
-              // Fallback to general schedule
+              // Fallback al horario general
               const horarioGeneral = this.getHorarioTomaAsistenciaGeneral();
 
               if (modoRegistro === ModoRegistro.Entrada) {
@@ -441,7 +441,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
           break;
 
         default:
-          // Fallback using general schedule
+          // Fallback usando horario general
           const horarioGeneral = this.getHorarioTomaAsistenciaGeneral();
 
           if (modoRegistro === ModoRegistro.Entrada) {
@@ -451,10 +451,10 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
           }
       }
     } catch (error) {
-      console.error("Error getting staff schedule:", error);
+      console.error("Error al obtener horario personal:", error);
     }
 
-    // In case of any error, return a default schedule
+    // En caso de cualquier error, devolver un horario predeterminado
     const fechaPredeterminada = new Date();
     if (modoRegistro === ModoRegistro.Entrada) {
       fechaPredeterminada.setHours(8, 0, 0, 0);
@@ -464,36 +464,36 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
     return fechaPredeterminada.toISOString();
   }
 
-  // Simplified debugging method - 🆕 UPDATED TO INCLUDE DIRECTORS
+  // Método de debugging simplificado - 🆕 ACTUALIZADO PARA INCLUIR DIRECTIVOS
   public debugHorariosISO(
     rol: ActoresSistema | RolesSistema,
     dni?: string
   ): void {
-    console.log("🔍 DEBUG ISO SCHEDULES (WITHOUT CONVERSIONS)");
+    console.log("🔍 DEBUG HORARIOS ISO (SIN CONVERSIONES)");
     console.log("==========================================");
-    console.log("Role:", rol);
+    console.log("Rol:", rol);
     console.log("DNI:", dni || "N/A");
 
-    // 🆕 If it is a director, show additional information
+    // 🆕 Si es directivo, mostrar información adicional
     if (rol === ActoresSistema.Directivo && dni) {
       const directivo = this.buscarDirectivoPorDNI(dni);
       if (directivo) {
-        console.log("📋 DIRECTOR FOUND:");
+        console.log("📋 DIRECTIVO ENCONTRADO:");
         console.log("  - ID:", directivo.Id_Directivo);
         console.log(
-          "  - Full name:",
+          "  - Nombre completo:",
           `${directivo.Nombres} ${directivo.Apellidos}`
         );
         console.log(
-          "  - Original entry time:",
+          "  - Hora entrada original:",
           directivo.Hora_Entrada_Dia_Actual
         );
         console.log(
-          "  - Original exit time:",
+          "  - Hora salida original:",
           directivo.Hora_Salida_Dia_Actual
         );
       } else {
-        console.log("❌ DIRECTOR NOT FOUND WITH DNI:", dni);
+        console.log("❌ DIRECTIVO NO ENCONTRADO CON DNI:", dni);
       }
     }
 
@@ -509,33 +509,33 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
         ModoRegistro.Salida
       );
 
-      console.log("📅 ENTRY ISO:", entradaISO);
-      console.log("📅 EXIT ISO:", salidaISO);
+      console.log("📅 ENTRADA ISO:", entradaISO);
+      console.log("📅 SALIDA ISO:", salidaISO);
       console.log(
-        "✅ These values are sent directly to the API without conversions"
+        "✅ Estos valores se envían directamente a la API sin conversiones"
       );
     } catch (error) {
-      console.error("❌ ERROR in debug:", error);
+      console.error("❌ ERROR en debug:", error);
     }
 
     console.log("==========================================");
   }
 
-  // 🆕 AUXILIARY METHOD FOR SPECIFIC DEBUGGING OF DIRECTORS
+  // 🆕 MÉTODO AUXILIAR PARA DEBUGGING ESPECÍFICO DE DIRECTIVOS
   public debugDirectivos(): void {
-    console.log("🏢 DEBUG DIRECTORS");
+    console.log("🏢 DEBUG DIRECTIVOS");
     console.log("==========================================");
 
     const directivos = this.getDirectivos();
-    console.log("📊 Total directors:", directivos.length);
+    console.log("📊 Total directivos:", directivos.length);
 
     directivos.forEach((directivo, index) => {
-      console.log(`📋 Director ${index + 1}:`);
+      console.log(`📋 Directivo ${index + 1}:`);
       console.log("  - ID:", directivo.Id_Directivo);
       console.log("  - DNI:", directivo.Identificador_Nacional);
-      console.log("  - Name:", `${directivo.Nombres} ${directivo.Apellidos}`);
-      console.log("  - Entry:", directivo.Hora_Entrada_Dia_Actual);
-      console.log("  - Exit:", directivo.Hora_Salida_Dia_Actual);
+      console.log("  - Nombre:", `${directivo.Nombres} ${directivo.Apellidos}`);
+      console.log("  - Entrada:", directivo.Hora_Entrada_Dia_Actual);
+      console.log("  - Salida:", directivo.Hora_Salida_Dia_Actual);
       console.log("  ---");
     });
 

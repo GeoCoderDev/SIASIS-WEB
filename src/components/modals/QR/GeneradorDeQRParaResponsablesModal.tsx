@@ -19,7 +19,7 @@ declare global {
   }
 }
 
-// Specific styles by browser
+// Estilos específicos por navegador
 const ESTILOS_POR_NAVEGADORES: Record<
   NavegadoresWeb,
   {
@@ -114,11 +114,11 @@ const GeneradorDeTarjetaQRModal = ({
     cleanup,
   } = useQRGenerator(EstudianteConAulaYRelacion);
 
-  // Detect browser
+  // Detectar navegador
   const navegador = useDetectorNavegador();
   const estilos = ESTILOS_POR_NAVEGADORES[navegador];
 
-  // Build loader classes
+  // Construir clases del loader
   const clasesLoader = [
     "my-4 text-center flex items-center justify-center flex-col gap-2",
     "landscape-small:my-[0.9rem] landscape-small:gap-[0.45rem]",
@@ -137,7 +137,7 @@ const GeneradorDeTarjetaQRModal = ({
     "sm-only:gap-1",
   ].join(" ");
 
-  // Build iframe classes
+  // Construir clases del iframe
   const clasesIframe = [
     "w-full rounded-lg max-md:my-4",
     "landscape-small:max-md:my-[0.9rem]",
@@ -151,7 +151,7 @@ const GeneradorDeTarjetaQRModal = ({
     initializeShareSupport();
   }, [initializeShareSupport]);
 
-  // EFFECT TO GENERATE INITIAL PDF - WITHOUT PROBLEMATIC DEPENDENCIES
+  // EFECTO PARA GENERAR PDF INICIAL - SIN DEPENDENCIAS PROBLEMÁTICAS
   useEffect(() => {
     let isMounted = true;
     let attempts = 0;
@@ -181,7 +181,7 @@ const GeneradorDeTarjetaQRModal = ({
       isMounted = false;
       cleanup();
     };
-  }, [selectedQuantity]); // ONLY selectedQuantity as dependency
+  }, [selectedQuantity]); // SOLO selectedQuantity como dependencia
 
   useEffect(() => {
     return cleanup;
@@ -243,14 +243,14 @@ const GeneradorDeTarjetaQRModal = ({
                                   landscape-small:text-[12.6px]
                                   landscape-tablet-sm:text-[12.6px]"
                     >
-                      Generating cards...
+                      Generando tarjetas...
                     </p>
                   </div>
                 ) : pdfPreviewUrl ? (
                   <iframe
                     src={pdfPreviewUrl}
                     className={clasesIframe}
-                    title="PDF preview"
+                    title="Vista previa del PDF"
                   />
                 ) : (
                   <div className="text-center">
@@ -272,7 +272,7 @@ const GeneradorDeTarjetaQRModal = ({
                                   landscape-small:text-[12.6px]
                                   landscape-tablet-sm:text-[12.6px]"
                     >
-                      PDF preview
+                      Vista previa del PDF
                     </p>
                   </div>
                 )}
@@ -282,7 +282,7 @@ const GeneradorDeTarjetaQRModal = ({
             <div
               className="w-80 p-6 pl-8 pr-0
                             sxs-only:w-full sxs-only:p-1.5 sxs-only:pl-1.5 sxs-only:pr-1.5
-                            xs-only:w-full xs-only:p-1.5 xs-only:pl-1.5 sxs-only:pr-1.5
+                            xs-only:w-full xs-only:p-1.5 xs-only:pl-1.5 xs-only:pr-1.5
                             sm-only:w-full sm-only:p-2 sm-only:pl-2 sm-only:pr-2
                             lg-only:p-4 lg-only:pl-6 lg-only:pr-0
                             landscape-small:w-[18rem] landscape-small:p-[1.35rem] landscape-small:pl-[1.8rem] landscape-small:pr-0
@@ -317,7 +317,7 @@ const GeneradorDeTarjetaQRModal = ({
                                  landscape-small:text-[1.08rem]
                                  landscape-tablet-sm:text-[1.08rem]"
                   >
-                    QR Generation
+                    Generación de QR
                   </h3>
                   <QRIcon
                     className="w-[26px]
@@ -340,7 +340,7 @@ const GeneradorDeTarjetaQRModal = ({
                                landscape-small:text-[12.6px] landscape-small:mb-[0.9rem]
                                landscape-tablet-sm:text-[12.6px] landscape-tablet-sm:mb-[0.9rem]"
                 >
-                  Select the quantity of cards:
+                  Seleccione la cantidad de tarjetas:
                 </p>
 
                 <div
@@ -400,7 +400,7 @@ const GeneradorDeTarjetaQRModal = ({
                                   sm-only:text-xs sm-only:leading-tight
                                   lg-only:text-xs
                                   landscape-small:text-[12.6px] landscape-small:leading-tight
-                                  landscape-tablet-sm:text-[12.6px]"
+                                  landscape-tablet-sm:text-[12.6px] landscape-tablet-sm:leading-tight"
                   >
                     <p className="font-medium text-blue-800 text-center">
                       {EstudianteConAulaYRelacion.Nombres}{" "}
@@ -443,7 +443,7 @@ const GeneradorDeTarjetaQRModal = ({
                                landscape-small:py-[0.675rem] landscape-small:text-[12.6px] landscape-small:gap-[0.45rem] landscape-small:rounded-[0.45rem]
                                landscape-tablet-sm:py-[0.675rem] landscape-tablet-sm:text-[12.6px] landscape-tablet-sm:gap-[0.45rem] landscape-tablet-sm:rounded-[0.45rem]"
                   >
-                    Download
+                    Descargar
                     <DescargarIcon
                       className="w-5
                                               sxs-only:w-3
@@ -470,7 +470,7 @@ const GeneradorDeTarjetaQRModal = ({
                                landscape-small:py-[0.675rem] landscape-small:text-[12.6px] landscape-small:gap-[0.45rem] landscape-small:rounded-[0.45rem]
                                landscape-tablet-sm:py-[0.675rem] landscape-tablet-sm:text-[12.6px] landscape-tablet-sm:gap-[0.45rem] landscape-tablet-sm:rounded-[0.45rem]"
                   >
-                    Share
+                    Compartir
                     <CompartirIcon
                       className="w-5 text-white
                                              sxs-only:w-3
@@ -493,8 +493,9 @@ const GeneradorDeTarjetaQRModal = ({
                                    landscape-small:text-[9.9px] landscape-small:p-[0.45rem] landscape-small:leading-tight landscape-small:rounded-[0.45rem] landscape-small:border-[0.9px]
                                    landscape-tablet-sm:text-[9.9px] landscape-tablet-sm:p-[0.45rem] landscape-tablet-sm:leading-tight landscape-tablet-sm:rounded-[0.45rem] landscape-tablet-sm:border-[0.9px]"
                     >
-                      The share function is not available on this device. Use
-                      the "Download" button to save the file.
+                      La función de compartir no está disponible en este
+                      dispositivo. Use el botón "Descargar" para guardar el
+                      archivo.
                     </p>
                   )}
                 </div>

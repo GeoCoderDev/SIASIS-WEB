@@ -2,7 +2,7 @@ export interface SpeechRecognitionConstructor {
   new (): SpeechRecognition;
 }
 
-// Interface for the speech recognition API
+// Interfaz para la API de reconocimiento de voz
 export interface SpeechRecognition extends EventTarget {
   lang: string;
   continuous: boolean;
@@ -12,12 +12,12 @@ export interface SpeechRecognition extends EventTarget {
   abort(): void;
   onresult: (event: SpeechRecognitionEvent) => void;
   onerror: (event: SpeechRecognitionErrorEvent) => void;
-  onend: () => void; // Event for the end of recognition
-  onspeechend: () => void; // Event to detect the end of speech
-  onsoundend: () => void; // Event to detect the end of sound
+  onend: () => void; // Evento para el final del reconocimiento
+  onspeechend: () => void; // Evento para detectar el final del habla
+  onsoundend: () => void; // Evento para detectar el final del habla
 }
 
-// Interface for the result event
+// Interfaz para el evento de resultado
 export interface SpeechRecognitionEvent extends Event {
   results: SpeechRecognitionResultList;
   resultIndex: number;
@@ -41,13 +41,13 @@ export interface SpeechRecognitionAlternative {
   confidence: number;
 }
 
-// Extended Window interface
+// Interfaz extendida de Window
 export interface IWindow extends Window {
   SpeechRecognition: SpeechRecognitionConstructor;
   webkitSpeechRecognition: SpeechRecognitionConstructor;
 }
 
-// Interface for the error event with specific types for the error field
+// Interfaz para el evento de error con tipos específicos para el campo error
 export interface SpeechRecognitionErrorEvent extends Event {
   error:
     | "no-speech"

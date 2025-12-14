@@ -1,83 +1,83 @@
 // ============================================================================
-//                    SCHOOL SCHEDULE EXTENSION CONSTANTS
+//                    CONSTANTES DE EXTENSIÓN DE HORARIOS ESCOLARES
 // ============================================================================
 
 /**
- * Time extensions (in minutes) for school schedules
- * Allow flexibility in student entry and exit times
+ * Extensiones de tiempo (en minutos) para los horarios escolares
+ * Permiten flexibilidad en los horarios de entrada y salida de estudiantes
  */
 
-// ===== PRIMARY LEVEL =====
+// ===== NIVEL PRIMARIA =====
 
 /**
- * Time extension before the official entry time for primary school students
- * @example If the official time is 7:45 AM and the extension is 60 minutes,
- * students will be able to register attendance from 6:45 AM
+ * Extensión de tiempo antes del horario oficial de entrada de estudiantes de primaria
+ * @example Si el horario oficial es 7:45 AM y la extensión es 60 minutos,
+ * los estudiantes podrán registrar asistencia desde las 6:45 AM
  */
-export const PRIMARY_STUDENT_ENTRY_EXTENSION = 60; // minutes
+export const EXTENSION_ENTRADA_ESTUDIANTES_PRIMARIA = 60; // minutos
 
 /**
- * Time extension after the official exit time for primary school students
- * @example If the official time is 12:45 PM and the extension is 60 minutes,
- * students will be able to register attendance until 1:45 PM
+ * Extensión de tiempo después del horario oficial de salida de estudiantes de primaria
+ * @example Si el horario oficial es 12:45 PM y la extensión es 60 minutos,
+ * los estudiantes podrán registrar asistencia hasta la 1:45 PM
  */
-export const PRIMARY_STUDENT_EXIT_EXTENSION = 60; // minutes
+export const EXTENSION_SALIDA_ESTUDIANTES_PRIMARIA = 60; // minutos
 
-// ===== SECONDARY LEVEL =====
+// ===== NIVEL SECUNDARIA =====
 
 /**
- * Time extension before the official entry time for secondary school students
- * @example If the official time is 1:00 PM and the extension is 60 minutes,
- * assistants will be able to take attendance from 12:00 PM
+ * Extensión de tiempo antes del horario oficial de entrada de estudiantes de secundaria
+ * @example Si el horario oficial es 1:00 PM y la extensión es 60 minutos,
+ * los auxiliares podrán tomar asistencia desde las 12:00 PM
  */
-export const SECONDARY_STUDENT_ENTRY_EXTENSION = 60; // minutes
+export const EXTENSION_ENTRADA_ESTUDIANTES_SECUNDARIA = 60; // minutos
 
 /**
- * Time extension after the official exit time for secondary school students
- * @example If the official time is 6:30 PM and the extension is 60 minutes,
- * assistants will be able to take attendance until 7:30 PM
+ * Extensión de tiempo después del horario oficial de salida de estudiantes de secundaria
+ * @example Si el horario oficial es 6:30 PM y la extensión es 60 minutos,
+ * los auxiliares podrán tomar asistencia hasta las 7:30 PM
  */
-export const SECONDARY_STUDENT_EXIT_EXTENSION = 60; // minutes
+export const EXTENSION_SALIDA_ESTUDIANTES_SECUNDARIA = 60; // minutos
 
-// ===== UTILITIES =====
-
-/**
- * Converts minutes to milliseconds
- * @param minutes Amount of minutes to convert
- * @returns Equivalent milliseconds
- */
-export const minutesToMilliseconds = (minutes: number): number =>
-  minutes * 60 * 1000;
+// ===== UTILIDADES =====
 
 /**
- * Applies an extension (in minutes) to a date/time
- * @param dateTime Base date/time
- * @param extension Extension in minutes (positive to add, negative to subtract)
- * @returns New date with the applied extension
+ * Convierte minutos a milisegundos
+ * @param minutos Cantidad de minutos a convertir
+ * @returns Milisegundos equivalentes
  */
-export const applyExtension = (dateTime: Date, extension: number): Date => {
-  const newDate = new Date(dateTime);
-  newDate.setMinutes(newDate.getMinutes() + extension);
-  return newDate;
+export const minutosAMilisegundos = (minutos: number): number =>
+  minutos * 60 * 1000;
+
+/**
+ * Aplica una extensión (en minutos) a una fecha/hora
+ * @param fechaHora Fecha/hora base
+ * @param extension Extensión en minutos (positivo para sumar, negativo para restar)
+ * @returns Nueva fecha con la extensión aplicada
+ */
+export const aplicarExtension = (fechaHora: Date, extension: number): Date => {
+  const nuevaFecha = new Date(fechaHora);
+  nuevaFecha.setMinutes(nuevaFecha.getMinutes() + extension);
+  return nuevaFecha;
 };
 
 /**
- * Calculates the effective time range for attendance taking
- * @param startTime Official start time
- * @param endTime Official end time
- * @param entryExtension Extension before start (in minutes)
- * @param exitExtension Extension after end (in minutes)
- * @returns Object with the effective range
+ * Calcula el rango de tiempo efectivo para toma de asistencia
+ * @param horaInicio Hora oficial de inicio
+ * @param horaFin Hora oficial de fin
+ * @param extensionEntrada Extensión antes del inicio (en minutos)
+ * @param extensionSalida Extensión después del fin (en minutos)
+ * @returns Objeto con el rango efectivo
  */
-export const calculateEffectiveRange = (
-  startTime: Date,
-  endTime: Date,
-  entryExtension: number,
-  exitExtension: number
+export const calcularRangoEfectivo = (
+  horaInicio: Date,
+  horaFin: Date,
+  extensionEntrada: number,
+  extensionSalida: number
 ) => ({
-  effectiveStart: applyExtension(startTime, -entryExtension),
-  effectiveEnd: applyExtension(endTime, exitExtension),
-  totalDuration:
-    applyExtension(endTime, exitExtension).getTime() -
-    applyExtension(startTime, -entryExtension).getTime(),
+  inicioEfectivo: aplicarExtension(horaInicio, -extensionEntrada),
+  finEfectivo: aplicarExtension(horaFin, extensionSalida),
+  duracionTotal:
+    aplicarExtension(horaFin, extensionSalida).getTime() -
+    aplicarExtension(horaInicio, -extensionEntrada).getTime(),
 });

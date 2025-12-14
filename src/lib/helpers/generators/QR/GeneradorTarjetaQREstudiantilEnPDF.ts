@@ -150,13 +150,13 @@ export class GeneradorTarjetaQREstudiantilEnPDF {
     }
   }
 
-  // Extension for GeneradorTarjetaQREstudiantilEnPDF.ts
-  // Add this method to the existing class
+  // Extensión para GeneradorTarjetaQREstudiantilEnPDF.ts
+  // Agregar este método a la clase existente
 
   /**
-   * Generates a PDF with multiple students from a classroom
-   * @param estudiantes Array of students with classroom information
-   * @returns Promise<Blob> PDF with all the cards
+   * Genera PDF con múltiples estudiantes de un aula
+   * @param estudiantes Array de estudiantes con información de aula
+   * @returns Promise<Blob> PDF con todas las tarjetas
    */
   async generatePDFMultiplesEstudiantes(
     estudiantes: EstudianteConAulaYRelacion[]
@@ -166,7 +166,7 @@ export class GeneradorTarjetaQREstudiantilEnPDF {
     }
 
     if (estudiantes.length === 0) {
-      throw new Error("No students to generate cards for");
+      throw new Error("No hay estudiantes para generar tarjetas");
     }
 
     const { jsPDF } = window.jspdf;
@@ -197,7 +197,7 @@ export class GeneradorTarjetaQREstudiantilEnPDF {
   }
 
   /**
-   * Modified version of addCardToPDF to handle multiple pages correctly
+   * Versión modificada de addCardToPDF para manejar múltiples páginas correctamente
    */
   private addCardToPDFMultiple(
     doc: any,

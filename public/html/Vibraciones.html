@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Demo API de Vibración</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+        color: white;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 30px;
+        font-size: 2.5rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .warning {
+        background: rgba(255, 193, 7, 0.2);
+        border: 1px solid rgba(255, 193, 7, 0.5);
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 25px;
+        text-align: center;
+      }
+
+      .section {
+        margin-bottom: 30px;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 20px;
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .section h2 {
+        margin-bottom: 15px;
+        color: #ffd700;
+        font-size: 1.5rem;
+      }
+
+      .button-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+
+      .vibe-btn {
+        background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+        border: none;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px 0 rgba(31, 38, 135, 0.2);
+      }
+
+      .vibe-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px 0 rgba(31, 38, 135, 0.4);
+      }
+
+      .vibe-btn:active {
+        transform: translateY(-1px);
+      }
+
+      .vibe-btn.stop {
+        background: linear-gradient(45deg, #ff4757, #c44569);
+      }
+
+      .controls {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+      }
+
+      .control-group {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 15px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .control-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: bold;
+        color: #ffd700;
+      }
+
+      .slider {
+        width: 100%;
+        height: 6px;
+        border-radius: 5px;
+        background: rgba(255, 255, 255, 0.2);
+        outline: none;
+        margin-bottom: 10px;
+      }
+
+      .slider::-webkit-slider-thumb {
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #4ecdc4;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      }
+
+      .slider::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #4ecdc4;
+        cursor: pointer;
+        border: none;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      }
+
+      .value-display {
+        text-align: center;
+        font-size: 14px;
+        color: #ccc;
+        margin-bottom: 10px;
+      }
+
+      .pattern-display {
+        background: rgba(0, 0, 0, 0.2);
+        padding: 10px;
+        border-radius: 8px;
+        font-family: monospace;
+        font-size: 12px;
+        word-break: break-all;
+        margin-top: 10px;
+      }
+
+      .status {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(76, 175, 80, 0.9);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-weight: bold;
+        transform: translateX(100px);
+        opacity: 0;
+        transition: all 0.3s ease;
+      }
+
+      .status.show {
+        transform: translateX(0);
+        opacity: 1;
+      }
+
+      @media (max-width: 600px) {
+        .container {
+          padding: 20px;
+        }
+
+        h1 {
+          font-size: 2rem;
+        }
+
+        .button-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .controls {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🎵 Demo API de Vibración</h1>
+
+      <div class="warning" id="warning">
+        ⚠️ La API de Vibración solo funciona en dispositivos móviles con
+        navegadores compatibles
+      </div>
+
+      <div class="section">
+        <h2>🎼 Patrones Predefinidos</h2>
+        <div class="button-grid">
+          <button class="vibe-btn" onclick="vibratePattern('short')">
+            Vibración Corta
+          </button>
+          <button class="vibe-btn" onclick="vibratePattern('long')">
+            Vibración Larga
+          </button>
+          <button class="vibe-btn" onclick="vibratePattern('pulse')">
+            Pulsos Rápidos
+          </button>
+          <button class="vibe-btn" onclick="vibratePattern('heartbeat')">
+            Latido Corazón
+          </button>
+          <button class="vibe-btn" onclick="vibratePattern('morse')">
+            Código Morse SOS
+          </button>
+          <button class="vibe-btn" onclick="vibratePattern('wave')">
+            Onda Crescendo
+          </button>
+          <button class="vibe-btn" onclick="vibratePattern('notification')">
+            Notificación
+          </button>
+          <button class="vibe-btn" onclick="vibratePattern('alarm')">
+            Alarma
+          </button>
+        </div>
+        <button class="vibe-btn stop" onclick="stopVibration()">
+          🛑 Detener Vibración
+        </button>
+      </div>
+
+      <div class="section">
+        <h2>🎛️ Control Personalizado</h2>
+        <div class="controls">
+          <div class="control-group">
+            <label for="duration">Duración (ms):</label>
+            <input
+              type="range"
+              id="duration"
+              class="slider"
+              min="50"
+              max="2000"
+              value="500"
+            />
+            <div class="value-display" id="durationValue">500ms</div>
+          </div>
+
+          <div class="control-group">
+            <label for="pause">Pausa (ms):</label>
+            <input
+              type="range"
+              id="pause"
+              class="slider"
+              min="50"
+              max="1000"
+              value="200"
+            />
+            <div class="value-display" id="pauseValue">200ms</div>
+          </div>
+
+          <div class="control-group">
+            <label for="repetitions">Repeticiones:</label>
+            <input
+              type="range"
+              id="repetitions"
+              class="slider"
+              min="1"
+              max="10"
+              value="3"
+            />
+            <div class="value-display" id="repetitionsValue">3 veces</div>
+          </div>
+        </div>
+
+        <div class="button-grid">
+          <button class="vibe-btn" onclick="vibrateCustom()">
+            🎯 Vibrar Personalizado
+          </button>
+          <button class="vibe-btn" onclick="generateRandomPattern()">
+            🎲 Patrón Aleatorio
+          </button>
+        </div>
+
+        <div class="pattern-display" id="patternDisplay">
+          Patrón actual: [500, 200, 500, 200, 500]
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>🎵 Ritmos Musicales</h2>
+        <div class="button-grid">
+          <button class="vibe-btn" onclick="playRhythm('disco')">
+            🕺 Disco Beat
+          </button>
+          <button class="vibe-btn" onclick="playRhythm('waltz')">
+            💃 Vals
+          </button>
+          <button class="vibe-btn" onclick="playRhythm('reggae')">
+            🌴 Reggae
+          </button>
+          <button class="vibe-btn" onclick="playRhythm('rock')">🤘 Rock</button>
+          <button class="vibe-btn" onclick="playRhythm('electronic')">
+            🎧 Electrónico
+          </button>
+          <button class="vibe-btn" onclick="playRhythm('latin')">
+            💃 Latino
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="status" id="status">Vibrando...</div>
+
+    <script>
+      // Verificar soporte de la API de Vibración
+      function checkVibrationSupport() {
+        if (!navigator.vibrate) {
+          document.getElementById("warning").innerHTML =
+            "❌ Tu dispositivo no soporta la API de Vibración";
+          document.getElementById("warning").style.background =
+            "rgba(244, 67, 54, 0.2)";
+          document.getElementById("warning").style.borderColor =
+            "rgba(244, 67, 54, 0.5)";
+          return false;
+        }
+        document.getElementById("warning").innerHTML =
+          "✅ API de Vibración disponible - ¡Prueba los patrones!";
+        document.getElementById("warning").style.background =
+          "rgba(76, 175, 80, 0.2)";
+        document.getElementById("warning").style.borderColor =
+          "rgba(76, 175, 80, 0.5)";
+        return true;
+      }
+
+      // Patrones predefinidos
+      const patterns = {
+        short: [100],
+        long: [1000],
+        pulse: [50, 50, 50, 50, 50, 50, 50, 50, 50],
+        heartbeat: [100, 100, 200, 100, 500],
+        morse: [
+          100, 100, 100, 100, 100, 100, 300, 100, 300, 100, 300, 100, 100, 100,
+          100, 100, 100,
+        ], // SOS
+        wave: [100, 50, 150, 50, 200, 50, 250, 50, 300, 50, 350, 50, 400],
+        notification: [200, 100, 200],
+        alarm: [300, 200, 300, 200, 300, 200, 300],
+      };
+
+      // Ritmos musicales (BPM convertido a ms)
+      const rhythms = {
+        disco: [150, 150, 150, 150, 300, 150, 150, 150, 150, 300], // 120 BPM
+        waltz: [400, 200, 400, 200, 400, 400], // 3/4 tempo
+        reggae: [200, 300, 100, 300, 200, 300], // Reggae off-beat
+        rock: [100, 100, 100, 100, 200, 100, 100, 200], // 4/4 rock beat
+        electronic: [80, 80, 80, 80, 160, 80, 80, 160, 80, 80], // Electronic pulse
+        latin: [120, 120, 240, 120, 120, 240, 120], // Salsa rhythm
+      };
+
+      let currentVibration = null;
+
+      function showStatus(message = "Vibrando...") {
+        const status = document.getElementById("status");
+        status.textContent = message;
+        status.classList.add("show");
+        setTimeout(() => {
+          status.classList.remove("show");
+        }, 2000);
+      }
+
+      function vibratePattern(patternName) {
+        if (!checkVibrationSupport()) return;
+
+        const pattern = patterns[patternName];
+        navigator.vibrate(pattern);
+        showStatus(`Reproduciendo: ${patternName}`);
+
+        // Actualizar display del patrón
+        document.getElementById(
+          "patternDisplay"
+        ).textContent = `Patrón ${patternName}: [${pattern.join(", ")}]`;
+      }
+
+      function playRhythm(rhythmName) {
+        if (!checkVibrationSupport()) return;
+
+        const rhythm = rhythms[rhythmName];
+        navigator.vibrate(rhythm);
+        showStatus(`🎵 Reproduciendo ritmo: ${rhythmName}`);
+
+        // Actualizar display del patrón
+        document.getElementById(
+          "patternDisplay"
+        ).textContent = `Ritmo ${rhythmName}: [${rhythm.join(", ")}]`;
+      }
+
+      function vibrateCustom() {
+        if (!checkVibrationSupport()) return;
+
+        const duration = parseInt(document.getElementById("duration").value);
+        const pause = parseInt(document.getElementById("pause").value);
+        const repetitions = parseInt(
+          document.getElementById("repetitions").value
+        );
+
+        const pattern = [];
+        for (let i = 0; i < repetitions; i++) {
+          pattern.push(duration);
+          if (i < repetitions - 1) {
+            pattern.push(pause);
+          }
+        }
+
+        navigator.vibrate(pattern);
+        showStatus("Patrón personalizado activado");
+
+        // Actualizar display del patrón
+        document.getElementById(
+          "patternDisplay"
+        ).textContent = `Patrón personalizado: [${pattern.join(", ")}]`;
+      }
+
+      function generateRandomPattern() {
+        if (!checkVibrationSupport()) return;
+
+        const pattern = [];
+        const length = Math.floor(Math.random() * 8) + 3; // 3-10 elementos
+
+        for (let i = 0; i < length; i++) {
+          if (i % 2 === 0) {
+            // Vibración
+            pattern.push(Math.floor(Math.random() * 400) + 50);
+          } else {
+            // Pausa
+            pattern.push(Math.floor(Math.random() * 300) + 50);
+          }
+        }
+
+        navigator.vibrate(pattern);
+        showStatus("🎲 Patrón aleatorio generado");
+
+        // Actualizar display del patrón
+        document.getElementById(
+          "patternDisplay"
+        ).textContent = `Patrón aleatorio: [${pattern.join(", ")}]`;
+      }
+
+      function stopVibration() {
+        if (navigator.vibrate) {
+          navigator.vibrate(0);
+          showStatus("Vibración detenida");
+        }
+      }
+
+      // Actualizar valores de los sliders en tiempo real
+      function updateSliderValues() {
+        const duration = document.getElementById("duration");
+        const pause = document.getElementById("pause");
+        const repetitions = document.getElementById("repetitions");
+
+        duration.addEventListener("input", function () {
+          document.getElementById("durationValue").textContent =
+            this.value + "ms";
+        });
+
+        pause.addEventListener("input", function () {
+          document.getElementById("pauseValue").textContent = this.value + "ms";
+        });
+
+        repetitions.addEventListener("input", function () {
+          document.getElementById("repetitionsValue").textContent =
+            this.value + " veces";
+        });
+      }
+
+      // Inicializar la demo
+      window.addEventListener("load", function () {
+        checkVibrationSupport();
+        updateSliderValues();
+      });
+
+      // Detectar cambios de orientación en móviles
+      window.addEventListener("orientationchange", function () {
+        setTimeout(checkVibrationSupport, 500);
+      });
+    </script>
+  </body>
+</html>

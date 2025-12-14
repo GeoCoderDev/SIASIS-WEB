@@ -1,39 +1,39 @@
 import { NavegadoresWeb } from "@/interfaces/shared/NavegadoresWeb";
 
 /**
- * Detects the current web browser based on User Agent
- * @returns {NavegadoresWeb} The detected browser type
+ * Detecta el navegador web actual basándose en el User Agent
+ * @returns {NavegadoresWeb} El tipo de navegador detectado
  */
 export function detectarNavegadorWeb(): NavegadoresWeb {
-  // Check if we're in a browser environment
+  // Verificar si estamos en un entorno del navegador
   if (typeof window === "undefined" || !window.navigator) {
     return NavegadoresWeb.Otro;
   }
 
   const userAgent = window.navigator.userAgent.toLowerCase();
 
-  // Detect Edge (must come before Chrome because Edge also contains "chrome" in its UA)
+  // Detectar Edge (debe ir antes que Chrome porque Edge también contiene "chrome" en su UA)
   if (userAgent.includes("edg/") || userAgent.includes("edge/")) {
     return NavegadoresWeb.Edge;
   }
 
-  // Detect Chrome (must come after Edge)
+  // Detectar Chrome (debe ir después de Edge)
   if (userAgent.includes("chrome/") && !userAgent.includes("edg/")) {
     return NavegadoresWeb.Chrome;
   }
 
-  // Detect Firefox
+  // Detectar Firefox
   if (userAgent.includes("firefox/")) {
     return NavegadoresWeb.Firefox;
   }
 
-  // If it doesn't match any of the above
+  // Si no coincide con ninguno de los anteriores
   return NavegadoresWeb.Otro;
 }
 
 /**
- * Function that also provides additional browser information
- * @returns {object} Object with browser type and additional information
+ * Función que también proporciona información adicional del navegador
+ * @returns {object} Objeto con el tipo de navegador y información adicional
  */
 export function obtenerInfoNavegador() {
   const navegador = detectarNavegadorWeb();
@@ -49,13 +49,13 @@ export function obtenerInfoNavegador() {
 
   const userAgent = window.navigator.userAgent;
 
-  // Detect if it's mobile
+  // Detectar si es móvil
   const esMovil =
     /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
       userAgent
     );
 
-  // Try to extract the version
+  // Intentar extraer la versión
   let version = "";
   switch (navegador) {
     case NavegadoresWeb.Chrome:

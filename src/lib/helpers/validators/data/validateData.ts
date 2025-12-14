@@ -2,10 +2,10 @@ import { ValidationErrorTypes } from "../../../../interfaces/shared/errors";
 import { ValidationResult, ValidatorConfig } from "./types";
 
 /**
- * Validator that groups multiple validations
- * @param data - Data to validate
- * @param validators - Array of validator configurations
- * @returns Validation result
+ * Validador que agrupa múltiples validaciones
+ * @param data - Datos a validar
+ * @param validators - Array de configuraciones de validadores
+ * @returns Resultado de la validación
  */
 export function validateData(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -16,17 +16,17 @@ export function validateData(
     return {
       isValid: false,
       errorType: ValidationErrorTypes.INVALID_FORMAT,
-      errorMessage: "An object with data to validate was expected",
+      errorMessage: "Se esperaba un objeto con datos para validar",
     };
   }
 
-  // We validate each field as appropriate
+  // Validamos cada campo según corresponda
   for (const { field, validator } of validators) {
-    // Determine if the field is present in the data
+    // Determinar si el campo está presente en los datos
     const value = data[field];
     const required = Object.keys(data).includes(field);
 
-    // Validate the field
+    // Validar el campo
     const result = validator(value, required);
     if (!result.isValid) {
       return {

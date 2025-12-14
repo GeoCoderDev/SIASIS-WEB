@@ -6,7 +6,7 @@ export type AuxiliarDataNecesariaParaCambioEstado = Pick<
   "Id_Auxiliar" | "Nombres" | "Apellidos" | "Estado"
 >;
 
-// Interfaces for the endpoints
+// Interfaces para los endpoints
 export interface GetAuxiliaresSuccessResponse extends SuccessResponseAPIBase {
   data: AuxiliarSinContraseña[];
 }

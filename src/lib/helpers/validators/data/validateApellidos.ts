@@ -2,10 +2,10 @@ import { ValidationErrorTypes } from "../../../../interfaces/shared/errors";
 import { ValidationResult } from "./types";
 
 /**
- * Validates last names
- * @param value - Value to validate
- * @param required - Indicates if the field is mandatory
- * @returns Validation result
+ * Valida apellidos
+ * @param value - Valor a validar
+ * @param required - Indica si el campo es obligatorio
+ * @returns Resultado de la validación
  */
 export function validateLastNames(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -16,7 +16,7 @@ export function validateLastNames(
     return {
       isValid: false,
       errorType: ValidationErrorTypes.FIELD_REQUIRED,
-      errorMessage: "The Last Names field is required",
+      errorMessage: "El campo Apellidos es requerido",
     };
   }
 
@@ -28,18 +28,18 @@ export function validateLastNames(
     return {
       isValid: false,
       errorType: ValidationErrorTypes.INVALID_FORMAT,
-      errorMessage: "The Last Names field must be a string",
+      errorMessage: "El campo Apellidos debe ser una cadena de texto",
     };
   }
 
-  // Allows letters, spaces, apostrophes, and hyphens (for compound last names)
+  // Permite letras, espacios, apóstrofes y guiones (para apellidos compuestos)
   const nameRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'-]{2,60}$/;
   if (!nameRegex.test(value)) {
     return {
       isValid: false,
       errorType: ValidationErrorTypes.INVALID_LASTNAME,
       errorMessage:
-        "The Last Names field must be between 2 and 60 characters and can only contain letters, spaces, apostrophes, and hyphens",
+        "El campo Apellidos debe tener entre 2 y 60 caracteres y solo puede contener letras, espacios, apóstrofes y guiones",
     };
   }
 

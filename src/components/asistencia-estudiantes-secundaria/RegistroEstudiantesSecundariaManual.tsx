@@ -18,7 +18,7 @@ import { extraerTipoDeIdentificador } from "@/lib/helpers/extractors/extraerTipo
 import { TiposIdentificadoresTextos } from "@/interfaces/shared/TiposIdentificadores";
 import { extraerIdentificador } from "@/lib/helpers/extractors/extraerIdentificador";
 
-// Optimized compact card component
+// Componente de card compacta optimizada
 interface ConfiguracionBoton {
   texto: string;
   colorClass: string;
@@ -38,7 +38,7 @@ const EstudianteCardCompacta: React.FC<EstudianteCardCompactaProps> = ({
   onMarcarAsistencia,
   yaRegistrado = false,
   configuracionBoton = {
-    texto: "✓ Mark",
+    texto: "✓ Marcar",
     colorClass: "bg-green-500 hover:bg-green-600",
   },
 }) => {
@@ -56,17 +56,17 @@ const EstudianteCardCompacta: React.FC<EstudianteCardCompactaProps> = ({
         borderLeftColor: aulaSeleccionada?.Color || "#gray",
       }}
     >
-      {/* Horizontal layout: Photo + Data */}
+      {/* Layout horizontal: Foto + Datos */}
       <div className="flex items-center gap-2.5">
-        {/* Photo fixed to the left */}
+        {/* Foto fija a la izquierda */}
         <FotoPerfilClientSide
           className="aspect-square min-w-8 rounded-full object-cover"
           Google_Drive_Foto_ID={estudiante.Google_Drive_Foto_ID}
         />
 
-        {/* Data organized in 3 rows */}
+        {/* Datos organizados en 3 filas */}
         <div className="flex-1 min-w-0">
-          {/* Row 1: Full name + status */}
+          {/* Fila 1: Nombre completo + estado */}
           <div className="flex items-center justify-between mb-1">
             <p className="font-medium text-gray-900 text-sm truncate pr-1">
               {estudiante.Nombres} {estudiante.Apellidos}
@@ -76,7 +76,7 @@ const EstudianteCardCompacta: React.FC<EstudianteCardCompactaProps> = ({
             )}
           </div>
 
-          {/* Row 2: DNI + Grade/Section in a single line */}
+          {/* Fila 2: DNI + Grado/Sección en una sola línea */}
           <div className="flex items-center justify-start text-xs text-gray-500 mb-2 flex-wrap  gap-2">
             <span className="truncate">
               {
@@ -93,7 +93,7 @@ const EstudianteCardCompacta: React.FC<EstudianteCardCompactaProps> = ({
             )}
           </div>
 
-          {/* Row 3: Compact button */}
+          {/* Fila 3: Botón compacto */}
           <button
             onClick={() => onMarcarAsistencia(estudiante)}
             disabled={yaRegistrado}
@@ -104,13 +104,13 @@ const EstudianteCardCompacta: React.FC<EstudianteCardCompactaProps> = ({
             }`}
             title={
               yaRegistrado
-                ? "Already registered"
+                ? "Ya registrado"
                 : esSalida
-                ? "Mark exit"
-                : "Mark entry"
+                ? "Marcar salida"
+                : "Marcar entrada"
             }
           >
-            {yaRegistrado ? "✓ Registered" : configuracionBoton.texto}
+            {yaRegistrado ? "✓ Registrado" : configuracionBoton.texto}
           </button>
         </div>
       </div>
@@ -125,14 +125,13 @@ interface RegistroEstudiantesSecundariaManualProps {
 const RegistroEstudiantesSecundariaManual: React.FC<
   RegistroEstudiantesSecundariaManualProps
 > = ({ handlerAuxiliar }) => {
-  // States for filters and data
+  // Estados para filtros y datos
   const [grados, setGrados] = useState<number[]>([]);
   const [gradoSeleccionado, setGradoSeleccionado] = useState<number | null>(
     null
   );
   const [secciones, setSecciones] = useState<string[]>([]);
   const [seccionSeleccionada, setSeccionSeleccionada] = useState<string | null>(
-    // Added null type
     null
   );
   const [aulaSeleccionada, setAulaSeleccionada] = useState<T_Aulas | null>(
@@ -145,19 +144,19 @@ const RegistroEstudiantesSecundariaManual: React.FC<
     T_Estudiantes[]
   >([]);
 
-  // State for name search filter
+  // Estado para el filtro de búsqueda por nombre
   const [busquedaNombre, setBusquedaNombre] = useState<string>("");
 
-  // State for already registered students
+  // Estado para estudiantes ya registrados
   const [estudiantesRegistrados, setEstudiantesRegistrados] = useState<
     Set<string>
   >(new Set());
 
-  // Database models
+  // Modelos de base de datos
   const [estudiantesIDB] = useState(() => new BaseEstudiantesIDB());
   const [aulasIDB] = useState(() => new BaseAulasIDB());
 
-  // Function to determine the current registration mode
+  // Función para determinar el modo de registro actual
   const determinarModoRegistro = (): ModoRegistro => {
     if (!CONTROL_ASISTENCIA_DE_SALIDA_SECUNDARIA) {
       return ModoRegistro.Entrada;
@@ -169,7 +168,7 @@ const RegistroEstudiantesSecundariaManual: React.FC<
     const horarioSecundaria = handlerAuxiliar.getHorarioEscolarSecundaria();
     const horaActual = fechaActual;
 
-    // Calculate the cutoff time (1 hour before official exit)
+    // Calcular la hora límite (1 hora antes de la salida oficial)
     const horaLimite = new Date(
       alterarUTCaZonaPeruana(String(horarioSecundaria.Fin))
     );
@@ -181,11 +180,11 @@ const RegistroEstudiantesSecundariaManual: React.FC<
     return horaActual < horaLimite ? ModoRegistro.Entrada : ModoRegistro.Salida;
   };
 
-  // Function to get button configuration
+  // Función para obtener configuración del botón
   const obtenerConfiguracionBoton = () => {
     if (!CONTROL_ASISTENCIA_DE_SALIDA_SECUNDARIA) {
       return {
-        texto: "Mark Attendance",
+        texto: "Marcar Asistencia",
         colorClass: "bg-green-500 hover:bg-green-600",
       };
     }
@@ -193,23 +192,23 @@ const RegistroEstudiantesSecundariaManual: React.FC<
     const modoActual = determinarModoRegistro();
     if (modoActual === ModoRegistro.Entrada) {
       return {
-        texto: "Mark Entry",
+        texto: "Marcar Entrada",
         colorClass: "bg-green-500 hover:bg-green-600",
       };
     } else {
       return {
-        texto: "Mark Exit",
+        texto: "Marcar Salida",
         colorClass: "bg-red-500 hover:bg-red-600",
       };
     }
   };
 
-  // Load available grades on mount
+  // Cargar grados disponibles al montar
   useEffect(() => {
     cargarGradosDisponibles();
   }, []);
 
-  // Load sections when a grade is selected
+  // Cargar secciones cuando se selecciona un grado
   useEffect(() => {
     if (gradoSeleccionado !== null) {
       cargarSeccionesDelGrado(gradoSeleccionado);
@@ -219,7 +218,7 @@ const RegistroEstudiantesSecundariaManual: React.FC<
     }
   }, [gradoSeleccionado]);
 
-  // Load students when a section is selected
+  // Cargar estudiantes cuando se selecciona una sección
   useEffect(() => {
     if (aulaSeleccionada) {
       cargarEstudiantesDelAula(aulaSeleccionada.Id_Aula);
@@ -228,12 +227,12 @@ const RegistroEstudiantesSecundariaManual: React.FC<
     }
   }, [aulaSeleccionada]);
 
-  // Filter students by name when search or classroom students change
+  // Filtrar estudiantes por nombre cuando cambia la búsqueda o los estudiantes del aula
   useEffect(() => {
     filtrarEstudiantesPorNombre();
   }, [busquedaNombre, estudiantesDelAula]);
 
-  // Function to load available grades
+  // Función para cargar grados disponibles
   const cargarGradosDisponibles = async () => {
     try {
       const todasLasAulas = await aulasIDB.getTodasLasAulas();
@@ -246,11 +245,11 @@ const RegistroEstudiantesSecundariaManual: React.FC<
       ].sort();
       setGrados(gradosUnicos);
     } catch (error) {
-      console.error("Error loading grades:", error);
+      console.error("Error al cargar grados:", error);
     }
   };
 
-  // Function to load sections for a specific grade
+  // Función para cargar secciones de un grado específico
   const cargarSeccionesDelGrado = async (grado: number) => {
     try {
       const todasLasAulas = await aulasIDB.getTodasLasAulas();
@@ -264,11 +263,11 @@ const RegistroEstudiantesSecundariaManual: React.FC<
       ].sort();
       setSecciones(seccionesUnicas);
     } catch (error) {
-      console.error("Error loading sections:", error);
+      console.error("Error al cargar secciones:", error);
     }
   };
 
-  // Function to select the classroom
+  // Función para obtener el aula seleccionada
   const seleccionarAula = async (grado: number, seccion: string) => {
     try {
       const todasLasAulas = await aulasIDB.getTodasLasAulas();
@@ -281,11 +280,11 @@ const RegistroEstudiantesSecundariaManual: React.FC<
 
       setAulaSeleccionada(aula || null);
     } catch (error) {
-      console.error("Error selecting classroom:", error);
+      console.error("Error al seleccionar aula:", error);
     }
   };
 
-  // Function to load students from a classroom
+  // Función para cargar estudiantes de un aula
   const cargarEstudiantesDelAula = async (idAula: string) => {
     try {
       const todosLosEstudiantes = await estudiantesIDB.getTodosLosEstudiantes(
@@ -295,7 +294,7 @@ const RegistroEstudiantesSecundariaManual: React.FC<
         (estudiante) => estudiante.Id_Aula === idAula && estudiante.Estado
       );
 
-      // Sort by surnames
+      // Ordenar por apellidos
       estudiantesDelAula.sort((a, b) =>
         `${a.Apellidos} ${a.Nombres}`.localeCompare(
           `${b.Apellidos} ${b.Nombres}`
@@ -304,11 +303,11 @@ const RegistroEstudiantesSecundariaManual: React.FC<
 
       setEstudiantesDelAula(estudiantesDelAula);
     } catch (error) {
-      console.error("Error loading students:", error);
+      console.error("Error al cargar estudiantes:", error);
     }
   };
 
-  // Function to filter students by name and surname
+  // Función para filtrar estudiantes por nombre y apellido
   const filtrarEstudiantesPorNombre = () => {
     if (!busquedaNombre.trim()) {
       setEstudiantesFiltrados(estudiantesDelAula);
@@ -328,33 +327,33 @@ const RegistroEstudiantesSecundariaManual: React.FC<
     setEstudiantesFiltrados(estudiantesFiltrados);
   };
 
-  // Handle grade change
+  // Manejar cambio de grado
   const handleGradoChange = (grado: number) => {
     setGradoSeleccionado(grado);
     setSeccionSeleccionada(null);
     setAulaSeleccionada(null);
-    setBusquedaNombre(""); // Clear search
+    setBusquedaNombre(""); // Limpiar búsqueda
   };
 
-  // Handle section change
+  // Manejar cambio de sección
   const handleSeccionChange = (seccion: string) => {
     setSeccionSeleccionada(seccion);
-    setBusquedaNombre(""); // Clear search
+    setBusquedaNombre(""); // Limpiar búsqueda
     if (gradoSeleccionado !== null) {
       seleccionarAula(gradoSeleccionado, seccion);
     }
   };
 
-  // Handle search field change
+  // Manejar cambio en el campo de búsqueda
   const handleBusquedaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setBusquedaNombre(e.target.value);
   };
 
-  // Function to mark attendance - WITH SCHEDULE CONTROL
+  // Función para marcar asistencia - CON CONTROL DE HORARIO
   const marcarAsistencia = (estudiante: T_Estudiantes) => {
     const fechaActual = handlerAuxiliar.getFechaHoraRedux();
     if (!fechaActual) {
-      console.error("Cannot mark attendance: current date missing");
+      console.error("No se puede marcar asistencia: falta fecha actual");
       return;
     }
 
@@ -371,7 +370,7 @@ const RegistroEstudiantesSecundariaManual: React.FC<
     let desfaseSegundos: number;
 
     if (CONTROL_ASISTENCIA_DE_SALIDA_SECUNDARIA) {
-      // Original logic with entry/exit
+      // Lógica original con entrada/salida
       const horaLimite = new Date(horaSalidaOficial);
       horaLimite.setHours(
         horaLimite.getHours() -
@@ -391,7 +390,7 @@ const RegistroEstudiantesSecundariaManual: React.FC<
         );
       }
     } else {
-      // Only entry, always calculate offset with entry time
+      // Solo entrada, siempre calcular desfase con hora de entrada
       modoRegistro = ModoRegistro.Entrada;
       desfaseSegundos = Math.floor(
         (horaActual.getTime() - horaEntradaOficial.getTime()) / 1000
@@ -402,11 +401,11 @@ const RegistroEstudiantesSecundariaManual: React.FC<
     const tipoRegistro =
       CONTROL_ASISTENCIA_DE_SALIDA_SECUNDARIA &&
       modoRegistro === ModoRegistro.Salida
-        ? "exit"
-        : "entry";
+        ? "salida"
+        : "entrada";
 
     speaker.start(
-      `${tipoRegistro} registered for ${estudiante.Nombres} ${estudiante.Apellidos}`
+      `${tipoRegistro} registrada para ${estudiante.Nombres} ${estudiante.Apellidos}`
     );
 
     Asistencias_Escolares_QUEUE.enqueue({
@@ -420,13 +419,13 @@ const RegistroEstudiantesSecundariaManual: React.FC<
       TipoAsistencia: TipoAsistencia.ParaEstudiantesSecundaria,
     });
 
-    // Add to registered list
+    // Agregar a la lista de registrados
     const nuevosRegistrados = new Set(estudiantesRegistrados);
     nuevosRegistrados.add(estudiante.Id_Estudiante);
     setEstudiantesRegistrados(nuevosRegistrados);
   };
 
-  // Clear all filters
+  // Limpiar todos los filtros
   const limpiarFiltros = () => {
     setGradoSeleccionado(null);
     setSeccionSeleccionada(null);
@@ -441,33 +440,33 @@ const RegistroEstudiantesSecundariaManual: React.FC<
   return (
     <div className="w-full h-full flex items-center justify-center p-2 md:p-4">
       <div className="w-full max-w-7xl h-full max-h-[85vh] flex flex-col">
-        {/* MOBILE: Vertical layout (<md) */}
+        {/* MÓVILES: Layout vertical (<md) */}
         <div className="md:hidden flex flex-col h-full overflow-hidden">
-          {/* ULTRA COMPACT filter panel for mobile */}
+          {/* Panel de filtros ULTRA COMPACTO para móviles */}
           <div className="flex-shrink-0 bg-white border-b border-green-200 p-2">
             <div className="flex justify-between items-center mb-1">
-              <h3 className="text-sm font-bold text-green-800">Filters</h3>
+              <h3 className="text-sm font-bold text-green-800">Filtros</h3>
               <button
                 onClick={limpiarFiltros}
                 className="text-xs text-gray-500 hover:text-gray-700 underline"
               >
-                Clear
+                Limpiar
               </button>
             </div>
 
-            {/* Compact grid for mobile filters */}
+            {/* Grid compacto para filtros móviles */}
             <div className="grid grid-cols-2 gap-1.5 mb-2">
-              {/* Grade Selector */}
+              {/* Selector de Grado */}
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-0.5">
-                  Grade
+                  Grado
                 </label>
                 <select
                   value={gradoSeleccionado || ""}
                   onChange={(e) => handleGradoChange(Number(e.target.value))}
                   className="w-full p-1.5 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-green-500"
                 >
-                  <option value="">Select</option>
+                  <option value="">Seleccionar</option>
                   {grados.map((grado) => (
                     <option key={grado} value={grado}>
                       {grado}°
@@ -476,10 +475,10 @@ const RegistroEstudiantesSecundariaManual: React.FC<
                 </select>
               </div>
 
-              {/* Section Selector */}
+              {/* Selector de Sección */}
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-0.5">
-                  Section
+                  Sección
                 </label>
                 <select
                   value={seccionSeleccionada || ""}
@@ -487,7 +486,7 @@ const RegistroEstudiantesSecundariaManual: React.FC<
                   disabled={!gradoSeleccionado}
                   className="w-full p-1.5 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-green-500 disabled:bg-gray-100"
                 >
-                  <option value="">Select</option>
+                  <option value="">Seleccionar</option>
                   {secciones.map((seccion) => (
                     <option key={seccion} value={seccion}>
                       {seccion}
@@ -497,19 +496,19 @@ const RegistroEstudiantesSecundariaManual: React.FC<
               </div>
             </div>
 
-            {/* Search field */}
+            {/* Campo de búsqueda */}
             <div>
               <input
                 type="text"
                 value={busquedaNombre}
                 onChange={handleBusquedaChange}
                 disabled={!aulaSeleccionada}
-                placeholder="Search student..."
+                placeholder="Buscar estudiante..."
                 className="w-full p-1.5 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-green-500 disabled:bg-gray-100"
               />
             </div>
 
-            {/* SIMPLIFIED classroom info */}
+            {/* Info del aula SIMPLIFICADA */}
             {aulaSeleccionada && (
               <div className="mt-1.5 p-1.5 bg-gray-50 rounded text-xs">
                 <div className="flex items-center justify-between">
@@ -524,10 +523,10 @@ const RegistroEstudiantesSecundariaManual: React.FC<
                   </div>
                   <div className="flex gap-2 text-xs">
                     <span className="text-blue-600">
-                      {estudiantesFiltrados.length} displayed
+                      {estudiantesFiltrados.length} mostrados
                     </span>
                     <span className="text-green-600">
-                      {estudiantesRegistrados.size} registered
+                      {estudiantesRegistrados.size} registrados
                     </span>
                   </div>
                 </div>
@@ -535,7 +534,7 @@ const RegistroEstudiantesSecundariaManual: React.FC<
             )}
           </div>
 
-          {/* Result area with internal mobile scroll */}
+          {/* Área de resultados con scroll interno móviles */}
           <div className="flex-1 overflow-y-auto bg-gray-50 p-2">
             {estudiantesFiltrados.length > 0 && (
               <div className="grid grid-cols-1 gap-1.5">
@@ -554,7 +553,7 @@ const RegistroEstudiantesSecundariaManual: React.FC<
               </div>
             )}
 
-            {/* Empty states for mobile */}
+            {/* Estados vacíos para móviles */}
             {!aulaSeleccionada && (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center text-gray-400">
@@ -574,9 +573,9 @@ const RegistroEstudiantesSecundariaManual: React.FC<
                     </svg>
                   </div>
                   <h4 className="text-sm font-medium mb-1">
-                    Select a classroom
+                    Seleccione un aula
                   </h4>
-                  <p className="text-xs">Choose grade and section</p>
+                  <p className="text-xs">Elija grado y sección</p>
                 </div>
               </div>
             )}
@@ -585,7 +584,7 @@ const RegistroEstudiantesSecundariaManual: React.FC<
               <div className="flex items-center justify-center h-full">
                 <div className="text-center text-gray-500">
                   <div className="text-2xl mb-2">👥</div>
-                  <h4 className="text-sm font-medium">No students</h4>
+                  <h4 className="text-sm font-medium">Sin estudiantes</h4>
                 </div>
               </div>
             )}
@@ -597,12 +596,12 @@ const RegistroEstudiantesSecundariaManual: React.FC<
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center text-yellow-600">
                     <div className="text-2xl mb-2">🔍</div>
-                    <h4 className="text-sm font-medium mb-2">No results</h4>
+                    <h4 className="text-sm font-medium mb-2">Sin resultados</h4>
                     <button
                       onClick={() => setBusquedaNombre("")}
                       className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 text-xs"
                     >
-                      Show all
+                      Mostrar todos
                     </button>
                   </div>
                 </div>
@@ -610,48 +609,48 @@ const RegistroEstudiantesSecundariaManual: React.FC<
           </div>
         </div>
 
-        {/* DESKTOP: Column layout (md+) - MORE COMPACT */}
+        {/* DESKTOP: Layout de columnas (md+) - MÁS COMPACTO */}
         <div className="hidden md:flex h-full">
-          {/* LEFT COLUMN: NARROWER filter panel */}
+          {/* COLUMNA IZQUIERDA: Panel de filtros MÁS ESTRECHO */}
           <div className="w-64 flex-shrink-0 bg-white border-r border-green-200 flex flex-col">
-            {/* COMPACT panel header */}
+            {/* Header del panel COMPACTO */}
             <div className="p-3 border-b border-gray-200">
               <div className="flex justify-between items-center mb-2">
-                <h3 className="text-base font-bold text-green-800">Filters</h3>
+                <h3 className="text-base font-bold text-green-800">Filtros</h3>
                 <button
                   onClick={limpiarFiltros}
                   className="text-sm text-gray-500 hover:text-gray-700 underline"
                 >
-                  Clear
+                  Limpiar
                 </button>
               </div>
             </div>
 
-            {/* COMPACT filter form */}
+            {/* Formulario de filtros COMPACTO */}
             <div className="p-3 space-y-3 flex-1">
-              {/* Grade Selector */}
+              {/* Selector de Grado */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Grade
+                  Grado
                 </label>
                 <select
                   value={gradoSeleccionado || ""}
                   onChange={(e) => handleGradoChange(Number(e.target.value))}
                   className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-green-500 text-sm"
                 >
-                  <option value="">Select grade</option>
+                  <option value="">Seleccionar grado</option>
                   {grados.map((grado) => (
                     <option key={grado} value={grado}>
-                      {grado}° Grade
+                      {grado}° Grado
                     </option>
                   ))}
                 </select>
               </div>
 
-              {/* Section Selector */}
+              {/* Selector de Sección */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Section
+                  Sección
                 </label>
                 <select
                   value={seccionSeleccionada || ""}
@@ -659,31 +658,31 @@ const RegistroEstudiantesSecundariaManual: React.FC<
                   disabled={!gradoSeleccionado}
                   className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-green-500 disabled:bg-gray-100 text-sm"
                 >
-                  <option value="">Select section</option>
+                  <option value="">Seleccionar sección</option>
                   {secciones.map((seccion) => (
                     <option key={seccion} value={seccion}>
-                      Section {seccion}
+                      Sección {seccion}
                     </option>
                   ))}
                 </select>
               </div>
 
-              {/* Search field */}
+              {/* Campo de búsqueda */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Search
+                  Buscar
                 </label>
                 <input
                   type="text"
                   value={busquedaNombre}
                   onChange={handleBusquedaChange}
                   disabled={!aulaSeleccionada}
-                  placeholder="Name or surname..."
+                  placeholder="Nombre o apellido..."
                   className="w-full p-2 border border-gray-300 rounded focus:ring-1 focus:ring-green-500 disabled:bg-gray-100 text-sm"
                 />
               </div>
 
-              {/* ULTRA SIMPLIFIED classroom info */}
+              {/* Información del aula ULTRA SIMPLIFICADA */}
               {aulaSeleccionada && (
                 <div className="p-2 bg-gray-50 rounded border">
                   <div className="space-y-1.5">
@@ -697,13 +696,13 @@ const RegistroEstudiantesSecundariaManual: React.FC<
                       </span>
                     </div>
                     <div className="text-xs text-gray-600 space-y-0.5">
-                      <div> {estudiantesDelAula.length} students</div>
+                      <div> {estudiantesDelAula.length} estudiantes</div>
                       <div className="flex gap-3">
                         <span className="text-blue-600">
-                          Displayed: {estudiantesFiltrados.length}
+                          Mostrados: {estudiantesFiltrados.length}
                         </span>
                         <span className="text-green-600">
-                          Registered: {estudiantesRegistrados.size}
+                          Registrados: {estudiantesRegistrados.size}
                         </span>
                       </div>
                     </div>
@@ -713,21 +712,21 @@ const RegistroEstudiantesSecundariaManual: React.FC<
             </div>
           </div>
 
-          {/* RIGHT COLUMN: Results area */}
+          {/* COLUMNA DERECHA: Área de resultados */}
           <div className="flex-1 flex flex-col bg-gray-50 overflow-hidden">
-            {/* COMPACT results header */}
+            {/* Header de resultados COMPACTO */}
             <div className="bg-white border-b border-gray-200 p-3 flex-shrink-0">
               <div className="flex justify-between items-center">
                 {aulaSeleccionada ? (
                   <div>
                     <h3 className="text-base font-bold text-green-800">
                       {aulaSeleccionada.Grado}° "{aulaSeleccionada.Seccion}" |{" "}
-                      {estudiantesFiltrados.length} Students
+                      {estudiantesFiltrados.length} Estudiantes
                     </h3>
                   </div>
                 ) : (
                   <h3 className="text-base font-bold text-gray-600">
-                    Secondary Students
+                    Estudiantes de Secundaria
                   </h3>
                 )}
 
@@ -736,13 +735,13 @@ const RegistroEstudiantesSecundariaManual: React.FC<
                     <div className="text-lg font-bold text-green-700">
                       {estudiantesRegistrados.size}
                     </div>
-                    <div className="text-xs text-green-600">Registered</div>
+                    <div className="text-xs text-green-600">Registrados</div>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Scroll area with results */}
+            {/* Área de scroll con resultados */}
             <div className="flex-1 overflow-y-auto p-3">
               {estudiantesFiltrados.length > 0 && (
                 <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-3">
@@ -761,7 +760,7 @@ const RegistroEstudiantesSecundariaManual: React.FC<
                 </div>
               )}
 
-              {/* COMPACT empty states */}
+              {/* Estados vacíos COMPACTOS */}
               {!aulaSeleccionada && (
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center text-gray-400">
@@ -781,10 +780,10 @@ const RegistroEstudiantesSecundariaManual: React.FC<
                       </svg>
                     </div>
                     <h4 className="text-lg font-medium mb-2">
-                      Select a classroom
+                      Seleccione un aula
                     </h4>
                     <p className="text-gray-500">
-                      Use the filter panel to choose grade and section
+                      Use el panel de filtros para elegir grado y sección
                     </p>
                   </div>
                 </div>
@@ -795,7 +794,7 @@ const RegistroEstudiantesSecundariaManual: React.FC<
                   <div className="text-center text-gray-500">
                     <div className="text-4xl mb-3">👥</div>
                     <h4 className="text-lg font-medium">
-                      Classroom without students
+                      Aula sin estudiantes
                     </h4>
                   </div>
                 </div>
@@ -808,18 +807,18 @@ const RegistroEstudiantesSecundariaManual: React.FC<
                   <div className="flex items-center justify-center h-full">
                     <div className="text-center text-yellow-600">
                       <div className="text-4xl mb-3">🔍</div>
-                      <h4 className="text-sm font-medium mb-2">
-                        No results found
+                      <h4 className="text-lg font-medium mb-2">
+                        No se encontraron resultados
                       </h4>
                       <p className="text-gray-600 mb-3">
-                        No matches for "
+                        Sin coincidencias para "
                         <strong>{busquedaNombre}</strong>"
                       </p>
                       <button
                         onClick={() => setBusquedaNombre("")}
                         className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 text-sm"
                       >
-                        Show all
+                        Mostrar todos
                       </button>
                     </div>
                   </div>

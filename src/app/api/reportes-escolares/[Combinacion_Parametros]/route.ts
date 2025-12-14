@@ -20,17 +20,17 @@ import { verifyAuthToken } from "@/lib/utils/backend/auth/functions/jwtComprobat
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import { DatosAsistenciaHoyHelper } from "../../_utils/DatosAsistenciaHoyHelper";
 
-// ✅ Main change: params is now a Promise and must be awaited
+// ✅ Cambio principal: params ahora es Promise y debe ser awaited
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ ParameterCombination: string }> }
+  { params }: { params: Promise<{ Combinacion_Parametros: string }> }
 ) {
   try {
-    // ✅ Await params before using them
-    const { ParameterCombination } = await params;
+    // ✅ Await params antes de usarlos
+    const { Combinacion_Parametros } = await params;
 
-    // ✅ AUTHENTICATION
-    const { error, rol: role, decodedToken } = await verifyAuthToken(req, [
+    // ✅ AUTENTICACIÓN
+    const { error, rol, decodedToken } = await verifyAuthToken(req, [
       RolesSistema.Directivo,
       RolesSistema.Auxiliar,
       RolesSistema.ProfesorPrimaria,
@@ -38,47 +38,47 @@ export async function GET(
       RolesSistema.Tutor,
     ]);
 
-    if (error && !role && !decodedToken) return error;
+    if (error && !rol && !decodedToken) return error;
 
-    console.log(`🔐 Authenticated user: ${role} - ${decodedToken.ID_Usuario}`);
+    console.log(`🔐 Usuario autenticado: ${rol} - ${decodedToken.ID_Usuario}`);
 
-    // Validate that the parameter was received
-    if (!ParameterCombination) {
+    // Validar que se recibió el parámetro
+    if (!Combinacion_Parametros) {
       return NextResponse.json(
         {
           success: false,
-          message: "The ParameterCombination parameter is required",
+          message: "Se requiere el parámetro Combinacion_Parametros",
           errorType: RequestErrorTypes.INVALID_PARAMETERS,
         } as ErrorResponseAPIBase,
         { status: 400 }
       );
     }
 
-    // Validate parameter length (maximum 40 characters according to schema)
-    if (ParameterCombination.length > 40) {
+    // Validar longitud del parámetro (máximo 40 caracteres según el schema)
+    if (Combinacion_Parametros.length > 40) {
       return NextResponse.json(
         {
           success: false,
           message:
-            "The ParameterCombination parameter exceeds the maximum allowed length (40 characters)",
+            "El parámetro Combinacion_Parametros excede la longitud máxima permitida (40 caracteres)",
           errorType: RequestErrorTypes.INVALID_PARAMETERS,
         } as ErrorResponseAPIBase,
         { status: 400 }
       );
     }
 
-    // ✅ VALIDATE that the parameter combination is valid using the decoding function
-    const decodedParameters =
+    // ✅ VALIDAR que la combinación de parámetros sea válida usando la función de decodificación
+    const parametrosDecodificados =
       decodificarCombinacionParametrosParaReporteEscolar(
-        ParameterCombination
+        Combinacion_Parametros
       );
 
-    if (decodedParameters === false) {
+    if (parametrosDecodificados === false) {
       return NextResponse.json(
         {
           success: false,
           message:
-            "The combination of parameters is not valid. Check the format and the provided values.",
+            "La combinación de parámetros no es válida. Verifique el formato y los valores proporcionados.",
           errorType: RequestErrorTypes.INVALID_PARAMETERS,
         } as ErrorResponseAPIBase,
         { status: 400 }
@@ -86,103 +86,103 @@ export async function GET(
     }
 
     console.log(
-      `🔍 Querying report with decoded parameters:`,
-      JSON.stringify(decodedParameters, null, 2)
+      `🔍 Consultando reporte con parámetros decodificados:`,
+      JSON.stringify(parametrosDecodificados, null, 2)
     );
 
-    // ✅ VALIDATE PERMISSIONS using the helper
-    const attendanceHelper = await DatosAsistenciaHoyHelper.obtenerInstancia();
-    const permissionValidation = attendanceHelper.validarPermisosReporte(
-      role!,
+    // ✅ VALIDAR PERMISOS usando el helper
+    const helperAsistencia = await DatosAsistenciaHoyHelper.obtenerInstancia();
+    const validacionPermisos = helperAsistencia.validarPermisosReporte(
+      rol!,
       decodedToken.ID_Usuario,
-      decodedParameters.aulasSeleccionadas.Nivel,
-      decodedParameters.aulasSeleccionadas.Grado,
-      decodedParameters.aulasSeleccionadas.Seccion
+      parametrosDecodificados.aulasSeleccionadas.Nivel,
+      parametrosDecodificados.aulasSeleccionadas.Grado,
+      parametrosDecodificados.aulasSeleccionadas.Seccion
     );
 
-    if (!permissionValidation.tienePermiso) {
+    if (!validacionPermisos.tienePermiso) {
       console.log(
-        `❌ Permission denied for ${role}: ${permissionValidation.mensaje}`
+        `❌ Permiso denegado para ${rol}: ${validacionPermisos.mensaje}`
       );
       return NextResponse.json(
         {
           success: false,
           message:
-            permissionValidation.mensaje ||
-            "You do not have permission to query this report",
+            validacionPermisos.mensaje ||
+            "No tiene permisos para consultar este reporte",
           errorType: PermissionErrorTypes.INSUFFICIENT_PERMISSIONS,
         } as ErrorResponseAPIBase,
         { status: 403 }
       );
     }
 
-    console.log(`✅ Permissions successfully validated for role ${role}`);
+    console.log(`✅ Permisos validados correctamente para rol ${rol}`);
 
-    // Get Redis instance for school attendance reports
+    // Obtener instancia de Redis para reportes de asistencia escolar
     const redisClientInstance = redisClient(
       GruposIntanciasDeRedis.ParaReportesDeAsistenciasEscolares
     );
 
-    // Search for the report in Redis using the parameter combination as key
-    const reportData = await redisClientInstance.get(ParameterCombination);
+    // Buscar el reporte en Redis usando la combinación de parámetros como clave
+    const reporteData = await redisClientInstance.get(Combinacion_Parametros);
 
-    // If the report doesn't exist, return 404
-    if (!reportData) {
+    // Si no existe el reporte, devolver 404
+    if (!reporteData) {
       return NextResponse.json(
         {
           success: false,
           message:
-            "No report was found with that combination of parameters",
+            "No se encontró ningún reporte con esa combinación de parámetros",
           errorType: RequestErrorTypes.RESOURCE_NOT_FOUND,
         } as ErrorResponseAPIBase,
         { status: 404 }
       );
     }
 
-    // Parse the data from Redis (may come as JSON string)
-    const completeReport: T_Reportes_Asistencia_Escolar =
-      typeof reportData === "string" ? JSON.parse(reportData) : reportData;
+    // Parsear los datos de Redis (pueden venir como string JSON)
+    const reporteCompleto: T_Reportes_Asistencia_Escolar =
+      typeof reporteData === "string" ? JSON.parse(reporteData) : reporteData;
 
-    // Validate that the report status is valid
+    // Validar que el estado del reporte sea válido
     if (
       !Object.values(EstadoReporteAsistenciaEscolar).includes(
-        completeReport.Estado_Reporte as EstadoReporteAsistenciaEscolar
+        reporteCompleto.Estado_Reporte as EstadoReporteAsistenciaEscolar
       )
     ) {
       console.warn(
-        `⚠️ Invalid report status found: ${completeReport.Estado_Reporte}`
+        `⚠️ Estado de reporte inválido encontrado: ${reporteCompleto.Estado_Reporte}`
       );
     }
 
-    // Filter only the data needed by the ReporteAsistenciaEscolarAnonimo interface
-    const anonymousReport: ReporteAsistenciaEscolarAnonimo = {
+    // Filtrar solo los datos que necesita la interfaz ReporteAsistenciaEscolarAnonimo
+    const reporteAnonimo: ReporteAsistenciaEscolarAnonimo = {
       Combinacion_Parametros_Reporte:
-        completeReport.Combinacion_Parametros_Reporte,
-      Estado_Reporte: completeReport.Estado_Reporte,
-      Datos_Google_Drive_Id: completeReport.Datos_Google_Drive_Id,
-      Fecha_Generacion: completeReport.Fecha_Generacion,
+        reporteCompleto.Combinacion_Parametros_Reporte,
+      Estado_Reporte: reporteCompleto.Estado_Reporte,
+      Datos_Google_Drive_Id: reporteCompleto.Datos_Google_Drive_Id,
+      Fecha_Generacion: reporteCompleto.Fecha_Generacion,
     };
 
     console.log(
-      `✅ Report successfully queried: ${ParameterCombination} - Status: ${completeReport.Estado_Reporte} - Type: ${decodedParameters.tipoReporte} - Level: ${decodedParameters.aulasSeleccionadas.Nivel} - Grade: ${decodedParameters.aulasSeleccionadas.Grado}${decodedParameters.aulasSeleccionadas.Seccion}`
+      `✅ Reporte consultado exitosamente: ${Combinacion_Parametros} - Estado: ${reporteCompleto.Estado_Reporte} - Tipo: ${parametrosDecodificados.tipoReporte} - Nivel: ${parametrosDecodificados.aulasSeleccionadas.Nivel} - Grado: ${parametrosDecodificados.aulasSeleccionadas.Grado}${parametrosDecodificados.aulasSeleccionadas.Seccion}`
     );
 
-    // Return successful response with filtered data
+    // Devolver respuesta exitosa con los datos filtrados
     return NextResponse.json(
       {
         success: true,
-        message: "Report found successfully",
-        data: anonymousReport,
+        message: "Reporte encontrado exitosamente",
+        data: reporteAnonimo,
       },
       { status: 200 }
     );
   } catch (error) {
-    console.error("❌ Error querying attendance report:", error);
+    console.error("❌ Error al consultar reporte de asistencia:", error);
 
     return NextResponse.json(
       {
         success: false,
-        message: "Error querying attendance report",
+        message: "Error al consultar el reporte de asistencia",
         errorType: SystemErrorTypes.UNKNOWN_ERROR,
         ErrorDetails: error instanceof Error ? error.message : String(error),
       } as ErrorResponseAPIBase,

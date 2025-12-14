@@ -16,33 +16,33 @@ import { HORA_ACTUALIZACION_DATOS_ASISTENCIA_DIARIOS } from "@/constants/HORA_AC
 import { DatosAsistenciaCompartidos } from "@/hooks/asistencia-personal-no-directivo/useAsistenciaCompartida";
 import { T_Eventos } from "@prisma/client";
 
-// ✅ VERSION CONSTANT
+// ✅ CONSTANTE DE VERSIÓN
 const VERSION_MINIMALISTA = true;
 
-// ✅ LOCAL INTERFACES
+// ✅ INTERFACES LOCALES
 interface EstadoAsistenciaDetallado {
   tipo:
-    | "loading"
-    | "pending-data"
-    | "out-of-year"
-    | "weekend"
-    | "event"
-    | "no-schedule"
-    | "too-early"
-    | "entry-active"
-    | "exit-active"
-    | "finished";
+    | "cargando"
+    | "datos-pendientes"
+    | "fuera-año"
+    | "fin-semana"
+    | "evento"
+    | "sin-horario"
+    | "muy-temprano"
+    | "entrada-activa"
+    | "salida-activa"
+    | "finalizado";
   titulo: string;
   descripcion: string;
   informacionExtra?: string;
   tiempoRestante?: string;
   horarioReal?: string;
-  color: "gray" | "blue" | "orange" | "red" | "green" | "purple";
+  color: "gris" | "azul" | "naranja" | "rojo" | "verde" | "morado";
   icono: string;
   mostrarProgreso?: boolean;
 }
 
-// ✅ OPTIMIZED SELECTOR
+// ✅ SELECTOR OPTIMIZADO
 const selectHoraMinutoActual = (state: RootState) => {
   const fechaHora = state.others.fechaHoraActualReal.fechaHora;
   if (!fechaHora) return null;
@@ -61,27 +61,27 @@ const selectHoraMinutoActual = (state: RootState) => {
 };
 
 const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
-  datosAsistencia, // 👈 RECEIVE DATA AS PROPS
+  datosAsistencia, // 👈 RECIBIR DATOS COMO PROPS
 }: {
-  datosAsistencia: DatosAsistenciaCompartidos; // 👈 NEW PROP
+  datosAsistencia: DatosAsistenciaCompartidos; // 👈 NUEVA PROP
 }) => {
-  // ✅ SELECTORS
+  // ✅ SELECTORES
   const horaMinutoActual = useSelector(selectHoraMinutoActual);
   const reduxInicializado = useSelector(
     (state: RootState) => state.others.fechaHoraActualReal.inicializado
   );
 
-  // ✅ EXTRACT DATA FROM SHARED HOOK
+  // ✅ EXTRAER DATOS DEL HOOK COMPARTIDO
   const { horario, handlerBase, asistencia, inicializado } = datosAsistencia;
 
-  // ✅ FUNCTION: Calculate remaining time
+  // ✅ FUNCIÓN: Calcular tiempo restante
   const calcularTiempoRestante = useCallback(
     (fechaObjetivo: Date): string => {
-      if (!reduxInicializado) return "Calculating...";
+      if (!reduxInicializado) return "Calculando...";
 
       const fechaHoraRedux =
         store.getState?.()?.others?.fechaHoraActualReal?.fechaHora;
-      if (!fechaHoraRedux) return "Calculating...";
+      if (!fechaHoraRedux) return "Calculando...";
 
       const fechaActual = new Date(fechaHoraRedux);
 
@@ -100,114 +100,114 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
     [reduxInicializado]
   );
 
-  // ✅ FUNCTION: Determine detailed status (NO OWN QUERIES)
+  // ✅ FUNCIÓN: Determinar estado detallado (SIN CONSULTAS PROPIAS)
   const determinarEstadoDetallado =
     useCallback((): EstadoAsistenciaDetallado => {
       if (!reduxInicializado || !inicializado) {
         return {
-          tipo: "loading",
-          titulo: "Loading information...",
-          descripcion: "Getting system data",
-          color: "gray",
+          tipo: "cargando",
+          titulo: "Cargando información...",
+          descripcion: "Obteniendo datos del sistema",
+          color: "gris",
           icono: "⏳",
         };
       }
 
       if (!horaMinutoActual) {
         return {
-          tipo: "loading",
-          titulo: "Synchronizing time...",
-          descripcion: "Waiting for date and time synchronization",
-          color: "gray",
+          tipo: "cargando",
+          titulo: "Sincronizando hora...",
+          descripcion: "Esperando sincronización de fecha y hora",
+          color: "gris",
           icono: "🕐",
         };
       }
 
-      // ✅ 1. Check if we are in data update period
+      // ✅ 1. Verificar si estamos en período de actualización de datos
       if (horaMinutoActual.hora < HORA_ACTUALIZACION_DATOS_ASISTENCIA_DIARIOS) {
         console.log(
-          "c% THE HOUR IS " + horaMinutoActual.hora,
+          "c% LA HORA ES " + horaMinutoActual.hora,
           "font-size:2rem; color:cyan"
         );
         return {
-          tipo: "pending-data",
-          titulo: "System updating data",
-          descripcion: `Data is being updated for today`,
-          informacionExtra: `Available from ${HORA_ACTUALIZACION_DATOS_ASISTENCIA_DIARIOS}:00 AM`,
-          color: "blue",
+          tipo: "datos-pendientes",
+          titulo: "Sistema actualizando datos",
+          descripcion: `Los datos se están actualizando para el día de hoy`,
+          informacionExtra: `Disponible a partir de las ${HORA_ACTUALIZACION_DATOS_ASISTENCIA_DIARIOS}:00 AM`,
+          color: "azul",
           icono: "🔄",
         };
       }
 
-      // ✅ 2. Check out of school year
+      // ✅ 2. Verificar fuera del año escolar
       if (handlerBase?.estaFueraDeAnioEscolar()) {
         return {
-          tipo: "out-of-year",
-          titulo: "Outside school period",
-          descripcion: "Attendance is not recorded outside the academic year",
+          tipo: "fuera-año",
+          titulo: "Fuera del período escolar",
+          descripcion: "No se registra asistencia fuera del año académico",
           informacionExtra:
-            "The school year starts in March and ends in December",
-          color: "red",
+            "El año escolar inicia en marzo y finaliza en diciembre",
+          color: "rojo",
           icono: "📅",
         };
       }
 
-      // ✅ 3. Check event day
+      // ✅ 3. Verificar día de evento
       const eventoHoy = handlerBase?.esHoyDiaDeEvento();
       if (eventoHoy) {
         return {
-          tipo: "event",
-          titulo: `Day of ${eventoHoy.Nombre}`,
-          descripcion: "Non-working day - Attendance is not recorded",
-          informacionExtra: `Event scheduled from ${new Date(
+          tipo: "evento",
+          titulo: `Día de ${eventoHoy.Nombre}`,
+          descripcion: "Día no laboral - No se registra asistencia",
+          informacionExtra: `Evento programado del ${new Date(
             eventoHoy.Fecha_Inicio
-          ).toLocaleDateString()} to ${new Date(
+          ).toLocaleDateString()} al ${new Date(
             eventoHoy.Fecha_Conclusion
           ).toLocaleDateString()}`,
-          color: "purple",
+          color: "morado",
           icono: "🎉",
         };
       }
 
-      // ✅ 4. Check weekend
+      // ✅ 4. Verificar fin de semana
       if (
         horaMinutoActual.diaSemana === 0 ||
         horaMinutoActual.diaSemana === 6
       ) {
         const diaNombre =
-          horaMinutoActual.diaSemana === 0 ? "Sunday" : "Saturday";
+          horaMinutoActual.diaSemana === 0 ? "domingo" : "sábado";
         return {
-          tipo: "weekend",
-          titulo: `Today is ${diaNombre}`,
-          descripcion: "Non-working day - Attendance is not recorded",
+          tipo: "fin-semana",
+          titulo: `Hoy es ${diaNombre}`,
+          descripcion: "Día no laboral - No se registra asistencia",
           informacionExtra:
-            "Registration will be available on the next business day",
-          color: "gray",
+            "El registro estará disponible el próximo día hábil",
+          color: "gris",
           icono: "🏠",
         };
       }
 
-      // ✅ 5. Check if no schedule
+      // ✅ 5. Verificar si no hay horario
       if (!horario) {
         return {
-          tipo: "no-schedule",
-          titulo: "You are not attending school today",
-          descripcion: "You do not have to attend school today",
-          informacionExtra: "Your work schedule does not include this day",
-          color: "gray",
+          tipo: "sin-horario",
+          titulo: "No asistes al colegio hoy",
+          descripcion: "No debes asistir al colegio el día de hoy",
+          informacionExtra: "Tu horario laboral no incluye este día",
+          color: "gris",
           icono: "📋",
         };
       }
 
-      // ✅ 6. Use the currentMode calculated by the shared hook
+      // ✅ 6. Usar el modoActual calculado por el hook compartido
       const { modoActual } = datosAsistencia;
 
       if (!reduxInicializado) {
         return {
-          tipo: "loading",
-          titulo: "Processing schedule...",
-          descripcion: "Calculating current status",
-          color: "gray",
+          tipo: "cargando",
+          titulo: "Procesando horario...",
+          descripcion: "Calculando estado actual",
+          color: "gris",
           icono: "⏳",
         };
       }
@@ -216,10 +216,10 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
         String(horario.Inicio)
       )} - ${formatearISOaFormato12Horas(String(horario.Fin))}`;
 
-      // ✅ 7. Evaluate according to the current mode calculated by the hook
+      // ✅ 7. Evaluar según el modo actual calculado por el hook
       if (!modoActual.activo) {
-        if (modoActual.razon.includes("Too early")) {
-          // Calculate time for activation
+        if (modoActual.razon.includes("Muy temprano")) {
+          // Calcular tiempo para activación
           const horarioInicio = new Date(horario.Inicio);
           const fechaActual = new Date(
             String(store.getState().others.fechaHoraActualReal.fechaHora)
@@ -239,35 +239,35 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
           const tiempoRestante = calcularTiempoRestante(unaHoraAntesInicio);
 
           return {
-            tipo: "too-early",
-            titulo: "Too early to register",
-            descripcion: `Your registration will be activated ${HORAS_ANTES_INICIO_ACTIVACION} hour before your work schedule`,
-            informacionExtra: `Work schedule: ${horarioRealTexto}`,
-            tiempoRestante: `Activation in: ${tiempoRestante}`,
+            tipo: "muy-temprano",
+            titulo: "Muy temprano para registrar",
+            descripcion: `Tu registro se activará ${HORAS_ANTES_INICIO_ACTIVACION} hora antes de tu horario laboral`,
+            informacionExtra: `Horario laboral: ${horarioRealTexto}`,
+            tiempoRestante: `Activación en: ${tiempoRestante}`,
             horarioReal: horarioRealTexto,
-            color: "orange",
+            color: "naranja",
             icono: "⏰",
             mostrarProgreso: true,
           };
         } else {
           return {
-            tipo: "finished",
-            titulo: "Registration period finished",
-            descripcion: "You can no longer register your attendance for today",
-            informacionExtra: `Registration closed ${HORAS_DESPUES_SALIDA_LIMITE} hours after your exit time`,
+            tipo: "finalizado",
+            titulo: "Período de registro finalizado",
+            descripcion: "Ya no puedes registrar tu asistencia de hoy",
+            informacionExtra: `El registro cerró ${HORAS_DESPUES_SALIDA_LIMITE} horas después de tu horario de salida`,
             horarioReal: horarioRealTexto,
-            color: "red",
+            color: "rojo",
             icono: "🔒",
           };
         }
       }
 
-      // ✅ 8. Active periods using data from the shared hook
+      // ✅ 8. Períodos activos usando datos del hook compartido
       if (modoActual.tipo === ModoRegistro.Entrada) {
         const yaRegistroEntrada =
           asistencia.inicializado && asistencia.entradaMarcada;
 
-        // Calculate time until change to exit
+        // Calcular tiempo hasta cambio a salida
         const horarioFin = new Date(horario.Fin);
         const fechaActual = new Date(
           String(store.getState().others.fechaHoraActualReal.fechaHora)
@@ -283,17 +283,17 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
         const tiempoHastaSalida = calcularTiempoRestante(unaHoraAntesSalida);
 
         return {
-          tipo: "entry-active",
+          tipo: "entrada-activa",
           titulo: yaRegistroEntrada
-            ? "✅ ENTRY already registered"
-            : "🟢 You can register your ENTRY",
+            ? "✅ ENTRADA ya registrada"
+            : "🟢 Puedes registrar tu ENTRADA",
           descripcion: yaRegistroEntrada
-            ? "Your entry has been successfully registered"
-            : "The system is active to mark your arrival",
-          informacionExtra: `It will change to exit mode ${HORAS_ANTES_SALIDA_CAMBIO_MODO_PARA_PERSONAL} hour before your exit`,
-          tiempoRestante: `Change to exit in: ${tiempoHastaSalida}`,
+            ? "Tu entrada ha sido registrada exitosamente"
+            : "El sistema está activo para marcar tu llegada",
+          informacionExtra: `Cambiará a modo salida ${HORAS_ANTES_SALIDA_CAMBIO_MODO_PARA_PERSONAL} hora antes de tu salida`,
+          tiempoRestante: `Cambio a salida en: ${tiempoHastaSalida}`,
           horarioReal: horarioRealTexto,
-          color: yaRegistroEntrada ? "blue" : "green",
+          color: yaRegistroEntrada ? "azul" : "verde",
           icono: yaRegistroEntrada ? "✅" : "🟢",
           mostrarProgreso: true,
         };
@@ -303,7 +303,7 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
         const yaRegistroSalida =
           asistencia.inicializado && asistencia.salidaMarcada;
 
-        // Calculate time until closing
+        // Calcular tiempo hasta cierre
         const horarioFin = new Date(horario.Fin);
         const fechaActual = new Date(
           String(store.getState().others.fechaHoraActualReal.fechaHora)
@@ -318,17 +318,17 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
         const tiempoHastaCierre = calcularTiempoRestante(dosHorasDespuesSalida);
 
         return {
-          tipo: "exit-active",
+          tipo: "salida-activa",
           titulo: yaRegistroSalida
-            ? "✅ EXIT already registered"
-            : "🔴 You can register your EXIT",
+            ? "✅ SALIDA ya registrada"
+            : "🔴 Puedes registrar tu SALIDA",
           descripcion: yaRegistroSalida
-            ? "Your exit has been successfully registered"
-            : "The system is active to mark your departure",
-          informacionExtra: `Registration will close ${HORAS_DESPUES_SALIDA_LIMITE} hours after your exit time`,
-          tiempoRestante: `Close in: ${tiempoHastaCierre}`,
+            ? "Tu salida ha sido registrada exitosamente"
+            : "El sistema está activo para marcar tu salida",
+          informacionExtra: `El registro se cerrará ${HORAS_DESPUES_SALIDA_LIMITE} horas después de tu horario de salida`,
+          tiempoRestante: `Cierre en: ${tiempoHastaCierre}`,
           horarioReal: horarioRealTexto,
-          color: yaRegistroSalida ? "blue" : "green",
+          color: yaRegistroSalida ? "azul" : "verde",
           icono: yaRegistroSalida ? "✅" : "🔴",
           mostrarProgreso: true,
         };
@@ -336,10 +336,10 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
 
       // ✅ Default fallback
       return {
-        tipo: "loading",
-        titulo: "Processing status...",
-        descripcion: "Calculating current information",
-        color: "gray",
+        tipo: "cargando",
+        titulo: "Procesando estado...",
+        descripcion: "Calculando información actual",
+        color: "gris",
         icono: "🔄",
       };
     }, [
@@ -353,70 +353,70 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
       calcularTiempoRestante,
     ]);
 
-  // ✅ FUNCTION: Format current date
+  // ✅ FUNCIÓN: Formatear fecha actual
   const formatearFechaActual = useCallback((): string => {
-    if (!horaMinutoActual) return "Loading date...";
+    if (!horaMinutoActual) return "Cargando fecha...";
 
     const diaSemana =
       diasSemanaTextos[horaMinutoActual.diaSemana as DiasSemana];
     const mes = mesesTextos[horaMinutoActual.mes as Meses];
 
-    return `${diaSemana}, ${horaMinutoActual.diaMes} of ${mes} of ${horaMinutoActual.año}`;
+    return `${diaSemana}, ${horaMinutoActual.diaMes} de ${mes} de ${horaMinutoActual.año}`;
   }, [horaMinutoActual]);
 
-  // ✅ FUNCTION: Generate minimalist message
+  // ✅ FUNCIÓN: Generar mensaje minimalista
   const generarMensajeMinimalista = useCallback((): string => {
-    if (!reduxInicializado || !inicializado) return "⏳ Loading...";
-    if (!horaMinutoActual) return "🕐 Synchronizing...";
+    if (!reduxInicializado || !inicializado) return "⏳ Cargando...";
+    if (!horaMinutoActual) return "🕐 Sincronizando...";
 
     const estadoActual = determinarEstadoDetallado();
 
     switch (estadoActual.tipo) {
-      case "pending-data":
-        return `🔄 Updating data (until ${HORA_ACTUALIZACION_DATOS_ASISTENCIA_DIARIOS}:00 AM)`;
-      case "out-of-year":
-        return "📅 Outside school period";
-      case "event":
+      case "datos-pendientes":
+        return `🔄 Actualizando datos (hasta ${HORA_ACTUALIZACION_DATOS_ASISTENCIA_DIARIOS}:00 AM)`;
+      case "fuera-año":
+        return "📅 Fuera del período escolar";
+      case "evento":
         const evento = handlerBase?.esHoyDiaDeEvento();
         return `🎉 ${
-          (evento as T_Eventos).Nombre || "Event day"
-        } - Non-working`;
-      case "weekend":
-        const dia = horaMinutoActual.diaSemana === 0 ? "Sunday" : "Saturday";
-        return `🏠 ${dia} - Non-working`;
-      case "no-schedule":
-        return "📋 You are not attending school today";
-      case "too-early":
-        return `⏰ Activation in: ${estadoActual.tiempoRestante?.replace(
-          "Activation in: ",
+          (evento as T_Eventos).Nombre || "Día de evento"
+        } - No laboral`;
+      case "fin-semana":
+        const dia = horaMinutoActual.diaSemana === 0 ? "Domingo" : "Sábado";
+        return `🏠 ${dia} - No laboral`;
+      case "sin-horario":
+        return "📋 No asistes al colegio hoy";
+      case "muy-temprano":
+        return `⏰ Activación en: ${estadoActual.tiempoRestante?.replace(
+          "Activación en: ",
           ""
-        )} | Your Work Schedule: ${estadoActual.horarioReal}`;
-      case "entry-active":
+        )} | Tu Horario Laboral: ${estadoActual.horarioReal}`;
+      case "entrada-activa":
         const yaEntrada = asistencia.inicializado && asistencia.entradaMarcada;
         return yaEntrada
-          ? `✅ ENTRY registered | ${estadoActual.tiempoRestante?.replace(
-              "Change to exit in: ",
-              "Change in: "
+          ? `✅ ENTRADA registrada | ${estadoActual.tiempoRestante?.replace(
+              "Cambio a salida en: ",
+              "Cambio en: "
             )} | ${estadoActual.horarioReal}`
-          : `🟢 ENTRY available | ${estadoActual.tiempoRestante?.replace(
-              "Change to exit in: ",
-              "Change in: "
+          : `🟢 ENTRADA disponible | ${estadoActual.tiempoRestante?.replace(
+              "Cambio a salida en: ",
+              "Cambio en: "
             )} | ${estadoActual.horarioReal}`;
-      case "exit-active":
+      case "salida-activa":
         const yaSalida = asistencia.inicializado && asistencia.salidaMarcada;
         return yaSalida
-          ? `✅ EXIT registered | ${estadoActual.tiempoRestante?.replace(
-              "Close in: ",
-              "Close in: "
+          ? `✅ SALIDA registrada | ${estadoActual.tiempoRestante?.replace(
+              "Cierre en: ",
+              "Cierre en: "
             )} | ${estadoActual.horarioReal}`
-          : `🔴 EXIT available | ${estadoActual.tiempoRestante?.replace(
-              "Close in: ",
-              "Close in: "
+          : `🔴 SALIDA disponible | ${estadoActual.tiempoRestante?.replace(
+              "Cierre en: ",
+              "Cierre en: "
             )} | ${estadoActual.horarioReal}`;
-      case "finished":
-        return `🔒 Registration closed | Your Work Schedule: ${estadoActual.horarioReal}`;
+      case "finalizado":
+        return `🔒 Registro cerrado | Tu Horario Laboral: ${estadoActual.horarioReal}`;
       default:
-        return "🔄 Processing status...";
+        return "🔄 Procesando estado...";
     }
   }, [
     reduxInicializado,
@@ -427,10 +427,10 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
     asistencia,
   ]);
 
-  // ✅ FUNCTION: Get CSS classes by color
+  // ✅ FUNCIÓN: Obtener clases CSS por color
   const obtenerClasesColor = (color: EstadoAsistenciaDetallado["color"]) => {
     switch (color) {
-      case "green":
+      case "verde":
         return {
           fondo: "bg-green-50 border-green-200",
           titulo: "text-green-800",
@@ -438,7 +438,7 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
           extra: "text-green-600",
           tiempo: "text-green-800 bg-green-100",
         };
-      case "orange":
+      case "naranja":
         return {
           fondo: "bg-orange-50 border-orange-200",
           titulo: "text-orange-800",
@@ -446,7 +446,7 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
           extra: "text-orange-600",
           tiempo: "text-orange-800 bg-orange-100",
         };
-      case "red":
+      case "rojo":
         return {
           fondo: "bg-red-50 border-red-200",
           titulo: "text-red-800",
@@ -454,7 +454,7 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
           extra: "text-red-600",
           tiempo: "text-red-800 bg-red-100",
         };
-      case "blue":
+      case "azul":
         return {
           fondo: "bg-blue-50 border-blue-200",
           titulo: "text-blue-800",
@@ -462,7 +462,7 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
           extra: "text-blue-600",
           tiempo: "text-blue-800 bg-blue-100",
         };
-      case "purple":
+      case "morado":
         return {
           fondo: "bg-purple-50 border-purple-200",
           titulo: "text-purple-800",
@@ -470,7 +470,7 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
           extra: "text-purple-600",
           tiempo: "text-purple-800 bg-purple-100",
         };
-      default: // gray
+      default: // gris
         return {
           fondo: "bg-gray-50 border-gray-200",
           titulo: "text-gray-800",
@@ -481,11 +481,11 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
     }
   };
 
-  // ✅ GET CURRENT STATUS
+  // ✅ OBTENER ESTADO ACTUAL
   const estadoActual = determinarEstadoDetallado();
   const clases = obtenerClasesColor(estadoActual.color);
 
-  // ✅ MINIMALIST VERSION
+  // ✅ VERSIÓN MINIMALISTA
   if (VERSION_MINIMALISTA) {
     return (
       <div
@@ -495,9 +495,9 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
           <p className={`${clases.titulo} font-medium leading-tight`}>
             {generarMensajeMinimalista()}
           </p>
-          {(estadoActual.tipo === "entry-active" ||
-            estadoActual.tipo === "exit-active" ||
-            estadoActual.tipo === "too-early") && (
+          {(estadoActual.tipo === "entrada-activa" ||
+            estadoActual.tipo === "salida-activa" ||
+            estadoActual.tipo === "muy-temprano") && (
             <p className="text-xs text-gray-500 mt-1">
               {formatearFechaActual()}
             </p>
@@ -507,12 +507,12 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
     );
   }
 
-  // ✅ FULL VERSION (omitted for brevity, same as before but using datosAsistencia)
+  // ✅ VERSIÓN COMPLETA (omitida por brevedad, es igual que antes pero usando datosAsistencia)
   return (
     <div
       className={`border border-gray-200 rounded-lg p-4 ${clases.fondo} transition-all duration-300`}
     >
-      {/* Rest of the component same as before */}
+      {/* Resto del componente igual que antes */}
     </div>
   );
 };

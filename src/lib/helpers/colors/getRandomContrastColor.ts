@@ -1,16 +1,16 @@
 import { ColorHexadecimal } from "@/interfaces/Colors";
 
 /**
- * Generates a random color with high contrast relative to the base color
- * @param baseColor - Base color in hexadecimal format
- * @param contrastRatio - Minimum desired contrast ratio (default 4.5, WCAG AA standard)
- * @returns A hexadecimal color with high contrast
+ * Genera un color aleatorio con alto contraste respecto al color base
+ * @param baseColor - Color base en formato hexadecimal
+ * @param contrastRatio - Ratio de contraste mínimo deseado (por defecto 4.5, estándar WCAG AA)
+ * @returns Un color hexadecimal con alto contraste
  */
 export function getRandomContrastColor(
   baseColor: ColorHexadecimal,
   contrastRatio: number = 4.5
 ): ColorHexadecimal {
-  // Convert hex to RGB
+  // Convertir hex a RGB
   const hexToRgb = (hex: string): { r: number; g: number; b: number } => {
     const cleanHex = hex.replace("#", "");
     const r = parseInt(cleanHex.substring(0, 2), 16);
@@ -19,13 +19,13 @@ export function getRandomContrastColor(
     return { r, g, b };
   };
 
-  // Convert RGB to linear values (for luminance calculation)
+  // Convertir RGB a valores lineales (para cálculo de luminancia)
   const toLinear = (channel: number): number => {
     const c = channel / 255;
     return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
   };
 
-  // Calculate luminance according to WCAG
+  // Calcular luminancia según WCAG
   const getLuminance = (color: string): number => {
     const rgb = hexToRgb(color);
     const r = toLinear(rgb.r);
@@ -34,7 +34,7 @@ export function getRandomContrastColor(
     return 0.2126 * r + 0.7152 * g + 0.0722 * b;
   };
 
-  // Calculate contrast ratio between two colors
+  // Calcular ratio de contraste entre dos colores
   const calculateContrastRatio = (color1: string, color2: string): number => {
     const lum1 = getLuminance(color1);
     const lum2 = getLuminance(color2);
@@ -43,7 +43,7 @@ export function getRandomContrastColor(
     return (brightest + 0.05) / (darkest + 0.05);
   };
 
-  // Generate a random RGB color
+  // Generar un color RGB aleatorio
   const getRandomColor = (): string => {
     const randomChannel = () =>
       Math.floor(Math.random() * 256)
@@ -52,23 +52,23 @@ export function getRandomContrastColor(
     return `#${randomChannel()}${randomChannel()}${randomChannel()}`;
   };
 
-  // Base color luminance
+  // Luminancia del color base
   const baseLuminance = getLuminance(baseColor);
 
-  // Determine if we need a lighter or darker color
+  // Determinar si necesitamos un color más claro o más oscuro
   const needsDarker = baseLuminance > 0.5;
 
-  // Try to find a color with the right contrast
+  // Intentar encontrar un color con el contraste adecuado
   let attempts = 0;
   let candidateColor: string = "";
   let currentContrast = 0;
 
-  // Generate up to 50 random attempts
+  // Generamos hasta 50 intentos aleatorios
   while (attempts < 50 && currentContrast < contrastRatio) {
     candidateColor = getRandomColor();
 
-    // If we need a darker color and the candidate is lighter (or vice versa),
-    // we adjust the candidate
+    // Si necesitamos un color más oscuro y el candidato es más claro (o viceversa),
+    // ajustamos el candidato
     const candidateLuminance = getLuminance(candidateColor);
 
     if (
@@ -76,7 +76,7 @@ export function getRandomContrastColor(
       (!needsDarker && candidateLuminance < baseLuminance)
     ) {
       const rgb = hexToRgb(candidateColor);
-      // Invert the color to ensure it goes in the right direction
+      // Invertimos el color para asegurar que va en la dirección correcta
       const invertedR = Math.abs(255 - rgb.r);
       const invertedG = Math.abs(255 - rgb.g);
       const invertedB = Math.abs(255 - rgb.b);
@@ -90,19 +90,19 @@ export function getRandomContrastColor(
     attempts++;
   }
 
-  // If we don't find a color with enough contrast, generate a guaranteed one
+  // Si no encontramos un color con suficiente contraste, generamos uno garantizado
   if (currentContrast < contrastRatio) {
-    // Generate a color at the opposite end of the luminance spectrum
+    // Generamos un color en el extremo opuesto de la luminancia
     if (needsDarker) {
-      // If the base is light, generate a dark one
-      const darkness = Math.floor(Math.random() * 64); // 0-63 to make it really dark
+      // Si el base es claro, generamos uno oscuro
+      const darkness = Math.floor(Math.random() * 64); // 0-63 para que sea realmente oscuro
       const r = darkness.toString(16).padStart(2, "0");
       const g = darkness.toString(16).padStart(2, "0");
       const b = darkness.toString(16).padStart(2, "0");
       candidateColor = `#${r}${g}${b}`;
     } else {
-      // If the base is dark, generate a light one
-      const lightness = 192 + Math.floor(Math.random() * 64); // 192-255 to make it really light
+      // Si el base es oscuro, generamos uno claro
+      const lightness = 192 + Math.floor(Math.random() * 64); // 192-255 para que sea realmente claro
       const r = lightness.toString(16).padStart(2, "0");
       const g = lightness.toString(16).padStart(2, "0");
       const b = lightness.toString(16).padStart(2, "0");
@@ -114,11 +114,11 @@ export function getRandomContrastColor(
 }
 
 /**
- * Generates multiple random contrast colors
- * @param baseColor - Base color
- * @param count - Number of colors to generate
- * @param contrastRatio - Minimum contrast ratio
- * @returns Array of hexadecimal colors with high contrast
+ * Genera múltiples colores de contraste aleatorios
+ * @param baseColor - Color base
+ * @param count - Número de colores a generar
+ * @param contrastRatio - Ratio de contraste mínimo
+ * @returns Array de colores hexadecimales con alto contraste
  */
 export function getMultipleContrastColors(
   baseColor: ColorHexadecimal,

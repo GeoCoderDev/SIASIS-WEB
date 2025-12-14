@@ -2,18 +2,18 @@ import { ActoresSistema } from "@/interfaces/shared/ActoresSistema"
 import { RelacionesEstudianteResponsable } from "@/interfaces/shared/RelacionesEstudianteResponsable"
 
 
-export const StudentGuardianRelationshipTexts : {
-    RelativeTo:Record<ActoresSistema.Estudiante| ActoresSistema.Responsable,Record<RelacionesEstudianteResponsable, string>>
+export const RelacionesEstudianteResponsableTextos : {
+    RespectoA:Record<ActoresSistema.Estudiante| ActoresSistema.Responsable,Record<RelacionesEstudianteResponsable, string>>
 } ={
-    RelativeTo:{
+    RespectoA:{
         [ActoresSistema.Estudiante]:{
-            [RelacionesEstudianteResponsable.Padre_de_Familia]: "Son/Daughter",
-            [RelacionesEstudianteResponsable.Apoderado]: "In charge"
+            [RelacionesEstudianteResponsable.Padre_de_Familia]: "Hijo(a)",
+            [RelacionesEstudianteResponsable.Apoderado]: "A cargo"
         },
         [ActoresSistema.Responsable]:{
-            [RelacionesEstudianteResponsable.Padre_de_Familia]:"Parent",
-            [RelacionesEstudianteResponsable.Apoderado]: "Tutor"
+            [RelacionesEstudianteResponsable.Padre_de_Familia]:"Padre de Familia",
+            [RelacionesEstudianteResponsable.Apoderado]: "Tutor(a)"
         }
     }
     
-}
+}    

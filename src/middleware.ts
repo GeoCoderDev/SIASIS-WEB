@@ -8,7 +8,7 @@ export enum RedirectionTypes {
   RUTA_NO_PERMITIDA = "RUTA_NO_PERMITIDA",
 }
 
-// Function to check if it's an internal Next.js route
+// Función para verificar si es una ruta interna de Next.js
 function isNextInternalRoute(pathname: string): boolean {
   return (
     pathname.startsWith("/_next/") ||
@@ -21,7 +21,7 @@ function isNextInternalRoute(pathname: string): boolean {
   );
 }
 
-// Simple function to decode JWT without verifying signature (only for reading the payload)
+// Función simple para decodificar JWT sin verificar firma (solo para leer el payload)
 function decodeJwtPayload(token: string) {
   try {
     const parts = token.split(".");
@@ -29,7 +29,7 @@ function decodeJwtPayload(token: string) {
       return null;
     }
 
-    // Decode the payload part (second part)
+    // Decodificar la parte del payload (segunda parte)
     const payload = parts[1];
     const decoded = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
     return JSON.parse(decoded);
@@ -89,17 +89,17 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl;
     const pathname = url.pathname;
 
-    // Allow API routes
+    // Permitir rutas de API
     if (pathname.startsWith("/api")) {
       return NextResponse.next();
     }
 
-    // Allow static assets
+    // Permitir assets estáticos
     if (isStaticAsset(pathname)) {
       return NextResponse.next();
     }
 
-    // Allow internal Next.js routes
+    // Permitir rutas internas de Next.js
     if (isNextInternalRoute(pathname)) {
       return NextResponse.next();
     }
@@ -109,17 +109,17 @@ export async function middleware(request: NextRequest) {
     const Nombres = request.cookies.get("Nombres");
     const Apellidos = request.cookies.get("Apellidos");
 
-    // Allow access to login if there is no token
+    // Permitir acceso a login si no hay token
     if (!token && (pathname === "/login" || pathname.startsWith("/login/"))) {
       return NextResponse.next();
     }
 
-    // Validate presence of required cookies
+    // Validar presencia de cookies requeridas
     if (!token || !Rol || !Nombres || !Apellidos) {
       return deleteCookies();
     }
 
-    // Validate valid role
+    // Validar rol válido
     const rolValue = Rol.value as RolesSistema;
     switch (rolValue) {
       case RolesSistema.Directivo:
@@ -131,25 +131,25 @@ export async function middleware(request: NextRequest) {
       case RolesSistema.PersonalAdministrativo:
         break;
       default:
-        console.error("Invalid role in middleware:", rolValue);
+        console.error("Rol no válido en middleware:", rolValue);
         return deleteCookies();
     }
 
-    // Redirect to home if already authenticated and trying to access login
+    // Redirigir a home si ya está autenticado y trata de acceder a login
     if (token && (pathname === "/login" || pathname.startsWith("/login/"))) {
       return NextResponse.redirect(new URL("/", request.url));
     }
 
-    // === ROLE-BASED ROUTE ACCESS VALIDATION ===
+    // === VALIDACIÓN DE ACCESO A RUTAS BASADA EN ROLES ===
 
-    // Search for the route in the system modules
+    // Buscar la ruta en los módulos del sistema
     const moduleForRoute = allSiasisModules.find((module) => {
-      // Check exact route match
+      // Verificar coincidencia exacta de ruta
       if (module.route === pathname) {
         return true;
       }
 
-      // Check if it's a subroute (for example, /estudiantes/123)
+      // Verificar si es una subruta (por ejemplo, /estudiantes/123)
       if (pathname.startsWith(module.route + "/")) {
         return true;
       }
@@ -157,56 +157,56 @@ export async function middleware(request: NextRequest) {
       return false;
     });
 
-    // If we find the module, verify permissions
+    // Si encontramos el módulo, verificar permisos
     if (moduleForRoute) {
-      // Check if the module is active
+      // Verificar si el módulo está activo
       if (!moduleForRoute.active) {
         console.warn(
-          `Access denied: Module ${moduleForRoute.route} is inactive`
+          `Acceso denegado: Módulo ${moduleForRoute.route} está inactivo`
         );
         return redirectToHomeWithError(RedirectionTypes.RUTA_NO_PERMITIDA);
       }
 
-      // Basic token and role validation
+      // Validación básica del token y rol
       const decodedPayload = decodeJwtPayload(token.value);
 
       if (!decodedPayload) {
-        console.error("Could not decode token");
+        console.error("No se pudo decodificar el token");
         return deleteCookies();
       }
 
-      // Verify that the role in the token matches the role in the cookie
+      // Verificar que el rol en el token coincida con el rol en la cookie
       if (decodedPayload.Rol !== rolValue) {
-        console.error("Role in token does not match role in cookie");
+        console.error("Rol en token no coincide con rol en cookie");
         return deleteCookies();
       }
 
-      // Check token expiration
+      // Verificar expiración del token
       const now = Math.floor(Date.now() / 1000);
       if (decodedPayload.exp && decodedPayload.exp < now) {
-        console.error("Token expired");
+        console.error("Token expirado");
         return deleteCookies();
       }
 
-      // Check if the user's role is in the list of allowed roles
+      // Verificar si el rol del usuario está en la lista de roles permitidos
       const hasAccess = moduleForRoute.allowedRoles.includes(rolValue);
 
       if (!hasAccess) {
         console.warn(
-          `Access denied: Role ${rolValue} not authorized for ${moduleForRoute.route}`
+          `Acceso denegado: Rol ${rolValue} no autorizado para ${moduleForRoute.route}`
         );
         return redirectToHomeWithError(RedirectionTypes.RUTA_NO_PERMITIDA);
       }
 
       console.log(
-        `Access authorized to ${moduleForRoute.route} for role ${rolValue}`
+        `Acceso autorizado a ${moduleForRoute.route} para rol ${rolValue}`
       );
     }
-    // If we don't find the module, allow access (routes like "/" or custom routes)
+    // Si no encontramos el módulo, permitir acceso (rutas como "/" o rutas personalizadas)
 
     return NextResponse.next();
   } catch (e) {
-    console.error("General error in middleware:", e);
+    console.error("Error general en middleware:", e);
     return deleteCookies();
   }
 }

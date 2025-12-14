@@ -2,10 +2,10 @@ import { ValidationErrorTypes } from "../../../../interfaces/shared/errors";
 import { ValidationResult } from "./types";
 
 /**
- * Validates current password (only checks length)
- * @param value - Value to validate
- * @param required - Indicates if the field is required
- * @returns Validation result
+ * Valida la contraseña actual (solo verifica longitud)
+ * @param value - Valor a validar
+ * @param required - Indica si el campo es obligatorio
+ * @returns Resultado de la validación
  */
 export function validateCurrentPassword(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -16,7 +16,7 @@ export function validateCurrentPassword(
     return {
       isValid: false,
       errorType: ValidationErrorTypes.FIELD_REQUIRED,
-      errorMessage: "Current password is required",
+      errorMessage: "La contraseña actual es requerida",
     };
   }
 
@@ -28,16 +28,16 @@ export function validateCurrentPassword(
     return {
       isValid: false,
       errorType: ValidationErrorTypes.INVALID_FORMAT,
-      errorMessage: "Current password must be a text string",
+      errorMessage: "La contraseña actual debe ser una cadena de texto",
     };
   }
 
-  // Only validate length for current password
+  // Solo validamos longitud para contraseña actual
   if (value.length < 8) {
     return {
       isValid: false,
       errorType: ValidationErrorTypes.INVALID_FORMAT,
-      errorMessage: "Current password must have at least 8 characters",
+      errorMessage: "La contraseña actual debe tener al menos 8 caracteres",
     };
   }
 
@@ -45,10 +45,10 @@ export function validateCurrentPassword(
 }
 
 /**
- * Validates a new password with basic requirements
- * @param value - Value to validate
- * @param required - Indicates if the field is required
- * @returns Validation result
+ * Valida una nueva contraseña con requisitos básicos
+ * @param value - Valor a validar
+ * @param required - Indica si el campo es obligatorio
+ * @returns Resultado de la validación
  */
 export function validatePassword(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -59,7 +59,7 @@ export function validatePassword(
     return {
       isValid: false,
       errorType: ValidationErrorTypes.FIELD_REQUIRED,
-      errorMessage: "Password is required",
+      errorMessage: "La contraseña es requerida",
     };
   }
 
@@ -71,26 +71,26 @@ export function validatePassword(
     return {
       isValid: false,
       errorType: ValidationErrorTypes.INVALID_FORMAT,
-      errorMessage: "Passwords must be a text string",
+      errorMessage: "Las contraseñas deben ser una cadena de texto",
     };
   }
 
-  // Validate length (between 8 and 20 characters)
+  // Validar longitud (entre 8 y 20 caracteres)
   if (value.length < 8 || value.length > 20) {
     return {
       isValid: false,
       errorType: ValidationErrorTypes.INVALID_FORMAT,
-      errorMessage: "Passwords must be between 8 and 20 characters",
+      errorMessage: "Las contraseñas deben tener entre 8 y 20 caracteres",
     };
   }
 
-  // Validate that it contains at least one letter and one number (minimum requirement)
+  // Validar que contenga al menos una letra y un número (requisito mínimo)
   if (!/[a-zA-Z]/.test(value) || !/[0-9]/.test(value)) {
     return {
       isValid: false,
       errorType: ValidationErrorTypes.INVALID_FORMAT,
       errorMessage:
-        "Passwords must contain at least one letter and one number",
+        "Las contraseñas deben contener al menos una letra y un número",
     };
   }
 

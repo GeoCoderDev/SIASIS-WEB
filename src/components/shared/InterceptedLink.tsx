@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import NProgress from "nprogress"; // Make sure you have this imported correctly
+import NProgress from "nprogress"; // Asegúrate de tener esto importado correctamente
 
 export interface InterceptedLinkProps {
   href: string;
@@ -21,29 +21,29 @@ const InterceptedLink = ({
   const router = useRouter();
   const [isNavigating, setIsNavigating] = useState(false);
   
-  // Reset state when href changes
+  // Resetear el estado cuando cambia el href
   useEffect(() => {
     setIsNavigating(false);
   }, [href]);
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
-
-    // If we're already navigating, do nothing
+    
+    // Si ya estamos navegando, no hacer nada
     if (isNavigating) return;
 
     if (predicate()) {
       negativeCallback();
     } else {
-      // Start the loader
+      // Iniciar el loader
       NProgress.start();
       setIsNavigating(true);
-
-      // Navigate immediately without setTimeout
+      
+      // Navegar inmediatamente sin setTimeout
       router.push(href);
-
-      // Set a timeout to reset the state
-      // but keep NProgress active (it will complete automatically)
+      
+      // Establecer un timeout para resetear el estado
+      // pero mantener el NProgress activo (se completará automáticamente)
       setTimeout(() => {
         setIsNavigating(false);
       }, 100);

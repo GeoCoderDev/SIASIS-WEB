@@ -1,19 +1,19 @@
-// Helper function to verify if content is actually JSON
-export async function isJSONContent(response: Response): Promise<boolean> {
+// Función auxiliar para verificar si el contenido es realmente JSON
+export async function esContenidoJSON(response: Response): Promise<boolean> {
   try {
-    // Check Content-Type header
+    // Verificar header Content-Type
     const contentType = response.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
-      // If not application/json, we verify the content itself
-      const text = await response.clone().text();
+      // Si no es application/json, verificamos el contenido mismo
+      const texto = await response.clone().text();
 
-      // Try to parse the text to see if it's valid JSON
-      JSON.parse(text);
+      // Intentar hacer un parse del texto para ver si es JSON válido
+      JSON.parse(texto);
       return true;
     }
     return true;
   } catch (error) {
-    console.warn("The received content is not valid JSON:", error);
+    console.warn("El contenido recibido no es JSON válido:", error);
     return false;
   }
 }

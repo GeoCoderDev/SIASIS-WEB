@@ -17,11 +17,11 @@ const EventosInterface = () => {
   const [fechaHasta, setFechaHasta] = useState(hoy);
   const [selectedState, setSelectedState] = useState<'Todos' | EstadoEvento>('Todos');
   
-  // Pagination states
+  // Estados para paginación
   const [paginaActual, setPaginaActual] = useState(1);
   const eventosPorPagina = 5;
 
-  // References to inputs for controlling the calendar
+  // Referencias a los inputs para controlar el calendario
   const inputDesdeRef = useRef<HTMLInputElement>(null);
   const inputHastaRef = useRef<HTMLInputElement>(null);
 
@@ -116,7 +116,7 @@ const EventosInterface = () => {
     }
   ];
 
-  // Filter events and calculate pagination
+  // Filtrar eventos y calcular paginación
   const eventosFiltrados = useMemo(() => {
     return eventos.filter(evento => {
       const cumpleFiltroEstado = selectedState === 'Todos' || evento.estado === selectedState;
@@ -125,18 +125,18 @@ const EventosInterface = () => {
     });
   }, [eventos, selectedState, searchTerm]);
 
-  // Calculate pagination information
+  // Calcular información de paginación
   const totalPaginas = Math.ceil(eventosFiltrados.length / eventosPorPagina);
   const indiceInicio = (paginaActual - 1) * eventosPorPagina;
   const indiceFin = indiceInicio + eventosPorPagina;
   const eventosPaginaActual = eventosFiltrados.slice(indiceInicio, indiceFin);
 
-  // Reset page when filters change
+  // Resetear página cuando cambian los filtros
   React.useEffect(() => {
     setPaginaActual(1);
   }, [selectedState, searchTerm]);
 
-  // Navigation functions
+  // Funciones de navegación
   const irAPaginaAnterior = () => {
     if (paginaActual > 1) {
       setPaginaActual(paginaActual - 1);
@@ -155,15 +155,15 @@ const EventosInterface = () => {
     }
   };
 
-  // Generate page numbers to display
+  // Generar números de página para mostrar
   const generarNumerosPagina = () => {
     const numeros: number[] = [];
-    const rango = 2; // Show 2 pages before and after the current one
+    const rango = 2; // Mostrar 2 páginas antes y después de la actual
     
     let inicio = Math.max(1, paginaActual - rango);
     let fin = Math.min(totalPaginas, paginaActual + rango);
     
-    // Ensure we always show at least 5 pages if possible
+    // Asegurar que siempre mostremos al menos 5 páginas si es posible
     if (fin - inicio < 4) {
       if (inicio === 1) {
         fin = Math.min(totalPaginas, inicio + 4);
@@ -257,7 +257,7 @@ const EventosInterface = () => {
 
   return (
     <>
-      {/* Global styles to hide the date picker icon */}
+      {/* Estilos globales para ocultar el ícono del date picker */}
       <style jsx global>{`
         .date-input-custom::-webkit-calendar-picker-indicator {
           opacity: 0;
@@ -336,12 +336,12 @@ const EventosInterface = () => {
           </div>
         </div>
 
-        {/* Filters */}
+        {/* Filtros */}
         <div className="mb-4 sm:mb-5 md:mb-6 space-y-4">
           
-          {/* Event name, From and To */}
+          {/* Nombre de evento, Desde y Hasta */}
           <div className="flex flex-col lg:flex-row lg:items-end gap-3 lg:gap-4">
-            {/* Event Names */}
+            {/* Nombres de Evento */}
             <div className="flex-1">
               <label className="text-black font-medium text-sm block mb-2">Nombres de Evento:</label>
               <input
@@ -353,7 +353,7 @@ const EventosInterface = () => {
               />
             </div>
 
-            {/* Dates */}
+            {/* Fechas */}
             <div className="flex flex-col sm:flex-row gap-3 lg:gap-4">
               <div className="flex-1">
                 <label className="text-black font-medium text-sm block mb-2">Desde:</label>
@@ -392,7 +392,7 @@ const EventosInterface = () => {
             </div>
           </div>
 
-          {/* State */}
+          {/* Estado */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <label className="text-black font-medium text-sm">Estado:</label>
             <div className="relative">
@@ -411,9 +411,9 @@ const EventosInterface = () => {
           </div>
         </div>
 
-        {/* Responsive Table/Cards View */}
+        {/* Vista de Tabla/Cards Responsive */}
         <div className="mb-6">
-          {/* Cards View for mobile - IMPROVED */}
+          {/* Vista de Cards para móviles - MEJORADA */}
           <div className="block lg:hidden space-y-6">
             {eventosPaginaActual.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
@@ -428,7 +428,7 @@ const EventosInterface = () => {
             ) : (
               eventosPaginaActual.map((evento) => (
               <div key={evento.id} className="bg-white rounded-xl shadow-md border border-gray-100 p-6 transition-all duration-200 hover:shadow-lg">
-                {/* Card Header with better spacing */}
+                {/* Header del Card con mejor espaciado */}
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
                   <div className="flex-1">
                     <div className="flex items-center justify-between sm:justify-start sm:gap-3 mb-3">
@@ -445,7 +445,7 @@ const EventosInterface = () => {
                   </div>
                 </div>
                 
-                {/* Date information with better design */}
+                {/* Información de fechas con mejor diseño */}
                 <div className="bg-gray-50 rounded-lg p-4 mb-6">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                     <div className="flex flex-col space-y-1">
@@ -459,7 +459,7 @@ const EventosInterface = () => {
                   </div>
                 </div>
                 
-                {/* Actions with better spacing */}
+                {/* Acciones con mejor espaciado */}
                 {renderAcciones(evento) && (
                   <div className="flex justify-center sm:justify-start">
                     <div className="w-full sm:w-auto">
@@ -468,7 +468,7 @@ const EventosInterface = () => {
                   </div>
                 )}
                 
-                {/* Subtle decorative line if there are no actions */}
+                {/* Línea decorativa sutil si no hay acciones */}
                 {!renderAcciones(evento) && (
                   <div className="w-full h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
                 )}
@@ -477,11 +477,11 @@ const EventosInterface = () => {
             )}
           </div>
 
-          {/* Table View for large screens */}
+          {/* Vista de Tabla para pantallas grandes */}
           <div className="hidden lg:block bg-white rounded-lg shadow-sm border overflow-x-hidden">
             <div className="w-full">
               <table className="w-full table-auto">
-                {/* Improved table header */}
+                {/* Header de tabla mejorado */}
                 <thead>
                   <tr className="bg-red-600 text-white">
                     <th className="px-4 py-4 text-left font-semibold text-sm uppercase tracking-wider w-auto">ID</th>
@@ -493,7 +493,7 @@ const EventosInterface = () => {
                   </tr>
                 </thead>
 
-                {/* Improved table body */}
+                {/* Cuerpo de la tabla mejorado */}
                 <tbody className="divide-y divide-gray-200 bg-white">
                   {eventosPaginaActual.length === 0 ? (
                     <tr>
@@ -541,7 +541,7 @@ const EventosInterface = () => {
           </div>
         </div>
 
-        {/* Functional Pagination */}
+        {/* Paginación Funcional */}
         {totalPaginas > 1 && (
           <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-0">
             <div className="flex items-center border-2 border-red-600 rounded-lg overflow-hidden">
@@ -587,7 +587,7 @@ const EventosInterface = () => {
           </div>
         )}
 
-        {/* Pagination information */}
+        {/* Información de paginación */}
         {eventosFiltrados.length > 0 && (
           <div className="mt-4 text-center text-sm text-gray-600">
             Mostrando {indiceInicio + 1} - {Math.min(indiceFin, eventosFiltrados.length)} de {eventosFiltrados.length} eventos

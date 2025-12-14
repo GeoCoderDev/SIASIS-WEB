@@ -1,9 +1,9 @@
 /**
- * Encodes a day from 1..31 to a single character according to the rule:
+ * Codifica un día del 1..31 a un único carácter según la regla:
  * - 1..9  -> '1'..'9'
  * - 10 -> 'A', 11 -> 'B', ..., 31 -> 'V'
  *
- * If the value is outside of 1..31 or is not an integer, it returns an empty string.
+ * Si el valor está fuera de 1..31 o no es entero, devuelve cadena vacía.
  */
 export const codificarNumerosACaracteres = (dia: number): string => {
   if (!Number.isInteger(dia) || dia < 1 || dia > 31) return "";

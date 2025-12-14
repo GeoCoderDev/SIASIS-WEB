@@ -19,7 +19,7 @@ import { HorarioTomaAsistencia } from "@/interfaces/shared/Asistencia/DatosAsist
 import { alterarUTCaZonaPeruana } from "@/lib/helpers/alteradores/alterarUTCaZonaPeruana";
 import { IEventoLocal } from "../local/db/models/EventosLocal/EventosIDB";
 
-// 🆕 Interface to map days with their events
+// 🆕 Interfaz para mapear días con sus eventos
 interface DiaConEvento {
   dia: number;
   evento: IEventoLocal;
@@ -27,8 +27,8 @@ interface DiaConEvento {
 
 export class AsistenciaProcessor {
   /**
-   * Processes server attendances to display on the calendar
-   * ⚠️ IMPORTANT: Events have ABSOLUTE PRIORITY over any attendance data
+   * Procesa las asistencias del servidor para mostrar en el calendario
+   * ⚠️ IMPORTANTE: Los eventos tienen PRIORIDAD ABSOLUTA sobre cualquier dato de asistencia
    */
   static procesarAsistenciasDelServidor(
     asistencias: Record<number, AsistenciaEscolarDeUnDia | null>,
@@ -44,20 +44,20 @@ export class AsistenciaProcessor {
         nivel === NivelEducativo.PRIMARIA
           ? TOLERANCIA_SEGUNDOS_PRIMARIA
           : TOLERANCIA_SEGUNDOS_SECUNDARIA;
-      const controlaEntrada = true; // Always active
+      const controlaEntrada = true; // Siempre activo
       const controlaSalida =
         nivel === NivelEducativo.PRIMARIA
           ? CONTROL_ASISTENCIA_DE_SALIDA_PRIMARIA
           : CONTROL_ASISTENCIA_DE_SALIDA_SECUNDARIA;
 
-      // Get real schedule if available
+      // Obtener horario real si está disponible
       const horarioEscolar = handlerAsistencia?.getHorarioEscolar(nivel)!;
 
-      // 1️⃣ PROCESS ATTENDANCES NORMALLY
+      // 1️⃣ PROCESAR ASISTENCIAS NORMALMENTE
       Object.entries(asistencias).forEach(([diaStr, datosAsistencia]) => {
         const dia = parseInt(diaStr);
 
-        // Case: inactive day (null value)
+        // Caso: día inactivo (valor null)
         if (datosAsistencia === null) {
           asistenciasProcesadas[dia] = {
             estado: EstadosAsistenciaEscolar.Inactivo,
@@ -70,7 +70,7 @@ export class AsistenciaProcessor {
           estado: EstadosAsistenciaEscolar.Inactivo, // Default
         };
 
-        // Process entry
+        // Procesar entrada
         if (controlaEntrada && datosObjeto[ModoRegistro.Entrada]) {
           const desfaseSegundos =
             datosObjeto[ModoRegistro.Entrada].DesfaseSegundos;
@@ -85,7 +85,7 @@ export class AsistenciaProcessor {
             ),
           };
 
-          // Determine status based on entry
+          // Determinar estado basado en entrada
           if (desfaseSegundos === null) {
             asistenciaProcesada.estado = EstadosAsistenciaEscolar.Falta;
           } else if (desfaseSegundos <= toleranciaSegundos) {
@@ -95,7 +95,7 @@ export class AsistenciaProcessor {
           }
         }
 
-        // Process exit (if enabled)
+        // Procesar salida (si está habilitado)
         if (controlaSalida && datosObjeto[ModoRegistro.Salida]) {
           const desfaseSegundos =
             datosObjeto[ModoRegistro.Salida].DesfaseSegundos;
@@ -114,14 +114,14 @@ export class AsistenciaProcessor {
         asistenciasProcesadas[dia] = asistenciaProcesada;
       });
 
-      // 2️⃣ APPLY EVENTS (ABSOLUTE PRIORITY)
-      // If there are events and we have month/year, replace the days with events
+      // 2️⃣ APLICAR EVENTOS (PRIORIDAD ABSOLUTA)
+      // Si hay eventos y tenemos mes/año, reemplazar los días con eventos
       if (eventosDelMes && eventosDelMes.length > 0 && mes && año) {
         console.log(
-          `[EVENTOS] 🎯 Applying ${eventosDelMes.length} events to month ${mes}/${año}`
+          `[EVENTOS] 🎯 Aplicando ${eventosDelMes.length} eventos al mes ${mes}/${año}`
         );
 
-        // 🆕 Get map of days with their events (including full information)
+        // 🆕 Obtener mapa de días con sus eventos (incluyendo información completa)
         const diasConEventos = this.obtenerDiasConEventosDetallado(
           eventosDelMes,
           mes,
@@ -129,15 +129,15 @@ export class AsistenciaProcessor {
         );
 
         console.log(
-          `[EVENTOS] 📅 Days with events:`,
+          `[EVENTOS] 📅 Días con eventos:`,
           Array.from(diasConEventos.keys()).sort((a, b) => a - b)
         );
 
-        // Replace ALL days with events, including event information
+        // Reemplazar TODOS los días con eventos, incluyendo información del evento
         diasConEventos.forEach((evento, dia) => {
           asistenciasProcesadas[dia] = {
             estado: EstadosAsistenciaEscolar.Evento,
-            // 🆕 Add event information
+            // 🆕 Agregar información del evento
             eventoInfo: {
               nombre: evento.Nombre,
               fechaInicio: evento.Fecha_Inicio,
@@ -147,20 +147,20 @@ export class AsistenciaProcessor {
         });
 
         console.log(
-          `[EVENTOS] ✅ ${diasConEventos.size} days marked as events`
+          `[EVENTOS] ✅ ${diasConEventos.size} días marcados como eventos`
         );
       }
 
       return asistenciasProcesadas;
     } catch (error) {
-      console.error("Error processing attendances:", error);
+      console.error("Error al procesar asistencias:", error);
       return {};
     }
   }
 
   /**
-   * 🆕 Gets all days that are within events WITH FULL INFORMATION
-   * Returns a Map where the key is the day and the value is the full event
+   * 🆕 Obtiene todos los días que están dentro de eventos CON INFORMACIÓN COMPLETA
+   * Retorna un Map donde la clave es el día y el valor es el evento completo
    */
   private static obtenerDiasConEventosDetallado(
     eventos: IEventoLocal[],
@@ -171,7 +171,7 @@ export class AsistenciaProcessor {
 
     eventos.forEach((evento) => {
       try {
-        // Create dates with Peruvian time zone (without time to avoid timezone issues)
+        // Crear fechas con zona horaria peruana (sin hora para evitar problemas de timezone)
         const fechaInicio = new Date(evento.Fecha_Inicio + "T00:00:00");
         const fechaFin = new Date(evento.Fecha_Conclusion + "T00:00:00");
 
@@ -179,33 +179,33 @@ export class AsistenciaProcessor {
           `[EVENTO] 📌 "${evento.Nombre}": ${evento.Fecha_Inicio} → ${evento.Fecha_Conclusion}`
         );
 
-        // Iterate day by day from start to end
+        // Iterar día por día desde inicio hasta fin
         let fechaActual = new Date(fechaInicio);
 
         while (fechaActual <= fechaFin) {
-          // Only add days that belong to the queried month
+          // Solo agregar días que pertenecen al mes consultado
           const mesActual = fechaActual.getMonth() + 1;
           const añoActual = fechaActual.getFullYear();
 
           if (mesActual === mes && añoActual === año) {
             const dia = fechaActual.getDate();
 
-            // Only school days (Monday to Friday)
+            // Solo días escolares (lunes a viernes)
             const diaSemana = fechaActual.getDay();
             if (diaSemana >= 1 && diaSemana <= 5) {
-              // Save the full event associated with this day
+              // Guardar el evento completo asociado a este día
               diasConEventos.set(dia, evento);
-              console.log(`[EVENTO] ✓ Day ${dia} marked: "${evento.Nombre}"`);
+              console.log(`[EVENTO] ✓ Día ${dia} marcado: "${evento.Nombre}"`);
             } else {
-              console.log(`[EVENTO] ⊗ Day ${dia} is a weekend, skipped`);
+              console.log(`[EVENTO] ⊗ Día ${dia} es fin de semana, omitido`);
             }
           }
 
-          // Move to the next day
+          // Avanzar al siguiente día
           fechaActual.setDate(fechaActual.getDate() + 1);
         }
       } catch (error) {
-        console.error(`[EVENTO] ❌ Error processing event:`, evento, error);
+        console.error(`[EVENTO] ❌ Error procesando evento:`, evento, error);
       }
     });
 
@@ -213,8 +213,8 @@ export class AsistenciaProcessor {
   }
 
   /**
-   * 🆕 Alternative method if you only need the Set of numbers (without event info)
-   * Keep for compatibility but use obtenerDiasConEventosDetallado
+   * 🆕 Método alternativo si necesitas solo el Set de números (sin info del evento)
+   * Mantener por compatibilidad pero usa obtenerDiasConEventosDetallado
    */
   private static obtenerDiasConEventos(
     eventos: IEventoLocal[],
@@ -226,7 +226,7 @@ export class AsistenciaProcessor {
   }
 
   /**
-   * Calculates the real time based on the schedule and offset
+   * Calcula la hora real basada en el horario y desfase
    */
   private static calcularHoraConDesfase(
     desfaseSegundos: number | null,
@@ -238,7 +238,7 @@ export class AsistenciaProcessor {
     }
 
     try {
-      // Use real schedule from the handler
+      // Usar horario real del handler
       const horarioBase =
         modoRegistro === ModoRegistro.Entrada
           ? horarioEscolar.Inicio
@@ -247,7 +247,7 @@ export class AsistenciaProcessor {
       const fecha = new Date(alterarUTCaZonaPeruana(horarioBase));
       console.log("%c" + fecha, "color: green; font-size:1rem;");
 
-      // Apply offset
+      // Aplicar desfase
       fecha.setSeconds(fecha.getSeconds() + desfaseSegundos);
 
       return fecha.toLocaleTimeString("es-PE", {
@@ -255,13 +255,13 @@ export class AsistenciaProcessor {
         minute: "2-digit",
       });
     } catch (error) {
-      console.error("Error calculating time with offset:", error);
+      console.error("Error al calcular hora con desfase:", error);
       return undefined;
     }
   }
 
   /**
-   * Converts handler schedule to simple format
+   * Convierte horario del handler a formato simple
    */
   static convertirHorarioHandler(
     horarioHandler: any
@@ -283,13 +283,13 @@ export class AsistenciaProcessor {
         }),
       };
     } catch (error) {
-      console.error("Error converting schedule:", error);
+      console.error("Error al convertir horario:", error);
       return undefined;
     }
   }
 
   /**
-   * Gets the days of the month organized for the calendar
+   * Obtiene los días del mes organizados para el calendario
    */
   static obtenerDiasDelMes(
     mes: number,
@@ -303,9 +303,9 @@ export class AsistenciaProcessor {
 
     for (let dia = 1; dia <= diasEnMes; dia++) {
       const fecha = new Date(año, mes - 1, dia);
-      const diaSemana = fecha.getDay(); // 0=sunday, 1=monday, ..., 6=saturday
+      const diaSemana = fecha.getDay(); // 0=domingo, 1=lunes, ..., 6=sábado
 
-      const esDiaEscolar = diaSemana >= 1 && diaSemana <= 5; // Only Monday to Friday
+      const esDiaEscolar = diaSemana >= 1 && diaSemana <= 5; // Solo lunes a viernes
 
       if (esDiaEscolar) {
         dias.push({
@@ -320,7 +320,7 @@ export class AsistenciaProcessor {
   }
 
   /**
-   * Calculates the statistics for the month
+   * Calcula las estadísticas del mes
    */
   static calcularEstadisticasMes(asistenciasDelMes: {
     [dia: number]: AsistenciaEscolarProcesada;
@@ -350,7 +350,7 @@ export class AsistenciaProcessor {
   }
 
   /**
-   * Gets the status text to display on the calendar
+   * Obtiene el texto del estado para mostrar en el calendario
    */
   static obtenerTextoEstado(estado: EstadosAsistenciaEscolar): string {
     switch (estado) {
@@ -372,7 +372,7 @@ export class AsistenciaProcessor {
   }
 
   /**
-   * Checks if the exit should be shown for a specific level
+   * Verifica si se debe mostrar la salida para un nivel específico
    */
   static debeMostrarSalida(nivel: NivelEducativo): boolean {
     return nivel === NivelEducativo.PRIMARIA
@@ -381,7 +381,7 @@ export class AsistenciaProcessor {
   }
 
   /**
-   * Gets real school schedule using the handler
+   * Obtiene horario escolar real usando el handler
    */
   static obtenerHorarioEscolar(
     nivel: NivelEducativo,

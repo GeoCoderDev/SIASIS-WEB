@@ -2,10 +2,10 @@ import { ValidationErrorTypes } from "../../../../interfaces/shared/errors";
 import { ValidationResult } from "./types";
 
 /**
- * Validates an email
- * @param value - Value to validate
- * @param required - Indicates if the field is mandatory
- * @returns Validation result
+ * Valida un correo electrónico
+ * @param value - Valor a validar
+ * @param required - Indica si el campo es obligatorio
+ * @returns Resultado de la validación
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function validateEmail(value: any, required: boolean): ValidationResult {
@@ -13,7 +13,7 @@ export function validateEmail(value: any, required: boolean): ValidationResult {
     return {
       isValid: false,
       errorType: ValidationErrorTypes.FIELD_REQUIRED,
-      errorMessage: "The email is required",
+      errorMessage: "El correo electrónico es requerido",
     };
   }
 
@@ -25,7 +25,7 @@ export function validateEmail(value: any, required: boolean): ValidationResult {
     return {
       isValid: false,
       errorType: ValidationErrorTypes.INVALID_FORMAT,
-      errorMessage: "The email must be a string",
+      errorMessage: "El correo electrónico debe ser una cadena de texto",
     };
   }
 
@@ -36,7 +36,7 @@ export function validateEmail(value: any, required: boolean): ValidationResult {
     return {
       isValid: false,
       errorType: ValidationErrorTypes.INVALID_EMAIL,
-      errorMessage: "The email format is invalid",
+      errorMessage: "El formato del correo electrónico es inválido",
     };
   }
 
@@ -44,7 +44,7 @@ export function validateEmail(value: any, required: boolean): ValidationResult {
     return {
       isValid: false,
       errorType: ValidationErrorTypes.STRING_TOO_LONG,
-      errorMessage: "The email cannot exceed 70 characters",
+      errorMessage: "El correo electrónico no puede exceder los 70 caracteres",
     };
   }
 

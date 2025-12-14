@@ -10,21 +10,21 @@ import { redirectToLogin } from "./redirectToLogin";
 import { LogoutTypes } from "@/interfaces/LogoutTypes";
 
 /**
- * Middleware to verify authentication in API requests
- * @param req - Next.js request
- * @param allowedRoles - Roles that are allowed to access the endpoint (optional)
- * @returns An object with the decoded token and role, or redirects to login in case of error
+ * Middleware para verificar la autenticación en las peticiones a la API
+ * @param req - Solicitud de Next.js
+ * @param allowedRoles - Roles que tienen permitido acceder al endpoint (opcional)
+ * @returns Un objeto con el token decodificado y el rol, o redirige al login en caso de error
  */
 export async function verifyAuthToken(
   req: NextRequest,
   allowedRoles?: RolesSistema[]
 ) {
   try {
-    // Get cookies
+    // Obtener cookies
     const token = req.cookies.get("token")?.value;
     const rol = req.cookies.get("Rol")?.value as RolesSistema | undefined;
 
-    // Verify if the necessary cookies exist
+    // Verificar si existen las cookies necesarias
     if (!token || !rol) {
       return {
         error: redirectToLogin(LogoutTypes.SESION_EXPIRADA, {
@@ -34,7 +34,7 @@ export async function verifyAuthToken(
       };
     }
 
-    // Verify if the role is allowed (if roles were specified)
+    // Verificar si el rol está permitido (si se especificaron roles)
     if (allowedRoles && !allowedRoles.includes(rol)) {
       return {
         error: redirectToLogin(LogoutTypes.PERMISOS_INSUFICIENTES, {
@@ -45,7 +45,7 @@ export async function verifyAuthToken(
       };
     }
 
-    // Select the correct JWT key according to the role
+    // Seleccionar la clave JWT correcta según el rol
     const jwtKey = getJwtKeyForRole(rol);
     if (!jwtKey) {
       return {
@@ -56,7 +56,7 @@ export async function verifyAuthToken(
       };
     }
 
-    // Decode the JWT token
+    // Decodificar el token JWT
     let decodedToken: JWTPayload;
     try {
       decodedToken = jwt.verify(token, jwtKey) as JWTPayload;
@@ -71,7 +71,7 @@ export async function verifyAuthToken(
       };
     }
 
-    // Verify that the role in the token matches the role in the cookie
+    // Verificar que el rol en el token coincida con el rol en la cookie
     if (decodedToken.Rol !== rol) {
       return {
         error: redirectToLogin(LogoutTypes.ERROR_DATOS_CORRUPTOS, {
@@ -82,7 +82,7 @@ export async function verifyAuthToken(
       };
     }
 
-    // If everything is correct, return the decoded token and role
+    // Si todo está correcto, devolver el token decodificado y el rol
     return {
       decodedToken,
       rol,

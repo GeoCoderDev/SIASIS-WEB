@@ -16,17 +16,17 @@ import { MARQUE_LA_ASISTENCIA_DE_ESTE_PERSONAL_PAYLOAD } from "../interfaces/Pay
 export class TomaAsistenciaPersonalSIU01Events {
   public static socketConnection: SocketIOClient.Socket | null = null;
 
-  // Method to check if connection is available
+  // Método para verificar si hay conexión disponible
   private static checkConnection(): boolean {
     if (!this.socketConnection) {
       console.error(
-        "❌ [TomaAsistenciaPersonalSIU01Events] No Socket.IO connection available"
+        "❌ [TomaAsistenciaPersonalSIU01Events] No hay conexión Socket.IO disponible"
       );
       return false;
     }
     if (!this.socketConnection.connected) {
       console.error(
-        "❌ [TomaAsistenciaPersonalSIU01Events] Socket.IO is not connected"
+        "❌ [TomaAsistenciaPersonalSIU01Events] Socket.IO no está conectado"
       );
       return false;
     }
@@ -48,7 +48,7 @@ export class TomaAsistenciaPersonalSIU01Events {
     execute(): boolean {
       if (!this.socketEmitter) {
         console.error(
-          "❌ [SALUDAME_SOCKET_EMITTER] Could not initialize emitter"
+          "❌ [SALUDAME_SOCKET_EMITTER] No se pudo inicializar el emisor"
         );
         return false;
       }
@@ -56,12 +56,12 @@ export class TomaAsistenciaPersonalSIU01Events {
       try {
         this.socketEmitter.execute();
         console.log(
-          "✅ [SALUDAME_SOCKET_EMITTER] Event sent correctly"
+          "✅ [SALUDAME_SOCKET_EMITTER] Evento enviado correctamente"
         );
         return true;
       } catch (error) {
         console.error(
-          "❌ [SALUDAME_SOCKET_EMITTER] Error sending event:",
+          "❌ [SALUDAME_SOCKET_EMITTER] Error al enviar evento:",
           error
         );
         return false;
@@ -85,7 +85,7 @@ export class TomaAsistenciaPersonalSIU01Events {
     hand(): boolean {
       if (!this.socketHandler) {
         console.error(
-          "❌ [RESPUESTA_SALUDO_HANDLER] Could not initialize handler"
+          "❌ [RESPUESTA_SALUDO_HANDLER] No se pudo inicializar el handler"
         );
         return false;
       }
@@ -93,38 +93,38 @@ export class TomaAsistenciaPersonalSIU01Events {
       try {
         this.socketHandler.hand();
         console.log(
-          "✅ [RESPUESTA_SALUDO_HANDLER] Event listener registered correctly"
+          "✅ [RESPUESTA_SALUDO_HANDLER] Event listener registrado correctamente"
         );
         return true;
       } catch (error) {
         console.error(
-          "❌ [RESPUESTA_SALUDO_HANDLER] Error registering listener:",
+          "❌ [RESPUESTA_SALUDO_HANDLER] Error al registrar listener:",
           error
         );
         return false;
       }
     }
 
-    // Method to clear the listener
+    // Método para limpiar el listener
     unhand(): boolean {
       if (!this.socketHandler) {
         return false;
       }
 
       try {
-        // Assume that SocketHandler has a method to clear
+        // Asumir que SocketHandler tiene un método para limpiar
         if (TomaAsistenciaPersonalSIU01Events.socketConnection) {
           TomaAsistenciaPersonalSIU01Events.socketConnection.off(
             NombresEventosTomaAsistenciaDePersonalSS01.RESPUESTA_SALUDO
           );
           console.log(
-            "✅ [RESPUESTA_SALUDO_HANDLER] Event listener removed correctly"
+            "✅ [RESPUESTA_SALUDO_HANDLER] Event listener removido correctamente"
           );
         }
         return true;
       } catch (error) {
         console.error(
-          "❌ [RESPUESTA_SALUDO_HANDLER] Error removing listener:",
+          "❌ [RESPUESTA_SALUDO_HANDLER] Error al remover listener:",
           error
         );
         return false;
@@ -152,7 +152,7 @@ export class TomaAsistenciaPersonalSIU01Events {
     execute(): boolean {
       if (!this.socketEmitter) {
         console.error(
-          "❌ [UNIRME_A_SALA_DE_TOMA_DE_ASISTENCIA_DE_PERSONAL_EMITTER] Could not initialize emitter"
+          "❌ [UNIRME_A_SALA_DE_TOMA_DE_ASISTENCIA_DE_PERSONAL_EMITTER] No se pudo inicializar el emisor"
         );
         return false;
       }
@@ -160,12 +160,12 @@ export class TomaAsistenciaPersonalSIU01Events {
       try {
         this.socketEmitter.execute();
         console.log(
-          "✅ [UNIRME_A_SALA_DE_TOMA_DE_ASISTENCIA_DE_PERSONAL_EMITTER] Event sent correctly"
+          "✅ [UNIRME_A_SALA_DE_TOMA_DE_ASISTENCIA_DE_PERSONAL_EMITTER] Evento enviado correctamente"
         );
         return true;
       } catch (error) {
         console.error(
-          "❌ [UNIRME_A_SALA_DE_TOMA_DE_ASISTENCIA_DE_PERSONAL_EMITTER] Error sending event:",
+          "❌ [UNIRME_A_SALA_DE_TOMA_DE_ASISTENCIA_DE_PERSONAL_EMITTER] Error al enviar evento:",
           error
         );
         return false;
@@ -191,7 +191,7 @@ export class TomaAsistenciaPersonalSIU01Events {
     execute(): boolean {
       if (!this.socketEmitter) {
         console.error(
-          "❌ [MARQUE_LA_ASISTENCIA_DE_ESTE_PERSONAL_EMITTER] Could not initialize emitter"
+          "❌ [MARQUE_LA_ASISTENCIA_DE_ESTE_PERSONAL_EMITTER] No se pudo inicializar el emisor"
         );
         return false;
       }
@@ -199,12 +199,12 @@ export class TomaAsistenciaPersonalSIU01Events {
       try {
         this.socketEmitter.execute();
         console.log(
-          "✅ [MARQUE_LA_ASISTENCIA_DE_ESTE_PERSONAL_EMITTER] Event sent correctly"
+          "✅ [MARQUE_LA_ASISTENCIA_DE_ESTE_PERSONAL_EMITTER] Evento enviado correctamente"
         );
         return true;
       } catch (error) {
         console.error(
-          "❌ [MARQUE_LA_ASISTENCIA_DE_ESTE_PERSONAL_EMITTER] Error sending event:",
+          "❌ [MARQUE_LA_ASISTENCIA_DE_ESTE_PERSONAL_EMITTER] Error al enviar evento:",
           error
         );
         return false;
@@ -230,7 +230,7 @@ export class TomaAsistenciaPersonalSIU01Events {
     execute(): boolean {
       if (!this.socketEmitter) {
         console.error(
-          "❌ [ELIMINE_LA_ASISTENCIA_DE_ESTE_PERSONAL_EMITTER] Could not initialize emitter"
+          "❌ [ELIMINE_LA_ASISTENCIA_DE_ESTE_PERSONAL_EMITTER] No se pudo inicializar el emisor"
         );
         return false;
       }
@@ -238,12 +238,12 @@ export class TomaAsistenciaPersonalSIU01Events {
       try {
         this.socketEmitter.execute();
         console.log(
-          "✅ [ELIMINE_LA_ASISTENCIA_DE_ESTE_PERSONAL_EMITTER] Event sent correctly"
+          "✅ [ELIMINE_LA_ASISTENCIA_DE_ESTE_PERSONAL_EMITTER] Evento enviado correctamente"
         );
         return true;
       } catch (error) {
         console.error(
-          "❌ [ELIMINE_LA_ASISTENCIA_DE_ESTE_PERSONAL_EMITTER] Error sending event:",
+          "❌ [ELIMINE_LA_ASISTENCIA_DE_ESTE_PERSONAL_EMITTER] Error al enviar evento:",
           error
         );
         return false;
@@ -273,7 +273,7 @@ export class TomaAsistenciaPersonalSIU01Events {
     hand(): boolean {
       if (!this.socketHandler) {
         console.error(
-          "❌ [SE_ACABA_DE_MARCAR_LA_ASISTENCIA_DE_ESTE_PERSONAL_HANDLER] Could not initialize handler"
+          "❌ [SE_ACABA_DE_MARCAR_LA_ASISTENCIA_DE_ESTE_PERSONAL_HANDLER] No se pudo inicializar el handler"
         );
         return false;
       }
@@ -281,38 +281,38 @@ export class TomaAsistenciaPersonalSIU01Events {
       try {
         this.socketHandler.hand();
         console.log(
-          "✅ [SE_ACABA_DE_MARCAR_LA_ASISTENCIA_DE_ESTE_PERSONAL_HANDLER] Event listener registered correctly"
+          "✅ [SE_ACABA_DE_MARCAR_LA_ASISTENCIA_DE_ESTE_PERSONAL_HANDLER] Event listener registrado correctamente"
         );
         return true;
       } catch (error) {
         console.error(
-          "❌ [SE_ACABA_DE_MARCAR_LA_ASISTENCIA_DE_ESTE_PERSONAL_HANDLER] Error registering listener:",
+          "❌ [SE_ACABA_DE_MARCAR_LA_ASISTENCIA_DE_ESTE_PERSONAL_HANDLER] Error al registrar listener:",
           error
         );
         return false;
       }
     }
 
-    // Method to clear the listener
+    // Método para limpiar el listener
     unhand(): boolean {
       if (!this.socketHandler) {
         return false;
       }
 
       try {
-        // Assume that SocketHandler has a method to clear
+        // Asumir que SocketHandler tiene un método para limpiar
         if (TomaAsistenciaPersonalSIU01Events.socketConnection) {
           TomaAsistenciaPersonalSIU01Events.socketConnection.off(
             NombresEventosTomaAsistenciaDePersonalSS01.SE_ACABA_DE_MARCAR_LA_ASISTENCIA_DE_ESTE_PERSONAL
           );
           console.log(
-            "✅ [SE_ACABA_DE_MARCAR_LA_ASISTENCIA_DE_ESTE_PERSONAL_HANDLER] Event listener removed correctly"
+            "✅ [SE_ACABA_DE_MARCAR_LA_ASISTENCIA_DE_ESTE_PERSONAL_HANDLER] Event listener removido correctamente"
           );
         }
         return true;
       } catch (error) {
         console.error(
-          "❌ [SE_ACABA_DE_MARCAR_LA_ASISTENCIA_DE_ESTE_PERSONAL_HANDLER] Error removing listener:",
+          "❌ [SE_ACABA_DE_MARCAR_LA_ASISTENCIA_DE_ESTE_PERSONAL_HANDLER] Error al remover listener:",
           error
         );
         return false;
@@ -342,7 +342,7 @@ export class TomaAsistenciaPersonalSIU01Events {
     hand(): boolean {
       if (!this.socketHandler) {
         console.error(
-          "❌ [SE_ACABA_DE_ELIMINAR_LA_ASISTENCIA_DE_ESTE_PERSONAL_HANDLER] Could not initialize handler"
+          "❌ [SE_ACABA_DE_ELIMINAR_LA_ASISTENCIA_DE_ESTE_PERSONAL_HANDLER] No se pudo inicializar el handler"
         );
         return false;
       }
@@ -350,38 +350,38 @@ export class TomaAsistenciaPersonalSIU01Events {
       try {
         this.socketHandler.hand();
         console.log(
-          "✅ [SE_ACABA_DE_ELIMINAR_LA_ASISTENCIA_DE_ESTE_PERSONAL_HANDLER] Event listener registered correctly"
+          "✅ [SE_ACABA_DE_ELIMINAR_LA_ASISTENCIA_DE_ESTE_PERSONAL_HANDLER] Event listener registrado correctamente"
         );
         return true;
       } catch (error) {
         console.error(
-          "❌ [SE_ACABA_DE_ELIMINAR_LA_ASISTENCIA_DE_ESTE_PERSONAL_HANDLER] Error registering listener:",
+          "❌ [SE_ACABA_DE_ELIMINAR_LA_ASISTENCIA_DE_ESTE_PERSONAL_HANDLER] Error al registrar listener:",
           error
         );
         return false;
       }
     }
 
-    // Method to clear the listener
+    // Método para limpiar el listener
     unhand(): boolean {
       if (!this.socketHandler) {
         return false;
       }
 
       try {
-        // Assume that SocketHandler has a method to clear
+        // Asumir que SocketHandler tiene un método para limpiar
         if (TomaAsistenciaPersonalSIU01Events.socketConnection) {
           TomaAsistenciaPersonalSIU01Events.socketConnection.off(
             NombresEventosTomaAsistenciaDePersonalSS01.SE_ACABA_DE_ELIMINAR_LA_ASISTENCIA_DE_ESTE_PERSONAL
           );
           console.log(
-            "✅ [SE_ACABA_DE_ELIMINAR_LA_ASISTENCIA_DE_ESTE_PERSONAL_HANDLER] Event listener removed correctly"
+            "✅ [SE_ACABA_DE_ELIMINAR_LA_ASISTENCIA_DE_ESTE_PERSONAL_HANDLER] Event listener removido correctamente"
           );
         }
         return true;
       } catch (error) {
         console.error(
-          "❌ [SE_ACABA_DE_ELIMINAR_LA_ASISTENCIA_DE_ESTE_PERSONAL_HANDLER] Error removing listener:",
+          "❌ [SE_ACABA_DE_ELIMINAR_LA_ASISTENCIA_DE_ESTE_PERSONAL_HANDLER] Error al remover listener:",
           error
         );
         return false;
@@ -389,17 +389,17 @@ export class TomaAsistenciaPersonalSIU01Events {
     }
   };
 
-  // Static method to clear all listeners
+  // Método estático para limpiar todos los listeners
   static cleanup(): void {
     if (this.socketConnection) {
       this.socketConnection.removeAllListeners();
       console.log(
-        "🧹 [TomaAsistenciaPersonalSIU01Events] All listeners cleaned up"
+        "🧹 [TomaAsistenciaPersonalSIU01Events] Todos los listeners limpiados"
       );
     }
   }
 
-  // Method to check the connection status
+  // Método para verificar el estado de la conexión
   static getConnectionStatus(): {
     hasConnection: boolean;
     isConnected: boolean;

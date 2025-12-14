@@ -25,12 +25,12 @@ import {
 } from "../modals/Comunicados/ComunicadosDeHoy";
 
 export type RolForLogin =
-  | "DIRECTOR"
-  | "PRIMARY TEACHER"
-  | "ASSISTANT"
-  | "TEACHER/TUTOR (Secondary)"
-  | "GUARDIAN (Parent/Representative)"
-  | "ADMINISTRATIVE STAFF";
+  | "DIRECTIVO"
+  | "PROFESOR DE PRIMARIA"
+  | "AUXILIAR"
+  | "PROFESOR/TUTOR (Secundaria)"
+  | "RESPONSABLE (Padre/Apoderado)"
+  | "PERSONAL ADMINISTRATIVO";
 
 export const SE_MOSTRO_TOLTIP_TOMAR_ASISTENCIA_PERSONAL_KEY =
   "toltip-tomar-asistencia-personal-SHOWED";
@@ -93,7 +93,7 @@ const PlantillaLogin = ({ rol, siasisAPI, endpoint }: PlantillaLoginProps) => {
         userAutheticated: false,
       });
 
-      if (!fetchCancellable) throw new Error("Request error");
+      if (!fetchCancellable) throw new Error();
 
       const res = await fetchCancellable.fetch();
 
@@ -123,7 +123,7 @@ const PlantillaLogin = ({ rol, siasisAPI, endpoint }: PlantillaLoginProps) => {
         "@/lib/utils/local/db/IndexedDBConnection"
       );
 
-      // Save user role in static property AND localStorage automatically
+      // Guardar rol del usuario en la propiedad estática Y localStorage automáticamente
       IndexedDBConnection.rol = data.Rol as RolesSistema;
       IndexedDBConnection.PostfixIDBFromUserData =
         formularioLogin.Nombre_Usuario;
@@ -132,21 +132,21 @@ const PlantillaLogin = ({ rol, siasisAPI, endpoint }: PlantillaLoginProps) => {
         "@/lib/utils/local/db/models/UserStorage"
       );
 
-      // Saving data in IndexedDB
+      // Guardando data en IndexedDB
       await userStorage.saveUserData({
         ...data,
         ultimaSincronizacionTablas: Date.now(),
       });
 
-      // EVERY TIME A SESSION STARTS, TODAY'S ANNOUNCEMENTS MUST BE SHOWN
+      //CADA VES QUE SE INICIE SESION, SE DEBE MOSTRAR LOS COMUNICADOS DEL DIA DE HOY
       sessionStorage.setItem(
         SE_MOSTRARON_COMUNICADOS_DE_HOY_KEY,
         SE_MOSTRARON_COMUNICADOS_DE_HOY_VALOR_INICIAL
       );
 
-      // ALWAYS WHEN IT'S STAFF PERSONNEL
-      if (rol !== "DIRECTOR" && rol !== "GUARDIAN (Parent/Representative)") {
-        // SAVING TOOLTIP DISPLAY VARIABLE
+      // SIEMPRE EN CUANDO SE TRATE DE UN PERSONAL
+      if (rol !== "DIRECTIVO" && rol !== "RESPONSABLE (Padre/Apoderado)") {
+        // GUARDANDO VARIABLE DE MUESTRA DE TOOLTIP
         sessionStorage.setItem(
           SE_MOSTRO_TOLTIP_TOMAR_ASISTENCIA_PERSONAL_KEY,
           SE_MOSTRO_TOLTIP_TOMAR_ASISTENCIA_PERSONAL_VALOR_INICIAL
@@ -162,7 +162,7 @@ const PlantillaLogin = ({ rol, siasisAPI, endpoint }: PlantillaLoginProps) => {
     } catch (e) {
       setIsSomethingLoading(false);
       setError({
-        message: "An internal system error occurred",
+        message: "Ocurrio un error interno en el sistema",
         success: false,
       });
     }
@@ -172,17 +172,17 @@ const PlantillaLogin = ({ rol, siasisAPI, endpoint }: PlantillaLoginProps) => {
     <>
       <main className="w-full h-full min-h-[100dvh] bg-gris-claro max-sm:bg-blanco flex items-center justify-center max-sm:p-0">
         <div className="flex flex-row max-sm:flex-col bg-blanco rounded-[1rem] shadow-[0px_0px_23.5px_5px_rgba(0,0,0,0.25)] max-sm:shadow-none max-sm:rounded-none max-sm:w-full max-sm:h-full p-8 max-sm:p-2 w-full max-w-2xl">
-          {/* Left Section: Login Form */}
+          {/* Sección Izquierda: Formulario de Inicio de Sesión */}
           <div className="w-1/2 pr-4 max-sm:w-full max-sm:px-4 max-sm:py-2 max-sm:order-2">
             <Link href="/login">
               <button className="flex items-center text-blanco bg-color-interfaz px-4 py-2 rounded-lg">
                 <VolverIcon className="w-5 h-5 mr-2" />
-                Back
+                Volver
               </button>
             </Link>
 
             <h2 className="text-[0.9rem] text-gris-oscuro mt-3">
-              Login
+              Inicio de Sesión
             </h2>
             <h3 className="text-[1.5rem] font-bold text-gris-oscuro text-wrap -break-words">
               {rol}
@@ -199,7 +199,7 @@ const PlantillaLogin = ({ rol, siasisAPI, endpoint }: PlantillaLoginProps) => {
                   name="Nombre_Usuario"
                   onChange={handleChange}
                   value={formularioLogin.Nombre_Usuario}
-                  placeholder="Enter your username"
+                  placeholder="Ingrese su nombre de usuario"
                   className="w-full text-negro placeholder:text-gris-intermedio text-[1rem] outline-none bg-transparent px-2"
                 />
               </div>
@@ -215,13 +215,13 @@ const PlantillaLogin = ({ rol, siasisAPI, endpoint }: PlantillaLoginProps) => {
                   name="Contraseña"
                   onChange={handleChange}
                   value={formularioLogin.Contraseña}
-                  placeholder="Enter your password"
+                  placeholder="Ingrese su contraseña"
                   className="w-full text-negro placeholder:text-gris-intermedio text-[1rem] outline-none bg-transparent px-2"
                 />
               </div>
 
               <p className="text-gris-oscuro text-[0.9rem]">
-                Available attempts:{" "}
+                Intentos disponibles:{" "}
                 <span className="font-bold">{intentosRestantes}</span>
               </p>
 
@@ -243,7 +243,7 @@ const PlantillaLogin = ({ rol, siasisAPI, endpoint }: PlantillaLoginProps) => {
                 }
                 className="mt-3 w-full bg-color-interfaz text-blanco rounded-lg text-[1rem] flex gap-4 items-center justify-center py-3 disabled:grayscale-[0.75] pointer"
               >
-                Login
+                Ingresar
                 {isSomethingLoading && !error && (
                   <Loader className="w-[1.5rem] bg-white p-[0.3rem]" />
                 )}
@@ -251,7 +251,7 @@ const PlantillaLogin = ({ rol, siasisAPI, endpoint }: PlantillaLoginProps) => {
             </form>
           </div>
 
-          {/* Right Section: Logo (on desktop) / Top: Logo (on mobile) */}
+          {/* Sección Derecha: Logo (en desktop) / Superior: Logo (en mobile) */}
           <div className="w-1/2 flex justify-center items-center max-sm:w-full max-sm:pt-4 max-sm:pb-2 max-sm:order-1">
             <Image
               src="/images/svg/Logo.svg"

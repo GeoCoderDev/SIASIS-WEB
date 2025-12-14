@@ -5,7 +5,7 @@ import { downloadBlob } from "@/lib/helpers/downloaders/downloadBlob";
 import { compartirArchivoEnBlobPorNavegador } from "@/lib/helpers/others/compartirArchivoEnBlobPorNavegador";
 import { EstudianteConAulaYRelacion } from "@/interfaces/shared/Estudiantes";
 
-export const useQRGenerator = (student: EstudianteConAulaYRelacion) => {
+export const useQRGenerator = (estudiante: EstudianteConAulaYRelacion) => {
   const hiddenCardsRef = useRef<HTMLDivElement>(null);
   const [selectedQuantity, setSelectedQuantity] = useState<number>(1);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState<boolean>(false);
@@ -17,7 +17,7 @@ export const useQRGenerator = (student: EstudianteConAulaYRelacion) => {
     setShareSupported(checkWebShareApiSupport());
   }, []);
 
-  // STABLE FUNCTION - does not change on each render
+  // FUNCIÓN ESTABLE - no cambia en cada render
   const generatePDFStable = useCallback(
     async (quantity: number) => {
       if (!hiddenCardsRef.current) return;
@@ -27,11 +27,11 @@ export const useQRGenerator = (student: EstudianteConAulaYRelacion) => {
         const pdfService = new GeneradorTarjetaQREstudiantilEnPDF(
           hiddenCardsRef.current
         );
-        const pdfBlob = await pdfService.generatePDF(student, quantity);
+        const pdfBlob = await pdfService.generatePDF(estudiante, quantity);
 
         setCurrentPdfBlob(pdfBlob);
 
-        // Clear previous URL
+        // Limpiar URL anterior
         setPdfPreviewUrl((prevUrl) => {
           if (prevUrl) {
             URL.revokeObjectURL(prevUrl);
@@ -40,38 +40,38 @@ export const useQRGenerator = (student: EstudianteConAulaYRelacion) => {
         });
       } catch (error) {
         console.error("Error generating PDF:", error);
-        alert("Error generating PDF. Please try again.");
+        alert("Error al generar el PDF. Por favor, intente nuevamente.");
       } finally {
         setIsGeneratingPDF(false);
       }
     },
-    [student]
-  ); // Only depends on the student
+    [estudiante]
+  ); // Solo depende del estudiante
 
   const downloadPDF = useCallback(() => {
     if (!currentPdfBlob) return;
 
-    const filename = `QR_${student.Nombres}_${student.Apellidos}.pdf`;
+    const filename = `QR_${estudiante.Nombres}_${estudiante.Apellidos}.pdf`;
     downloadBlob(currentPdfBlob, filename);
-  }, [currentPdfBlob, student]);
+  }, [currentPdfBlob, estudiante]);
 
   const sharePDF = useCallback(async () => {
     if (!currentPdfBlob || !shareSupported) {
-      alert("Web Share API not available. Use the download button.");
+      alert("Web Share API no disponible. Use el botón de descarga.");
       return;
     }
 
     try {
-      const filename = `QR_${student.Nombres}_${student.Apellidos}.pdf`;
-      const title = `${student.Nombres} ${student.Apellidos}`;
+      const filename = `QR_${estudiante.Nombres}_${estudiante.Apellidos}.pdf`;
+      const title = `${estudiante.Nombres} ${estudiante.Apellidos}`;
       await compartirArchivoEnBlobPorNavegador(currentPdfBlob, filename, title);
     } catch (error) {
       if ((error as Error).name !== "AbortError") {
         console.error("Error sharing PDF:", error);
-        alert("Error sharing. Use the download button.");
+        alert("Error al compartir. Use el botón de descarga.");
       }
     }
-  }, [currentPdfBlob, shareSupported, student]);
+  }, [currentPdfBlob, shareSupported, estudiante]);
 
   const cleanup = useCallback(() => {
     if (pdfPreviewUrl) {

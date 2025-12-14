@@ -1,8 +1,10 @@
-//These names are used to save the attendance states
-// daily in a low latency DB, at the moment we are using Redis
-export const STAFF_ATTENDANCE_START_FLAG_NAME =
+
+
+//Estos nombres se usan para guardar los estados de asistencia
+// diarios en un BD de baja latencia, por el momento estamos usando Redis
+export const NOMBRE_BANDERA_INICIO_TOMA_ASISTENCIA_PERSONAL =
   "Se_inicio_toma_asistencia_personal";
-export const PRIMARY_ATTENDANCE_START_FLAG_NAME =
+export const NOMBRE_BANDERA_INICIO_TOMA_ASISTENCIA_PRIMARIA =
   "Se_inicio_toma_asistencia_primaria";
-export const SECONDARY_ATTENDANCE_START_FLAG_NAME =
+export const NOMBRE_BANDERA_INICIO_TOMA_ASISTENCIA_SECUNDARIA =
   "Se_inicio_toma_asistencia_secundaria";

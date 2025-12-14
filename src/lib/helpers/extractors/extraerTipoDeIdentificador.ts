@@ -1,14 +1,14 @@
 import { LogoutTypes } from "@/interfaces/LogoutTypes";
 import { logout } from "@/lib/utils/frontend/auth/logout";
 
-// 🏷️ Enum for identifier types
+// 🏷️ Enum para los tipos de identificadores
 export enum TiposIdentificadores {
   DNI = 1,
   CARNET_EXTRANJERIA = 2,
   CODIGO_ESCUELA = 3,
 }
 
-// 📝 Mapping of types to descriptive texts
+// 📝 Mapeo de tipos a textos descriptivos
 export const TiposIdentificadoresTextos: Record<TiposIdentificadores, string> =
   {
     [TiposIdentificadores.DNI]: "DNI",
@@ -17,63 +17,63 @@ export const TiposIdentificadoresTextos: Record<TiposIdentificadores, string> =
   };
 
 /**
- * 🔍 Function to extract the identifier type based on what comes after the hyphen
- * If the type doesn't exist or is invalid, it automatically closes the session
+ * 🔍 Función para extraer el tipo de identificador basándose en lo que viene después del guión
+ * Si el tipo no existe o es inválido, cierra la sesión automáticamente
  *
- * @param identificador - Identifier in format {identifier}-{type}
- * @returns TiposIdentificadores - The valid identifier type
+ * @param identificador - Identificador en formato {identificador}-{tipo}
+ * @returns TiposIdentificadores - El tipo de identificador válido
  *
  * @example
- * // Usage examples:
+ * // Ejemplos de uso:
  * extraerTipoDeIdentificador("12345678-1")    // → TiposIdentificadores.DNI (1)
  * extraerTipoDeIdentificador("A123456-2")     // → TiposIdentificadores.CARNET_EXTRANJERIA (2)
  * extraerTipoDeIdentificador("ESC123-3")      // → TiposIdentificadores.CODIGO_ESCUELA (3)
- * extraerTipoDeIdentificador("12345678-5")    // → Closes session (invalid type)
- * extraerTipoDeIdentificador("12345678")      // → TiposIdentificadores.DNI (compatibility)
+ * extraerTipoDeIdentificador("12345678-5")    // → Cierra sesión (tipo inválido)
+ * extraerTipoDeIdentificador("12345678")      // → TiposIdentificadores.DNI (compatibilidad)
  */
 export function extraerTipoDeIdentificador(
   identificador: string
 ): TiposIdentificadores {
-  // 🧹 Clean the identifier of whitespace
+  // 🧹 Limpiar el identificador de espacios en blanco
   const identificadorLimpio = identificador.trim();
 
-  // 🔍 Case 1: 8-digit DNI without hyphen (backwards compatibility)
+  // 🔍 Caso 1: DNI de 8 dígitos sin guión (compatibilidad hacia atrás)
   if (/^\d{8}$/.test(identificadorLimpio)) {
     return TiposIdentificadores.DNI;
   }
 
-  // 🔍 Case 2: Format with hyphen {identifier}-{type}
+  // 🔍 Caso 2: Formato con guión {identificador}-{tipo}
   const partesIdentificador = identificadorLimpio.split("-");
 
-  // ❌ If it doesn't have a hyphen or has incorrect format, assume DNI for compatibility
+  // ❌ Si no tiene guión o tiene formato incorrecto, asumir DNI por compatibilidad
   if (partesIdentificador.length !== 2) {
     return TiposIdentificadores.DNI;
   }
 
-  // 📊 Extract the numeric type from the part after the hyphen
+  // 📊 Extraer el tipo numérico de la parte después del guión
   const tipoNumerico = parseInt(partesIdentificador[1], 10);
 
-  // ✅ Verify that the extracted type exists in the enum
+  // ✅ Verificar que el tipo extraído existe en el enum
   const tiposValidos = Object.values(TiposIdentificadores) as number[];
 
   if (tiposValidos.includes(tipoNumerico)) {
     return tipoNumerico as TiposIdentificadores;
   }
 
-  // 🚨 INVALID TYPE: Close session for security
+  // 🚨 TIPO INVÁLIDO: Cerrar sesión por seguridad
   console.error(
-    `Invalid identifier type found: ${tipoNumerico} in identifier: ${identificador}`
+    `Tipo de identificador inválido encontrado: ${tipoNumerico} en identificador: ${identificador}`
   );
 
-  // 🚪 Close session with error details
+  // 🚪 Cerrar sesión con detalles del error
   logout(LogoutTypes.ERROR_DATOS_CORRUPTOS, {
     codigo: "INVALID_IDENTIFIER_TYPE",
     origen: "extraerTipoDeIdentificador",
-    mensaje: `Invalid identifier type: ${tipoNumerico}`,
+    mensaje: `Tipo de identificador inválido: ${tipoNumerico}`,
     timestamp: Date.now(),
-    contexto: `Received identifier: ${identificador}`,
+    contexto: `Identificador recibido: ${identificador}`,
   });
 
-  // This point will never be reached because logout redirects, but TypeScript requires it
-  throw new Error("Session closed due to invalid identifier type");
+  // Este punto nunca se alcanzará porque logout redirige, pero TypeScript lo requiere
+  throw new Error("Sesión cerrada por tipo de identificador inválido");
 }

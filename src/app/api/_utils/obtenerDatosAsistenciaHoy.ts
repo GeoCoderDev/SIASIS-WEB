@@ -1,258 +1,258 @@
-import { DAILY_ATTENDANCE_DATA_FILENAME } from "@/constants/NOMBRE_ARCHIVOS_SISTEMA";
+import { NOMBRE_ARCHIVO_CON_DATOS_ASISTENCIA_DIARIOS } from "@/constants/NOMBRE_ARCHIVOS_SISTEMA";
 import { DatosAsistenciaHoyIE20935 } from "@/interfaces/shared/Asistencia/DatosAsistenciaHoyIE20935";
 import { redisClient } from "../../../../config/Redis/RedisClient";
-import { isJSONContent } from "../_helpers/esContenidoJSON";
+import { esContenidoJSON } from "../_helpers/esContenidoJSON";
 
 /**
- * Result of the get attendance data operation
+ * Resultado de la operación de obtener datos de asistencia
  */
-export interface GetAttendanceDataResult {
-  data: DatosAsistenciaHoyIE20935;
-  source: "cache" | "blob" | "backup";
-  message?: string;
+export interface ResultadoObtenerDatosAsistencia {
+  datos: DatosAsistenciaHoyIE20935;
+  fuente: "cache" | "blob" | "respaldo";
+  mensaje?: string;
 }
 
 /**
- * Attendance data service configuration
+ * Configuración del servicio de datos de asistencia
  */
-const ATTENDANCE_DATA_SERVICE_CONFIG = {
-  // Cache duration in milliseconds (2 hours)
-  CACHE_DURATION: 2 * 60 * 60 * 1000,
+const CONFIG_SERVICIO_DATOS_ASISTENCIA = {
+  // Duración del cache en milisegundos (2 horas)
+  CACHE_DURACION: 2 * 60 * 60 * 1000,
 
-  // Timeout for HTTP requests (10 seconds)
+  // Timeout para las peticiones HTTP (10 segundos)
   TIMEOUT_HTTP: 10 * 1000,
 } as const;
 
 /**
- * Global cache for attendance data
+ * Cache global para los datos de asistencia
  */
-class AttendanceDataCache {
-  private static data: DatosAsistenciaHoyIE20935 | null = null;
-  private static lastUpdate = 0;
+class CacheDatosAsistencia {
+  private static datos: DatosAsistenciaHoyIE20935 | null = null;
+  private static ultimaActualizacion = 0;
 
-  static get(cacheDuration: number): DatosAsistenciaHoyIE20935 | null {
-    const now = Date.now();
-    if (this.data && now - this.lastUpdate < cacheDuration) {
-      return this.data;
+  static get(duracionCache: number): DatosAsistenciaHoyIE20935 | null {
+    const ahora = Date.now();
+    if (this.datos && ahora - this.ultimaActualizacion < duracionCache) {
+      return this.datos;
     }
     return null;
   }
 
-  static set(data: DatosAsistenciaHoyIE20935): void {
-    this.data = data;
-    this.lastUpdate = Date.now();
+  static set(datos: DatosAsistenciaHoyIE20935): void {
+    this.datos = datos;
+    this.ultimaActualizacion = Date.now();
   }
 
-  static clear(): void {
-    this.data = null;
-    this.lastUpdate = 0;
+  static limpiar(): void {
+    this.datos = null;
+    this.ultimaActualizacion = 0;
   }
 
-  static getRemainingCacheTime(cacheDuration: number): number {
-    if (!this.data) return 0;
-    const now = Date.now();
-    const elapsedTime = now - this.lastUpdate;
-    return Math.max(0, cacheDuration - elapsedTime);
+  static obtenerTiempoRestanteCache(duracionCache: number): number {
+    if (!this.datos) return 0;
+    const ahora = Date.now();
+    const tiempoTranscurrido = ahora - this.ultimaActualizacion;
+    return Math.max(0, duracionCache - tiempoTranscurrido);
   }
 }
 
 /**
- * Creates a fetch with custom timeout
+ * Crea un fetch con timeout personalizado
  */
-function fetchWithTimeout(url: string, timeout: number): Promise<Response> {
+function fetchConTimeout(url: string, timeout: number): Promise<Response> {
   return Promise.race([
     fetch(url),
     new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error("HTTP request timeout")), timeout)
+      setTimeout(() => reject(new Error("Timeout de petición HTTP")), timeout)
     ),
   ]);
 }
 
 /**
- * Gets attendance data from the main blob
+ * Obtiene los datos de asistencia desde el blob principal
  */
-async function getDataFromBlob(): Promise<DatosAsistenciaHoyIE20935> {
+async function obtenerDatosDesdeBlob(): Promise<DatosAsistenciaHoyIE20935> {
   const url = `${process.env
-    .RDP04_THIS_INSTANCE_VERCEL_BLOB_BASE_URL!}/${DAILY_ATTENDANCE_DATA_FILENAME}`;
+    .RDP04_THIS_INSTANCE_VERCEL_BLOB_BASE_URL!}/${NOMBRE_ARCHIVO_CON_DATOS_ASISTENCIA_DIARIOS}`;
 
-  console.log("🌐 Getting data from main blob:", url);
+  console.log("🌐 Obteniendo datos desde blob principal:", url);
 
-  const response = await fetchWithTimeout(
+  const response = await fetchConTimeout(
     url,
-    ATTENDANCE_DATA_SERVICE_CONFIG.TIMEOUT_HTTP
+    CONFIG_SERVICIO_DATOS_ASISTENCIA.TIMEOUT_HTTP
   );
 
   if (!response.ok) {
     throw new Error(
-      `HTTP error in blob: ${response.status} ${response.statusText}`
+      `Error HTTP en blob: ${response.status} ${response.statusText}`
     );
   }
 
-  if (!(await isJSONContent(response))) {
-    throw new Error("Blob response does not contain valid JSON");
+  if (!(await esContenidoJSON(response))) {
+    throw new Error("La respuesta del blob no contiene JSON válido");
   }
 
-  const data = await response.json();
-  console.log("✅ Data successfully obtained from main blob");
+  const datos = await response.json();
+  console.log("✅ Datos obtenidos exitosamente desde blob principal");
 
-  return data;
+  return datos;
 }
 
 /**
- * Gets attendance data from Google Drive (backup)
+ * Obtiene los datos de asistencia desde Google Drive (respaldo)
  */
-async function getDataFromBackup(): Promise<DatosAsistenciaHoyIE20935> {
-  console.log("📁 Getting data from Google Drive backup...");
+async function obtenerDatosDesdeRespaldo(): Promise<DatosAsistenciaHoyIE20935> {
+  console.log("📁 Obteniendo datos desde respaldo Google Drive...");
 
-  // Get the Google Drive ID from Redis
+  // Obtener el ID de Google Drive desde Redis
   const googleDriveId = await redisClient().get(
-    DAILY_ATTENDANCE_DATA_FILENAME
+    NOMBRE_ARCHIVO_CON_DATOS_ASISTENCIA_DIARIOS
   );
 
   if (!googleDriveId) {
-    throw new Error("Backup file ID not found in Redis");
+    throw new Error("No se encontró el ID del archivo de respaldo en Redis");
   }
 
   const url = `https://drive.google.com/uc?export=download&id=${googleDriveId}`;
 
-  const response = await fetchWithTimeout(
+  const response = await fetchConTimeout(
     url,
-    ATTENDANCE_DATA_SERVICE_CONFIG.TIMEOUT_HTTP
+    CONFIG_SERVICIO_DATOS_ASISTENCIA.TIMEOUT_HTTP
   );
 
   if (!response.ok) {
     throw new Error(
-      `HTTP error in backup: ${response.status} ${response.statusText}`
+      `Error HTTP en respaldo: ${response.status} ${response.statusText}`
     );
   }
 
-  if (!(await isJSONContent(response))) {
-    throw new Error("Backup response does not contain valid JSON");
+  if (!(await esContenidoJSON(response))) {
+    throw new Error("La respuesta del respaldo no contiene JSON válido");
   }
 
-  const data = await response.json();
-  console.log("✅ Data successfully obtained from Google Drive backup");
+  const datos = await response.json();
+  console.log("✅ Datos obtenidos exitosamente desde respaldo Google Drive");
 
-  return data;
+  return datos;
 }
 
 /**
- * Gets attendance data with cache, main source and backup
+ * Obtiene los datos de asistencia con cache, fuente principal y respaldo
  *
- * @param forceUpdate - If true, ignores cache and gets fresh data
- * @returns Promise with attendance data and source information
+ * @param forzarActualizacion - Si es true, ignora el cache y obtiene datos frescos
+ * @returns Promesa con los datos de asistencia y información sobre la fuente
  *
  * @example
  * ```typescript
- * // Basic usage (with cache)
- * const result = await getTodayAttendanceData();
- * console.log(result.data, result.source);
+ * // Uso básico (con cache)
+ * const resultado = await obtenerDatosAsistenciaHoy();
+ * console.log(resultado.datos, resultado.fuente);
  *
- * // Force update
- * const result = await getTodayAttendanceData(true);
+ * // Forzar actualización
+ * const resultado = await obtenerDatosAsistenciaHoy(true);
  * ```
  */
-export async function getTodayAttendanceData(
-  forceUpdate = false
-): Promise<GetAttendanceDataResult> {
-  // Check cache first (if update is not forced)
-  if (!forceUpdate) {
-    const cachedData = AttendanceDataCache.get(
-      ATTENDANCE_DATA_SERVICE_CONFIG.CACHE_DURATION
+export async function obtenerDatosAsistenciaHoy(
+  forzarActualizacion = false
+): Promise<ResultadoObtenerDatosAsistencia> {
+  // Verificar cache primero (si no se fuerza actualización)
+  if (!forzarActualizacion) {
+    const datosCache = CacheDatosAsistencia.get(
+      CONFIG_SERVICIO_DATOS_ASISTENCIA.CACHE_DURACION
     );
-    if (cachedData) {
-      const remainingTime = AttendanceDataCache.getRemainingCacheTime(
-        ATTENDANCE_DATA_SERVICE_CONFIG.CACHE_DURATION
+    if (datosCache) {
+      const tiempoRestante = CacheDatosAsistencia.obtenerTiempoRestanteCache(
+        CONFIG_SERVICIO_DATOS_ASISTENCIA.CACHE_DURACION
       );
 
       console.log(
-        `📋 Using data from cache (valid for ${Math.round(
-          remainingTime / 1000 / 60
-        )} more minutes)`
+        `📋 Usando datos desde cache (válido por ${Math.round(
+          tiempoRestante / 1000 / 60
+        )} minutos más)`
       );
 
       return {
-        data: cachedData,
-        source: "cache",
-        message: `Cache valid for ${Math.round(
-          remainingTime / 1000 / 60
-        )} more minutes`,
+        datos: datosCache,
+        fuente: "cache",
+        mensaje: `Cache válido por ${Math.round(
+          tiempoRestante / 1000 / 60
+        )} minutos más`,
       };
     }
   }
 
-  // Try to get from main source (blob)
+  // Intentar obtener desde fuente principal (blob)
   try {
-    const data = await getDataFromBlob();
+    const datos = await obtenerDatosDesdeBlob();
 
-    // Update cache with new data
-    AttendanceDataCache.set(data);
+    // Actualizar cache con los nuevos datos
+    CacheDatosAsistencia.set(datos);
 
     return {
-      data,
-      source: "blob",
-      message: "Data obtained from main source",
+      datos,
+      fuente: "blob",
+      mensaje: "Datos obtenidos desde fuente principal",
     };
   } catch (errorBlob) {
     console.warn(
-      "⚠️ Error getting data from blob, trying backup:",
+      "⚠️ Error al obtener datos del blob, intentando respaldo:",
       errorBlob
     );
 
-    // Try to get from backup (Google Drive)
+    // Intentar obtener desde respaldo (Google Drive)
     try {
-      const data = await getDataFromBackup();
+      const datos = await obtenerDatosDesdeRespaldo();
 
-      // Update cache with backup data
-      AttendanceDataCache.set(data);
+      // Actualizar cache con los datos del respaldo
+      CacheDatosAsistencia.set(datos);
 
       return {
-        data,
-        source: "backup",
-        message: `Data obtained from backup. Main error: ${
+        datos,
+        fuente: "respaldo",
+        mensaje: `Datos obtenidos desde respaldo. Error principal: ${
           (errorBlob as Error).message
         }`,
       };
     } catch (errorRespaldo) {
-      console.error("❌ Error in backup:", errorRespaldo);
+      console.error("❌ Error en respaldo:", errorRespaldo);
 
-      // If both fail, throw descriptive error
+      // Si ambos fallan, lanzar error descriptivo
       throw new Error(
-        `Main access and backup failed. ` +
-          `Main: ${(errorBlob as Error).message}. ` +
-          `Backup: ${(errorRespaldo as Error).message}`
+        `Falló el acceso principal y el respaldo. ` +
+          `Principal: ${(errorBlob as Error).message}. ` +
+          `Respaldo: ${(errorRespaldo as Error).message}`
       );
     }
   }
 }
 
 /**
- * Clears the attendance data cache
- * Useful for testing or to force a new data fetch
+ * Limpia el cache de datos de asistencia
+ * Útil para testing o para forzar una nueva obtención de datos
  */
-export function clearAttendanceDataCache(): void {
-  AttendanceDataCache.clear();
-  console.log("🧹 Attendance data cache cleared");
+export function limpiarCacheDatosAsistencia(): void {
+  CacheDatosAsistencia.limpiar();
+  console.log("🧹 Cache de datos de asistencia limpiado");
 }
 
 /**
- * Gets information about the current cache state
+ * Obtiene información sobre el estado actual del cache
  */
-export function getCacheState(): {
-  hasCache: boolean;
-  remainingMinutes: number;
-  lastUpdate: Date | null;
+export function obtenerEstadoCache(): {
+  tieneCache: boolean;
+  tiempoRestanteMinutos: number;
+  ultimaActualizacion: Date | null;
 } {
-  const remainingTime = AttendanceDataCache.getRemainingCacheTime(
-    ATTENDANCE_DATA_SERVICE_CONFIG.CACHE_DURATION
+  const tiempoRestante = CacheDatosAsistencia.obtenerTiempoRestanteCache(
+    CONFIG_SERVICIO_DATOS_ASISTENCIA.CACHE_DURACION
   );
 
   return {
-    hasCache: remainingTime > 0,
-    remainingMinutes: Math.round(remainingTime / 1000 / 60),
-    lastUpdate:
-      AttendanceDataCache["lastUpdate"] > 0
-        ? new Date(AttendanceDataCache["lastUpdate"])
+    tieneCache: tiempoRestante > 0,
+    tiempoRestanteMinutos: Math.round(tiempoRestante / 1000 / 60),
+    ultimaActualizacion:
+      CacheDatosAsistencia["ultimaActualizacion"] > 0
+        ? new Date(CacheDatosAsistencia["ultimaActualizacion"])
         : null,
   };
 }

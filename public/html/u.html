@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Escáner de QR</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+        max-width: 600px;
+        width: 100%;
+        text-align: center;
+      }
+
+      h1 {
+        color: #333;
+        margin-bottom: 30px;
+        font-size: 2.2rem;
+        font-weight: 600;
+      }
+
+      .scanner-container {
+        position: relative;
+        margin: 20px 0;
+        border-radius: 15px;
+        overflow: hidden;
+        background: #f8f9fa;
+        border: 3px dashed #dee2e6;
+        min-height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #scanner {
+        width: 100%;
+        height: 400px;
+        border-radius: 15px;
+        display: none;
+      }
+
+      #scanner video {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover;
+        border-radius: 15px;
+      }
+
+      .scanner-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 200px;
+        height: 200px;
+        border: 3px solid #28a745;
+        border-radius: 15px;
+        box-shadow: 0 0 0 4px rgba(40, 167, 69, 0.2);
+        z-index: 10;
+        display: none;
+      }
+
+      .scanner-overlay::before {
+        content: "";
+        position: absolute;
+        top: -3px;
+        left: -3px;
+        right: -3px;
+        bottom: -3px;
+        border: 2px solid rgba(40, 167, 69, 0.5);
+        border-radius: 15px;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(1.05);
+          opacity: 0.7;
+        }
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+
+      .btn {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin: 10px;
+        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+      }
+
+      .btn:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .btn-stop {
+        background: linear-gradient(135deg, #dc3545, #e74c3c);
+        box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+      }
+
+      .btn-stop:hover {
+        box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4);
+      }
+
+      .result-container {
+        margin-top: 20px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 15px;
+        border-left: 5px solid #28a745;
+        display: none;
+      }
+
+      .result-container.show {
+        display: block;
+        animation: slideIn 0.5s ease;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .result-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 10px;
+      }
+
+      .result-text {
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        border: 1px solid #dee2e6;
+        word-break: break-all;
+        font-family: "Courier New", monospace;
+        color: #333;
+        min-height: 50px;
+        text-align: left;
+      }
+
+      .status {
+        margin: 15px 0;
+        padding: 10px;
+        border-radius: 10px;
+        font-weight: 500;
+      }
+
+      .status.info {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+      }
+
+      .status.success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+
+      .status.error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+
+      .no-camera {
+        color: #6c757d;
+        font-style: italic;
+        padding: 40px;
+      }
+
+      @media (max-width: 640px) {
+        .container {
+          padding: 20px;
+          margin: 10px;
+        }
+
+        h1 {
+          font-size: 1.8rem;
+        }
+
+        .scanner-container {
+          min-height: 250px;
+        }
+
+        #scanner {
+          height: 300px;
+        }
+
+        .scanner-overlay {
+          width: 150px;
+          height: 150px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>📱 Escáner de QR</h1>
+
+      <div class="scanner-container" id="scannerContainer">
+        <div class="no-camera" id="noCameraMessage">
+          📷 Presiona "Activar Cámara" para comenzar a escanear
+        </div>
+        <div id="scanner"></div>
+        <div class="scanner-overlay" id="scannerOverlay"></div>
+      </div>
+
+      <div class="controls">
+        <button class="btn" id="startBtn" onclick="startScanner()">
+          📷 Activar Cámara
+        </button>
+        <button
+          class="btn btn-stop"
+          id="stopBtn"
+          onclick="stopScanner()"
+          style="display: none"
+        >
+          ⏹️ Detener Cámara
+        </button>
+      </div>
+
+      <div class="status info" id="status">
+        Listo para escanear. Haz clic en "Activar Cámara" para comenzar.
+      </div>
+
+      <div class="result-container" id="resultContainer">
+        <div class="result-label">📄 Texto decodificado del QR:</div>
+        <div class="result-text" id="resultText"></div>
+        <button class="btn" onclick="clearResult()" style="margin-top: 10px">
+          🗑️ Limpiar Resultado
+        </button>
+      </div>
+    </div>
+
+    <!-- Incluir la librería QuaggaJS desde CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+
+    <script>
+      let isScanning = false;
+      let scannerInitialized = false;
+
+      // Elementos del DOM
+      const startBtn = document.getElementById("startBtn");
+      const stopBtn = document.getElementById("stopBtn");
+      const status = document.getElementById("status");
+      const scanner = document.getElementById("scanner");
+      const scannerOverlay = document.getElementById("scannerOverlay");
+      const resultContainer = document.getElementById("resultContainer");
+      const resultText = document.getElementById("resultText");
+      const noCameraMessage = document.getElementById("noCameraMessage");
+
+      function updateStatus(message, type = "info") {
+        status.textContent = message;
+        status.className = `status ${type}`;
+      }
+
+      function showResult(text) {
+        resultText.textContent = text;
+        resultContainer.classList.add("show");
+        updateStatus("¡QR escaneado exitosamente!", "success");
+      }
+
+      function clearResult() {
+        resultContainer.classList.remove("show");
+        if (isScanning) {
+          updateStatus(
+            "Escaneando... Apunta la cámara hacia un código QR",
+            "info"
+          );
+        }
+      }
+
+      async function startScanner() {
+        try {
+          updateStatus("Solicitando acceso a la cámara...", "info");
+
+          // Verificar si el navegador soporta getUserMedia
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            throw new Error("Tu navegador no soporta acceso a la cámara");
+          }
+
+          // Ocultar mensaje de no cámara y mostrar scanner
+          noCameraMessage.style.display = "none";
+          scanner.style.display = "block";
+          scannerOverlay.style.display = "block";
+
+          // Configurar Quagga
+          Quagga.init(
+            {
+              inputStream: {
+                name: "Live",
+                type: "LiveStream",
+                target: document.querySelector("#scanner"),
+                constraints: {
+                  width: 600,
+                  height: 400,
+                  facingMode: "environment", // Usar cámara trasera si está disponible
+                },
+              },
+              decoder: {
+                readers: [
+                  "code_128_reader",
+                  "ean_reader",
+                  "ean_8_reader",
+                  "code_39_reader",
+                  "code_39_vin_reader",
+                  "codabar_reader",
+                  "upc_reader",
+                  "upc_e_reader",
+                  "i2of5_reader",
+                  "2of5_reader",
+                  "code_93_reader",
+                ],
+              },
+              locate: true,
+              locator: {
+                patchSize: "medium",
+                halfSample: true,
+              },
+              numOfWorkers: 2,
+              frequency: 10,
+              debug: false,
+            },
+            function (err) {
+              if (err) {
+                console.error("Error al inicializar Quagga:", err);
+                updateStatus(
+                  "Error al acceder a la cámara: " + err.message,
+                  "error"
+                );
+                resetUI();
+                return;
+              }
+
+              console.log("Quagga inicializado correctamente");
+              Quagga.start();
+              isScanning = true;
+              scannerInitialized = true;
+
+              // Actualizar interfaz
+              startBtn.style.display = "none";
+              stopBtn.style.display = "inline-block";
+              updateStatus(
+                "Escaneando... Apunta la cámara hacia un código QR",
+                "info"
+              );
+            }
+          );
+
+          // Listener para detección de códigos
+          Quagga.onDetected(function (data) {
+            if (data && data.codeResult && data.codeResult.code) {
+              const decodedText = data.codeResult.code;
+              console.log("QR detectado:", decodedText);
+
+              // Mostrar resultado
+              showResult(decodedText);
+
+              // Opcional: detener escáner automáticamente después de detectar
+              // stopScanner();
+            }
+          });
+        } catch (error) {
+          console.error("Error:", error);
+          updateStatus("Error: " + error.message, "error");
+          resetUI();
+        }
+      }
+
+      function stopScanner() {
+        if (scannerInitialized) {
+          Quagga.stop();
+          scannerInitialized = false;
+        }
+
+        isScanning = false;
+        resetUI();
+        updateStatus(
+          "Cámara detenida. Listo para escanear nuevamente.",
+          "info"
+        );
+      }
+
+      function resetUI() {
+        scanner.style.display = "none";
+        scannerOverlay.style.display = "none";
+        noCameraMessage.style.display = "block";
+        startBtn.style.display = "inline-block";
+        stopBtn.style.display = "none";
+      }
+
+      // Manejar cuando el usuario sale de la página
+      window.addEventListener("beforeunload", function () {
+        if (isScanning) {
+          stopScanner();
+        }
+      });
+
+      // Manejar errores de permisos
+      window.addEventListener("error", function (e) {
+        if (e.message.includes("Permission denied")) {
+          updateStatus(
+            "Permiso de cámara denegado. Por favor, permite el acceso a la cámara.",
+            "error"
+          );
+          resetUI();
+        }
+      });
+    </script>
+  </body>
+</html>

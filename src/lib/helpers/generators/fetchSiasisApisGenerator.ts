@@ -25,19 +25,19 @@ interface FetchSiasisResult {
 }
 
 /**
- * Generates functions to make requests to the system APIs
- * @param siasisAPI API to which requests will be made (API01 or API02)
- * @returns Object with functions to make requests and manage cancellations
+ * Genera funciones para realizar peticiones a las APIs del sistema
+ * @param siasisAPI API a la que se realizarán las peticiones (API01 o API02)
+ * @returns Objeto con funciones para realizar peticiones y gestionar cancelaciones
  */
 const fetchSiasisApiGenerator = (siasisAPI: SiasisAPIS): FetchSiasisResult => {
   const getRandomInstanceForAPI =
     SiasisAPIsGetRandomInstanceFunctions[siasisAPI];
 
-  // Store the cancelable requests in a local variable
+  // Almacenamos las peticiones cancelables en una variable local
   let fetchCancelables: FetchCancelable[] = [];
 
   /**
-   * Makes a request to the corresponding API
+   * Realiza una petición a la API correspondiente
    */
   const fetchSiasisAPI = async ({
     JSONBody = true,
@@ -47,14 +47,14 @@ const fetchSiasisApiGenerator = (siasisAPI: SiasisAPIS): FetchSiasisResult => {
     queryParams,
     userAutheticated = true,
   }: FetchSiasisAPIs): Promise<FetchCancelable | undefined> => {
-    // Get token asynchronously if the user should be authenticated
+    // Obtener token de manera asíncrona si el usuario debe estar autenticado
     let token: string | null = null;
 
     if (userAutheticated && siasisAPI !== "SIU01 API") {
       try {
         token = await userStorage.getAuthToken();
 
-        // If authentication is required but there's no token, logout
+        // Si se requiere autenticación pero no hay token, hacer logout
         if (!token) {
           logout(LogoutTypes.SESION_EXPIRADA);
           return;
@@ -66,7 +66,7 @@ const fetchSiasisApiGenerator = (siasisAPI: SiasisAPIS): FetchSiasisResult => {
       }
     }
 
-    // Prepare headers
+    // Preparar headers
     const headers: Record<string, string> = {};
 
     if (JSONBody) {
@@ -77,7 +77,7 @@ const fetchSiasisApiGenerator = (siasisAPI: SiasisAPIS): FetchSiasisResult => {
       headers["Authorization"] = `Bearer ${token}`;
     }
 
-    // Create the FetchCancelable instance
+    // Crear la instancia FetchCancelable
     const fetchCancelable = new FetchCancelable(
       `${getRandomInstanceForAPI()}${endpoint}`,
       {
@@ -88,14 +88,14 @@ const fetchSiasisApiGenerator = (siasisAPI: SiasisAPIS): FetchSiasisResult => {
       queryParams
     );
 
-    // Register the instance to be able to cancel it later if necessary
+    // Registrar la instancia para poder cancelarla posteriormente si es necesario
     fetchCancelables.push(fetchCancelable);
 
     return fetchCancelable;
   };
 
   /**
-   * Cancels all pending requests
+   * Cancela todas las peticiones pendientes
    */
   const cancelAllRequests = () => {
     fetchCancelables.forEach((fetchCancelable) => fetchCancelable.cancel());

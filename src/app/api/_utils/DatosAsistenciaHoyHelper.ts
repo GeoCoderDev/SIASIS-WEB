@@ -1,281 +1,284 @@
 import { DatosAsistenciaHoyIE20935 } from "@/interfaces/shared/Asistencia/DatosAsistenciaHoyIE20935";
 import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
-import { getTodayAttendanceData } from "../_utils/obtenerDatosAsistenciaHoy";
+import { obtenerDatosAsistenciaHoy } from "../_utils/obtenerDatosAsistenciaHoy";
 
 /**
- * Information about the classroom assigned to a teacher
+ * Información del aula asignada a un profesor
  */
-export interface AssignedClassroom {
-  level: NivelEducativo;
-  grade: number;
-  section: string;
-  hasClassroom: boolean;
+export interface AulaAsignada {
+  nivel: NivelEducativo;
+  grado: number;
+  seccion: string;
+  tieneAula: boolean;
 }
 
 /**
- * Permission validation result for reports
+ * Resultado de validación de permisos para reportes
  */
-export interface PermissionValidationResult {
-  hasPermission: boolean;
-  message?: string;
-  assignedClassroom?: AssignedClassroom;
+export interface ResultadoValidacionPermisos {
+  tienePermiso: boolean;
+  mensaje?: string;
+  aulaAsignada?: AulaAsignada;
 }
 
 /**
- * Helper for working with daily attendance data
+ * Helper para trabajar con datos de asistencia del día
  */
-export class TodayAttendanceDataHelper {
-  private data: DatosAsistenciaHoyIE20935;
+export class DatosAsistenciaHoyHelper {
+  private datos: DatosAsistenciaHoyIE20935;
 
-  constructor(data: DatosAsistenciaHoyIE20935) {
-    this.data = data;
+  constructor(datos: DatosAsistenciaHoyIE20935) {
+    this.datos = datos;
   }
 
   /**
-   * Gets an instance of the helper with current data
+   * Obtiene una instancia del helper con los datos actuales
    */
-  static async getInstance(): Promise<TodayAttendanceDataHelper> {
-    const { data } = await getTodayAttendanceData();
-    return new TodayAttendanceDataHelper(data);
+  static async obtenerInstancia(): Promise<DatosAsistenciaHoyHelper> {
+    const { datos } = await obtenerDatosAsistenciaHoy();
+    return new DatosAsistenciaHoyHelper(datos);
   }
 
   /**
-   * Gets the classroom assigned to an elementary school teacher
+   * Obtiene el aula asignada a un profesor de primaria
    */
-  getPrimarySchoolTeacherClassroom(teacherId: string): AssignedClassroom | null {
-    const teacher = this.data.ListaDeProfesoresPrimaria.find(
-      (p) => p.Id_Profesor_Primaria === teacherId
+  obtenerAulaProfesorPrimaria(idProfesor: string): AulaAsignada | null {
+    const profesor = this.datos.ListaDeProfesoresPrimaria.find(
+      (p) => p.Id_Profesor_Primaria === idProfesor
     );
 
-    if (!teacher) {
+    if (!profesor) {
       return null;
     }
 
-    if (!teacher.Aula) {
+    if (!profesor.Aula) {
       return {
-        level: NivelEducativo.PRIMARIA,
-        grade: 0,
-        section: "",
-        hasClassroom: false,
+        nivel: NivelEducativo.PRIMARIA,
+        grado: 0,
+        seccion: "",
+        tieneAula: false,
       };
     }
 
     return {
-      level: teacher.Aula.Nivel as NivelEducativo,
-      grade: teacher.Aula.Grado,
-      section: teacher.Aula.Seccion,
-      hasClassroom: true,
+      nivel: profesor.Aula.Nivel as NivelEducativo,
+      grado: profesor.Aula.Grado,
+      seccion: profesor.Aula.Seccion,
+      tieneAula: true,
     };
   }
 
   /**
-   * Gets the classroom assigned to a secondary school teacher/tutor
+   * Obtiene el aula asignada a un profesor/tutor de secundaria
    */
-  getSecondarySchoolTeacherClassroom(teacherId: string): AssignedClassroom | null {
-    const teacher = this.data.ListaDeProfesoresSecundaria.find(
-      (p) => p.Id_Profesor_Secundaria === teacherId
+  obtenerAulaProfesorSecundaria(idProfesor: string): AulaAsignada | null {
+    const profesor = this.datos.ListaDeProfesoresSecundaria.find(
+      (p) => p.Id_Profesor_Secundaria === idProfesor
     );
 
-    if (!teacher) {
+    if (!profesor) {
       return null;
     }
 
-    if (!teacher.Aula) {
+    if (!profesor.Aula) {
       return {
-        level: NivelEducativo.SECUNDARIA,
-        grade: 0,
-        section: "",
-        hasClassroom: false,
+        nivel: NivelEducativo.SECUNDARIA,
+        grado: 0,
+        seccion: "",
+        tieneAula: false,
       };
     }
 
     return {
-      level: teacher.Aula.Nivel as NivelEducativo,
-      grade: teacher.Aula.Grado,
-      section: teacher.Aula.Seccion,
-      hasClassroom: true,
+      nivel: profesor.Aula.Nivel as NivelEducativo,
+      grado: profesor.Aula.Grado,
+      seccion: profesor.Aula.Seccion,
+      tieneAula: true,
     };
   }
 
   /**
-   * Validates if a user has permission to generate/query a specific report
+   * Valida si un usuario tiene permiso para generar/consultar un reporte específico
    */
-  validateReportPermissions(
-    role: RolesSistema,
-    userId: string,
-    requestedLevel: NivelEducativo,
-    requestedGrade: number | string,
-    requestedSection: string
-  ): PermissionValidationResult {
+  validarPermisosReporte(
+    rol: RolesSistema,
+    idUsuario: string,
+    nivelSolicitado: NivelEducativo,
+    gradoSolicitado: number | string,
+    seccionSolicitada: string
+  ): ResultadoValidacionPermisos {
     console.log(
-      `[TodayAttendanceDataHelper] 🔐 Validating permissions for role: ${role}`
+      `[DatosAsistenciaHoyHelper] 🔐 Validando permisos para rol: ${rol}`
     );
     console.log(
-      `[TodayAttendanceDataHelper] 📊 Requested report: ${requestedLevel} ${requestedGrade}° ${requestedSection}`
+      `[DatosAsistenciaHoyHelper] 📊 Reporte solicitado: ${nivelSolicitado} ${gradoSolicitado}° ${seccionSolicitada}`
     );
 
-    switch (role) {
+    switch (rol) {
       case RolesSistema.Directivo:
         console.log(
-          `[TodayAttendanceDataHelper] ✅ Executive - Full access without restrictions`
+          `[DatosAsistenciaHoyHelper] ✅ Directivo - Acceso total sin restricciones`
         );
         return {
-          hasPermission: true,
+          tienePermiso: true,
         };
 
       case RolesSistema.Auxiliar:
-        // Can only generate secondary school reports
-        if (requestedLevel !== NivelEducativo.SECUNDARIA) {
+        // Solo puede generar reportes de secundaria
+        if (nivelSolicitado !== NivelEducativo.SECUNDARIA) {
           console.log(
-            `[TodayAttendanceDataHelper] ❌ Assistant can only generate secondary school reports`
+            `[DatosAsistenciaHoyHelper] ❌ Auxiliar solo puede generar reportes de secundaria`
           );
           return {
-            hasPermission: false,
-            message:
-              "Assistants can only generate secondary school reports",
+            tienePermiso: false,
+            mensaje:
+              "Los auxiliares solo pueden generar reportes de secundaria",
           };
         }
 
         console.log(
-          `[TodayAttendanceDataHelper] ✅ Assistant - Access to secondary school allowed`
+          `[DatosAsistenciaHoyHelper] ✅ Auxiliar - Acceso a secundaria permitido`
         );
         return {
-          hasPermission: true,
+          tienePermiso: true,
         };
 
       case RolesSistema.ProfesorPrimaria:
-        const primarySchoolTeacherClassroom =
-          this.getPrimarySchoolTeacherClassroom(userId);
+        const aulaProfesorPrimaria =
+          this.obtenerAulaProfesorPrimaria(idUsuario);
 
-        if (!primarySchoolTeacherClassroom) {
+        if (!aulaProfesorPrimaria) {
+          console.log(
+            `[DatosAsistenciaHoyHelper] ❌ Profesor primaria no encontrado en el sistema`
+          );
           return {
-            hasPermission: false,
-            message: "Teacher not found in the system",
+            tienePermiso: false,
+            mensaje: "Profesor no encontrado en el sistema",
           };
         }
 
-        if (!primarySchoolTeacherClassroom.hasClassroom) {
+        if (!aulaProfesorPrimaria.tieneAula) {
           console.log(
-            `[TodayAttendanceDataHelper] ❌ Primary school teacher without an assigned classroom`
+            `[DatosAsistenciaHoyHelper] ❌ Profesor primaria sin aula asignada`
           );
           return {
-            hasPermission: false,
-            message: "You do not have an assigned classroom",
-            assignedClassroom: primarySchoolTeacherClassroom,
+            tienePermiso: false,
+            mensaje: "No tiene un aula asignada",
+            aulaAsignada: aulaProfesorPrimaria,
           };
         }
 
-        // Verify that it matches their assigned classroom
-        const primarySchoolMatch =
-          requestedLevel === primarySchoolTeacherClassroom.level &&
-          (requestedGrade === primarySchoolTeacherClassroom.grade ||
-            requestedGrade === "T") &&
-          (requestedSection === primarySchoolTeacherClassroom.section ||
-            requestedSection === "T");
+        // Verificar que coincida con su aula asignada
+        const coincidePrimaria =
+          nivelSolicitado === aulaProfesorPrimaria.nivel &&
+          (gradoSolicitado === aulaProfesorPrimaria.grado ||
+            gradoSolicitado === "T") &&
+          (seccionSolicitada === aulaProfesorPrimaria.seccion ||
+            seccionSolicitada === "T");
 
-        if (!primarySchoolMatch) {
+        if (!coincidePrimaria) {
           console.log(
-            `[TodayAttendanceDataHelper] ❌ Primary school teacher tried to access an unassigned classroom`
+            `[DatosAsistenciaHoyHelper] ❌ Profesor primaria intentó acceder a aula no asignada`
           );
           console.log(
-            `[TodayAttendanceDataHelper] 🏫 Assigned classroom: ${primarySchoolTeacherClassroom.level} ${primarySchoolTeacherClassroom.grade}° ${primarySchoolTeacherClassroom.section}`
+            `[DatosAsistenciaHoyHelper] 🏫 Aula asignada: ${aulaProfesorPrimaria.nivel} ${aulaProfesorPrimaria.grado}° ${aulaProfesorPrimaria.seccion}`
           );
           return {
-            hasPermission: false,
-            message: `You can only generate reports for your assigned classroom: ${primarySchoolTeacherClassroom.level} ${primarySchoolTeacherClassroom.grade}° ${primarySchoolTeacherClassroom.section}`,
-            assignedClassroom: primarySchoolTeacherClassroom,
+            tienePermiso: false,
+            mensaje: `Solo puede generar reportes de su aula asignada: ${aulaProfesorPrimaria.nivel} ${aulaProfesorPrimaria.grado}° ${aulaProfesorPrimaria.seccion}`,
+            aulaAsignada: aulaProfesorPrimaria,
           };
         }
 
         console.log(
-          `[TodayAttendanceDataHelper] ✅ Primary school teacher - Access to their classroom allowed`
+          `[DatosAsistenciaHoyHelper] ✅ Profesor primaria - Acceso a su aula permitido`
         );
         return {
-          hasPermission: true,
-          assignedClassroom: primarySchoolTeacherClassroom,
+          tienePermiso: true,
+          aulaAsignada: aulaProfesorPrimaria,
         };
 
       case RolesSistema.ProfesorSecundaria:
       case RolesSistema.Tutor:
-        const secondarySchoolTeacherClassroom =
-          this.getSecondarySchoolTeacherClassroom(userId);
+        const aulaProfesorSecundaria =
+          this.obtenerAulaProfesorSecundaria(idUsuario);
 
-        if (!secondarySchoolTeacherClassroom) {
+        if (!aulaProfesorSecundaria) {
           console.log(
-            `[TodayAttendanceDataHelper] ❌ Secondary school teacher not found in the system`
+            `[DatosAsistenciaHoyHelper] ❌ Profesor secundaria no encontrado en el sistema`
           );
           return {
-            hasPermission: false,
-            message: "Teacher not found in the system",
+            tienePermiso: false,
+            mensaje: "Profesor no encontrado en el sistema",
           };
         }
 
-        if (!secondarySchoolTeacherClassroom.hasClassroom) {
+        if (!aulaProfesorSecundaria.tieneAula) {
           console.log(
-            `[TodayAttendanceDataHelper] ❌ Secondary school teacher without an assigned classroom`
+            `[DatosAsistenciaHoyHelper] ❌ Profesor secundaria sin aula asignada`
           );
           return {
-            hasPermission: false,
-            message: "You do not have an assigned classroom",
-            assignedClassroom: secondarySchoolTeacherClassroom,
+            tienePermiso: false,
+            mensaje: "No tiene un aula asignada",
+            aulaAsignada: aulaProfesorSecundaria,
           };
         }
 
-        // Verify that it matches their assigned classroom
-        const secondarySchoolMatch =
-          requestedLevel === secondarySchoolTeacherClassroom.level &&
-          (requestedGrade === secondarySchoolTeacherClassroom.grade ||
-            requestedGrade === "T") &&
-          (requestedSection === secondarySchoolTeacherClassroom.section ||
-            requestedSection === "T");
+        // Verificar que coincida con su aula asignada
+        const coincideSecundaria =
+          nivelSolicitado === aulaProfesorSecundaria.nivel &&
+          (gradoSolicitado === aulaProfesorSecundaria.grado ||
+            gradoSolicitado === "T") &&
+          (seccionSolicitada === aulaProfesorSecundaria.seccion ||
+            seccionSolicitada === "T");
 
-        if (!secondarySchoolMatch) {
+        if (!coincideSecundaria) {
           console.log(
-            `[TodayAttendanceDataHelper] ❌ Secondary school teacher tried to access an unassigned classroom`
+            `[DatosAsistenciaHoyHelper] ❌ Profesor secundaria intentó acceder a aula no asignada`
           );
           console.log(
-            `[TodayAttendanceDataHelper] 🏫 Assigned classroom: ${secondarySchoolTeacherClassroom.level} ${secondarySchoolTeacherClassroom.grade}° ${secondarySchoolTeacherClassroom.section}`
+            `[DatosAsistenciaHoyHelper] 🏫 Aula asignada: ${aulaProfesorSecundaria.nivel} ${aulaProfesorSecundaria.grado}° ${aulaProfesorSecundaria.seccion}`
           );
           return {
-            hasPermission: false,
-            message: `You can only generate reports for your assigned classroom: ${secondarySchoolTeacherClassroom.level} ${secondarySchoolTeacherClassroom.grade}° ${secondarySchoolTeacherClassroom.section}`,
-            assignedClassroom: secondarySchoolTeacherClassroom,
+            tienePermiso: false,
+            mensaje: `Solo puede generar reportes de su aula asignada: ${aulaProfesorSecundaria.nivel} ${aulaProfesorSecundaria.grado}° ${aulaProfesorSecundaria.seccion}`,
+            aulaAsignada: aulaProfesorSecundaria,
           };
         }
 
         console.log(
-          `[TodayAttendanceDataHelper] ✅ Secondary school teacher - Access to their classroom allowed`
+          `[DatosAsistenciaHoyHelper] ✅ Profesor secundaria - Acceso a su aula permitido`
         );
         return {
-          hasPermission: true,
-          assignedClassroom: secondarySchoolTeacherClassroom,
+          tienePermiso: true,
+          aulaAsignada: aulaProfesorSecundaria,
         };
 
       case RolesSistema.PersonalAdministrativo:
       case RolesSistema.Responsable:
         console.log(
-          `[TodayAttendanceDataHelper] ❌ Role ${role} does not have access to reports`
+          `[DatosAsistenciaHoyHelper] ❌ Rol ${rol} no tiene acceso a reportes`
         );
         return {
-          hasPermission: false,
-          message:
-            "Your role does not have permission to access attendance reports",
+          tienePermiso: false,
+          mensaje:
+            "Su rol no tiene permisos para acceder a reportes de asistencia",
         };
 
       default:
-        console.log(`[TodayAttendanceDataHelper] ❌ Unknown role: ${role}`);
+        console.log(`[DatosAsistenciaHoyHelper] ❌ Rol desconocido: ${rol}`);
         return {
-          hasPermission: false,
-          message: "Unauthorized role",
+          tienePermiso: false,
+          mensaje: "Rol no autorizado",
         };
     }
   }
 
   /**
-   * Gets the complete attendance data
+   * Obtiene los datos completos de asistencia
    */
-  getCompleteData(): DatosAsistenciaHoyIE20935 {
-    return this.data;
+  obtenerDatosCompletos(): DatosAsistenciaHoyIE20935 {
+    return this.datos;
   }
 }

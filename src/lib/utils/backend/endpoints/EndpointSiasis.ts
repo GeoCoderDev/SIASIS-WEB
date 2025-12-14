@@ -7,7 +7,7 @@ import { SiasisAPIS } from "@/interfaces/shared/SiasisComponents";
 import { CustomApiError } from "@/lib/errors/custom/ApiError";
 
 // ============================================
-// ADVANCED UTILITY TYPES
+// UTILITY TYPES AVANZADAS
 // ============================================
 
 type ExtractorDeParametrosDeRuta<T extends string> =
@@ -19,32 +19,32 @@ type ExtractorDeParametrosDeRuta<T extends string> =
     ? ExtractorDeParametrosDeRuta<Rest>
     : {};
 
-// Check if an object is empty
+// Verificar si un objeto está vacío
 type IsEmptyObject<T> = keyof T extends never ? true : false;
 
-// Extract required fields from an interface
+// Extraer campos obligatorios de una interface
 type RequiredKeys<T> = {
   [K in keyof T]-?: {} extends Pick<T, K> ? never : K;
 }[keyof T];
 
-// Check if there are required fields
+// Verificar si hay campos obligatorios
 type HasRequiredFields<T> = RequiredKeys<T> extends never ? false : true;
 
-// Make queryParams optional only if all fields are optional
+// Hacer queryParams opcional solo si todos los campos son opcionales
 type ConditionalQueryParams<TQuery> = HasRequiredFields<TQuery> extends true
-  ? { queryParams: TQuery } // Required if there are required fields
-  : { queryParams?: TQuery }; // Optional if all are optional
+  ? { queryParams: TQuery } // Obligatorio si hay campos requeridos
+  : { queryParams?: TQuery }; // Opcional si todos son opcionales
 
-// Check if both routeParams and queryParams are optional
+// Verificar si tanto routeParams como queryParams son opcionales
 type BothParamsOptional<TRoute extends string, TQuery> = IsEmptyObject<
   ExtractorDeParametrosDeRuta<TRoute>
 > extends true
   ? HasRequiredFields<TQuery> extends true
-    ? false // queryParams is required
-    : true // Both are optional
-  : false; // routeParams is required
+    ? false // queryParams es obligatorio
+    : true // Ambos son opcionales
+  : false; // routeParams es obligatorio
 
-// Improved conditional parameters
+// Parámetros condicionales mejorados
 type GetFullPathParams<TRoute extends string, TQuery> = BothParamsOptional<
   TRoute,
   TQuery
@@ -54,51 +54,51 @@ type GetFullPathParams<TRoute extends string, TQuery> = BothParamsOptional<
         routeParams?: ExtractorDeParametrosDeRuta<TRoute>;
         queryParams?: TQuery;
       }
-    ] // Completely optional
+    ] // Completamente opcional
   : IsEmptyObject<ExtractorDeParametrosDeRuta<TRoute>> extends true
-  ? [params: ConditionalQueryParams<TQuery>] // Only queryParams
+  ? [params: ConditionalQueryParams<TQuery>] // Solo queryParams
   : HasRequiredFields<TQuery> extends true
   ? [
       params: {
         routeParams: ExtractorDeParametrosDeRuta<TRoute>;
         queryParams: TQuery;
       }
-    ] // Both required
+    ] // Ambos obligatorios
   : [
       params: {
         routeParams: ExtractorDeParametrosDeRuta<TRoute>;
         queryParams?: TQuery;
       }
-    ]; // routeParams required, queryParams optional
+    ]; // routeParams obligatorio, queryParams opcional
 
-// Make body conditional based on whether it has required fields
+// Hacer body condicional según si tiene campos obligatorios
 type ConditionalBody<TBody> = HasRequiredFields<TBody> extends true
-  ? { body: TBody } // Required if there are required fields
+  ? { body: TBody } // Obligatorio si hay campos requeridos
   : keyof TBody extends never
-  ? {} // No body if it's an empty object
-  : { body?: TBody }; // Optional if all fields are optional
+  ? {} // Sin body si es objeto vacío
+  : { body?: TBody }; // Opcional si todos los campos son opcionales
 
-// Check if all parameters are optional (CORRECTED)
+// Verificar si todos los parámetros son opcionales (CORREGIDO)
 type AllParamsOptional<TRoute extends string, TQuery, TBody> = IsEmptyObject<
   ExtractorDeParametrosDeRuta<TRoute>
 > extends true
   ? HasRequiredFields<TQuery> extends true
-    ? false // queryParams is required
+    ? false // queryParams es obligatorio
     : HasRequiredFields<TBody> extends true
-    ? false // body is required - THIS IS IMPORTANT
+    ? false // body es obligatorio - ESTO ES LO IMPORTANTE
     : keyof TBody extends never
-    ? true // No body and everything is optional
-    : true // Body exists but all its fields are optional
-  : false; // routeParams is required
+    ? true // No hay body y todo es opcional
+    : true // Body existe pero todos sus campos son opcionales
+  : false; // routeParams es obligatorio
 
-// Parameters for realizarPeticion (CORRECTED - body is always evaluated)
+// Parámetros para realizarPeticion (CORREGIDO - body siempre se evalúa)
 type RealizarPeticionParams<TRoute extends string, TQuery, TBody> =
-  // If there are required fields in body, always include body as required
+  // Si hay campos obligatorios en body, siempre incluir body como obligatorio
   HasRequiredFields<TBody> extends true
     ? IsEmptyObject<ExtractorDeParametrosDeRuta<TRoute>> extends true
       ? HasRequiredFields<TQuery> extends true
-        ? [params: { queryParams: TQuery; body: TBody }] // queryParams + body required
-        : [params: { body: TBody; queryParams?: TQuery }] // body required, queryParams optional
+        ? [params: { queryParams: TQuery; body: TBody }] // queryParams + body obligatorios
+        : [params: { body: TBody; queryParams?: TQuery }] // body obligatorio, queryParams opcional
       : HasRequiredFields<TQuery> extends true
       ? [
           params: {
@@ -106,39 +106,39 @@ type RealizarPeticionParams<TRoute extends string, TQuery, TBody> =
             queryParams: TQuery;
             body: TBody;
           }
-        ] // All required
+        ] // Todos obligatorios
       : [
           params: {
             routeParams: ExtractorDeParametrosDeRuta<TRoute>;
             body: TBody;
             queryParams?: TQuery;
           }
-        ] // routeParams + body required, queryParams optional
-    : // If body doesn't have required fields, use the previous logic
+        ] // routeParams + body obligatorios, queryParams opcional
+    : // Si body no tiene campos obligatorios, usar la lógica anterior
     AllParamsOptional<TRoute, TQuery, TBody> extends true
     ? [
         params?: {
           routeParams?: ExtractorDeParametrosDeRuta<TRoute>;
           queryParams?: TQuery;
         } & ConditionalBody<TBody>
-      ] // Completely optional
+      ] // Completamente opcional
     : IsEmptyObject<ExtractorDeParametrosDeRuta<TRoute>> extends true
     ? HasRequiredFields<TQuery> extends true
-      ? [params: { queryParams: TQuery } & ConditionalBody<TBody>] // queryParams required
-      : [params?: { queryParams?: TQuery } & ConditionalBody<TBody>] // queryParams optional
+      ? [params: { queryParams: TQuery } & ConditionalBody<TBody>] // queryParams obligatorio
+      : [params?: { queryParams?: TQuery } & ConditionalBody<TBody>] // queryParams opcional
     : HasRequiredFields<TQuery> extends true
     ? [
         params: {
           routeParams: ExtractorDeParametrosDeRuta<TRoute>;
           queryParams: TQuery;
         } & ConditionalBody<TBody>
-      ] // routeParams + queryParams required
+      ] // routeParams + queryParams obligatorios
     : [
         params: {
           routeParams: ExtractorDeParametrosDeRuta<TRoute>;
           queryParams?: TQuery;
         } & ConditionalBody<TBody>
-      ]; // routeParams required, queryParams optional
+      ]; // routeParams obligatorio, queryParams opcional
 
 // ============================================
 // INTERFACES
@@ -175,7 +175,7 @@ export interface ApiErrorResponse extends ErrorResponseAPIBase {
 
 export type ApiResponse<T = any> = ApiSuccessResponse<T> | ApiErrorResponse;
 
-// Interface for fetchSiasisAPI (based on your example)
+// Interface para fetchSiasisAPI (basada en tu ejemplo)
 interface FetchSiasisAPIParams {
   endpoint: string;
   method: MethodHTTP;
@@ -189,7 +189,7 @@ interface FetchCancelable {
 }
 
 // ============================================
-// CLASS WITH COMPLETE realizarPeticion METHOD
+// CLASE CON MÉTODO realizarPeticion COMPLETO
 // ============================================
 
 export class EndpointSiasis<
@@ -223,27 +223,27 @@ export class EndpointSiasis<
     let queryParams: TQuery | undefined;
 
     if (hasRouteParams) {
-      // There are route parameters
+      // Hay parámetros de ruta
       routeParams =
         (params as any)?.routeParams ||
         ({} as ExtractorDeParametrosDeRuta<TRoute>);
       queryParams = (params as any)?.queryParams;
     } else {
-      // There are no route parameters
+      // No hay parámetros de ruta
       routeParams = {} as ExtractorDeParametrosDeRuta<TRoute>;
       queryParams = (params as any)?.queryParams;
     }
 
     let path = this.ruta as string;
 
-    // Replace route parameters
+    // Reemplazar parámetros de ruta
     Object.entries(routeParams as Record<string, string>).forEach(
       ([key, value]) => {
         path = path.replace(`:${key}`, encodeURIComponent(value));
       }
     );
 
-    // Add query parameters
+    // Agregar query parameters
     const queryString =
       queryParams && this.queryParamsFormatter
         ? this.queryParamsFormatter(queryParams)
@@ -259,9 +259,9 @@ export class EndpointSiasis<
   }
 
   /**
-   * Performs the HTTP request using fetchSiasisAPI
-   * Reuses getFullPath to build the URL
-   * TResponse is already typed from the class generic
+   * Realiza la petición HTTP utilizando fetchSiasisAPI
+   * Reutiliza getFullPath para construir la URL
+   * TResponse ya está tipado desde el genérico de la clase
    */
   async realizarPeticion(
     ...args: RealizarPeticionParams<TRoute, TQuery, TBody>
@@ -274,21 +274,21 @@ export class EndpointSiasis<
       const params = args[0];
       const body = (params as any)?.body;
 
-      // Build the route using getFullPath
+      // Construir la ruta usando getFullPath
       const { rutaCompleta, metodoHttp } = this.getFullPath(
         params as any // Cast necesario debido a la complejidad de tipos
       );
 
-      // Get the fetch generator
+      // Obtener el generador de fetch
       const { fetchSiasisAPI } = fetchSiasisApiGenerator(this.siasisApi);
 
-      // Prepare parameters for the request
+      // Preparar parámetros para la petición
       const fetchParams: FetchSiasisAPIParams = {
         endpoint: rutaCompleta,
         method: metodoHttp,
       };
 
-      // Add body if it exists and the method allows it
+      // Agregar body si existe y el método lo permite
       if (body && ["POST", "PUT", "PATCH"].includes(metodoHttp)) {
         fetchParams.body = body;
         fetchParams.headers = {
@@ -297,7 +297,7 @@ export class EndpointSiasis<
         };
       }
 
-      // Create the cancelable request
+      // Crear la petición cancelable
       const fetchCancelable = await fetchSiasisAPI(fetchParams);
 
       if (!fetchCancelable) {
@@ -306,7 +306,7 @@ export class EndpointSiasis<
         );
       }
 
-      // Perform the request
+      // Realizar la petición
       const response = await fetchCancelable.fetch();
 
       if (!response.ok) {
@@ -323,7 +323,7 @@ export class EndpointSiasis<
         throw errorPersonalizado;
       }
 
-      // Process the response
+      // Procesar la respuesta
       const objectResponse = (await response.json()) as ApiResponse<TResponse>;
 
       if (!objectResponse.success) {

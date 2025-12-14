@@ -1,9 +1,9 @@
 /**
- * Update interval for student lists in minutes during peak usage hours - PRIMARY
+ * Intervalo de actualización de listas de estudiante en minutos en horas pico de uso - PRIMARIA
  */
-export const PEAK_TIME_PRIMARY_STUDENT_LIST_UPDATE_INTERVAL_MINUTES = 10;
+export const INTERVALO_ACTUALIZACION_LISTAS_ESTUDIANTES_HORAS_PICO_EN_MINUTOS_PRIMARIA = 10;
 
 /**
- * Update interval for student lists in minutes during peak usage hours - SECONDARY
+ * Intervalo de actualización de listas de estudiante en minutos en horas pico de uso - SECUNDARIA
  */
-export const PEAK_TIME_SECONDARY_STUDENT_LIST_UPDATE_INTERVAL_MINUTES = 10;
+export const INTERVALO_ACTUALIZACION_LISTAS_ESTUDIANTES_HORAS_PICO_EN_MINUTOS_SECUNDARIA = 10;

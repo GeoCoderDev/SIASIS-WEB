@@ -2,11 +2,11 @@ import { NavegadoresWeb } from "@/interfaces/shared/NavegadoresWeb";
 import { detectarNavegadorWeb } from "@/lib/helpers/detectors/detectarNavegadorWeb";
 
 /**
- * Custom React hook that detects the browser
- * @returns {NavegadoresWeb} The detected browser type
+ * Hook personalizado para React que detecta el navegador
+ * @returns {NavegadoresWeb} El tipo de navegador detectado
  */
-export function useBrowserDetector(): NavegadoresWeb {
-  // Only detect on the client, not on the server
+export function useDetectorNavegador(): NavegadoresWeb {
+  // Solo detectar en el cliente, no en el servidor
   if (typeof window === "undefined") {
     return NavegadoresWeb.Otro;
   }

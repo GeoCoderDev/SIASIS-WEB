@@ -1,5 +1,5 @@
 // ============================================================================
-// Base class for classroom management (NOT ABSTRACT)
+//               Clase base para gestión de aulas (NO ABSTRACTA)
 // ============================================================================
 
 import {
@@ -27,7 +27,7 @@ import { T_Aulas, T_Estudiantes } from "@prisma/client";
 import { EstudianteConAula } from "@/interfaces/shared/Estudiantes";
 import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
 
-// Basic filters for search
+// Filtros básicos para búsqueda
 export interface IAulaBaseFilter {
   Id_Aula?: string;
   Nivel?: string;
@@ -36,12 +36,12 @@ export interface IAulaBaseFilter {
 }
 
 /**
- * Base class for classroom management (NOW CONCRETE)
- * All roles store classrooms in the common "aulas" table
- * Child classes can override the methods as needed
+ * Clase base para gestión de aulas (AHORA ES CONCRETA)
+ * Todos los roles almacenan aulas en la tabla común "aulas"
+ * Las clases hijas pueden sobrescribir los métodos según necesiten
  */
 export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
-  // Common table for all roles
+  // Tabla común para todos los roles
   protected readonly tablaAulas: string = "aulas";
   protected readonly tablaInfo: ITablaInfo = TablasSistema.AULAS;
 
@@ -53,27 +53,27 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
   ) {}
 
   /**
-   * Checks if synchronization is enabled for this instance
-   * @returns true if at least one API is configured, false otherwise
+   * Verifica si la sincronización está habilitada para esta instancia
+   * @returns true si hay al menos una API configurada, false si no
    */
   protected get isSyncEnabled(): boolean {
     return this.siasisAPI !== undefined;
   }
 
   /**
-   * Methods that child classes can override as needed
-   * Now have default implementations to allow direct use of the base class
+   * Métodos que las clases hijas pueden sobrescribir según necesiten
+   * Ahora tienen implementaciones por defecto para permitir uso directo de la clase base
    */
 
   /**
-   * Default synchronization - uses standard synchronization
-   * Child classes can override this method for specific logic
+   * Sincronización por defecto - usa sincronización estándar
+   * Las clases hijas pueden sobrescribir este método para lógica específica
    */
   protected async sync(): Promise<void> {
-    // If no API is configured, do not synchronize
+    // Si no hay API configurada, no sincronizar
     if (!this.isSyncEnabled) {
       console.log(
-        "Synchronization disabled for this instance - siasisAPI is undefined"
+        "Sincronización deshabilitada para esta instancia - siasisAPI es undefined"
       );
       return;
     }
@@ -82,42 +82,42 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
   }
 
   /**
-   * Gets the default endpoint - empty implementation
-   * Child classes can override this method as needed
+   * Obtiene el endpoint por defecto - implementación vacía
+   * Las clases hijas pueden sobrescribir este método según necesiten
    */
   protected getEndpoint(): string {
     console.warn(
-      "getEndpoint not implemented in base class. " +
-        "Child classes can override this method if they need a specific endpoint."
+      "getEndpoint no implementado en clase base. " +
+        "Las clases hijas pueden sobrescribir este método si necesitan endpoint específico."
     );
     return "";
   }
 
   /**
-   * Requests classrooms from the API - default implementation
-   * Child classes MUST override this method for real functionality
+   * Solicita aulas desde la API - implementación por defecto
+   * Las clases hijas DEBEN sobrescribir este método para funcionalidad real
    */
   protected async solicitarAulasDesdeAPI(idsAulas?: string[]): Promise<T[]> {
     if (!this.isSyncEnabled) {
       console.warn(
-        "solicitarAulasDesdeAPI: Synchronization disabled - returning empty array"
+        "solicitarAulasDesdeAPI: Sincronización deshabilitada - retornando array vacío"
       );
       return [];
     }
 
     console.warn(
-      "solicitarAulasDesdeAPI not implemented in base class. " +
-        "Child classes must override this method for specific functionality."
+      "solicitarAulasDesdeAPI no implementado en clase base. " +
+        "Las clases hijas deben sobrescribir este método para funcionalidad específica."
     );
     return [];
   }
 
   /**
-   * Updates classrooms of a specific subset only if the local data is older than the server's retrieval date
-   * @param filtro Filter that identifies the subset of classrooms to be completely replaced
-   * @param aulas List of classrooms obtained from the server that meet the filter
-   * @param fechaObtenciones Date in UTC timestamp string format of when this data was obtained from the server
-   * @returns Promise that resolves with the result of the operation or null if no update is needed
+   * Actualiza aulas de un subconjunto específico solo si los datos locales son más antiguos que la fecha de obtención del servidor
+   * @param filtro Filtro que identifica el subconjunto de aulas que se va a reemplazar completamente
+   * @param aulas Lista de aulas obtenidas del servidor que cumplen con el filtro
+   * @param fechaObtenciones Fecha en formato timestamp string UTC de cuándo se obtuvieron estos datos del servidor
+   * @returns Promise que se resuelve con el resultado de la operación o null si no se necesita actualizar
    */
   public async actualizarSiEsNecesario(
     filtro: IAulaBaseFilter,
@@ -131,14 +131,14 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
     wasUpdated: boolean;
   } | null> {
     try {
-      // If no API is configured, proceed directly with the update without checking dates
+      // Si no hay API configurada, proceder directamente con la actualización sin verificar fechas
       if (!this.isSyncEnabled) {
         console.log(
-          "Synchronization disabled - updating classrooms directly without checking server dates"
+          "Sincronización deshabilitada - actualizando aulas directamente sin verificar fechas del servidor"
         );
         const result = await this.upsertFromServerWithFilter(filtro, aulas);
 
-        // Register the local update even without sync enabled
+        // Registrar la actualización local incluso sin sync habilitado
         await ultimaActualizacionTablasLocalesIDB.registrarActualizacion(
           this.tablaInfo.nombreLocal as TablasLocal,
           DatabaseModificationOperations.UPDATE
@@ -147,19 +147,19 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
         return { ...result, wasUpdated: true };
       }
 
-      // Get the last local update
+      // Obtener la última actualización local
       const ultimaActualizacionLocal =
         await ultimaActualizacionTablasLocalesIDB.getByTabla(
           this.tablaInfo.nombreLocal as TablasLocal
         );
 
-      // Convert the server data obtaining date to a timestamp
+      // Convertir la fecha de obtención del servidor a timestamp
       const fechaObtencionsTimestamp = new Date(fechaObtenciones).getTime();
 
-      // If there is no local update, proceed with the update
+      // Si no hay actualización local, proceder con la actualización
       if (!ultimaActualizacionLocal) {
         console.log(
-          "No local update registered, proceeding with updating filtered classrooms"
+          "No hay actualización local registrada, procediendo con la actualización de aulas filtradas"
         );
         const result = await this.upsertFromServerWithFilter(filtro, aulas);
 
@@ -171,19 +171,19 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
         return { ...result, wasUpdated: true };
       }
 
-      // Convert the local update date to a timestamp
+      // Convertir la fecha de actualización local a timestamp
       const fechaActualizacionLocal =
         typeof ultimaActualizacionLocal.Fecha_Actualizacion === "number"
           ? ultimaActualizacionLocal.Fecha_Actualizacion
           : new Date(ultimaActualizacionLocal.Fecha_Actualizacion).getTime();
 
-      // Compare dates: if the local update is older than the server data obtaining date, update
+      // Comparar fechas: si la actualización local es anterior a la fecha de obtención del servidor, actualizar
       if (fechaActualizacionLocal < fechaObtencionsTimestamp) {
         const filtroStr = this.filtroToString(filtro);
         console.log(
-          `Updating classrooms with filter [${filtroStr}]: local data (${new Date(
+          `Actualizando aulas con filtro [${filtroStr}]: datos locales (${new Date(
             fechaActualizacionLocal
-          ).toLocaleString()}) is older than server data (${new Date(
+          ).toLocaleString()}) son anteriores a los datos del servidor (${new Date(
             fechaObtencionsTimestamp
           ).toLocaleString()})`
         );
@@ -196,16 +196,16 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
         );
 
         console.log(
-          `Classroom update completed with filter [${filtroStr}]: ${aulas.length} classrooms processed (${result.created} created, ${result.updated} updated, ${result.deleted} deleted, ${result.errors} errors)`
+          `Actualización de aulas completada con filtro [${filtroStr}]: ${aulas.length} aulas procesadas (${result.created} creadas, ${result.updated} actualizadas, ${result.deleted} eliminadas, ${result.errors} errores)`
         );
 
         return { ...result, wasUpdated: true };
       } else {
         const filtroStr = this.filtroToString(filtro);
         console.log(
-          `No need to update classrooms with filter [${filtroStr}]: local data (${new Date(
+          `No se necesita actualizar aulas con filtro [${filtroStr}]: datos locales (${new Date(
             fechaActualizacionLocal
-          ).toLocaleString()}) is more recent than server data (${new Date(
+          ).toLocaleString()}) son más recientes que los datos del servidor (${new Date(
             fechaObtencionsTimestamp
           ).toLocaleString()})`
         );
@@ -220,7 +220,7 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
       }
     } catch (error) {
       console.error(
-        "Error checking if it is necessary to update classrooms:",
+        "Error al verificar si es necesario actualizar aulas:",
         error
       );
       this.handleSyncError(error);
@@ -229,7 +229,7 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
   }
 
   /**
-   * Gets a classroom by its ID from the common table
+   * Obtiene un aula por su ID desde la tabla común
    */
   public async getAulaPorId(idAula: string): Promise<T | null> {
     try {
@@ -247,14 +247,14 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
         };
       });
     } catch (error) {
-      console.error(`Error getting classroom with ID ${idAula}:`, error);
-      this.handleIndexedDBError(error, `get classroom with ID ${idAula}`);
+      console.error(`Error al obtener aula con ID ${idAula}:`, error);
+      this.handleIndexedDBError(error, `obtener aula con ID ${idAula}`);
       return null;
     }
   }
 
   /**
-   * Gets multiple classrooms by their IDs
+   * Obtiene múltiples aulas por sus IDs
    */
   public async getAulasPorIds(idsAulas: string[]): Promise<T[]> {
     try {
@@ -269,8 +269,8 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
 
       return aulas;
     } catch (error) {
-      console.error("Error getting classrooms by IDs:", error);
-      this.handleIndexedDBError(error, "get classrooms by IDs");
+      console.error("Error al obtener aulas por IDs:", error);
+      this.handleIndexedDBError(error, "obtener aulas por IDs");
       return [];
     }
   }
@@ -294,7 +294,7 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
   }
 
   /**
-   * Gets all classrooms from the common table
+   * Obtiene todas las aulas de la tabla común
    */
   public async getTodasLasAulas(): Promise<T[]> {
     this.setIsSomethingLoading?.(true);
@@ -302,12 +302,12 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
     this.setSuccessMessage?.(null);
 
     try {
-      // Only synchronize if enabled
+      // Solo sincronizar si está habilitado
       if (this.isSyncEnabled) {
         await this.sync();
       } else {
         console.log(
-          "getTodasLasAulas: Synchronization disabled, getting local data only"
+          "getTodasLasAulas: Sincronización deshabilitada, obteniendo datos locales únicamente"
         );
       }
 
@@ -321,25 +321,25 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
       });
 
       if (result.length > 0) {
-        this.handleSuccess(`Found ${result.length} classrooms`);
+        this.handleSuccess(`Se encontraron ${result.length} aulas`);
       } else {
-        this.handleSuccess("No classrooms found");
+        this.handleSuccess("No se encontraron aulas");
       }
 
       this.setIsSomethingLoading?.(false);
       return result;
     } catch (error) {
-      this.handleIndexedDBError(error, "get all classrooms");
+      this.handleIndexedDBError(error, "obtener todas las aulas");
       this.setIsSomethingLoading?.(false);
       return [];
     }
   }
 
   /**
-   * Gets the available sections for a specific level and grade
-   * @param nivel Educational level ("PRIMARY" or "SECONDARY")
-   * @param grado Grade (1-6 for primary, 1-5 for secondary)
-   * @returns Promise<string[]> Array with the available sections sorted alphabetically
+   * Obtiene las secciones disponibles para un nivel y grado específicos
+   * @param nivel Nivel educativo ("PRIMARIA" o "SECUNDARIA")
+   * @param grado Grado (1-6 para primaria, 1-5 para secundaria)
+   * @returns Promise<string[]> Array con las secciones disponibles ordenadas alfabéticamente
    */
   public async getSeccionesPorNivelYGrado(
     nivel: NivelEducativo,
@@ -359,14 +359,14 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
           if (cursor) {
             const aula = cursor.value as T;
 
-            // Check that level and grade match
+            // Verificar que coincida nivel y grado
             if (aula.Nivel == nivel && aula.Grado == grado) {
               secciones.add(aula.Seccion);
             }
 
             cursor.continue();
           } else {
-            // Convert Set to Array and sort alphabetically
+            // Convertir Set a Array y ordenar alfabéticamente
             const seccionesArray = Array.from(secciones).sort();
             resolve(seccionesArray);
           }
@@ -376,31 +376,31 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
       });
     } catch (error) {
       console.error(
-        `Error getting sections for ${nivel} - Grade ${grado}:`,
+        `Error al obtener secciones para ${nivel} - Grado ${grado}:`,
         error
       );
       this.handleIndexedDBError(
         error,
-        `get sections for ${nivel} - Grade ${grado}`
+        `obtener secciones para ${nivel} - Grado ${grado}`
       );
       return [];
     }
   }
 
   /**
-   * Searches for classrooms with basic filters
+   * Busca aulas con filtros básicos
    */
   public async buscarConFiltros(filtros: IAulaBaseFilter): Promise<T[]> {
     this.setIsSomethingLoading?.(true);
     this.setError?.(null);
 
     try {
-      // Only synchronize if enabled
+      // Solo sincronizar si está habilitado
       if (this.isSyncEnabled) {
         await this.sync();
       } else {
         console.log(
-          "searchWithFilters: Synchronization disabled, searching local data only"
+          "buscarConFiltros: Sincronización deshabilitada, buscando en datos locales únicamente"
         );
       }
 
@@ -417,7 +417,7 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
             const aula = cursor.value as T;
             let cumpleFiltros = true;
 
-            // Apply basic filters
+            // Aplicar filtros básicos
             if (filtros.Id_Aula && aula.Id_Aula !== filtros.Id_Aula) {
               cumpleFiltros = false;
             }
@@ -445,23 +445,23 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
 
       if (result.length > 0) {
         this.handleSuccess(
-          `Found ${result.length} classrooms with the applied filters`
+          `Se encontraron ${result.length} aulas con los filtros aplicados`
         );
       } else {
-        this.handleSuccess("No classrooms found with the applied filters");
+        this.handleSuccess("No se encontraron aulas con los filtros aplicados");
       }
 
       this.setIsSomethingLoading?.(false);
       return result;
     } catch (error) {
-      this.handleIndexedDBError(error, "search classrooms with filters");
+      this.handleIndexedDBError(error, "buscar aulas con filtros");
       this.setIsSomethingLoading?.(false);
       return [];
     }
   }
 
   /**
-   * Deletes a classroom by its ID
+   * Elimina un aula por su ID
    */
   protected async deleteById(idAula: string): Promise<void> {
     try {
@@ -477,14 +477,14 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
         request.onerror = () => reject(request.error);
       });
     } catch (error) {
-      console.error(`Error deleting classroom with ID ${idAula}:`, error);
+      console.error(`Error al eliminar aula con ID ${idAula}:`, error);
       throw error;
     }
   }
 
   /**
-   * Updates or creates classrooms in batch from the server using filters for specific replacement
-   * Improved method that completely replaces the subset that meets the filter
+   * Actualiza o crea aulas en lote desde el servidor usando filtros para reemplazo específico
+   * Método mejorado que reemplaza completamente el subconjunto que cumple con el filtro
    */
   protected async upsertFromServerWithFilter(
     filtro: IAulaBaseFilter,
@@ -498,33 +498,33 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
     const result = { created: 0, updated: 0, deleted: 0, errors: 0 };
 
     try {
-      // 1. Get local classrooms that meet the filter
+      // 1. Obtener aulas locales que cumplen el filtro
       const aulasLocalesFiltradas = await this.getAulasQueCumplenFiltro(filtro);
       const idsLocalesFiltradas = new Set(
         aulasLocalesFiltradas.map((aula) => aula.Id_Aula)
       );
 
-      // 2. Get classroom IDs from the server
+      // 2. Obtener IDs de aulas del servidor
       const idsServidor = new Set(aulasServidor.map((aula) => aula.Id_Aula));
 
-      // 3. Identify local classrooms that should be deleted
-      // (meet the filter but are no longer in the server data)
+      // 3. Identificar aulas locales que deben ser eliminadas
+      // (cumplen el filtro pero ya no están en los datos del servidor)
       const idsAEliminar = Array.from(idsLocalesFiltradas).filter(
         (id) => !idsServidor.has(id)
       );
 
-      // 4. Delete obsolete records from the filtered subset
+      // 4. Eliminar registros obsoletos del subconjunto filtrado
       for (const id of idsAEliminar) {
         try {
           await this.deleteById(id);
           result.deleted++;
         } catch (error) {
-          console.error(`Error deleting classroom ${id}:`, error);
+          console.error(`Error al eliminar aula ${id}:`, error);
           result.errors++;
         }
       }
 
-      // 5. Process server classrooms in batches
+      // 5. Procesar aulas del servidor en lotes
       const BATCH_SIZE = 20;
 
       for (let i = 0; i < aulasServidor.length; i += BATCH_SIZE) {
@@ -554,7 +554,7 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
               request.onerror = () => {
                 result.errors++;
                 console.error(
-                  `Error saving classroom ${aulaServidor.Id_Aula}:`,
+                  `Error al guardar aula ${aulaServidor.Id_Aula}:`,
                   request.error
                 );
                 reject(request.error);
@@ -563,7 +563,7 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
           } catch (error) {
             result.errors++;
             console.error(
-              `Error processing classroom ${aulaServidor.Id_Aula}:`,
+              `Error al procesar aula ${aulaServidor.Id_Aula}:`,
               error
             );
           }
@@ -574,14 +574,14 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
 
       return result;
     } catch (error) {
-      console.error("Error in upsertFromServerWithFilter operation:", error);
+      console.error("Error en la operación upsertFromServerWithFilter:", error);
       result.errors++;
       return result;
     }
   }
 
   /**
-   * Gets local classrooms that meet a specific filter
+   * Obtiene aulas locales que cumplen con un filtro específico
    */
   private async getAulasQueCumplenFiltro(
     filtro: IAulaBaseFilter
@@ -600,7 +600,7 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
             const aula = cursor.value as T;
             let cumpleFiltro = true;
 
-            // Apply specific filters (only those that are defined)
+            // Aplicar filtros específicos (solo los que están definidos)
             if (filtro.Id_Aula && aula.Id_Aula !== filtro.Id_Aula) {
               cumpleFiltro = false;
             }
@@ -626,27 +626,27 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
         request.onerror = () => reject(request.error);
       });
     } catch (error) {
-      console.error("Error getting classrooms that meet filter:", error);
+      console.error("Error al obtener aulas que cumplen filtro:", error);
       throw error;
     }
   }
 
   /**
-   * Converts a filter into a readable string for logs
+   * Convierte un filtro en string legible para logs
    */
   private filtroToString(filtro: IAulaBaseFilter): string {
     const partes: string[] = [];
 
     if (filtro.Id_Aula) partes.push(`ID: ${filtro.Id_Aula}`);
-    if (filtro.Nivel) partes.push(`Level: ${filtro.Nivel}`);
-    if (filtro.Grado !== undefined) partes.push(`Grade: ${filtro.Grado}`);
-    if (filtro.Seccion) partes.push(`Section: ${filtro.Seccion}`);
+    if (filtro.Nivel) partes.push(`Nivel: ${filtro.Nivel}`);
+    if (filtro.Grado !== undefined) partes.push(`Grado: ${filtro.Grado}`);
+    if (filtro.Seccion) partes.push(`Sección: ${filtro.Seccion}`);
 
-    return partes.length > 0 ? partes.join(", ") : "No filters";
+    return partes.length > 0 ? partes.join(", ") : "Sin filtros";
   }
 
   /**
-   * Updates or creates classrooms in batch from the server
+   * Actualiza o crea aulas en lote desde el servidor
    */
   protected async upsertFromServer(aulasServidor: T[]): Promise<{
     created: number;
@@ -686,7 +686,7 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
               request.onerror = () => {
                 result.errors++;
                 console.error(
-                  `Error saving classroom ${aulaServidor.Id_Aula}:`,
+                  `Error al guardar aula ${aulaServidor.Id_Aula}:`,
                   request.error
                 );
                 reject(request.error);
@@ -695,7 +695,7 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
           } catch (error) {
             result.errors++;
             console.error(
-              `Error processing classroom ${aulaServidor.Id_Aula}:`,
+              `Error al procesar aula ${aulaServidor.Id_Aula}:`,
               error
             );
           }
@@ -706,20 +706,20 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
 
       return result;
     } catch (error) {
-      console.error("Error in upsertFromServer operation:", error);
+      console.error("Error en la operación upsertFromServer:", error);
       result.errors++;
       return result;
     }
   }
 
   /**
-   * Standard synchronization for other classes (not guardians)
+   * Sincronización estándar para otras clases (no responsables)
    */
   protected async syncronizacionEstandar(): Promise<void> {
-    // If no API is configured, do not synchronize
+    // Si no hay API configurada, no sincronizar
     if (!this.isSyncEnabled) {
       console.log(
-        "syncronizacionEstandar: Synchronization disabled - siasisAPI is undefined"
+        "syncronizacionEstandar: Sincronización deshabilitada - siasisAPI es undefined"
       );
       return;
     }
@@ -743,20 +743,20 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
       );
 
       console.log(
-        `Classroom synchronization completed: ${aulas.length} classrooms processed (${result.created} created, ${result.updated} updated, ${result.errors} errors)`
+        `Sincronización de aulas completada: ${aulas.length} aulas procesadas (${result.created} creadas, ${result.updated} actualizadas, ${result.errors} errores)`
       );
     } catch (error) {
-      console.error("Error during classroom synchronization:", error);
+      console.error("Error durante la sincronización de aulas:", error);
       await this.handleSyncError(error);
     }
   }
 
   /**
-   * Synchronization error handling
+   * Manejo de errores de sincronización
    */
   protected async handleSyncError(error: unknown): Promise<void> {
     let errorType: AllErrorTypes = SystemErrorTypes.UNKNOWN_ERROR;
-    let message = "Error synchronizing classrooms";
+    let message = "Error al sincronizar aulas";
 
     if (error instanceof Error) {
       if (
@@ -764,8 +764,8 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
         error.message.includes("fetch")
       ) {
         errorType = SystemErrorTypes.EXTERNAL_SERVICE_ERROR;
-        message = "Network error synchronizing classrooms";
-      } else if (error.message.includes("get classrooms")) {
+        message = "Error de red al sincronizar aulas";
+      } else if (error.message.includes("obtener aulas")) {
         errorType = SystemErrorTypes.EXTERNAL_SERVICE_ERROR;
         message = error.message;
       } else if (
@@ -773,7 +773,7 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
         error.name === "QuotaExceededError"
       ) {
         errorType = SystemErrorTypes.DATABASE_ERROR;
-        message = "Database error synchronizing classrooms";
+        message = "Error de base de datos al sincronizar aulas";
       } else {
         message = error.message;
       }
@@ -793,7 +793,7 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
   }
 
   /**
-   * Sets a success message
+   * Establece un mensaje de éxito
    */
   protected handleSuccess(message: string): void {
     const successResponse: MessageProperty = { message };
@@ -801,27 +801,27 @@ export class BaseAulasIDB<T extends T_Aulas = T_Aulas> {
   }
 
   /**
-   * Handles errors from IndexedDB operations
+   * Maneja los errores de operaciones con IndexedDB
    */
   protected handleIndexedDBError(error: unknown, operacion: string): void {
-    console.error(`Error in IndexedDB operation (${operacion}):`, error);
+    console.error(`Error en operación IndexedDB (${operacion}):`, error);
 
     let errorType: AllErrorTypes = SystemErrorTypes.UNKNOWN_ERROR;
-    let message = `Error when ${operacion}`;
+    let message = `Error al ${operacion}`;
 
     if (error instanceof Error) {
       if (error.name === "ConstraintError") {
         errorType = DataConflictErrorTypes.VALUE_ALREADY_IN_USE;
-        message = `Constraint error when ${operacion}: duplicate value`;
+        message = `Error de restricción al ${operacion}: valor duplicado`;
       } else if (error.name === "NotFoundError") {
         errorType = UserErrorTypes.USER_NOT_FOUND;
-        message = `Resource not found when ${operacion}`;
+        message = `No se encontró el recurso al ${operacion}`;
       } else if (error.name === "QuotaExceededError") {
         errorType = SystemErrorTypes.DATABASE_ERROR;
-        message = `Storage exceeded when ${operacion}`;
+        message = `Almacenamiento excedido al ${operacion}`;
       } else if (error.name === "TransactionInactiveError") {
         errorType = SystemErrorTypes.DATABASE_ERROR;
-        message = `Inactive transaction when ${operacion}`;
+        message = `Transacción inactiva al ${operacion}`;
       } else {
         message = error.message || message;
       }

@@ -10,23 +10,23 @@ import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
 
 export const useQRGeneratorPorAula = () => {
   const hiddenCardsRef = useRef<HTMLDivElement>(null);
-  const [studentsIDB] = useState(() => new BaseEstudiantesIDB());
-  const [classroomsIDB] = useState(() => new BaseAulasIDB()); // States for filters
+  const [estudiantesIDB] = useState(() => new BaseEstudiantesIDB());
+  const [aulasIDB] = useState(() => new BaseAulasIDB()); // Estados para filtros
 
-  const [grades, setGrades] = useState<number[]>([]);
-  const [selectedGrade, setSelectedGrade] = useState<number | null>(
+  const [grados, setGrados] = useState<number[]>([]);
+  const [gradoSeleccionado, setGradoSeleccionado] = useState<number | null>(
     null
   );
-  const [sections, setSections] = useState<string[]>([]);
-  const [selectedSection, setSelectedSection] = useState<string | null>(
+  const [secciones, setSecciones] = useState<string[]>([]);
+  const [seccionSeleccionada, setSeccionSeleccionada] = useState<string | null>(
     null
   );
-  const [selectedClassroom, setSelectedClassroom] = useState<T_Aulas | null>(
+  const [aulaSeleccionada, setAulaSeleccionada] = useState<T_Aulas | null>(
     null
   );
-  const [studentsInClassroom, setStudentsInClassroom] = useState<T_Estudiantes[]>(
+  const [estudiantesDelAula, setEstudiantesDelAula] = useState<T_Estudiantes[]>(
     []
-  ); // States for generation
+  ); // Estados para generación
 
   const [isGeneratingPDF, setIsGeneratingPDF] = useState<boolean>(false);
   const [currentPdfBlob, setCurrentPdfBlob] = useState<Blob | null>(null);
@@ -35,135 +35,135 @@ export const useQRGeneratorPorAula = () => {
 
   const initializeShareSupport = useCallback(() => {
     setShareSupported(checkWebShareApiSupport());
-  }, []); // Load available grades
+  }, []); // Cargar grados disponibles
 
-  const loadAvailableGrades = useCallback(
-    async (restrictedLevel?: NivelEducativo, restrictedClassroomId?: string) => {
+  const cargarGradosDisponibles = useCallback(
+    async (nivelRestringido?: NivelEducativo, idAulaRestringida?: string) => {
       try {
-        const allClassrooms = await classroomsIDB.getTodasLasAulas();
+        const todasLasAulas = await aulasIDB.getTodasLasAulas();
 
-        // If there is classroom restriction, load automatically
-        if (restrictedClassroomId) {
-          const restrictedClassroom = allClassrooms.find(
-            (classroom) => classroom.Id_Aula === restrictedClassroomId
+        // Si hay restricción de aula, cargar automáticamente
+        if (idAulaRestringida) {
+          const aulaRestringida = todasLasAulas.find(
+            (aula) => aula.Id_Aula === idAulaRestringida
           );
 
-          if (restrictedClassroom) {
-            setGrades([restrictedClassroom.Grado]);
-            setSelectedGrade(restrictedClassroom.Grado);
-            setSections([restrictedClassroom.Seccion]);
-            setSelectedSection(restrictedClassroom.Seccion);
-            setSelectedClassroom(restrictedClassroom);
+          if (aulaRestringida) {
+            setGrados([aulaRestringida.Grado]);
+            setGradoSeleccionado(aulaRestringida.Grado);
+            setSecciones([aulaRestringida.Seccion]);
+            setSeccionSeleccionada(aulaRestringida.Seccion);
+            setAulaSeleccionada(aulaRestringida);
 
-            const allStudents =
-              await studentsIDB.getTodosLosEstudiantes(false);
-            const classroomStudents = allStudents.filter(
-              (student) =>
-                student.Id_Aula === restrictedClassroom.Id_Aula &&
-                student.Estado
+            const todosLosEstudiantes =
+              await estudiantesIDB.getTodosLosEstudiantes(false);
+            const estudiantesAula = todosLosEstudiantes.filter(
+              (estudiante) =>
+                estudiante.Id_Aula === aulaRestringida.Id_Aula &&
+                estudiante.Estado
             );
 
-            classroomStudents.sort((a, b) =>
+            estudiantesAula.sort((a, b) =>
               `${a.Apellidos} ${a.Nombres}`.localeCompare(
                 `${b.Apellidos} ${b.Nombres}`
               )
             );
 
-            setStudentsInClassroom(classroomStudents);
+            setEstudiantesDelAula(estudiantesAula);
           }
           return;
         }
 
-        const secondaryClassrooms = allClassrooms.filter(
-          (classroom) =>
-            classroom.Nivel === (restrictedLevel || NivelEducativo.SECUNDARIA)
+        const aulasSecundaria = todasLasAulas.filter(
+          (aula) =>
+            aula.Nivel === (nivelRestringido || NivelEducativo.SECUNDARIA)
         );
 
-        const uniqueGrades = [
-          ...new Set(secondaryClassrooms.map((classroom) => classroom.Grado)),
+        const gradosUnicos = [
+          ...new Set(aulasSecundaria.map((aula) => aula.Grado)),
         ].sort();
-        setGrades(uniqueGrades);
+        setGrados(gradosUnicos);
       } catch (error) {
-        console.error("Error loading grades:", error);
+        console.error("Error al cargar grados:", error);
       }
     },
-    [classroomsIDB, studentsIDB]
-  ); // Load sections for a specific grade
+    [aulasIDB, estudiantesIDB]
+  ); // Cargar secciones de un grado específico
 
-  const loadSectionsForGrade = useCallback(
-    async (grade: number) => {
+  const cargarSeccionesDelGrado = useCallback(
+    async (grado: number) => {
       try {
-        const allClassrooms = await classroomsIDB.getTodasLasAulas();
-        const classroomsInGrade = allClassrooms.filter(
-          (classroom) =>
-            classroom.Nivel === NivelEducativo.SECUNDARIA && classroom.Grado === grade
+        const todasLasAulas = await aulasIDB.getTodasLasAulas();
+        const aulasDelGrado = todasLasAulas.filter(
+          (aula) =>
+            aula.Nivel === NivelEducativo.SECUNDARIA && aula.Grado === grado
         );
 
-        const uniqueSections = [
-          ...new Set(classroomsInGrade.map((classroom) => classroom.Seccion)),
+        const seccionesUnicas = [
+          ...new Set(aulasDelGrado.map((aula) => aula.Seccion)),
         ].sort();
-        setSections(uniqueSections);
+        setSecciones(seccionesUnicas);
       } catch (error) {
-        console.error("Error loading sections:", error);
+        console.error("Error al cargar secciones:", error);
       }
     },
-    [classroomsIDB]
-  ); // Get the selected classroom
+    [aulasIDB]
+  ); // Obtener el aula seleccionada
 
-  const selectClassroom = useCallback(
-    async (grade: number, section: string) => {
+  const seleccionarAula = useCallback(
+    async (grado: number, seccion: string) => {
       try {
-        const allClassrooms = await classroomsIDB.getTodasLasAulas();
-        const classroom = allClassrooms.find(
-          (classroom) =>
-            classroom.Nivel === NivelEducativo.SECUNDARIA &&
-            classroom.Grado === grade &&
-            classroom.Seccion === section
+        const todasLasAulas = await aulasIDB.getTodasLasAulas();
+        const aula = todasLasAulas.find(
+          (aula) =>
+            aula.Nivel === NivelEducativo.SECUNDARIA &&
+            aula.Grado === grado &&
+            aula.Seccion === seccion
         );
 
-        setSelectedClassroom(classroom || null);
-        return classroom;
+        setAulaSeleccionada(aula || null);
+        return aula;
       } catch (error) {
-        console.error("Error selecting classroom:", error);
+        console.error("Error al seleccionar aula:", error);
         return null;
       }
     },
-    [classroomsIDB]
-  ); // Load students for a classroom
+    [aulasIDB]
+  ); // Cargar estudiantes de un aula
 
-  const loadStudentsInClassroom = useCallback(
-    async (classroomId: string) => {
+  const cargarEstudiantesDelAula = useCallback(
+    async (idAula: string) => {
       try {
-        const allStudents = await studentsIDB.getTodosLosEstudiantes(
+        const todosLosEstudiantes = await estudiantesIDB.getTodosLosEstudiantes(
           false
         );
-        const studentsInClassroom = allStudents.filter(
-          (student) => student.Id_Aula === classroomId && student.Estado
-        ); // Sort by surnames
+        const estudiantesDelAula = todosLosEstudiantes.filter(
+          (estudiante) => estudiante.Id_Aula === idAula && estudiante.Estado
+        ); // Ordenar por apellidos
 
-        studentsInClassroom.sort((a, b) =>
+        estudiantesDelAula.sort((a, b) =>
           `${a.Apellidos} ${a.Nombres}`.localeCompare(
             `${b.Apellidos} ${b.Nombres}`
           )
         );
 
-        setStudentsInClassroom(studentsInClassroom);
-        return studentsInClassroom;
+        setEstudiantesDelAula(estudiantesDelAula);
+        return estudiantesDelAula;
       } catch (error) {
-        console.error("Error loading students:", error);
+        console.error("Error al cargar estudiantes:", error);
         return [];
       }
     },
-    [studentsIDB]
-  ); // Handle grade change
+    [estudiantesIDB]
+  ); // Manejar cambio de grado
 
-  const handleGradeChange = useCallback(
-    (grade: number) => {
-      setSelectedGrade(grade);
-      setSelectedSection(null);
-      setSelectedClassroom(null);
-      setStudentsInClassroom([]);
-      setSections([]); // Clear previous PDF
+  const handleGradoChange = useCallback(
+    (grado: number) => {
+      setGradoSeleccionado(grado);
+      setSeccionSeleccionada(null);
+      setAulaSeleccionada(null);
+      setEstudiantesDelAula([]);
+      setSecciones([]); // Limpiar PDF anterior
 
       if (currentPdfBlob) {
         setCurrentPdfBlob(null);
@@ -171,16 +171,16 @@ export const useQRGeneratorPorAula = () => {
           URL.revokeObjectURL(pdfPreviewUrl);
           setPdfPreviewUrl(null);
         }
-      } // Load sections for the selected grade
+      } // Cargar secciones del grado seleccionado
 
-      loadSectionsForGrade(grade);
+      cargarSeccionesDelGrado(grado);
     },
-    [loadSectionsForGrade, currentPdfBlob, pdfPreviewUrl]
-  ); // Handle section change
+    [cargarSeccionesDelGrado, currentPdfBlob, pdfPreviewUrl]
+  ); // Manejar cambio de sección
 
-  const handleSectionChange = useCallback(
-    async (section: string) => {
-      setSelectedSection(section); // Clear previous PDF
+  const handleSeccionChange = useCallback(
+    async (seccion: string) => {
+      setSeccionSeleccionada(seccion); // Limpiar PDF anterior
 
       if (currentPdfBlob) {
         setCurrentPdfBlob(null);
@@ -190,27 +190,27 @@ export const useQRGeneratorPorAula = () => {
         }
       }
 
-      if (selectedGrade !== null) {
-        const classroom = await selectClassroom(selectedGrade, section);
-        if (classroom) {
-          await loadStudentsInClassroom(classroom.Id_Aula);
+      if (gradoSeleccionado !== null) {
+        const aula = await seleccionarAula(gradoSeleccionado, seccion);
+        if (aula) {
+          await cargarEstudiantesDelAula(aula.Id_Aula);
         }
       }
     },
     [
-      selectedGrade,
-      selectClassroom,
-      loadStudentsInClassroom,
+      gradoSeleccionado,
+      seleccionarAula,
+      cargarEstudiantesDelAula,
       currentPdfBlob,
       pdfPreviewUrl,
     ]
-  ); // Generate PDF for all students in the classroom
+  ); // Generar PDF para todos los estudiantes del aula
 
-  const generatePDFForClassroom = useCallback(async () => {
+  const generatePDFParaAula = useCallback(async () => {
     if (
       !hiddenCardsRef.current ||
-      !selectedClassroom ||
-      studentsInClassroom.length === 0
+      !aulaSeleccionada ||
+      estudiantesDelAula.length === 0
     ) {
       return;
     }
@@ -219,19 +219,19 @@ export const useQRGeneratorPorAula = () => {
     try {
       const pdfService = new GeneradorTarjetaQREstudiantilEnPDF(
         hiddenCardsRef.current
-      ); // Convert students to EstudianteDelResponsableConAula compatible format
+      ); // Convertir estudiantes a formato compatible con EstudianteDelResponsableConAula
 
-      const studentsWithClassroom = studentsInClassroom.map((student) => ({
-        ...student,
-        Tipo_Relacion: "Student", // Default value
-        classroom: selectedClassroom,
-      })); // Generate PDF with all students
+      const estudiantesConAula = estudiantesDelAula.map((estudiante) => ({
+        ...estudiante,
+        Tipo_Relacion: "Estudiante", // Valor por defecto
+        aula: aulaSeleccionada,
+      })); // Generar PDF con todos los estudiantes
 
       const pdfBlob = await pdfService.generatePDFMultiplesEstudiantes(
-        studentsWithClassroom
+        estudiantesConAula
       );
 
-      setCurrentPdfBlob(pdfBlob); // Clear previous URL and create new one
+      setCurrentPdfBlob(pdfBlob); // Limpiar URL anterior y crear nueva
 
       setPdfPreviewUrl((prevUrl) => {
         if (prevUrl) {
@@ -241,36 +241,36 @@ export const useQRGeneratorPorAula = () => {
       });
     } catch (error) {
       console.error("Error generating PDF:", error);
-      alert("Error generating PDF. Please try again.");
+      alert("Error al generar el PDF. Por favor, intente nuevamente.");
     } finally {
       setIsGeneratingPDF(false);
     }
-  }, [selectedClassroom, studentsInClassroom]);
+  }, [aulaSeleccionada, estudiantesDelAula]);
 
   const downloadPDF = useCallback(() => {
-    if (!currentPdfBlob || !selectedClassroom) return;
+    if (!currentPdfBlob || !aulaSeleccionada) return;
 
-    const filename = `QR_${selectedClassroom.Grado}${selectedClassroom.Seccion}_Secondary.pdf`;
+    const filename = `QR_${aulaSeleccionada.Grado}${aulaSeleccionada.Seccion}_Secundaria.pdf`;
     downloadBlob(currentPdfBlob, filename);
-  }, [currentPdfBlob, selectedClassroom]);
+  }, [currentPdfBlob, aulaSeleccionada]);
 
   const sharePDF = useCallback(async () => {
-    if (!currentPdfBlob || !shareSupported || !selectedClassroom) {
-      alert("Web Share API not available. Use the download button.");
+    if (!currentPdfBlob || !shareSupported || !aulaSeleccionada) {
+      alert("Web Share API no disponible. Use el botón de descarga.");
       return;
     }
 
     try {
-      const filename = `QR_${selectedClassroom.Grado}${selectedClassroom.Seccion}_Secondary.pdf`;
-      const title = `QR Cards - ${selectedClassroom.Grado}° ${selectedClassroom.Seccion} Secondary`;
+      const filename = `QR_${aulaSeleccionada.Grado}${aulaSeleccionada.Seccion}_Secundaria.pdf`;
+      const title = `Tarjetas QR - ${aulaSeleccionada.Grado}° ${aulaSeleccionada.Seccion} Secundaria`;
       await compartirArchivoEnBlobPorNavegador(currentPdfBlob, filename, title);
     } catch (error) {
       if ((error as Error).name !== "AbortError") {
         console.error("Error sharing PDF:", error);
-        alert("Error sharing. Use the download button.");
+        alert("Error al compartir. Use el botón de descarga.");
       }
     }
-  }, [currentPdfBlob, shareSupported, selectedClassroom]);
+  }, [currentPdfBlob, shareSupported, aulaSeleccionada]);
 
   const cleanup = useCallback(() => {
     if (pdfPreviewUrl) {
@@ -278,45 +278,45 @@ export const useQRGeneratorPorAula = () => {
     }
   }, [pdfPreviewUrl]);
 
-  const clearSelections = useCallback(() => {
-    setSelectedGrade(null);
-    setSelectedSection(null);
-    setSelectedClassroom(null);
-    setStudentsInClassroom([]);
-    setSections([]);
-    setCurrentPdfBlob(null); // Clear preview URL
+  const limpiarSelecciones = useCallback(() => {
+    setGradoSeleccionado(null);
+    setSeccionSeleccionada(null);
+    setAulaSeleccionada(null);
+    setEstudiantesDelAula([]);
+    setSecciones([]);
+    setCurrentPdfBlob(null); // Limpiar preview URL
 
     if (pdfPreviewUrl) {
       URL.revokeObjectURL(pdfPreviewUrl);
       setPdfPreviewUrl(null);
     }
-  }, [pdfPreviewUrl]); // Calculate estimated pages based on real configuration: 2 cards per row, 4 cards per page
-  const estimatedPages =
-    studentsInClassroom.length > 0
-      ? Math.ceil(studentsInClassroom.length / 4)
+  }, [pdfPreviewUrl]); // Calcular páginas estimadas basándose en configuración real: 2 cartas por fila, 4 cartas por página
+  const paginasEstimadas =
+    estudiantesDelAula.length > 0
+      ? Math.ceil(estudiantesDelAula.length / 4)
       : 0;
 
   return {
-    hiddenCardsRef, // States for filters
-    grades,
-    selectedGrade,
-    sections,
-    selectedSection,
-    selectedClassroom,
-    studentsInClassroom, // States for generation
+    hiddenCardsRef, // Estados de filtros
+    grados,
+    gradoSeleccionado,
+    secciones,
+    seccionSeleccionada,
+    aulaSeleccionada,
+    estudiantesDelAula, // Estados de generación
     isGeneratingPDF,
     currentPdfBlob,
     shareSupported,
-    pdfPreviewUrl, // Calculations
-    estimatedPages, // Initialization functions
+    pdfPreviewUrl, // Cálculos
+    paginasEstimadas, // Funciones de inicialización
     initializeShareSupport,
-    loadAvailableGrades, // Handling functions
-    handleGradeChange,
-    handleSectionChange,
-    generatePDFForClassroom,
+    cargarGradosDisponibles, // Funciones de manejo
+    handleGradoChange,
+    handleSeccionChange,
+    generatePDFParaAula,
     downloadPDF,
     sharePDF,
     cleanup,
-    clearSelections,
+    limpiarSelecciones,
   };
 };

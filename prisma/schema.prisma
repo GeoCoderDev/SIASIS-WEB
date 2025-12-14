@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("RDP02_INS1_DATABASE_URL")
 }
 
 model T_Directivos {
@@ -19,7 +18,7 @@ model T_Directivos {
   Contraseña            String  @db.Text
   Google_Drive_Foto_ID   String? @db.Text
 
-  // New relationships with principals
+  // Nuevas relaciones con directivos
   horarios_por_dias T_Horarios_Por_Dias_Directivos[]
   registros_entrada T_Control_Entrada_Mensual_Directivos[]
   registros_salida  T_Control_Salida_Mensual_Directivos[]
@@ -66,7 +65,7 @@ model T_Responsables {
 
 model T_Relaciones_E_R {
   Id_Relacion    Int            @id @default(autoincrement())
-  Tipo           String         @db.VarChar(1) // Replaced ENUM with VARCHAR(1)
+  Tipo           String         @db.VarChar(1) // Reemplazado ENUM por VARCHAR(1)
   Id_Responsable String         @db.VarChar(20)
   Id_Estudiante  String         @db.VarChar(20)
   responsable    T_Responsables @relation(fields: [Id_Responsable], references: [Id_Responsable])
@@ -79,7 +78,7 @@ model T_Profesores_Primaria {
   Id_Profesor_Primaria String                                          @id @db.VarChar(20)
   Nombres              String                                          @db.VarChar(60)
   Apellidos            String                                          @db.VarChar(60)
-  Genero               String                                          @db.VarChar(1) // Replaced ENUM with VARCHAR(1)
+  Genero               String                                          @db.VarChar(1) // Reemplazado ENUM por VARCHAR(1)
   Nombre_Usuario       String                                          @unique @db.VarChar(40)
   Estado               Boolean
   Correo_Electronico   String?                                         @db.VarChar(70)
@@ -97,7 +96,7 @@ model T_Profesores_Secundaria {
   Id_Profesor_Secundaria String                                            @id @db.VarChar(20)
   Nombres                String                                            @db.VarChar(60)
   Apellidos              String                                            @db.VarChar(60)
-  Genero                 String                                            @db.VarChar(1) // Replaced ENUM with VARCHAR(1)
+  Genero                 String                                            @db.VarChar(1) // Reemplazado ENUM por VARCHAR(1)
   Nombre_Usuario         String                                            @unique @db.VarChar(40)
   Estado                 Boolean
   Correo_Electronico     String?                                           @db.VarChar(70)
@@ -114,7 +113,7 @@ model T_Profesores_Secundaria {
 
 model T_Aulas {
   Id_Aula                String                   @id @db.VarChar(8)
-  Nivel                  String                   @db.VarChar(10) // Replaced ENUM with VARCHAR(10)
+  Nivel                  String                   @db.VarChar(10) // Reemplazado ENUM por VARCHAR(10)
   Grado                  Int                      @db.Integer
   Seccion                String                   @db.VarChar(2)
   Color                  String                   @db.VarChar(15)
@@ -186,7 +185,7 @@ model T_Auxiliares {
   Id_Auxiliar          String  @id @db.VarChar(20)
   Nombres              String  @db.VarChar(60)
   Apellidos            String  @db.VarChar(60)
-  Genero               String  @db.VarChar(1) // Replaced ENUM with VARCHAR(1)
+  Genero               String  @db.VarChar(1) // Reemplazado ENUM por VARCHAR(1)
   Nombre_Usuario       String  @unique @db.VarChar(40)
   Estado               Boolean
   Correo_Electronico   String? @db.VarChar(70)
@@ -220,12 +219,12 @@ model T_Control_Salida_Mensual_Auxiliar {
   @@map("T_Control_Salida_Mensual_Auxiliar")
 }
 
-// MODIFIED TABLE: Horario_Laboral_Entrada and Horario_Laboral_Salida were removed
+// TABLA MODIFICADA: Se removieron Horario_Laboral_Entrada y Horario_Laboral_Salida
 model T_Personal_Administrativo {
   Id_Personal_Administrativo String  @id @db.VarChar(20)
   Nombres                    String  @db.VarChar(60)
   Apellidos                  String  @db.VarChar(60)
-  Genero                     String  @db.VarChar(1) // Replaced ENUM with VARCHAR(1)
+  Genero                     String  @db.VarChar(1) // Reemplazado ENUM por VARCHAR(1)
   Nombre_Usuario             String  @unique @db.VarChar(40)
   Estado                     Boolean
   Celular                    String  @db.VarChar(9)
@@ -233,20 +232,20 @@ model T_Personal_Administrativo {
   Google_Drive_Foto_ID       String? @db.Text
   Cargo                      String  @db.VarChar(75)
 
-  // Existing relationships
+  // Relaciones existentes
   registros_entrada T_Control_Entrada_Mensual_Personal_Administrativo[]
   registros_salida  T_Control_Salida_Mensual_Personal_Administrativo[]
 
-  // New relationship with daily schedules
+  // Nueva relación con horarios por días
   horarios_por_dias T_Horarios_Por_Dias_Personal_Administrativo[]
 
   @@map("T_Personal_Administrativo")
 }
 
-// NEW TABLE: Daily schedules for Administrative Staff
+// NUEVA TABLA: Horarios por días para Personal Administrativo
 model T_Horarios_Por_Dias_Personal_Administrativo {
   Id_Horario_Por_Dia_P_Administrativo Int                       @id @default(autoincrement())
-  Dia                                 Int                       @db.SmallInt // 1-5 (Monday to Friday)
+  Dia                                 Int                       @db.SmallInt // 1-5 (Lunes a Viernes)
   Hora_Inicio                         DateTime                  @db.Time
   Hora_Fin                            DateTime                  @db.Time
   Id_Personal_Administrativo          String                    @db.VarChar(20)
@@ -275,10 +274,10 @@ model T_Control_Salida_Mensual_Personal_Administrativo {
   @@map("T_Control_Salida_Mensual_Personal_Administrativo")
 }
 
-// NEW TABLE: Daily schedules for Principals
+// NUEVA TABLA: Horarios por días para Directivos
 model T_Horarios_Por_Dias_Directivos {
   Id_Horario_Por_Dia_Directivo Int          @id @default(autoincrement())
-  Dia                          Int          @db.SmallInt // 1-5 (Monday to Friday)
+  Dia                          Int          @db.SmallInt // 1-5 (Lunes a Viernes)
   Hora_Inicio                  DateTime     @db.Time
   Hora_Fin                     DateTime     @db.Time
   Id_Directivo                 Int
@@ -287,7 +286,7 @@ model T_Horarios_Por_Dias_Directivos {
   @@map("T_Horarios_Por_Dias_Directivos")
 }
 
-// NEW TABLE: Monthly entry control for Principals
+// NUEVA TABLA: Control de entrada mensual para Directivos
 model T_Control_Entrada_Mensual_Directivos {
   Id_C_E_M_P_Directivo Int          @id @default(autoincrement())
   Mes                  Int          @db.SmallInt
@@ -298,7 +297,7 @@ model T_Control_Entrada_Mensual_Directivos {
   @@map("T_Control_Entrada_Mensual_Directivos")
 }
 
-// NEW TABLE: Monthly exit control for Principals
+// NUEVA TABLA: Control de salida mensual para Directivos
 model T_Control_Salida_Mensual_Directivos {
   Id_C_S_M_P_Directivo Int          @id @default(autoincrement())
   Mes                  Int          @db.SmallInt
@@ -312,7 +311,7 @@ model T_Control_Salida_Mensual_Directivos {
 model T_Bloqueo_Roles {
   Rol                  String  @id @db.VarChar(3)
   Bloqueo_Total        Boolean
-  Timestamp_Desbloqueo BigInt // Unix timestamp for unlocking
+  Timestamp_Desbloqueo BigInt // Timestamp Unix para el desbloqueo
 
   @@map("T_Bloqueo_Roles")
 }
@@ -358,8 +357,8 @@ model T_Registro_Fallos_Sistema {
 model T_Codigos_OTP {
   Id_Codigo_OTP    Int    @id @default(autoincrement())
   Codigo           String @db.VarChar(6)
-  Fecha_Creacion   BigInt // Unix timestamp in milliseconds
-  Fecha_Expiracion BigInt // Unix timestamp in milliseconds
+  Fecha_Creacion   BigInt // Timestamp Unix en milisegundos
+  Fecha_Expiracion BigInt // Timestamp Unix en milisegundos
   Correo_Destino   String @db.VarChar(70)
   Rol_Usuario      String @db.VarChar(2)
   Id_Usuario       String @db.VarChar(20)
@@ -367,7 +366,7 @@ model T_Codigos_OTP {
   @@map("T_Codigos_OTP")
 }
 
-// PRIMARY ATTENDANCE TABLES (6 tables)
+// TABLAS DE ASISTENCIA PRIMARIA (6 tablas)
 
 model T_A_E_P_1 {
   Id_Asistencia_Escolar_Mensual String @id
@@ -441,7 +440,7 @@ model T_A_E_P_6 {
   @@index([Mes])
 }
 
-// SECONDARY ATTENDANCE TABLES (5 tables)
+// TABLAS DE ASISTENCIA SECUNDARIA (5 tablas)
 
 model T_A_E_S_1 {
   Id_Asistencia_Escolar_Mensual String @id
@@ -551,8 +550,8 @@ model T_Vacaciones_Interescolares {
 model T_Modificaciones_Especificas {
   Id_Modificacion_Especifica     String   @id @default(uuid()) @db.VarChar(100)
   Nombre_Tabla                   String   @db.Text
-  Campos_Identificadores         String   @db.Text //Separated by commas
-  Valores_Campos_Identificadores String   @db.Text //Separated by commas
+  Campos_Identificadores         String   @db.Text //Separados por comas
+  Valores_Campos_Identificadores String   @db.Text //Separados por comas
   Id_Registro_Modificado         String   @db.Text
   Fecha_Modificacion             DateTime @default(now())
   Ultima_Operacion               String

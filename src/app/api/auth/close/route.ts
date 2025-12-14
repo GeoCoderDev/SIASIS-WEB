@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 
-import { deleteSessionCookies } from "./_utils/borrarCookiesDeSesion";
+import { borrarCookiesDeSesion } from "./_utils/borrarCookiesDeSesion";
 
 export async function DELETE(request: NextRequest) {
   const token = request.cookies.get("token");
@@ -9,14 +9,14 @@ export async function DELETE(request: NextRequest) {
 
   return new Response(null, {
     status: 200,
-    headers: deleteSessionCookies(),
+    headers: borrarCookiesDeSesion(),
   });
 
-  // If you want to automatically redirect instead of just deleting cookies:
+  // Si quieres redirigir automáticamente en vez de solo borrar cookies:
   // return new Response(null, {
   //   status: 302,
   //   headers: {
-  //     ...deleteSessionCookies(),
+  //     ...borrarCookiesDeSesion(),
   //     Location: "/login",
   //   },
   // });

@@ -35,15 +35,15 @@ const CambiarFotoModal = ({
   onSuccess,
   siasisAPI,
 }: CambiarFotoModalProps) => {
-  // State for image preview
+  // Estado para la vista previa de la imagen
   const [previewUrl, setPreviewUrl] = useState<string | null>(
     initialSource || "/images/svg/No-Foto-Perfil.svg"
   );
 
-  // State for the selected file
+  // Estado para el archivo seleccionado
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  // Reference for the file input
+  // Referencia para el input de archivo
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -54,41 +54,41 @@ const CambiarFotoModal = ({
     setIsSomethingLoading: setIsUploading,
   } = useRequestAPIFeatures(siasisAPI);
 
-  // Function to handle file selection
+  // Función para manejar la selección de archivos
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     setError(null);
 
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
 
-      // Check file type
+      // Verificar tipo de archivo
       if (!file.type.includes("image/")) {
         setError({
-          message: "The file must be an image",
+          message: "El archivo debe ser una imagen",
           success: false,
           errorType: FileErrorTypes.INVALID_FILE_TYPE,
         });
         return;
       }
 
-      // Check file size (5MB maximum)
+      // Verificar tamaño de archivo (5MB máximo)
       if (file.size > 5 * 1024 * 1024) {
         setError({
-          message: "The image must not exceed 5MB",
+          message: "La imagen no debe superar los 5MB",
           success: false,
           errorType: FileErrorTypes.FILE_TOO_LARGE,
         });
         return;
       }
 
-      // Create URL for preview
+      // Crear URL para la vista previa
       const objectUrl = URL.createObjectURL(file);
       setPreviewUrl(objectUrl);
       setSelectedFile(file);
     }
   };
 
-  // Function to handle dropped files (drag & drop)
+  // Función para manejar archivos soltados (drag & drop)
   const handleFileDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setError(null);
@@ -96,47 +96,47 @@ const CambiarFotoModal = ({
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
 
-      // Check file type
+      // Verificar tipo de archivo
       if (!file.type.includes("image/")) {
         setError({
-          message: "The file must be an image",
+          message: "El archivo debe ser una imagen",
           success: false,
           errorType: FileErrorTypes.INVALID_FILE_TYPE,
         });
         return;
       }
 
-      // Check file size (5MB maximum)
+      // Verificar tamaño de archivo (5MB máximo)
       if (file.size > 5 * 1024 * 1024) {
         setError({
-          message: "The image must not exceed 5MB",
+          message: "La imagen no debe superar los 5MB",
           success: false,
           errorType: FileErrorTypes.FILE_TOO_LARGE,
         });
         return;
       }
 
-      // Create URL for preview
+      // Crear URL para la vista previa
       const objectUrl = URL.createObjectURL(file);
       setPreviewUrl(objectUrl);
       setSelectedFile(file);
     }
   };
 
-  // Function to open the file selector
+  // Función para abrir el selector de archivos
   const handleSelectClick = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
   };
 
-  // Function to send the photo to the server
+  // Función para enviar la foto al servidor
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!selectedFile) {
       setError({
-        message: "You must select an image first",
+        message: "Debes seleccionar una imagen primero",
         success: false,
         errorType: ValidationErrorTypes.REQUIRED_FIELDS,
       });
@@ -147,10 +147,10 @@ const CambiarFotoModal = ({
       setIsUploading(true);
       setError(null);
 
-      // Create FormData directly from the form
+      // Crear FormData directamente del formulario
       const formData = new FormData(e.currentTarget);
 
-      // Ensure that the selected file is included
+      // Asegurarse de que se incluye el archivo seleccionado
       formData.set("foto", selectedFile);
 
       const fetchCancelable = await fetchSiasisAPI({
@@ -161,7 +161,7 @@ const CambiarFotoModal = ({
         queryParams: { Rol },
       });
 
-      if (!fetchCancelable) throw new Error("Request error");
+      if (!fetchCancelable) throw new Error();
 
       const res = await fetchCancelable.fetch();
 
@@ -179,12 +179,12 @@ const CambiarFotoModal = ({
 
       onSuccess?.();
 
-      // Close the modal
+      // Cerrar el modal
       eliminateModal();
     } catch (err) {
-      console.error("Error changing profile photo:", err);
+      console.error("Error al cambiar la foto de perfil:", err);
       setError({
-        message: "Error processing request",
+        message: "Error al procesar la solicitud",
         success: false,
         errorType: RequestErrorTypes.REQUEST_FAILED,
       });
@@ -193,7 +193,7 @@ const CambiarFotoModal = ({
     }
   };
 
-  // Clean up object URLs on unmount
+  // Limpiar las URLs de objetos al desmontar
   useEffect(() => {
     return () => {
       if (
@@ -218,19 +218,19 @@ const CambiarFotoModal = ({
           className="w-full flex flex-col items-center"
           encType="multipart/form-data"
         >
-          {/* Image preview */}
+          {/* Vista previa de la imagen */}
           <div className="mb-6 flex flex-wrap gap-6 items-center">
-            <p className="mb-3 text-negro">Preview:</p>
+            <p className="mb-3 text-negro">Vista Previa:</p>
             <div className="w-32 h-32 rounded-full overflow-hidden border-2 border-gris-claro bg-white">
               <img
                 className="w-full h-full object-cover"
                 src={previewUrl || "/images/svg/No-Foto-Perfil.svg"}
-                alt="Preview"
+                alt="Vista previa"
               />
             </div>
           </div>
 
-          {/* Drag and drop area */}
+          {/* Área para arrastrar y soltar */}
           <div
             className="max-w-[20rem] w-full border-2 border-dashed border-violeta-principal rounded-lg px-6 py-2 text-[0.9rem] cursor-pointer 
                       flex flex-col items-center justify-center bg-[#f9f9ff] hover:bg-[#f5f5ff] transition-colors"
@@ -239,7 +239,7 @@ const CambiarFotoModal = ({
             onDrop={handleFileDrop}
           >
             <p className="text-violeta-principal font-normal text-center">
-              Drag and drop the photo here or click to select one
+              Arrastra y suelta la foto aquí o haz clic para seleccionar una
             </p>
             <input
               type="file"
@@ -252,25 +252,25 @@ const CambiarFotoModal = ({
             />
           </div>
 
-          {/* Error message */}
+          {/* Mensaje de error */}
           {error && (
             <div className="mt-4 w-full max-w-[20rem]">
               <ErrorMessage error={error} closable={true} />
             </div>
           )}
 
-          {/* Form submission button */}
+          {/* Botón de envío del formulario */}
           <BotonConIcono
             IconTSX={<></>}
             isSomethingLoading={isUploading}
-            titleDisabled="The image is uploading"
+            titleDisabled="La imagen se esta subiendo"
             LoaderTSX={<Loader className="w-[1.3rem] p-[0.25rem] bg-negro" />}
-            texto={isUploading ? "Uploading" : "Change Photo"}
+            texto={isUploading ? "Subiendo" : "Cambiar Foto"}
             typeButton="submit"
             className={`w-max gap-3 py-2 px-4 rounded-lg text-negro font-semibold mt-6 ${
               isUploading || !selectedFile
-                ? "bg-gris-intermedio text-gris-oscuro cursor-not-allowed"
-                : "bg-amarillo-ediciones text-negro hover:grayscale-[0.2] transition-colors"
+                ? "bg-gris-intermedio cursor-not-allowed"
+                : "bg-amarillo-ediciones hover:grayscale-[0.2] transition-colors"
             }`}
             disabled={isUploading || !selectedFile}
           />

@@ -26,35 +26,35 @@ import { Genero } from "@/interfaces/shared/Genero";
 import { PersonalDelColegio } from "@/interfaces/shared/PersonalDelColegio";
 
 // ========================================================================================
-// SOCKET AND TIMEOUT CONFIGURATION
+// CONFIGURACIÓN DE SOCKET Y TIMEOUT
 // ========================================================================================
 
-// 🕒 Maximum waiting time for socket connection (4 seconds)
+// 🕒 Tiempo máximo de espera para conexión de socket (4 segundos)
 const SOCKET_CONNECTION_TIMEOUT = 4000;
 
-// 🎨 Creative messages for connection waiting
+// 🎨 Mensajes creativos para la espera de conexión
 const MENSAJES_CONEXION_SOCKET = [
-  "🔐 Establishing secure connection...",
-  "🌐 Synchronizing with the system...",
-  "📡 Connecting to the server...",
-  "⚡ Preparing the environment...",
-  "🛡️ Verifying credentials...",
+  "🔐 Estableciendo conexión segura...",
+  "🌐 Sincronizando con el sistema...",
+  "📡 Conectando con el servidor...",
+  "⚡ Preparando el entorno...",
+  "🛡️ Verificando credenciales...",
 ];
 
-// Get text according to role
+// Obtener texto según el rol
 export const obtenerTextoRol = (rol: RolesSistema): string => {
   switch (rol) {
     case RolesSistema.Directivo:
-      return "Directors";
+      return "Directivos";
     case RolesSistema.ProfesorPrimaria:
-      return "Primary School Teachers";
+      return "Profesores de Primaria";
     case RolesSistema.Auxiliar:
-      return "Assistants";
+      return "Auxiliares";
     case RolesSistema.ProfesorSecundaria:
     case RolesSistema.Tutor:
-      return "Secondary School Teachers/Tutors";
+      return "Profesores/Tutores de Secundaria";
     case RolesSistema.PersonalAdministrativo:
-      return "Administrative Staff";
+      return "Personal Administrativo";
     default:
       return "";
   }
@@ -72,10 +72,10 @@ export const ListaPersonal = ({
   fechaHoraActual: FechaHoraActualRealState;
 }) => {
   // ========================================================================================
-  // STATES FOR SOCKET AND TIMEOUT
+  // ESTADOS PARA SOCKET Y TIMEOUT
   // ========================================================================================
 
-  // 🆕 NEW: State to control waiting for socket connection
+  // 🆕 NUEVO: Estado para controlar la espera de conexión del socket
   const [esperandoConexionSocket, setEsperandoConexionSocket] = useState(true);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [mensajeConexion, setMensajeConexion] = useState(
@@ -84,19 +84,19 @@ export const ListaPersonal = ({
     ]
   );
 
-  // Ref for the timeout
+  // Ref para el timeout
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Link with SS01
+  // Enlace con el SS01
   const { isReady, globalSocket } = useSS01();
 
   // ========================================================================================
-  // EFFECTS FOR SOCKET CONNECTION HANDLING WITH TIMEOUT
+  // EFECTOS PARA MANEJO DE SOCKET CON TIMEOUT
   // ========================================================================================
 
-  // 🚀 Main useEffect to handle socket connection timeout
+  // 🚀 useEffect principal para manejar timeout de conexión de socket
   useEffect(() => {
-    console.log("🔌 ListaPersonal: Starting socket connection wait...", {
+    console.log("🔌 ListaPersonal: Iniciando espera de conexión de socket...", {
       isReady,
       timeout: SOCKET_CONNECTION_TIMEOUT,
       mensaje: mensajeConexion,
@@ -104,17 +104,17 @@ export const ListaPersonal = ({
       modoRegistro,
     });
 
-    // If already connected from the start, do not wait
+    // Si ya está conectado desde el inicio, no esperar
     if (isReady) {
-      console.log("✅ Socket was already connected, skipping wait");
+      console.log("✅ Socket ya estaba conectado, saltando espera");
       setEsperandoConexionSocket(false);
       return;
     }
 
-    // Set timeout for maximum wait
+    // Establecer timeout para la espera máxima
     timeoutRef.current = setTimeout(() => {
       console.log(
-        `⏰ Timeout of ${SOCKET_CONNECTION_TIMEOUT}ms reached, continuing without socket`
+        `⏰ Timeout de ${SOCKET_CONNECTION_TIMEOUT}ms alcanzado, continuando sin socket`
       );
       setEsperandoConexionSocket(false);
     }, SOCKET_CONNECTION_TIMEOUT);
@@ -126,14 +126,14 @@ export const ListaPersonal = ({
         timeoutRef.current = null;
       }
     };
-  }, []); // Only runs on component mount
+  }, []); // Solo se ejecuta al montar el componente
 
-  // 🎯 useEffect to detect when the socket connects
+  // 🎯 useEffect para detectar cuando el socket se conecta
   useEffect(() => {
     if (isReady && esperandoConexionSocket) {
-      console.log("🎉 Socket connected before timeout, continuing...");
+      console.log("🎉 Socket conectado antes del timeout, continuando...");
 
-      // Clear timeout as the socket connected
+      // Limpiar timeout ya que el socket se conectó
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
@@ -143,16 +143,16 @@ export const ListaPersonal = ({
     }
   }, [isReady, esperandoConexionSocket]);
 
-  // 🏠 useEffect to join the room when the socket is ready and we are not waiting
+  // 🏠 useEffect para unirse a la sala cuando el socket esté listo y no estemos esperando
   useEffect(() => {
     if (!isReady || esperandoConexionSocket) {
       if (!isReady) {
-        console.warn("⚠️ Connection is not ready");
+        console.warn("⚠️ Conexión no está lista");
       }
       return;
     }
 
-    console.log("🔗 ListaPersonal: Joining attendance taking room:", {
+    console.log("🔗 ListaPersonal: Uniéndose a sala de toma de asistencia:", {
       rol,
       modoRegistro,
       sala: SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER[
@@ -160,7 +160,7 @@ export const ListaPersonal = ({
       ][modoRegistro],
     });
 
-    // Create and execute emitter (original style)
+    // Crear y ejecutar emisor (estilo original)
     const emitter =
       new TomaAsistenciaPersonalSIU01Events.UNIRME_A_SALA_DE_TOMA_DE_ASISTENCIA_DE_PERSONAL_EMITTER(
         SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER[
@@ -170,10 +170,10 @@ export const ListaPersonal = ({
     const sent = emitter.execute();
 
     if (!sent) {
-      console.error("❌ Error sending join room event");
+      console.error("❌ Error al enviar el evento de unión a sala");
     } else {
       console.log(
-        "✅ User successfully joined the room:",
+        "✅ Usuario unido exitosamente a la sala:",
         SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER[
           rol as PersonalDelColegio
         ][modoRegistro]
@@ -182,7 +182,7 @@ export const ListaPersonal = ({
   }, [rol, modoRegistro, isReady, esperandoConexionSocket]);
 
   // ========================================================================================
-  // SOCKET FUNCTIONS (only execute if socket is available)
+  // FUNCIONES DE SOCKET (solo se ejecutan si socket está disponible)
   // ========================================================================================
 
   const marcarAsistenciaEnElRestoDeSesionesPorSS01 = useCallback(
@@ -194,7 +194,7 @@ export const ListaPersonal = ({
     ) => {
       if (!isReady || !globalSocket) {
         console.warn(
-          "⚠️ Socket not available to mark attendance, skipping event..."
+          "⚠️ Socket no disponible para marcar asistencia, saltando evento..."
         );
         return;
       }
@@ -206,7 +206,7 @@ export const ListaPersonal = ({
           rol
         );
 
-      // Create and execute emitter (original style)
+      // Crear y ejecutar emisor (estilo original)
       const emitter =
         new TomaAsistenciaPersonalSIU01Events.MARQUE_LA_ASISTENCIA_DE_ESTE_PERSONAL_EMITTER(
           {
@@ -232,7 +232,7 @@ export const ListaPersonal = ({
       const sent = emitter.execute();
 
       if (!sent) {
-        console.error("❌ Error sending attendance marking event");
+        console.error("❌ Error al enviar el evento de marcado de asistencia");
       }
     },
     [rol, modoRegistro, isReady, globalSocket]
@@ -247,12 +247,12 @@ export const ListaPersonal = ({
     ) => {
       if (!isReady || !globalSocket) {
         console.warn(
-          "⚠️ Socket not available to delete attendance, skipping event..."
+          "⚠️ Socket no disponible para eliminar asistencia, saltando evento..."
         );
         return;
       }
 
-      // Create and execute emitter (original style)
+      // Crear y ejecutar emisor (estilo original)
       const emitter =
         new TomaAsistenciaPersonalSIU01Events.ELIMINE_LA_ASISTENCIA_DE_ESTE_PERSONAL_EMITTER(
           {
@@ -274,7 +274,7 @@ export const ListaPersonal = ({
 
       if (!sent) {
         console.error(
-          "❌ Error sending attendance deletion event"
+          "❌ Error al enviar el evento de eliminación de asistencia"
         );
       }
     },
@@ -282,7 +282,7 @@ export const ListaPersonal = ({
   );
 
   // ========================================================================================
-  // MAIN COMPONENT STATES
+  // ESTADOS PRINCIPALES DEL COMPONENTE
   // ========================================================================================
 
   const { toast } = useToast();
@@ -292,50 +292,50 @@ export const ListaPersonal = ({
     string | null
   >(null);
 
-  // ✅ NEW: Get current Redux timestamp
+  // ✅ NUEVO: Obtener timestamp actual de Redux
   const fechaHoraRedux = useSelector(
     (state: RootState) => state.others.fechaHoraActualReal
   );
   const timestampActual = fechaHoraRedux.utilidades?.timestamp;
 
-  // ✅ NEW: State to store registered attendances by DNI
+  // ✅ NUEVO: Estado para almacenar las asistencias registradas por DNI
   const [asistenciasRegistradas, setAsistenciasRegistradas] = useState<
     Map<string, AsistenciaDiariaDePersonalResultado>
   >(new Map());
 
-  // Error handling system states
+  // Estados para el sistema de manejo de errores
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<ErrorResponseAPIBase | null>(null);
 
-  // ✅ MODIFIED: Create instance WITHOUT the callback
+  // ✅ MODIFICADO: Crear instancia SIN el callback
   const asistenciaDePersonalIDB = new AsistenciaDePersonalIDB(
     "API01",
     setIsLoading,
     setError
   );
 
-  // We get the staff data
+  // Obtenemos los datos del personal
   const personal = rol
     ? handlerDatosAsistenciaHoyDirectivo.obtenerPersonalPorRol(rol)
     : [];
 
-  // ✅ MODIFIED: Load already registered attendances (only if not waiting for socket)
+  // ✅ MODIFICADO: Cargar las asistencias ya registradas (solo si no esperando socket)
   const ultimaConsultaRef = useRef<string>("");
 
   useEffect(() => {
-    // 🚀 NEW: Do not load attendances if we are waiting for socket connection
+    // 🚀 NUEVO: No cargar asistencias si estamos esperando la conexión del socket
     if (esperandoConexionSocket) {
       console.log(
-        "⏳ Waiting for socket connection, postponing attendance loading..."
+        "⏳ Esperando conexión de socket, postergando carga de asistencias..."
       );
       return;
     }
 
     const claveConsulta = `${rol}-${modoRegistro}`;
 
-    // ✅ Avoid query if it's the same as the previous one
+    // ✅ Evitar consulta si es la misma que la anterior
     if (ultimaConsultaRef.current === claveConsulta) {
-      console.log("🚫 Duplicate query avoided:", claveConsulta);
+      console.log("🚫 Consulta duplicada evitada:", claveConsulta);
       return;
     }
 
@@ -344,9 +344,9 @@ export const ListaPersonal = ({
       try {
         setCargandoAsistencias(true);
 
-        console.log(`🔍 Loading attendances for ${rol} - ${modoRegistro}`);
+        console.log(`🔍 Cargando asistencias para ${rol} - ${modoRegistro}`);
 
-        // ✅ USE ORCHESTRATOR instead of direct fetch
+        // ✅ USAR ORQUESTADOR en lugar de fetch directo
         const resultado =
           await asistenciaDePersonalIDB.consultarYSincronizarAsistenciasRedis(
             rol,
@@ -354,7 +354,7 @@ export const ListaPersonal = ({
           );
 
         if (resultado.exitoso && resultado.datos) {
-          // Create attendance map by DNI
+          // Crear mapa de asistencias por DNI
           const mapaAsistencias = new Map<
             string,
             AsistenciaDiariaDePersonalResultado
@@ -371,21 +371,21 @@ export const ListaPersonal = ({
             }
           });
 
-          console.log("🗺️ Final attendance map:", mapaAsistencias);
+          console.log("🗺️ Mapa final de asistencias:", mapaAsistencias);
           setAsistenciasRegistradas(mapaAsistencias);
         } else {
-          console.error("❌ Error loading attendances:", resultado.mensaje);
+          console.error("❌ Error al cargar asistencias:", resultado.mensaje);
           toast({
             title: "Error",
-            description: "Could not load registered attendances",
+            description: "No se pudieron cargar las asistencias registradas",
             variant: "destructive",
           });
         }
       } catch (error) {
-        console.error("❌ Error consulting registered attendances:", error);
+        console.error("❌ Error al consultar asistencias registradas:", error);
         toast({
           title: "Error",
-          description: "Could not load registered attendances",
+          description: "No se pudieron cargar las asistencias registradas",
           variant: "destructive",
         });
       } finally {
@@ -396,10 +396,10 @@ export const ListaPersonal = ({
     if (rol && modoRegistro) {
       cargarAsistenciasRegistradas();
     }
-  }, [rol, modoRegistro, esperandoConexionSocket]); // 🚀 NEW DEPENDENCY
+  }, [rol, modoRegistro, esperandoConexionSocket]); // 🚀 NUEVA DEPENDENCIA
 
   // ========================================================================================
-  // MAIN FUNCTIONS
+  // FUNCIONES PRINCIPALES
   // ========================================================================================
 
   const handleMarcarAsistencia = async (
@@ -410,7 +410,7 @@ export const ListaPersonal = ({
     setProcesando(personal.idUsuario);
 
     try {
-      // Get the expected time
+      // Obtener la hora esperada
       const horaEsperadaISO =
         handlerDatosAsistenciaHoyDirectivo.obtenerHorarioPersonalISO(
           rol!,
@@ -418,7 +418,7 @@ export const ListaPersonal = ({
           modoRegistro
         );
 
-      // ✅ USE ORCHESTRATOR instead of direct fetch
+      // ✅ USAR ORQUESTADOR en lugar de fetch directo
       await asistenciaDePersonalIDB.marcarAsistencia(
         {
           datos: {
@@ -428,7 +428,7 @@ export const ListaPersonal = ({
             Dia: fechaHoraActual.utilidades!.diaMes,
           },
         },
-        horaEsperadaISO // ✅ PASS expected time
+        horaEsperadaISO // ✅ PASAR hora esperada
       );
 
       marcarAsistenciaEnElRestoDeSesionesPorSS01(
@@ -446,10 +446,10 @@ export const ListaPersonal = ({
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      // The orchestrator has already handled the error, just give voice feedback
+      // El orquestador ya manejó el error, solo dar feedback por voz
       const speaker = Speaker.getInstance();
       speaker.start(
-        `Error registering ${modoRegistroTextos[modoRegistro].toLowerCase()}`
+        `Error al registrar ${modoRegistroTextos[modoRegistro].toLowerCase()}`
       );
     } finally {
       setProcesando(null);
@@ -461,15 +461,15 @@ export const ListaPersonal = ({
     Apellidos: string,
     idUsuario: string
   ) => {
-    // Voice feedback
+    // Feedback por voz
     const speaker = Speaker.getInstance();
     speaker.start(
-      `${modoRegistroTextos[modoRegistro]} registered for ${Nombres.split(
+      `${modoRegistroTextos[modoRegistro]} registrada para ${Nombres.split(
         " "
       ).shift()} ${Apellidos.split(" ").shift()}`
     );
 
-    // ✅ UPDATE local state (simulating successful response)
+    // ✅ ACTUALIZAR estado local (simulando respuesta exitosa)
     const OFFSET_PERU_MS = 5 * 60 * 60 * 1000;
     const timestampActual = fechaHoraRedux.utilidades?.timestamp
       ? fechaHoraRedux.utilidades?.timestamp - OFFSET_PERU_MS
@@ -480,7 +480,7 @@ export const ListaPersonal = ({
       AsistenciaMarcada: true,
       Detalles: {
         Timestamp: timestampActual,
-        DesfaseSegundos: 0, // Server will calculate real value
+        DesfaseSegundos: 0, // El servidor calculará el valor real
       },
     };
 
@@ -492,10 +492,10 @@ export const ListaPersonal = ({
   };
 
   // ========================================================================================
-  // SOCKET HANDLERS (only configured if socket is available)
+  // HANDLERS DE SOCKET (solo se configuran si socket está disponible)
   // ========================================================================================
 
-  // Refs to maintain reference to handlers
+  // Refs para mantener referencia a los handlers
   const seAcabaDeMarcarLaAsistenciaDeEstePersonalHandlerRef =
     useRef<InstanceType<
       typeof TomaAsistenciaPersonalSIU01Events.SE_ACABA_DE_MARCAR_LA_ASISTENCIA_DE_ESTE_PERSONAL_HANDLER
@@ -506,17 +506,17 @@ export const ListaPersonal = ({
       typeof TomaAsistenciaPersonalSIU01Events.SE_ACABA_DE_ELIMINAR_LA_ASISTENCIA_DE_ESTE_PERSONAL_HANDLER
     > | null>(null);
 
-  // Configure handlers when the socket is REALLY ready and we are not waiting
+  // Configurar handlers cuando el socket esté REALMENTE listo y no estemos esperando
   useEffect(() => {
     if (!isReady || !globalSocket || esperandoConexionSocket) {
       return;
     }
 
-    console.log("🎧 Configuring socket handlers...");
+    console.log("🎧 Configurando handlers de socket...");
 
     //HANDLERS
 
-    // Configure handler for greeting response (original style)
+    // Configurar handler para respuesta de saludo (estilo original)
     seAcabaDeMarcarLaAsistenciaDeEstePersonalHandlerRef.current =
       new TomaAsistenciaPersonalSIU01Events.SE_ACABA_DE_MARCAR_LA_ASISTENCIA_DE_ESTE_PERSONAL_HANDLER(
         async ({
@@ -545,7 +545,7 @@ export const ListaPersonal = ({
         }
       );
 
-    // Register handler (original style)
+    // Registrar el handler (estilo original)
     seAcabaDeMarcarLaAsistenciaDeEstePersonalHandlerRef.current.hand();
 
     seAcabaDeEliminarLaAsistenciaDeEstePersonalHandlerRef.current =
@@ -578,7 +578,7 @@ export const ListaPersonal = ({
 
     seAcabaDeEliminarLaAsistenciaDeEstePersonalHandlerRef.current.hand();
 
-    // Cleanup on unmount or socket change (original style)
+    // Cleanup al desmontar o cambiar de socket (estilo original)
     return () => {
       if (seAcabaDeMarcarLaAsistenciaDeEstePersonalHandlerRef.current) {
         seAcabaDeMarcarLaAsistenciaDeEstePersonalHandlerRef.current.unhand();
@@ -589,32 +589,32 @@ export const ListaPersonal = ({
         seAcabaDeEliminarLaAsistenciaDeEstePersonalHandlerRef.current = null;
       }
     };
-  }, [isReady, esperandoConexionSocket]); // 🚀 NEW DEPENDENCY
+  }, [isReady, esperandoConexionSocket]); // 🚀 NUEVA DEPENDENCIA
 
   const actualizarInterfazPorEliminacionDeAsistencia = (
     personal: Omit<PersonalParaTomarAsistencia, "GoogleDriveFotoId">
   ) => {
-    // ✅ Update the map of registered attendances (delete the entry)
+    // ✅ Actualizar el mapa de asistencias registradas (eliminar la entrada)
     setAsistenciasRegistradas((prev) => {
       const nuevo = new Map(prev);
       nuevo.delete(personal.idUsuario);
       return nuevo;
     });
 
-    // 🎯 NEW: Voice feedback for successful deletion
+    // 🎯 NUEVO: Feedback por voz para eliminación exitosa
     const speaker = Speaker.getInstance();
     speaker.start(
       `${
         modoRegistroTextos[modoRegistro]
-      } deleted for ${personal.Nombres.split(
+      } eliminada para ${personal.Nombres.split(
         " "
       ).shift()} ${personal.Apellidos.split(" ").shift()}`
     );
 
-    console.log("✅ Successful deletion, state updated");
+    console.log("✅ Eliminación exitosa, estado actualizado");
   };
 
-  // Handle attendance deletion WITH VOICE FEEDBACK
+  // Manejar eliminación de asistencia CON FEEDBACK DE VOZ
   const handleEliminarAsistencia = async (
     personal: PersonalParaTomarAsistencia
   ) => {
@@ -624,10 +624,10 @@ export const ListaPersonal = ({
       setEliminandoAsistencia(personal.idUsuario);
 
       console.log(
-        `🗑️ Starting attendance deletion for: ${personal.idUsuario}`
+        `🗑️ Iniciando eliminación de asistencia para: ${personal.idUsuario}`
       );
 
-      // Delete using the IndexedDB model
+      // Eliminar usando el modelo de IndexedDB
       const resultado = await asistenciaDePersonalIDB.eliminarAsistencia({
         idUsuario: personal.idUsuario,
         rol: rol,
@@ -645,17 +645,17 @@ export const ListaPersonal = ({
         );
 
         toast({
-          title: "Attendance deleted",
+          title: "Asistencia eliminada",
           description: resultado.mensaje,
           variant: "default",
         });
       } else {
-        // 🎯 NEW: Voice feedback for error in deletion
+        // 🎯 NUEVO: Feedback por voz para error en eliminación
         const speaker = Speaker.getInstance();
         speaker.start(
-          `Error deleting ${modoRegistroTextos[
+          `Error al eliminar ${modoRegistroTextos[
             modoRegistro
-          ].toLowerCase()} for ${personal.Nombres.split(" ").shift()}`
+          ].toLowerCase()} de ${personal.Nombres.split(" ").shift()}`
         );
 
         toast({
@@ -665,12 +665,12 @@ export const ListaPersonal = ({
         });
       }
     } catch (error) {
-      console.error("Error deleting attendance:", error);
+      console.error("Error al eliminar asistencia:", error);
 
-      // 🎯 NEW: Voice feedback for general error
+      // 🎯 NUEVO: Feedback por voz para error general
       const speaker = Speaker.getInstance();
       speaker.start(
-        `System error deleting ${modoRegistroTextos[
+        `Error del sistema al eliminar ${modoRegistroTextos[
           modoRegistro
         ].toLowerCase()}`
       );
@@ -678,7 +678,7 @@ export const ListaPersonal = ({
       const errorMessage =
         error instanceof Error
           ? error.message
-          : "Unknown error deleting attendance";
+          : "Error desconocido al eliminar asistencia";
 
       toast({
         title: "Error",
@@ -693,10 +693,10 @@ export const ListaPersonal = ({
   const textoRol = obtenerTextoRol(rol);
 
   // ========================================================================================
-  // CONDITIONAL RENDERS
+  // RENDERS CONDICIONALES
   // ========================================================================================
 
-  // 🚀 NEW: Show socket connection waiting status
+  // 🚀 NUEVO: Mostrar estado de espera de conexión de socket
   if (esperandoConexionSocket) {
     return (
       <div className="h-full w-full flex flex-col items-center justify-center">
@@ -706,66 +706,67 @@ export const ListaPersonal = ({
           </div>
           <p className="text-lg text-gray-700 mb-2">{mensajeConexion}</p>
           <p className="text-sm text-gray-500">
-            This will only take a few seconds...
+            Esto solo tomará unos segundos...
           </p>
         </div>
       </div>
     );
   }
 
-  // Show error if exists
+  // Mostrar error si existe
   if (error) {
     return (
       <div className="h-full w-full flex flex-col items-center justify-center">
         <div className="text-center max-w-md">
-          <p className="text-xl text-red-600 mb-2">System Error</p>
+          <p className="text-xl text-red-600 mb-2">Error del Sistema</p>
           <p className="text-sm text-gray-600 mb-4">{error.message}</p>
           <button
             onClick={() => setError(null)}
             className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
           >
-            Retry
+            Reintentar
           </button>
         </div>
       </div>
     );
   }
 
-  // Message when no staff
+  // Mensaje para cuando no hay personal
   if (personal.length === 0) {
     return (
       <div className="h-full w-full flex flex-col items-center justify-center">
         <p className="text-xl text-gray-600">
-          No staff available for this role
+          No hay personal disponible para este rol
         </p>
       </div>
     );
   }
 
   return (
-    <div className="h-full w-full flex flex-col pb-3 px-4 sm-only:pb-4 sm-only:px-3 md-only:pb-4 md-only:px-3 lg-only:pb-4 lg-only:px-4 bg-gradient-to-b from-white to-gray-50 overflow-auto">
-      {/* Fixed headers at the top - WITH INFORMATIONAL MESSAGE */}
+    <div className="h-full w-full flex flex-col pb-3 px-4 sm-only:pb-4 sm-only:px-3 md-only:pb-4 md-only:px-3 lg-only:pb-4 lg-only:px-4 xl-only:pb-4 xl-only:px-4 bg-gradient-to-b from-white to-gray-50 overflow-auto">
+      {/* Encabezados fijos en la parte superior - CON MENSAJE INFORMATIVO */}
       <div className="sticky top-0 bg-[#ffffff34] [backdrop-filter:blur(10px)] py-2 sm-only:py-3 md-only:py-3 lg-only:py-3 xl-only:py-4 z-[1] mb-2">
         <h2 className="text-base sm-only:text-lg md-only:text-lg lg-only:text-lg xl-only:text-xl font-bold text-blue-800 text-center leading-tight">
           {modoRegistroTextos[modoRegistro]} | {textoRol}
         </h2>
 
         <h3 className="text-lg sm-only:text-xl md-only:text-xl lg-only:text-2xl xl-only:text-2xl font-bold text-green-600 text-center leading-tight">
-          Now click on your name
+          Ahora haz clic en tu nombre
         </h3>
 
-        {/* 🆕 INFORMATIONAL MESSAGE ABOUT TIME LIMIT */}
+        {/* 🆕 MENSAJE INFORMATIVO SOBRE TIEMPO LÍMITE */}
         <div className="text-center mt-1 mb-2">
           <p className="text-xs sm-only:text-sm text-orange-600 font-medium">
-            💡 You have 5 minutes to cancel an attendance after registering it
+            💡 Tienes 5 minutos para cancelar una asistencia después de
+            registrarla
           </p>
         </div>
 
-        {/* 🚀 NEW: Socket status indicator */}
+        {/* 🚀 NUEVO: Indicador de estado de socket */}
         {!isReady && (
           <div className="text-center mt-1 mb-2">
             <p className="text-xs sm-only:text-sm text-amber-600 font-medium">
-              ⚠️ Running without real-time connection
+              ⚠️ Funcionando sin conexión de tiempo real
             </p>
           </div>
         )}
@@ -774,19 +775,19 @@ export const ListaPersonal = ({
           <p className="text-center text-blue-500 mt-1">
             <Loader2 className="inline-block w-4 h-4 mr-1 animate-spin" />
             {cargandoAsistencias
-              ? "Loading registered attendances..."
-              : "Processing attendance..."}
+              ? "Cargando asistencias registradas..."
+              : "Procesando asistencia..."}
           </p>
         )}
       </div>
 
-      {/* Centered container for cards */}
+      {/* Contenedor centrado para las tarjetas */}
       <div className="z-0 flex-1 flex justify-center">
         <div className="max-w-4xl w-full">
-          {/* List of people with flex-wrap */}
+          {/* Lista de personas con flex-wrap */}
           <div className="flex flex-wrap justify-center gap-2 sm-only:gap-3 md-only:gap-3 lg-only:gap-3 xl-only:gap-3">
             {personal.map((persona, index) => {
-              // ✅ NEW: Get the registered attendance for this person
+              // ✅ NUEVO: Obtener la asistencia registrada para esta persona
               const asistenciaPersona = asistenciasRegistradas.get(
                 persona.idUsuario
               );
@@ -796,11 +797,11 @@ export const ListaPersonal = ({
                   key={index}
                   personal={persona}
                   handlePersonalSeleccionado={handleMarcarAsistencia}
-                  handleEliminarAsistencia={handleEliminarAsistencia} // ← NEW: Pass deletion function
-                  asistenciaRegistrada={asistenciaPersona} // ← NEW: Pass attendance data
-                  timestampActual={timestampActual} // ← NEW: Pass Redux timestamp
+                  handleEliminarAsistencia={handleEliminarAsistencia} // ← NUEVO: Pasar función de eliminación
+                  asistenciaRegistrada={asistenciaPersona} // ← NUEVO: Pasar los datos de asistencia
+                  timestampActual={timestampActual} // ← NUEVO: Pasar timestamp de Redux
                   loading={procesando === persona.idUsuario}
-                  eliminando={eliminandoAsistencia === persona.idUsuario} // ← NEW: Deletion status
+                  eliminando={eliminandoAsistencia === persona.idUsuario} // ← NUEVO: Estado de eliminación
                   globalLoading={cargandoAsistencias || isLoading}
                 />
               );

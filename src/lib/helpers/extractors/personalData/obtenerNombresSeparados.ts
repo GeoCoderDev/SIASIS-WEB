@@ -1,16 +1,16 @@
 /**
- * Simple function to separate names by spaces
- * @param nombresCompletos - String with full names separated by spaces
- * @returns Array with separated names
+ * Función simple para separar nombres por espacios
+ * @param nombresCompletos - String con los nombres completos separados por espacios
+ * @returns Array con los nombres separados
  */
 export function obtenerNombresSeparados(nombresCompletos: string): string[] {
-  // Clean extra spaces and normalize
+  // Limpiar espacios extra y normalizar
   const nombresLimpio = nombresCompletos.trim().replace(/\s+/g, " ");
 
   if (!nombresLimpio) {
     return [];
   }
 
-  // Separate by simple spaces
+  // Separar por espacios simple
   return nombresLimpio.split(" ");
 }

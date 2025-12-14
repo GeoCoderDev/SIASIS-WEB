@@ -16,12 +16,12 @@ import AllErrorTypes, {
 } from "@/interfaces/shared/errors";
 
 /**
- * 🎯 RESPONSIBILITY: Centralized error handling
- * - Classify error types
- * - Decide recovery strategies
- * - Handle logout when necessary
- * - Provide useful error messages
- * - Log errors for debugging
+ * 🎯 RESPONSABILIDAD: Manejo centralizado de errores
+ * - Clasificar tipos de errores
+ * - Decidir estrategias de recuperación
+ * - Manejar logout cuando sea necesario
+ * - Proporcionar mensajes de error útiles
+ * - Registrar errores para debugging
  */
 export class AsistenciaDePersonalErrorHandler {
   private setIsSomethingLoading?: (isLoading: boolean) => void;
@@ -39,7 +39,7 @@ export class AsistenciaDePersonalErrorHandler {
   }
 
   /**
-   * Handles errors according to their type and performs logout if necessary
+   * Maneja los errores según su tipo y realiza logout si es necesario
    */
   public handleError(
     error: unknown,
@@ -74,27 +74,27 @@ export class AsistenciaDePersonalErrorHandler {
   }
 
   /**
-   * Handles IndexedDB operation errors adapted to the current pattern
+   * Maneja errores de operaciones con IndexedDB adaptado al patrón actual
    */
   public handleIndexedDBError(error: unknown, operacion: string): void {
-    console.error(`Error in IndexedDB operation (${operacion}):`, error);
+    console.error(`Error en operación IndexedDB (${operacion}):`, error);
 
     let errorType: AllErrorTypes = SystemErrorTypes.UNKNOWN_ERROR;
-    let message = `Error during ${operacion}`;
+    let message = `Error al ${operacion}`;
 
     if (error instanceof Error) {
       if (error.name === "ConstraintError") {
         errorType = DataConflictErrorTypes.VALUE_ALREADY_IN_USE;
-        message = `Constraint error during ${operacion}: duplicate value`;
+        message = `Error de restricción al ${operacion}: valor duplicado`;
       } else if (error.name === "NotFoundError") {
         errorType = UserErrorTypes.USER_NOT_FOUND;
-        message = `Resource not found during ${operacion}`;
+        message = `No se encontró el recurso al ${operacion}`;
       } else if (error.name === "QuotaExceededError") {
         errorType = SystemErrorTypes.DATABASE_ERROR;
-        message = `Storage exceeded during ${operacion}`;
+        message = `Almacenamiento excedido al ${operacion}`;
       } else if (error.name === "TransactionInactiveError") {
         errorType = SystemErrorTypes.DATABASE_ERROR;
-        message = `Inactive transaction during ${operacion}`;
+        message = `Transacción inactiva al ${operacion}`;
       } else {
         message = error.message || message;
       }
@@ -108,7 +108,7 @@ export class AsistenciaDePersonalErrorHandler {
   }
 
   /**
-   * Sets a success message using the current pattern
+   * Establece un mensaje de éxito usando el patrón actual
    */
   public handleSuccess(message: string): void {
     const successResponse: MessageProperty = { message };
@@ -116,33 +116,33 @@ export class AsistenciaDePersonalErrorHandler {
   }
 
   /**
-   * Handles specific API errors
+   * Maneja errores específicos de API
    */
   public handleAPIError(error: any, operacion: string): void {
-    console.error(`Error in API operation (${operacion}):`, error);
+    console.error(`Error en operación API (${operacion}):`, error);
 
     let errorType: AllErrorTypes = SystemErrorTypes.UNKNOWN_ERROR;
-    let message = `Error during ${operacion}`;
+    let message = `Error al ${operacion}`;
 
-    // Specific HTTP errors
+    // Errores HTTP específicos
     if (error?.response?.status === 404) {
       errorType = DataErrorTypes.NO_DATA_AVAILABLE;
-      message = `No data found for ${operacion}`;
+      message = `No se encontraron datos para ${operacion}`;
     } else if (error?.response?.status === 401) {
       errorType = UserErrorTypes.INVALID_CREDENTIALS;
-      message = `Not authorized for ${operacion}`;
+      message = `No autorizado para ${operacion}`;
     } else if (error?.response?.status === 403) {
       errorType = PermissionErrorTypes.INSUFFICIENT_PERMISSIONS;
-      message = `No permissions for ${operacion}`;
+      message = `Sin permisos para ${operacion}`;
     } else if (error?.response?.status === 500) {
       errorType = SystemErrorTypes.SERVER_ERROR;
-      message = `Server error during ${operacion}`;
+      message = `Error del servidor al ${operacion}`;
     } else if (error?.code === "NETWORK_ERROR") {
       errorType = NetworkErrorTypes.NETWORK_ERROR;
-      message = `Connection error during ${operacion}`;
+      message = `Error de conexión al ${operacion}`;
     } else if (error?.code === "TIMEOUT") {
       errorType = NetworkErrorTypes.TIMEOUT_ERROR;
-      message = `Timeout during ${operacion}`;
+      message = `Tiempo de espera agotado al ${operacion}`;
     } else if (error instanceof Error) {
       message = error.message || message;
     }
@@ -155,21 +155,21 @@ export class AsistenciaDePersonalErrorHandler {
   }
 
   /**
-   * Handles cache errors
+   * Maneja errores de cache
    */
   public handleCacheError(error: unknown, operacion: string): void {
-    console.error(`Error in cache operation (${operacion}):`, error);
+    console.error(`Error en operación de cache (${operacion}):`, error);
 
     let errorType: AllErrorTypes = SystemErrorTypes.DATABASE_ERROR;
-    let message = `Error in cache during ${operacion}`;
+    let message = `Error en cache al ${operacion}`;
 
     if (error instanceof Error) {
       if (error.name === "QuotaExceededError") {
         errorType = StorageErrorTypes.STORAGE_FULL;
-        message = `Cache full during ${operacion}`;
+        message = `Cache lleno al ${operacion}`;
       } else if (error.name === "NotFoundError") {
         errorType = DataErrorTypes.NO_DATA_AVAILABLE;
-        message = `Not found in cache during ${operacion}`;
+        message = `No se encontró en cache al ${operacion}`;
       } else {
         message = error.message || message;
       }
@@ -183,13 +183,13 @@ export class AsistenciaDePersonalErrorHandler {
   }
 
   /**
-   * Handles synchronization errors
+   * Maneja errores de sincronización
    */
   public handleSyncError(error: unknown, operacion: string): void {
-    console.error(`Error in synchronization (${operacion}):`, error);
+    console.error(`Error en sincronización (${operacion}):`, error);
 
     let errorType: AllErrorTypes = SyncErrorTypes.SYNC_ERROR;
-    let message = `Synchronization error during ${operacion}`;
+    let message = `Error de sincronización al ${operacion}`;
 
     if (error instanceof Error) {
       if (
@@ -197,10 +197,10 @@ export class AsistenciaDePersonalErrorHandler {
         error.message.includes("fetch")
       ) {
         errorType = NetworkErrorTypes.NETWORK_ERROR;
-        message = `Network error during synchronization for ${operacion}`;
+        message = `Error de red durante sincronización al ${operacion}`;
       } else if (error.message.includes("timeout")) {
         errorType = NetworkErrorTypes.TIMEOUT_ERROR;
-        message = `Timeout during synchronization for ${operacion}`;
+        message = `Tiempo agotado durante sincronización al ${operacion}`;
       } else {
         message = error.message || message;
       }
@@ -214,11 +214,11 @@ export class AsistenciaDePersonalErrorHandler {
   }
 
   /**
-   * Determines if an error requires logout
+   * Determina si un error requiere logout
    */
   public shouldLogout(error: unknown): boolean {
     if (error instanceof Error) {
-      // Critical errors that require logout
+      // Errores críticos que requieren logout
       const criticalErrors = [
         "QuotaExceededError",
         "SecurityError",
@@ -228,7 +228,7 @@ export class AsistenciaDePersonalErrorHandler {
       return criticalErrors.includes(error.name);
     }
 
-    // API errors that require logout
+    // Errores de API que requieren logout
     if (error && typeof error === "object") {
       const apiError = error as any;
       if (
@@ -243,7 +243,7 @@ export class AsistenciaDePersonalErrorHandler {
   }
 
   /**
-   * Gets the appropriate logout type for the error
+   * Obtiene el tipo de logout apropiado para el error
    */
   public getLogoutType(error: unknown): LogoutTypes {
     if (error instanceof Error) {
@@ -269,7 +269,7 @@ export class AsistenciaDePersonalErrorHandler {
   }
 
   /**
-   * Logs an error for debugging without showing it to the user
+   * Registra un error para debugging sin mostrar al usuario
    */
   public logError(
     error: unknown,
@@ -285,29 +285,29 @@ export class AsistenciaDePersonalErrorHandler {
   }
 
   /**
-   * Creates a user-friendly error message
+   * Crea un mensaje de error amigable para el usuario
    */
   public createUserFriendlyMessage(error: unknown, operacion: string): string {
     if (error instanceof Error) {
       switch (error.name) {
         case "QuotaExceededError":
-          return "Local storage is full. Please free up space or contact the administrator.";
+          return "El almacenamiento local está lleno. Por favor, libere espacio o contacte al administrador.";
         case "NetworkError":
-          return "No internet connection. Please check your connection and try again.";
+          return "No hay conexión a internet. Verifique su conexión y vuelva a intentar.";
         case "TimeoutError":
-          return "The operation took too long. Please try again in a few moments.";
+          return "La operación tardó demasiado tiempo. Vuelva a intentar en unos momentos.";
         case "NotFoundError":
-          return "The requested data was not found.";
+          return "No se encontraron los datos solicitados.";
         default:
-          return `Error during ${operacion}. If the problem persists, please contact technical support.`;
+          return `Error al ${operacion}. Si el problema persiste, contacte al soporte técnico.`;
       }
     }
 
-    return `An unexpected error occurred during ${operacion}. Please try again.`;
+    return `Ocurrió un error inesperado al ${operacion}. Por favor, intente nuevamente.`;
   }
 
   /**
-   * Handles errors with a recovery strategy
+   * Maneja errores con estrategia de recuperación
    */
   public handleErrorWithRecovery(
     error: unknown,
@@ -322,14 +322,14 @@ export class AsistenciaDePersonalErrorHandler {
       errorType: SystemErrorTypes.UNKNOWN_ERROR,
     });
 
-    // Execute recovery strategy if provided
+    // Ejecutar estrategia de recuperación si se proporciona
     if (recoveryStrategy) {
       recoveryStrategy().catch((recoveryError) => {
-        console.error("Error in recovery strategy:", recoveryError);
+        console.error("Error en estrategia de recuperación:", recoveryError);
       });
     }
 
-    // Decide whether to logout
+    // Decidir si hacer logout
     if (this.shouldLogout(error)) {
       const logoutType = this.getLogoutType(error);
       const errorDetails: ErrorDetailsForLogout = {
@@ -345,10 +345,10 @@ export class AsistenciaDePersonalErrorHandler {
   }
 
   /**
-   * Handles validation errors
+   * Maneja errores de validación
    */
   public handleValidationError(errores: string[], operacion: string): void {
-    const message = `Validation errors during ${operacion}: ${errores.join(
+    const message = `Errores de validación al ${operacion}: ${errores.join(
       ", "
     )}`;
 
@@ -359,21 +359,21 @@ export class AsistenciaDePersonalErrorHandler {
     });
   }
 
-  // ✅ FIXED - AsistenciaDePersonalErrorHandler.ts
+  // ✅ CORREGIDO - AsistenciaDePersonalErrorHandler.ts
   public clearErrors(): void {
     this.setError?.(null);
-    // ❌ DO NOT end loading here
+    // ❌ NO terminar loading aquí
     // this.setIsSomethingLoading?.(false);
   }
 
-  // ✅ NEW separate method if you need to clear loading
+  // ✅ NUEVO método separado si necesitas limpiar loading
   public clearErrorsAndLoading(): void {
     this.setError?.(null);
     this.setIsSomethingLoading?.(false);
   }
 
   /**
-   * Sets loading state
+   * Establece estado de loading
    */
   public setLoading(isLoading: boolean): void {
     this.setIsSomethingLoading?.(isLoading);

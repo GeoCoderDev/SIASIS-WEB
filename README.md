@@ -1,95 +1,96 @@
-# School Attendance System - Asunción 8 School (N° 20935)
+# Sistema de Asistencia Escolar - Colegio Asunción 8 (N° 20935)
 
-This project is a school attendance system designed for Asunción 8 School (N° 20935). Its main objective is to optimize the registration, monitoring, and control of student attendance, improving administrative efficiency and strengthening communication with parents/guardians.
-
----
-
-## Main Features
-
-- **Tardiness and Recurrent Absence Control:** Automatic notifications to parents/guardians after detecting patterns.
-- **Process Optimization:** Generation of Excel reports directly in Google Drive.
-- **Alerts and Notifications:** Alert system to keep school officials informed about critical situations.
-- **Specific Modules:** Management of students, teachers, events, parents/guardians, among others.
-- **Accessibility:** Compatibility with voice commands and hotkeys for visually impaired people.
-- **Bulk Data Loading:** Integration with CSV files to streamline bulk registrations.
+Este proyecto es un sistema de asistencia escolar diseñado para el Colegio Asunción 8 (N° 20935). Su objetivo principal es optimizar el registro, seguimiento y control de la asistencia de los estudiantes, mejorando la eficiencia administrativa y fortaleciendo la comunicación con los responsables.
 
 ---
 
-## Technologies Used
+## Características Principales
 
-- **Frontend:** Next.js 14 with TypeScript.
-- **Backend:** APIs deployed on Vercel with Node.js.
-- **Database:** PostgreSQL hosted on Neon.
-- **Email Notifications:** Resend for sending alerts.
-- **Cloud Storage:** Google Drive to save reports and files.
-- **Design:** Figma for prototypes and interfaces.
-- **Version Control:** Git and GitHub.
-
----
-
-## Methodology
-
-The **Scrum** methodology is followed, with development iterations and continuous deliveries. The adoption of **Scrumban** is being considered to optimize workflows.
+- **Control de Tardanzas y Faltas Recurrentes:** Notificaciones automáticas a responsables tras detectar patrones.
+- **Optimización de Procesos:** Generación de reportes en Excel directamente en Google Drive.
+- **Alertas y Notificaciones:** Sistema de alertas para mantener informados a los directivos sobre situaciones críticas.
+- **Módulos Específicos:** Administración de estudiantes, profesores, eventos, responsables, entre otros.
+- **Accesibilidad:** Compatibilidad con comandos de voz y teclas rápidas para personas ciegas.
+- **Carga Masiva de Datos:** Integración con archivos CSV para agilizar registros masivos.
 
 ---
 
-## Installation
+## Tecnologías Utilizadas
 
-1. Clone the repository:
+- **Frontend:** Next.js 14 con TypeScript.
+- **Backend:** APIs desplegadas en Vercel con Node.js.
+- **Base de Datos:** PostgreSQL alojada en Neon.
+- **Notificaciones por Correo:** Resend para envío de alertas.
+- **Almacenamiento en la Nube:** Google Drive para guardar reportes y archivos.
+- **Diseño:** Figma para prototipos e interfaces.
+- **Control de Versiones:** Git y GitHub.
+
+---
+
+## Metodología
+
+Se sigue la metodología **Scrum**, con iteraciones de desarrollo y entregas continuas. Se está considerando la adopción de **Scrumban** para optimizar los flujos de trabajo.
+
+---
+
+## Instalación
+
+1. Clona el repositorio:
    ```bash
-   git clone <repository-URL>
+   git clone <URL-del-repositorio>
    ```
-2. Install the dependencies:
+2. Instala las dependencias:
    ```bash
    npm install
    ```
-3. Configure the environment variables in a `.env` file.
-4. Run the project in development:
+3. Configura las variables de entorno en un archivo `.env`.
+4. Ejecuta el proyecto en desarrollo:
    ```bash
    npm run dev
    ```
 
 ---
 
-## Functionalities
+## Funcionalidades
 
-- **Student Management:** Registration, search, and data management.
-- **Reports:** Automatic generation of attendance reports.
-- **Automatic Notifications:** Email alerts in critical situations.
-- **Event Control:** Scheduling and monitoring of school activities.
-- **Attendance History:** Detailed tracking of attendance per student.
-- **Quick Access:** Support for hotkeys and voice commands.
-
----
-
-## Contributions
-
-Contributions to improve the system are welcome. To collaborate:
-1. Fork the repository.
-2. Create a new branch:
-   ```bash
-   git checkout -b feature/new-feature
-   ```
-3. Make your changes and commit them:
-   ```bash
-   git commit -m "Description of the changes"
-   ```
-4. Push your changes:
-   ```bash
-   git push origin feature/new-feature
-   ```
-5. Open a pull request.
+- **Administración de Estudiantes:** Registro, búsqueda y gestión de datos.
+- **Reportes:** Generación automática de reportes de asistencia.
+- **Notificaciones Automáticas:** Avisos por correo electrónico en situaciones críticas.
+- **Control de Eventos:** Programación y monitoreo de actividades escolares.
+- **Historial de Asistencia:** Seguimiento detallado de la asistencia por estudiante.
+- **Acceso Rápido:** Soporte para teclas rápidas y comandos de voz.
 
 ---
 
-## License
+## Contribuciones
 
-This project is under the **MIT** license.
+Se aceptan contribuciones para mejorar el sistema. Para colaborar:
+1. Haz un fork del repositorio.
+2. Crea una nueva rama:
+   ```bash
+   git checkout -b feature/nueva-funcionalidad
+   ```
+3. Realiza tus cambios y haz un commit:
+   ```bash
+   git commit -m "Descripción de los cambios"
+   ```
+4. Sube tus cambios:
+   ```bash
+   git push origin feature/nueva-funcionalidad
+   ```
+5. Abre un pull request.
 
 ---
 
-## Contact
+## Licencia
 
-- **Lead Developer:** Juan Chávez
-- **Email:** juanchavez@colegio20935.edu
-- **School:** Asunción 8 (N° 20935)
+Este proyecto está bajo la licencia **MIT**.
+
+---
+
+## Contacto
+
+- **Desarrollador Principal:** Juan Chávez
+- **Correo Electrónico:** juanchavez@colegio20935.edu
+- **Colegio:** Asunción 8 (N° 20935)
+

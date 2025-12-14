@@ -20,7 +20,7 @@ import ultimaActualizacionTablasLocalesIDB from "./UltimaActualizacionTablasLoca
 import { DatabaseModificationOperations } from "@/interfaces/shared/DatabaseModificationOperations";
 import { Endpoint_Get_Personal_Administrativo_API01 } from "@/lib/utils/backend/endpoints/api01/PersonalAdministrativo";
 
-// Type for the entity (without date attributes)
+// Tipo para la entidad (sin atributos de fechas)
 export type IPersonalAdministrativoLocal = PersonalAdministrativoSinContraseña;
 
 export interface IPersonalAdministrativoFilter {
@@ -44,7 +44,7 @@ export class PersonalAdministrativoIDB {
   ) {}
 
   /**
-   * Synchronization method that will be executed at the beginning of each operation
+   * Método de sincronización que se ejecutará al inicio de cada operación
    */
   private async sync(): Promise<void> {
     try {
@@ -54,81 +54,81 @@ export class PersonalAdministrativoIDB {
       );
 
       if (!debeSincronizar) {
-        // No need to synchronize
+        // No es necesario sincronizar
         return;
       }
 
-      // If we get here, we must synchronize
+      // Si llegamos aquí, debemos sincronizar
       await this.fetchYActualizarPersonalAdministrativo();
     } catch (error) {
       console.error(
-        "Error during administrative staff synchronization:",
+        "Error durante la sincronización de personal administrativo:",
         error
       );
-      this.handleIndexedDBError(error, "synchronize administrative staff");
+      this.handleIndexedDBError(error, "sincronizar personal administrativo");
     }
   }
 
   /**
-   * Gets the administrative staff from the API and updates them locally
-   * @returns Promise that resolves when the administrative staff has been updated
+   * Obtiene el personal administrativo desde la API y los actualiza localmente
+   * @returns Promise que se resuelve cuando el personal administrativo ha sido actualizado
    */
   private async fetchYActualizarPersonalAdministrativo(): Promise<void> {
     try {
-      // Extract the administrative staff from the response body
+      // Extraer el personal administrativo del cuerpo de la respuesta
       const { data: personalAdministrativo } =
         await Endpoint_Get_Personal_Administrativo_API01.realizarPeticion();
 
-      // Update administrative staff in the local database
+      // Actualizar personal administrativo en la base de datos local
       const result = await this.upsertFromServer(personalAdministrativo);
 
-      // Register the update in UltimaActualizacionTablasLocalesIDB
+      // Registrar la actualización en UltimaActualizacionTablasLocalesIDB
       await ultimaActualizacionTablasLocalesIDB.registrarActualizacion(
         this.tablaInfo.nombreLocal as TablasLocal,
         DatabaseModificationOperations.UPDATE
       );
 
       console.log(
-        `Administrative staff synchronization completed: ${personalAdministrativo.length} members processed (${result.created} created, ${result.updated} updated, ${result.deleted} deleted, ${result.errors} errors)`
+        `Sincronización de personal administrativo completada: ${personalAdministrativo.length} miembros procesados (${result.created} creados, ${result.updated} actualizados, ${result.deleted} eliminados, ${result.errors} errores)`
       );
     } catch (error) {
       console.error(
-        "Error getting and updating administrative staff:",
+        "Error al obtener y actualizar personal administrativo:",
         error
       );
 
-      // Determine the error type
+      // Determinar el tipo de error
       let errorType: AllErrorTypes = SystemErrorTypes.UNKNOWN_ERROR;
-      let message = "Error synchronizing administrative staff";
+      let message = "Error al sincronizar personal administrativo";
 
       if (error instanceof Error) {
-        // If it is a network error or connection problems
+        // Si es un error de red o problemas de conexión
         if (
           error.message.includes("network") ||
           error.message.includes("fetch")
         ) {
           errorType = SystemErrorTypes.EXTERNAL_SERVICE_ERROR;
-          message = "Network error synchronizing administrative staff";
+          message = "Error de red al sincronizar personal administrativo";
         }
-        // If it is an error related to the server response
-        else if (error.message.includes("get administrative staff")) {
+        // Si es un error relacionado con la respuesta del servidor
+        else if (error.message.includes("obtener personal administrativo")) {
           errorType = SystemErrorTypes.EXTERNAL_SERVICE_ERROR;
           message = error.message;
         }
-        // If it is an IndexedDB error
+        // Si es un error de IndexedDB
         else if (
           error.name === "TransactionInactiveError" ||
           error.name === "QuotaExceededError"
         ) {
           errorType = SystemErrorTypes.DATABASE_ERROR;
           message =
-            "Database error synchronizing administrative staff";
+            "Error de base de datos al sincronizar personal administrativo";
         } else {
           message = error.message;
         }
       }
 
-      // Set the error in the global state
+      // Establecer el error en el estado global
       this.setError?.({
         success: false,
         message: message,
@@ -145,25 +145,25 @@ export class PersonalAdministrativoIDB {
   }
 
   /**
-   * Gets all administrative staff
-   * @param includeInactive If true, includes inactive staff
-   * @returns Promise with the array of administrative staff
+   * Obtiene todo el personal administrativo
+   * @param includeInactive Si es true, incluye personal inactivo
+   * @returns Promesa con el array de personal administrativo
    */
   public async getAll(
     includeInactive: boolean = true
   ): Promise<IPersonalAdministrativoLocal[]> {
     this.setIsSomethingLoading?.(true);
-    this.setError?.(null); // Clear previous errors
-    this.setSuccessMessage?.(null); // Clear previous messages
+    this.setError?.(null); // Limpiar errores anteriores
+    this.setSuccessMessage?.(null); // Limpiar mensajes anteriores
 
     try {
-      // Execute synchronization before the operation
+      // Ejecutar sincronización antes de la operación
       await this.sync();
 
-      // Get the store
+      // Obtener el store
       const store = await IndexedDBConnection.getStore(this.nombreTablaLocal);
 
-      // Convert the IndexedDB callback API to promises
+      // Convertir la API de callbacks de IndexedDB a promesas
       const result = await new Promise<IPersonalAdministrativoLocal[]>(
         (resolve, reject) => {
           const request = store.getAll();
@@ -174,18 +174,18 @@ export class PersonalAdministrativoIDB {
         }
       );
 
-      // Filter inactive if necessary
+      // Filtrar inactivos si es necesario
       const personalAdministrativo = includeInactive
         ? result
         : result.filter((personal) => personal.Estado === true);
 
-      // Show success message with relevant information
+      // Mostrar mensaje de éxito con información relevante
       if (personalAdministrativo.length > 0) {
         this.handleSuccess(
-          `Found ${personalAdministrativo.length} administrative staff members`
+          `Se encontraron ${personalAdministrativo.length} miembros del personal administrativo`
         );
       } else {
-        this.handleSuccess("No administrative staff found");
+        this.handleSuccess("No se encontró personal administrativo");
       }
 
       this.setIsSomethingLoading?.(false);
@@ -193,16 +193,16 @@ export class PersonalAdministrativoIDB {
     } catch (error) {
       this.handleIndexedDBError(
         error,
-        "get administrative staff list"
+        "obtener lista de personal administrativo"
       );
       this.setIsSomethingLoading?.(false);
-      return []; // Return empty array in case of error
+      return []; // Devolvemos array vacío en caso de error
     }
   }
 
   /**
-   * Gets all DNIs of the administrative staff stored locally
-   * @returns Promise with array of DNIs
+   * Obtiene todos los DNIs del personal administrativo almacenados localmente
+   * @returns Promise con array de DNIs
    */
   private async getAllDNIs(): Promise<string[]> {
     try {
@@ -216,11 +216,11 @@ export class PersonalAdministrativoIDB {
           const cursor = (event.target as IDBRequest)
             .result as IDBCursorWithValue;
           if (cursor) {
-            // Add the DNI of the current administrative staff
+            // Añadir el DNI del personal administrativo actual
             dnis.push(cursor.value.Id_Personal_Administrativo);
             cursor.continue();
           } else {
-            // No more records, resolve with the array of DNIs
+            // No hay más registros, resolvemos con el array de DNIs
             resolve(dnis);
           }
         };
@@ -231,7 +231,7 @@ export class PersonalAdministrativoIDB {
       });
     } catch (error) {
       console.error(
-        "Error getting all administrative staff DNIs:",
+        "Error al obtener todos los DNIs del personal administrativo:",
         error
       );
       throw error;
@@ -239,8 +239,8 @@ export class PersonalAdministrativoIDB {
   }
 
   /**
-   * Deletes an administrative staff member by their DNI
-   * @param dni DNI of the administrative staff to delete
+   * Elimina un miembro del personal administrativo por su DNI
+   * @param dni DNI del personal administrativo a eliminar
    * @returns Promise<void>
    */
   private async deleteByDNI(dni: string): Promise<void> {
@@ -263,7 +263,7 @@ export class PersonalAdministrativoIDB {
       });
     } catch (error) {
       console.error(
-        `Error deleting administrative staff with DNI ${dni}:`,
+        `Error al eliminar personal administrativo con DNI ${dni}:`,
         error
       );
       throw error;
@@ -271,10 +271,10 @@ export class PersonalAdministrativoIDB {
   }
 
   /**
-   * Updates or creates administrative staff in batch from the server
-   * Also deletes records that no longer exist on the server
-   * @param personalAdministrativoServidor Administrative staff from the server
-   * @returns Count of operations: created, updated, deleted, errors
+   * Actualiza o crea personal administrativo en lote desde el servidor
+   * También elimina registros que ya no existen en el servidor
+   * @param personalAdministrativoServidor Personal administrativo proveniente del servidor
+   * @returns Conteo de operaciones: creados, actualizados, eliminados, errores
    */
   private async upsertFromServer(
     personalAdministrativoServidor: PersonalAdministrativoSinContraseña[]
@@ -287,34 +287,34 @@ export class PersonalAdministrativoIDB {
     const result = { created: 0, updated: 0, deleted: 0, errors: 0 };
 
     try {
-      // 1. Get current DNIs in cache
+      // 1. Obtener los DNIs actuales en caché
       const dnisLocales = await this.getAllDNIs();
 
-      // 2. Create a set of server DNIs for quick lookup
+      // 2. Crear conjunto de DNIs del servidor para búsqueda rápida
       const dnisServidor = new Set(
         personalAdministrativoServidor.map(
           (personal) => personal.Id_Personal_Administrativo
         )
       );
 
-      // 3. Identify DNIs that no longer exist on the server
+      // 3. Identificar DNIs que ya no existen en el servidor
       const dnisAEliminar = dnisLocales.filter((dni) => !dnisServidor.has(dni));
 
-      // 4. Delete records that no longer exist on the server
+      // 4. Eliminar registros que ya no existen en el servidor
       for (const dni of dnisAEliminar) {
         try {
           await this.deleteByDNI(dni);
           result.deleted++;
         } catch (error) {
           console.error(
-            `Error deleting administrative staff ${dni}:`,
+            `Error al eliminar personal administrativo ${dni}:`,
             error
           );
           result.errors++;
         }
       }
 
-      // 5. Process in batches to avoid excessively long transactions
+      // 5. Procesar en lotes para evitar transacciones demasiado largas
       const BATCH_SIZE = 20;
 
       for (
@@ -324,21 +324,21 @@ export class PersonalAdministrativoIDB {
       ) {
         const lote = personalAdministrativoServidor.slice(i, i + BATCH_SIZE);
 
-        // For each administrative staff member in the batch
+        // Para cada miembro del personal administrativo en el lote
         for (const personalServidor of lote) {
           try {
-            // Check if the administrative staff already exists
+            // Verificar si ya existe el personal administrativo
             const existePersonal = await this.getById(
               personalServidor.Id_Personal_Administrativo
             );
 
-            // Get a fresh store for each operation
+            // Obtener un store fresco para cada operación
             const store = await IndexedDBConnection.getStore(
               this.nombreTablaLocal,
               "readwrite"
             );
 
-            // Execute the put operation
+            // Ejecutar la operación put
             await new Promise<void>((resolve, reject) => {
               const request = store.put(personalServidor);
 
@@ -354,7 +354,7 @@ export class PersonalAdministrativoIDB {
               request.onerror = () => {
                 result.errors++;
                 console.error(
-                  `Error saving administrative staff ${personalServidor.Id_Personal_Administrativo}:`,
+                  `Error al guardar personal administrativo ${personalServidor.Id_Personal_Administrativo}:`,
                   request.error
                 );
                 reject(request.error);
@@ -363,28 +363,28 @@ export class PersonalAdministrativoIDB {
           } catch (error) {
             result.errors++;
             console.error(
-              `Error processing administrative staff ${personalServidor.Id_Personal_Administrativo}:`,
+              `Error al procesar personal administrativo ${personalServidor.Id_Personal_Administrativo}:`,
               error
             );
           }
         }
 
-        // Give the event loop a little break between batches
+        // Dar un pequeño respiro al bucle de eventos entre lotes
         await new Promise((resolve) => setTimeout(resolve, 0));
       }
 
       return result;
     } catch (error) {
-      console.error("Error in upsertFromServer operation:", error);
+      console.error("Error en la operación upsertFromServer:", error);
       result.errors++;
       return result;
     }
   }
 
   /**
-   * Gets an administrative staff member by their DNI
-   * @param dni DNI of the administrative staff
-   * @returns Found administrative staff or null
+   * Obtiene un miembro del personal administrativo por su DNI
+   * @param dni DNI del personal administrativo
+   * @returns Personal administrativo encontrado o null
    */
   public async getById(
     dni: string
@@ -407,28 +407,28 @@ export class PersonalAdministrativoIDB {
       );
     } catch (error) {
       console.error(
-        `Error getting administrative staff with DNI ${dni}:`,
+        `Error al obtener personal administrativo con DNI ${dni}:`,
         error
       );
       this.handleIndexedDBError(
         error,
-        `get administrative staff with DNI ${dni}`
+        `obtener personal administrativo con DNI ${dni}`
       );
       return null;
     }
   }
 
   /**
-   * Gets administrative staff by position
-   * @param cargo Position of the administrative staff
-   * @returns Array with the administrative staff that match the position
+   * Obtiene personal administrativo por cargo
+   * @param cargo Cargo del personal administrativo
+   * @returns Array con el personal administrativo que coincide con el cargo
    */
   public async getByCargo(
     cargo: string
   ): Promise<IPersonalAdministrativoLocal[]> {
     try {
       const store = await IndexedDBConnection.getStore(this.nombreTablaLocal);
-      const index = store.index("by_position");
+      const index = store.index("por_cargo");
 
       return new Promise<IPersonalAdministrativoLocal[]>((resolve, reject) => {
         const request = index.getAll(cargo);
@@ -443,20 +443,20 @@ export class PersonalAdministrativoIDB {
       });
     } catch (error) {
       console.error(
-        `Error getting administrative staff with position ${cargo}:`,
+        `Error al obtener personal administrativo con cargo ${cargo}:`,
         error
       );
       this.handleIndexedDBError(
         error,
-        `get administrative staff with position ${cargo}`
+        `obtener personal administrativo con cargo ${cargo}`
       );
       return [];
     }
   }
 
   /**
-   * Sets a success message
-   * @param message Success message
+   * Establece un mensaje de éxito
+   * @param message Mensaje de éxito
    */
   private handleSuccess(message: string): void {
     const successResponse: MessageProperty = { message };
@@ -464,32 +464,32 @@ export class PersonalAdministrativoIDB {
   }
 
   /**
-   * Handles errors from IndexedDB operations
-   * @param error The captured error
-   * @param operacion Name of the failed operation
+   * Maneja los errores de operaciones con IndexedDB
+   * @param error El error capturado
+   * @param operacion Nombre de la operación que falló
    */
   private handleIndexedDBError(error: unknown, operacion: string): void {
-    console.error(`Error in IndexedDB operation (${operacion}):`, error);
+    console.error(`Error en operación IndexedDB (${operacion}):`, error);
 
     let errorType: AllErrorTypes = SystemErrorTypes.UNKNOWN_ERROR;
-    let message = `Error when ${operacion}`;
+    let message = `Error al ${operacion}`;
 
     if (error instanceof Error) {
-      // Try to categorize the error by its message or name
+      // Intentar categorizar el error según su mensaje o nombre
       if (error.name === "ConstraintError") {
         errorType = DataConflictErrorTypes.VALUE_ALREADY_IN_USE;
-        message = `Constraint error when ${operacion}: duplicate value`;
+        message = `Error de restricción al ${operacion}: valor duplicado`;
       } else if (error.name === "NotFoundError") {
         errorType = UserErrorTypes.USER_NOT_FOUND;
-        message = `Resource not found when ${operacion}`;
+        message = `No se encontró el recurso al ${operacion}`;
       } else if (error.name === "QuotaExceededError") {
         errorType = SystemErrorTypes.DATABASE_ERROR;
-        message = `Storage exceeded when ${operacion}`;
+        message = `Almacenamiento excedido al ${operacion}`;
       } else if (error.name === "TransactionInactiveError") {
         errorType = SystemErrorTypes.DATABASE_ERROR;
-        message = `Inactive transaction when ${operacion}`;
+        message = `Transacción inactiva al ${operacion}`;
       } else {
-        // If we cannot categorize specifically, we use the error message
+        // Si no podemos categorizar específicamente, usamos el mensaje del error
         message = error.message || message;
       }
     }

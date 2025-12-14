@@ -1,15 +1,15 @@
 // ========================================================================================
-// SOCKET AND TIMEOUT CONFIGURATION
+// CONFIGURACIÓN DE SOCKET Y TIMEOUT
 // ========================================================================================
 
-// 🕒 Maximum socket connection timeout (4 seconds)
+// 🕒 Tiempo máximo de espera para conexión de socket (4 segundos)
 export const SOCKET_CONNECTION_TIMEOUT = 4000;
 
-// 🎨 Creative messages for connection waiting
-export const SOCKET_CONNECTION_MESSAGES = [
-  "🔐 Establishing secure connection...",
-  "🌐 Synchronizing with the system...",
-  "📡 Connecting to the server...",
-  "⚡ Preparing the environment...",
-  "🛡️ Verifying credentials...",
+// 🎨 Mensajes creativos para la espera de conexión
+export const MENSAJES_CONEXION_SOCKET = [
+  "🔐 Estableciendo conexión segura...",
+  "🌐 Sincronizando con el sistema...",
+  "📡 Conectando con el servidor...",
+  "⚡ Preparando el entorno...",
+  "🛡️ Verificando credenciales...",
 ];

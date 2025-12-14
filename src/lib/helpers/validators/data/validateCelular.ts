@@ -2,10 +2,10 @@ import { ValidationErrorTypes } from "../../../../interfaces/shared/errors";
 import { ValidationResult } from "./types";
 
 /**
- * Validates a Peruvian cell phone number
- * @param value - Value to validate
- * @param required - Indicates if the field is mandatory
- * @returns Validation result
+ * Valida un número de celular peruano
+ * @param value - Valor a validar
+ * @param required - Indica si el campo es obligatorio
+ * @returns Resultado de la validación
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function validatePhone(value: any, required: boolean): ValidationResult {
@@ -13,7 +13,7 @@ export function validatePhone(value: any, required: boolean): ValidationResult {
     return {
       isValid: false,
       errorType: ValidationErrorTypes.FIELD_REQUIRED,
-      errorMessage: "The cell phone number is required",
+      errorMessage: "El número de celular es requerido",
     };
   }
 
@@ -25,18 +25,18 @@ export function validatePhone(value: any, required: boolean): ValidationResult {
     return {
       isValid: false,
       errorType: ValidationErrorTypes.INVALID_FORMAT,
-      errorMessage: "The cell phone number must be a string",
+      errorMessage: "El número de celular debe ser una cadena de texto",
     };
   }
 
-  // Validate Peruvian cell phone format (9 digits starting with 9)
+  // Validar formato de celular peruano (9 dígitos comenzando con 9)
   const phoneRegex = /^9\d{8}$/;
   if (!phoneRegex.test(value)) {
     return {
       isValid: false,
       errorType: ValidationErrorTypes.INVALID_PHONE,
       errorMessage:
-        "The cell phone number must start with 9 and have 9 digits in total",
+        "El número de celular debe comenzar con 9 y tener 9 dígitos en total",
     };
   }
 

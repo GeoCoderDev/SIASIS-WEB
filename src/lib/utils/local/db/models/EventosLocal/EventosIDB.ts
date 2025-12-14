@@ -26,7 +26,7 @@ import AllErrorTypes, {
 export type IEventoLocal = Pick<T_Eventos, "Id_Evento" | "Nombre"> & {
   Fecha_Inicio: string;
   Fecha_Conclusion: string;
-  ultima_actualizacion?: number; // ⚠️ REMOVE queried_month and queried_year
+  ultima_actualizacion?: number; // ⚠️ ELIMINAR mes_consultado y año_consultado
 };
 
 export interface IEventoFilter {
@@ -51,35 +51,35 @@ export class EventosIDB {
     return fechaISO.split("T")[0];
   }
 
-  // NEW LOGIC: Synchronization based on last remote table modification
+  //  NUEVA LÓGICA: Sincronización basada en última modificación de tabla remota
   private async debeActualizarEventos(): Promise<boolean> {
     try {
-      console.log(`[SYNC] 📊 Checking if events should be updated...`);
+      console.log(`[SYNC] 📊 Verificando si debe actualizar eventos...`);
 
-      // Get last local update
+      // Obtener última actualización local
       const ultimaActLocal =
         await ultimaActualizacionTablasLocalesIDB.getByTabla(
           this.tablaInfo.nombreLocal as TablasLocal
         );
 
-      // Get last remote modification
+      // Obtener última modificación remota
       const ultimaModRemota = await new UltimaModificacionTablasIDB(
         this.siasisAPI
       ).getByTabla(this.tablaInfo.nombreRemoto!);
 
-      // If there is no local data, update
+      // Si no hay datos locales, actualizar
       if (!ultimaActLocal) {
-        console.log(`[SYNC] ❌ NO LOCAL DATA → MUST UPDATE`);
+        console.log(`[SYNC] ❌ NO HAY DATOS LOCALES → DEBE ACTUALIZAR`);
         return true;
       }
 
-      // If there is no remote modification, keep local
+      // Si no hay modificación remota, mantener local
       if (!ultimaModRemota) {
-        console.log(`[SYNC] ⚠️ NO REMOTE MOD. → KEEP LOCAL`);
+        console.log(`[SYNC] ⚠️ NO HAY MOD. REMOTA → MANTENER LOCAL`);
         return false;
       }
 
-      // Compare timestamps
+      // Comparar timestamps
       const timestampLocal = new Date(
         ultimaActLocal.Fecha_Actualizacion
       ).getTime();
@@ -87,34 +87,34 @@ export class EventosIDB {
         ultimaModRemota.Fecha_Modificacion
       ).getTime();
 
-      console.log(`[SYNC] 📊 Comparison:`);
+      console.log(`[SYNC] 📊 Comparación:`);
       console.log(`  Local:  ${new Date(timestampLocal).toISOString()}`);
-      console.log(`  Remote: ${new Date(timestampRemoto).toISOString()}`);
+      console.log(`  Remoto: ${new Date(timestampRemoto).toISOString()}`);
 
       const debeActualizar = timestampLocal < timestampRemoto;
       console.log(
-        `[SYNC] ${debeActualizar ? "🔄" : "✅"} Update? ${
-          debeActualizar ? "YES" : "NO"
+        `[SYNC] ${debeActualizar ? "🔄" : "✅"} ¿Actualizar? ${
+          debeActualizar ? "SÍ" : "NO"
         }`
       );
 
       return debeActualizar;
     } catch (error) {
       console.error(`[SYNC] ❌ ERROR:`, error);
-      // In case of error, it's better to update to be sure
+      // En caso de error, mejor actualizar para estar seguros
       return true;
     }
   }
 
-  // REPLACE fetchAndRefreshEventsByMonth with new global logic
+  //  REEMPLAZAR fetchYActualizarEventosPorMes con nueva lógica global
   private async fetchYActualizarTodosLosEventos(): Promise<void> {
-    console.log(`[API] 🌐 Querying ALL events...`);
+    console.log(`[API] 🌐 Consultando TODOS los eventos...`);
     let consultaExitosa = false;
 
     try {
       const { fetchSiasisAPI } = fetchSiasisApiGenerator(this.siasisAPI);
 
-      // Query WITHOUT month/year filters to get ALL active events
+      // Consultar SIN filtros de mes/año para obtener TODOS los eventos activos
       const endpoint = `/api/eventos`;
 
       const fetchCancelable = await fetchSiasisAPI({
@@ -123,19 +123,19 @@ export class EventosIDB {
       });
 
       if (!fetchCancelable) {
-        throw new Error("Could not create request");
+        throw new Error("No se pudo crear la petición");
       }
 
       const response = await fetchCancelable.fetch();
 
       if (!response.ok) {
-        throw new Error(`HTTP Error: ${response.statusText}`);
+        throw new Error(`Error HTTP: ${response.statusText}`);
       }
 
       const objectResponse = (await response.json()) as ApiResponseBase;
 
       if (!objectResponse.success) {
-        throw new Error(`Error in response: ${objectResponse.message}`);
+        throw new Error(`Error en respuesta: ${objectResponse.message}`);
       }
 
       const { data: eventosServidor } =
@@ -143,17 +143,17 @@ export class EventosIDB {
       const cantidadEventos = eventosServidor?.length || 0;
       consultaExitosa = true;
 
-      console.log(`[API] ✅ Response: ${cantidadEventos} events`);
+      console.log(`[API] ✅ Respuesta: ${cantidadEventos} eventos`);
 
-      // CLEAR ALL previous events
+      // LIMPIAR TODOS los eventos anteriores
       try {
         await this.eliminarTodosLosEventos();
-        console.log(`[IDB] 🗑️ Previous events deleted`);
+        console.log(`[IDB] 🗑️ Eventos anteriores eliminados`);
       } catch (e) {
-        console.warn(`[IDB] ⚠️ Error clearing (continuing):`, e);
+        console.warn(`[IDB] ⚠️ Error limpiando (continuando):`, e);
       }
 
-      // Save events only if there are any
+      // Guardar eventos solo si hay
       if (cantidadEventos > 0) {
         try {
           const eventosNormalizados: IEventoLocal[] = eventosServidor.map(
@@ -164,41 +164,41 @@ export class EventosIDB {
                 String(evento.Fecha_Conclusion)
               ),
               ultima_actualizacion: Date.now(),
-              // ⚠️ DO NOT include queried_month or queried_year
+              // ⚠️ NO incluir mes_consultado ni año_consultado
             })
           );
 
           await this.guardarEventos(eventosNormalizados);
-          console.log(`[IDB] ✅ ${cantidadEventos} events saved`);
+          console.log(`[IDB] ✅ ${cantidadEventos} eventos guardados`);
         } catch (e) {
-          console.error(`[IDB] ❌ Error saving events:`, e);
-          throw e; // Propagate error to be handled in the main catch
+          console.error(`[IDB] ❌ Error guardando eventos:`, e);
+          throw e; // Propagar error para que se maneje en el catch principal
         }
       } else {
-        console.log(`[IDB] ℹ️ No active events`);
+        console.log(`[IDB] ℹ️ No hay eventos activos`);
       }
     } catch (error) {
-      console.error(`[API] ❌ Error in query:`, error);
+      console.error(`[API] ❌ Error en consulta:`, error);
       this.setError?.({
         success: false,
-        message: `Error synchronizing: ${
+        message: `Error al sincronizar: ${
           error instanceof Error ? error.message : String(error)
         }`,
         errorType: SystemErrorTypes.EXTERNAL_SERVICE_ERROR,
       });
-      throw error; // Re-throw to be handled above
+      throw error; // Re-lanzar para que se maneje arriba
     } finally {
-      // Register update only if successful
+      // Registrar actualización solo si fue exitosa
       if (consultaExitosa) {
         try {
           await ultimaActualizacionTablasLocalesIDB.registrarActualizacion(
             this.tablaInfo.nombreLocal as TablasLocal,
             DatabaseModificationOperations.UPDATE
           );
-          console.log(`[FINALLY] ✅ Update registered`);
+          console.log(`[FINALLY] ✅ Actualización registrada`);
         } catch (errorFinal) {
           console.error(
-            `[FINALLY] ❌ ERROR registering update:`,
+            `[FINALLY] ❌ ERROR registrando actualización:`,
             errorFinal
           );
         }
@@ -206,7 +206,7 @@ export class EventosIDB {
     }
   }
 
-  // NEW method to delete ALL events
+  //  NUEVO método para eliminar TODOS los eventos
   private async eliminarTodosLosEventos(): Promise<void> {
     try {
       const store = await IndexedDBConnection.getStore(
@@ -215,20 +215,20 @@ export class EventosIDB {
       );
 
       await new Promise<void>((resolve, reject) => {
-        const request = store.clear(); // Delete all records
+        const request = store.clear(); // Eliminar todos los registros
         request.onsuccess = () => {
-          console.log(`[IDB] 🗑️ All events deleted`);
+          console.log(`[IDB] 🗑️ Todos los eventos eliminados`);
           resolve();
         };
         request.onerror = () => reject(request.error);
       });
     } catch (error) {
-      console.error(`[IDB] ❌ Error deleting all events:`, error);
+      console.error(`[IDB] ❌ Error eliminando todos los eventos:`, error);
       throw error;
     }
   }
 
-  // NEW method to get events that affect a specific month
+  //  NUEVO método para obtener eventos que afectan a un mes específico
   private obtenerEventosQueAfectanMes(
     todosEventos: IEventoLocal[],
     mes: number,
@@ -241,13 +241,13 @@ export class EventosIDB {
       const fechaInicio = new Date(evento.Fecha_Inicio + "T00:00:00");
       const fechaConclusion = new Date(evento.Fecha_Conclusion + "T00:00:00");
 
-      // The event affects the month if:
-      // - It starts before or during the month AND ends during or after the month
+      // El evento afecta al mes si:
+      // - Comienza antes o durante el mes Y termina durante o después del mes
       return fechaInicio <= ultimoDiaMes && fechaConclusion >= primerDiaMes;
     });
   }
 
-  // REPLACE getEventsByMonth with new logic
+  //  REEMPLAZAR getEventosPorMes con nueva lógica
   public async getEventosPorMes(
     mes: number,
     año?: number
@@ -257,11 +257,11 @@ export class EventosIDB {
     this.setSuccessMessage?.(null);
 
     try {
-      // Validate month
+      // Validar mes
       if (mes < 1 || mes > 12) {
         this.setError?.({
           success: false,
-          message: "The month must be between 1 and 12",
+          message: "El mes debe estar entre 1 y 12",
           errorType: SystemErrorTypes.UNKNOWN_ERROR,
         });
         return [];
@@ -270,36 +270,36 @@ export class EventosIDB {
       const añoFinal = año || new Date().getFullYear();
 
       console.log(
-        `\n[EVENTS] ========== QUERY ${mes}/${añoFinal} ==========`
+        `\n[EVENTOS] ========== CONSULTA ${mes}/${añoFinal} ==========`
       );
 
-      // Check if ALL events should be updated
+      // Verificar si debe actualizar TODOS los eventos
       const debeActualizar = await this.debeActualizarEventos();
 
       if (debeActualizar) {
-        console.log(`[EVENTS] 🔄 UPDATING all events...`);
+        console.log(`[EVENTOS] 🔄 ACTUALIZANDO todos los eventos...`);
         await this.fetchYActualizarTodosLosEventos();
       } else {
-        console.log(`[EVENTS] ✅ Local events updated`);
+        console.log(`[EVENTOS] ✅ Eventos locales actualizados`);
       }
 
-      // Get ALL local events
+      // Obtener TODOS los eventos locales
       const todosEventos = await this.obtenerTodosLosEventosLocales();
 
-      // Filter only those that affect the queried month
+      // Filtrar solo los que afectan al mes consultado
       const eventosDelMes = this.obtenerEventosQueAfectanMes(
         todosEventos,
         mes,
         añoFinal
       );
 
-      console.log(`[EVENTS] 📊 Results:`);
-      console.log(`  Total events: ${todosEventos.length}`);
+      console.log(`[EVENTOS] 📊 Resultados:`);
+      console.log(`  Total eventos: ${todosEventos.length}`);
       console.log(
-        `  Events for month ${mes}/${añoFinal}: ${eventosDelMes.length}`
+        `  Eventos del mes ${mes}/${añoFinal}: ${eventosDelMes.length}`
       );
 
-      // Sort by start date
+      // Ordenar por fecha de inicio
       eventosDelMes.sort(
         (a, b) =>
           new Date(a.Fecha_Inicio + "T00:00:00").getTime() -
@@ -307,22 +307,22 @@ export class EventosIDB {
       );
 
       this.handleSuccess(
-        `Found ${eventosDelMes.length} event(s) for ${mes}/${añoFinal}`
+        `Se encontraron ${eventosDelMes.length} evento(s) para ${mes}/${añoFinal}`
       );
 
-      console.log(`[EVENTS] ========== QUERY COMPLETED ==========\n`);
+      console.log(`[EVENTOS] ========== CONSULTA COMPLETADA ==========\n`);
 
       return eventosDelMes;
     } catch (error) {
-      console.error(`❌ Error in getEventsByMonth():`, error);
-      this.handleIndexedDBError(error, `get events for month ${mes}/${año}`);
+      console.error(`❌ Error en getEventosPorMes():`, error);
+      this.handleIndexedDBError(error, `obtener eventos del mes ${mes}/${año}`);
       return [];
     } finally {
       this.setIsSomethingLoading?.(false);
     }
   }
 
-  // NEW method to get all local events
+  //  NUEVO método para obtener todos los eventos locales
   private async obtenerTodosLosEventosLocales(): Promise<IEventoLocal[]> {
     try {
       const store = await IndexedDBConnection.getStore(this.nombreTablaLocal);
@@ -332,37 +332,37 @@ export class EventosIDB {
 
         request.onsuccess = () => {
           const eventos = request.result as IEventoLocal[];
-          console.log(`[IDB] 📦 ${eventos.length} local events obtained`);
+          console.log(`[IDB] 📦 ${eventos.length} eventos locales obtenidos`);
           resolve(eventos);
         };
 
         request.onerror = () => reject(request.error);
       });
     } catch (error) {
-      console.error(`[IDB] ❌ Error getting all events:`, error);
+      console.error(`[IDB] ❌ Error obteniendo todos los eventos:`, error);
       throw error;
     }
   }
 
-  // UPDATE getAll to use the new logic
+  //  ACTUALIZAR getAll para usar la nueva lógica
   public async getAll(filtros?: IEventoFilter): Promise<IEventoLocal[]> {
-    // If there is a month filter, use getEventsByMonth
+    // Si hay filtro de mes, usar getEventosPorMes
     if (filtros?.mes) {
       return this.getEventosPorMes(filtros.mes, filtros.año);
     }
 
     try {
-      // Check if it should update
+      // Verificar si debe actualizar
       const debeActualizar = await this.debeActualizarEventos();
 
       if (debeActualizar) {
         await this.fetchYActualizarTodosLosEventos();
       }
 
-      // Get all events
+      // Obtener todos los eventos
       const todosEventos = await this.obtenerTodosLosEventosLocales();
 
-      // Apply filters if they exist
+      // Aplicar filtros si existen
       let eventosFiltrados = todosEventos;
 
       if (filtros) {
@@ -380,10 +380,10 @@ export class EventosIDB {
         });
       }
 
-      this.handleSuccess(`Found ${eventosFiltrados.length} event(s)`);
+      this.handleSuccess(`Se encontraron ${eventosFiltrados.length} evento(s)`);
       return eventosFiltrados;
     } catch (error) {
-      this.handleIndexedDBError(error, "get event list");
+      this.handleIndexedDBError(error, "obtener lista de eventos");
       return [];
     }
   }
@@ -403,7 +403,7 @@ export class EventosIDB {
         });
       }
     } catch (error) {
-      console.error(`[IDB] ❌ Error saving:`, error);
+      console.error(`[IDB] ❌ Error guardando:`, error);
       throw error;
     }
   }
@@ -418,7 +418,7 @@ export class EventosIDB {
         request.onerror = () => reject(request.error);
       });
     } catch (error) {
-      this.handleIndexedDBError(error, `get event with ID ${id}`);
+      this.handleIndexedDBError(error, `obtener evento con ID ${id}`);
       return null;
     }
   }
@@ -429,19 +429,19 @@ export class EventosIDB {
       const mes = fechaObj.getMonth() + 1;
       const año = fechaObj.getFullYear();
 
-      // Get events of the month
+      // Obtener eventos del mes
       const eventos = await this.getEventosPorMes(mes, año);
 
       const fechaBuscada = new Date(fecha + "T00:00:00");
 
-      // Check if the date is within any event
+      // Verificar si la fecha está dentro de algún evento
       return eventos.some((evento) => {
         const fechaInicio = new Date(evento.Fecha_Inicio + "T00:00:00");
         const fechaConclusion = new Date(evento.Fecha_Conclusion + "T00:00:00");
         return fechaBuscada >= fechaInicio && fechaBuscada <= fechaConclusion;
       });
     } catch (error) {
-      console.error(`[EVENTS] ❌ Error in hayEventoEnFecha:`, error);
+      console.error(`[EVENTOS] ❌ Error en hayEventoEnFecha:`, error);
       return false;
     }
   }
@@ -452,18 +452,18 @@ export class EventosIDB {
 
   private handleIndexedDBError(error: unknown, operacion: string): void {
     let errorType: AllErrorTypes = SystemErrorTypes.UNKNOWN_ERROR;
-    let message = `Error when ${operacion}`;
+    let message = `Error al ${operacion}`;
 
     if (error instanceof Error) {
       if (error.name === "ConstraintError") {
         errorType = DataConflictErrorTypes.VALUE_ALREADY_IN_USE;
-        message = `Constraint error when ${operacion}`;
+        message = `Error de restricción al ${operacion}`;
       } else if (error.name === "NotFoundError") {
         errorType = UserErrorTypes.USER_NOT_FOUND;
-        message = `Resource not found when ${operacion}`;
+        message = `No se encontró el recurso al ${operacion}`;
       } else if (error.name === "QuotaExceededError") {
         errorType = SystemErrorTypes.DATABASE_ERROR;
-        message = `Storage exceeded when ${operacion}`;
+        message = `Almacenamiento excedido al ${operacion}`;
       } else {
         message = error.message || message;
       }

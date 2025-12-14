@@ -33,13 +33,13 @@ export const useSS01 = () => {
 
   const dispatch = useDispatch<AppDispatch>();
 
-  // Get token on initialization
+  // Obtener token al inicializar
   const getToken = useCallback(async () => {
     try {
       const currentToken = await userStorage.getAuthToken();
       setToken(currentToken);
     } catch (error) {
-      console.error("Error getting token:", error);
+      console.error("Error al obtener token:", error);
       setToken(null);
     }
   }, []);
@@ -51,14 +51,14 @@ export const useSS01 = () => {
     }
   }, [getToken, isInitialized]);
 
-  // Create Socket.IO connection
+  // Crear conexión Socket.IO
   const createSocketConnection = useCallback(() => {
     if (!token || connectionAttemptRef.current || globalSocket) {
       return;
     }
 
     connectionAttemptRef.current = true;
-    console.log("🚀 [useSS01] Creating Socket.IO connection");
+    console.log("🚀 [useSS01] Creando conexión Socket.IO");
 
     try {
       const socketConnection = io(process.env.NEXT_PUBLIC_SS01_URL_BASE!, {
@@ -73,15 +73,15 @@ export const useSS01 = () => {
         reconnectionDelay: 1000,
       });
 
-      // Configure event listeners
+      // Configurar event listeners
       socketConnection.on("connect", () => {
-        console.log("✅ [useSS01] Connected to SS01 server");
+        console.log("✅ [useSS01] Conectado al servidor SS01");
 
         setTimeout(() => {
           if (socketConnection.connected) {
             setIsReallyConnected(true);
             dispatch(setConnectionStatus({ value: true }));
-            // Automatically assign to events class
+            // Asignar automáticamente a la clase de eventos
             TomaAsistenciaPersonalSIU01Events.socketConnection =
               socketConnection;
             setIsReady(true);
@@ -90,7 +90,7 @@ export const useSS01 = () => {
       });
 
       socketConnection.on("disconnect", (reason: any) => {
-        console.log("❌ [useSS01] Disconnected:", reason);
+        console.log("❌ [useSS01] Desconectado:", reason);
         setIsReallyConnected(false);
         setIsReady(false);
         dispatch(setConnectionStatus({ value: false }));
@@ -98,7 +98,7 @@ export const useSS01 = () => {
       });
 
       socketConnection.on("connect_error", (error: any) => {
-        console.error("💥 [useSS01] Connection error:", error);
+        console.error("💥 [useSS01] Error de conexión:", error);
         setIsReallyConnected(false);
         setIsReady(false);
         dispatch(setConnectionError({ value: error.message }));
@@ -107,7 +107,7 @@ export const useSS01 = () => {
       });
 
       socketConnection.on("reconnect", (attemptNumber: any) => {
-        console.log("🔄 [useSS01] Reconnected. Attempt:", attemptNumber);
+        console.log("🔄 [useSS01] Reconectado. Intento:", attemptNumber);
 
         setTimeout(() => {
           if (socketConnection.connected) {
@@ -124,17 +124,17 @@ export const useSS01 = () => {
       socketRef.current = socketConnection;
       dispatch(setGlobalSocket({ value: socketConnection }));
     } catch (error) {
-      console.error("❌ [useSS01] Error creating connection:", error);
+      console.error("❌ [useSS01] Error al crear conexión:", error);
       connectionAttemptRef.current = false;
       setIsReallyConnected(false);
       setIsReady(false);
     }
   }, [token, globalSocket, dispatch]);
 
-  // Cleanup connection
+  // Limpiar conexión
   const cleanupConnection = useCallback(() => {
     if (socketRef.current) {
-      console.log("🧹 [useSS01] Cleaning up connection");
+      console.log("🧹 [useSS01] Limpiando conexión");
       socketRef.current.removeAllListeners();
       socketRef.current.disconnect();
       socketRef.current = null;
@@ -146,46 +146,46 @@ export const useSS01 = () => {
     TomaAsistenciaPersonalSIU01Events.socketConnection = null;
   }, [dispatch]);
 
-  // Create connection when we have token
+  // Crear conexión cuando tengamos token
   useEffect(() => {
     if (token && !globalSocket && !connectionAttemptRef.current) {
       createSocketConnection();
     }
   }, [token, globalSocket, createSocketConnection]);
 
-  // Cleanup on unmount
+  // Cleanup al desmontar
   useEffect(() => {
     return () => {
       cleanupConnection();
     };
   }, [cleanupConnection]);
 
-  // Simplified debug
+  // Debug simplificado
   const getDebugInfo = useCallback(() => {
     const status = TomaAsistenciaPersonalSIU01Events.getConnectionStatus();
 
     return {
-      // Hook states
+      // Estados del hook
       hookIsConnected: isConnected,
       hookIsReallyConnected: isReallyConnected,
       hookIsReady: isReady,
 
-      // Global socket states
+      // Estados del socket global
       globalSocketExists: !!globalSocket,
       globalSocketConnected: globalSocket?.connected,
       globalSocketId: globalSocket?.id,
 
-      // Events class states
+      // Estados de la clase de eventos
       classSocketExists: !!TomaAsistenciaPersonalSIU01Events.socketConnection,
       classSocketConnected:
         TomaAsistenciaPersonalSIU01Events.socketConnection?.connected,
 
-      // Class status
+      // Status de la clase
       classStatus: status,
     };
   }, [globalSocket, isConnected, isReallyConnected, isReady]);
 
-  // Helper functions
+  // Funciones helper
   const disconnect = useCallback(() => {
     cleanupConnection();
   }, [cleanupConnection]);
@@ -198,18 +198,18 @@ export const useSS01 = () => {
   }, [cleanupConnection, createSocketConnection]);
 
   return {
-    // Main states
+    // Estados principales
     globalSocket,
     isConnected,
     isReallyConnected,
     isReady,
 
-    // Utilities
+    // Utilidades
     getDebugInfo,
     disconnect,
     reconnect,
 
-    // For backwards compatibility
+    // Para retrocompatibilidad
     token: !!token,
   };
 };

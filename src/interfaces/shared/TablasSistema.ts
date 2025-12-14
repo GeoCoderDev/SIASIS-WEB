@@ -1,9 +1,9 @@
 /**
- * Enum containing the names of tables in the remote database.
- * Allows to intuitively reference server tables in the code.
+ * Enum que contiene los nombres de las tablas en la base de datos remota.
+ * Permite referenciar las tablas del servidor de manera más intuitiva en el código.
  */
 export enum TablasRemoto {
-  // Users and roles
+  // Usuarios y roles
   Tabla_Directivos = "T_Directivos",
   Tabla_Auxiliares = "T_Auxiliares",
   Tabla_Profesores_Primaria = "T_Profesores_Primaria",
@@ -11,11 +11,11 @@ export enum TablasRemoto {
   Tabla_Personal_Administrativo = "T_Personal_Administrativo",
   Tabla_Responsables = "T_Responsables",
 
-  // Students and attendance
+  // Estudiantes y asistencia
   Tabla_Estudiantes = "T_Estudiantes",
   Tabla_Relaciones_E_R = "T_Relaciones_E_R",
 
-  // Primary attendance tables
+  // Tablas de asistencia primaria
   Tabla_Asistencia_Primaria_1 = "T_A_E_P_1",
   Tabla_Asistencia_Primaria_2 = "T_A_E_P_2",
   Tabla_Asistencia_Primaria_3 = "T_A_E_P_3",
@@ -23,20 +23,20 @@ export enum TablasRemoto {
   Tabla_Asistencia_Primaria_5 = "T_A_E_P_5",
   Tabla_Asistencia_Primaria_6 = "T_A_E_P_6",
 
-  // Secondary attendance tables
+  // Tablas de asistencia secundaria
   Tabla_Asistencia_Secundaria_1 = "T_A_E_S_1",
   Tabla_Asistencia_Secundaria_2 = "T_A_E_S_2",
   Tabla_Asistencia_Secundaria_3 = "T_A_E_S_3",
   Tabla_Asistencia_Secundaria_4 = "T_A_E_S_4",
   Tabla_Asistencia_Secundaria_5 = "T_A_E_S_5",
 
-  // School structure
+  // Estructura escolar
   Tabla_Aulas = "T_Aulas",
   Tabla_Cursos_Horario = "T_Cursos_Horario",
   Tabla_Eventos = "T_Eventos",
   Tabla_Comunicados = "T_Comunicados",
 
-  // Staff attendance control
+  // Control de asistencia personal
   Tabla_Control_Entrada_Profesores_Primaria = "T_Control_Entrada_Mensual_Profesores_Primaria",
   Tabla_Control_Salida_Profesores_Primaria = "T_Control_Salida_Mensual_Profesores_Primaria",
   Tabla_Control_Entrada_Profesores_Secundaria = "T_Control_Entrada_Mensual_Profesores_Secundaria",
@@ -46,7 +46,7 @@ export enum TablasRemoto {
   Tabla_Control_Entrada_Personal_Administrativo = "T_Control_Entrada_Mensual_Personal_Administrativo",
   Tabla_Control_Salida_Personal_Administrativo = "T_Control_Salida_Mensual_Personal_Administrativo",
 
-  // Configuration and system
+  // Configuración y sistema
   Tabla_Fechas_Importantes = "T_Fechas_Importantes",
   Tabla_Horarios_Asistencia = "T_Horarios_Asistencia",
   Tabla_Ajustes_Sistema = "T_Ajustes_Generales_Sistema",
@@ -54,28 +54,31 @@ export enum TablasRemoto {
   Tabla_Registro_Fallos = "T_Registro_Fallos_Sistema",
   Tabla_Codigos_OTP = "T_Codigos_OTP",
 
-  // Change control
+  // Control de cambios
   Tabla_Ultima_Modificacion = "T_Ultima_Modificacion_Tablas",
+
+  // Reportes
+  Tabla_Reportes_Asistencia_Escolar = "T_Reportes_Asistencia_Escolar",
 }
 
 /**
- * Enum containing the names of tables in the local database (IndexedDB).
- * Allows to intuitively reference local tables in the code.
+ * Enum que contiene los nombres de las tablas en la base de datos local (IndexedDB).
+ * Permite referenciar las tablas locales de manera más intuitiva en el código.
  */
 export enum TablasLocal {
-  // Users and roles
-  // Note: Directors only exist remotely, no local equivalent
+  // Usuarios y roles
+  // Nota: Directivos solo existe en remoto, no tiene equivalente local
   Tabla_Auxiliares = "auxiliares",
   Tabla_Profesores_Primaria = "profesores_primaria",
   Tabla_Profesores_Secundaria = "profesores_secundaria",
   Tabla_Personal_Administrativo = "personal_administrativo",
   Tabla_Responsables = "responsables",
 
-  // Students and attendance
+  // Estudiantes y asistencia
   Tabla_Estudiantes = "estudiantes",
   Tabla_Relaciones_E_R = "relaciones_e_r",
 
-  // Primary attendance tables
+  // Tablas de asistencia primaria
   Tabla_Asistencia_Primaria_1 = "asistencias_e_p_1",
   Tabla_Asistencia_Primaria_2 = "asistencias_e_p_2",
   Tabla_Asistencia_Primaria_3 = "asistencias_e_p_3",
@@ -83,21 +86,21 @@ export enum TablasLocal {
   Tabla_Asistencia_Primaria_5 = "asistencias_e_p_5",
   Tabla_Asistencia_Primaria_6 = "asistencias_e_p_6",
 
-  // Secondary attendance tables
+  // Tablas de asistencia secundaria
   Tabla_Asistencia_Secundaria_1 = "asistencias_e_s_1",
   Tabla_Asistencia_Secundaria_2 = "asistencias_e_s_2",
   Tabla_Asistencia_Secundaria_3 = "asistencias_e_s_3",
   Tabla_Asistencia_Secundaria_4 = "asistencias_e_s_4",
   Tabla_Asistencia_Secundaria_5 = "asistencias_e_s_5",
 
-  // School structure
+  // Estructura escolar
   Tabla_Aulas = "aulas",
   Tabla_Cursos_Horario = "cursos_horario",
   Tabla_Eventos = "eventos",
   Tabla_Comunicados = "comunicados",
   Tabla_Vacaciones_Interescolares = "vacaciones_interescolares",
 
-  // Staff attendance control
+  // Control de asistencia personal
   Tabla_Control_Entrada_directivos = "control_entrada_directivos",
   Tabla_Control_Salida_directivos = "control_salida_directivos",
   Tabla_Control_Entrada_Profesores_Primaria = "control_entrada_profesores_primaria",
@@ -109,338 +112,349 @@ export enum TablasLocal {
   Tabla_Control_Entrada_Personal_Administrativo = "control_entrada_personal_administrativo",
   Tabla_Control_Salida_Personal_Administrativo = "control_salida_personal_administrativo",
 
-  // Configuration and system
+  // Configuración y sistema
   Tabla_Fechas_Importantes = "fechas_importantes",
   Tabla_Horarios_Asistencia = "horarios_asistencia",
   Tabla_Ajustes_Sistema = "ajustes_generales_sistema",
   Tabla_Bloqueo_Roles = "bloqueo_roles",
   Tabla_Registro_Fallos = "registro_fallos_sistema",
-  Tabla_Codigos_OTP = "codigos_otp", // May not actually exist locally
+  Tabla_Codigos_OTP = "codigos_otp",
 
-  // Change control
+  // Control de cambios
   Tabla_Ultima_Modificacion = "ultima_modificacion_tablas",
   Tabla_Ultima_Actualizacion = "ultima_actualizacion_tablas_locales",
 
-  // IndexedDB exclusive tables
+  // Tablas exclusivas de IndexedDB
   Tabla_Datos_Usuario = "user_data",
   Tabla_Solicitudes_Offline = "offline_requests",
   Tabla_Metadatos_Sistema = "system_meta",
 
-  // Table for today's attendances
+  // Tabla para asistencias del día actual
   Tabla_Asistencias_Tomadas_Hoy = "asistencias_tomadas_hoy",
   Tabla_Usuarios_Genericos_Cache = "usuarios_genericos_cache",
   Tabla_Archivos_Asistencia_Hoy = "archivos_asistencia_hoy",
 
-  // Persistence for Queues
+  // Persistencias para Colas
   Tabla_Cola_Asistencias_Escolares = "cola_asistencias_escolares",
+
+  // Reportes
+  Tabla_Reportes_Asistencia_Escolar = "reportes_asistencia_escolar",
 }
 
 /**
- * Interface that defines the structure of a table's information
+ * Interfaz que define la estructura de la información de una tabla
  */
 export interface ITablaInfo {
-  /** Name of the table in the remote database (PostgreSQL/MySQL) */
+  /** Nombre de la tabla en la base de datos remota (PostgreSQL/MySQL) */
   nombreRemoto?: TablasRemoto;
 
-  /** Name of the table in the local database (IndexedDB) */
+  /** Nombre de la tabla en la base de datos local (IndexedDB) */
   nombreLocal?: TablasLocal;
 
-  /** Description of the table */
+  /** Descripción de la tabla */
   descripcion: string;
 
-  /** Indicates if the table is synchronizable between local and remote */
+  /** Indica si la tabla es sincronizable entre local y remoto */
   sincronizable: boolean;
 }
 
 /**
- * Full mapping between remote and local system tables
- * Contains information of all tables including their name in the remote DB and in IndexedDB
+ * Mapeo completo entre las tablas del sistema remoto y local
+ * Contiene la información de todas las tablas incluyendo su nombre en la BD remota y en IndexedDB
  */
 export const TablasSistema = {
-  // Users and roles
+  // Usuarios y roles
   DIRECTIVOS: {
     nombreRemoto: TablasRemoto.Tabla_Directivos,
-    // Does not have a local equivalent
-    descripcion: "Directors and deputy directors of the institution",
+    // No tiene equivalente en local
+    descripcion: "Directores y subdirectores de la institución",
     sincronizable: false,
   },
   AUXILIARES: {
     nombreRemoto: TablasRemoto.Tabla_Auxiliares,
     nombreLocal: TablasLocal.Tabla_Auxiliares,
-    descripcion: "Assistant staff of the institution",
+    descripcion: "Personal auxiliar de la institución",
     sincronizable: true,
   },
   PROFESORES_PRIMARIA: {
     nombreRemoto: TablasRemoto.Tabla_Profesores_Primaria,
     nombreLocal: TablasLocal.Tabla_Profesores_Primaria,
-    descripcion: "Primary level teachers",
+    descripcion: "Profesores del nivel primaria",
     sincronizable: true,
   },
   PROFESORES_SECUNDARIA: {
     nombreRemoto: TablasRemoto.Tabla_Profesores_Secundaria,
     nombreLocal: TablasLocal.Tabla_Profesores_Secundaria,
-    descripcion: "Secondary level teachers",
+    descripcion: "Profesores del nivel secundaria",
     sincronizable: true,
   },
   PERSONAL_ADMINISTRATIVO: {
     nombreRemoto: TablasRemoto.Tabla_Personal_Administrativo,
     nombreLocal: TablasLocal.Tabla_Personal_Administrativo,
-    descripcion: "Administrative staff of the institution",
+    descripcion: "Personal administrativo de la institución",
     sincronizable: true,
   },
   RESPONSABLES: {
     nombreRemoto: TablasRemoto.Tabla_Responsables,
     nombreLocal: TablasLocal.Tabla_Responsables,
-    descripcion: "Parents or guardians",
+    descripcion: "Padres de familia o apoderados",
     sincronizable: true,
   },
 
-  // Students and relationships
+  // Estudiantes y relaciones
   ESTUDIANTES: {
     nombreRemoto: TablasRemoto.Tabla_Estudiantes,
     nombreLocal: TablasLocal.Tabla_Estudiantes,
-    descripcion: "Students of the institution",
+    descripcion: "Estudiantes de la institución",
     sincronizable: true,
   },
   RELACIONES_E_R: {
     nombreRemoto: TablasRemoto.Tabla_Relaciones_E_R,
     nombreLocal: TablasLocal.Tabla_Relaciones_E_R,
-    descripcion: "Relationships between students and guardians",
+    descripcion: "Relaciones entre estudiantes y responsables",
     sincronizable: true,
   },
 
-  // Primary attendance
+  // Asistencia primaria
   ASISTENCIA_P_1: {
     nombreRemoto: TablasRemoto.Tabla_Asistencia_Primaria_1,
     nombreLocal: TablasLocal.Tabla_Asistencia_Primaria_1,
-    descripcion: "Attendance of 1st grade primary students",
+    descripcion: "Asistencia de estudiantes de 1° de primaria",
     sincronizable: true,
   },
   ASISTENCIA_P_2: {
     nombreRemoto: TablasRemoto.Tabla_Asistencia_Primaria_2,
     nombreLocal: TablasLocal.Tabla_Asistencia_Primaria_2,
-    descripcion: "Attendance of 2nd grade primary students",
+    descripcion: "Asistencia de estudiantes de 2° de primaria",
     sincronizable: true,
   },
   ASISTENCIA_P_3: {
     nombreRemoto: TablasRemoto.Tabla_Asistencia_Primaria_3,
     nombreLocal: TablasLocal.Tabla_Asistencia_Primaria_3,
-    descripcion: "Attendance of 3rd grade primary students",
+    descripcion: "Asistencia de estudiantes de 3° de primaria",
     sincronizable: true,
   },
   ASISTENCIA_P_4: {
     nombreRemoto: TablasRemoto.Tabla_Asistencia_Primaria_4,
     nombreLocal: TablasLocal.Tabla_Asistencia_Primaria_4,
-    descripcion: "Attendance of 4th grade primary students",
+    descripcion: "Asistencia de estudiantes de 4° de primaria",
     sincronizable: true,
   },
   ASISTENCIA_P_5: {
     nombreRemoto: TablasRemoto.Tabla_Asistencia_Primaria_5,
     nombreLocal: TablasLocal.Tabla_Asistencia_Primaria_5,
-    descripcion: "Attendance of 5th grade primary students",
+    descripcion: "Asistencia de estudiantes de 5° de primaria",
     sincronizable: true,
   },
   ASISTENCIA_P_6: {
     nombreRemoto: TablasRemoto.Tabla_Asistencia_Primaria_6,
     nombreLocal: TablasLocal.Tabla_Asistencia_Primaria_6,
-    descripcion: "Attendance of 6th grade primary students",
+    descripcion: "Asistencia de estudiantes de 6° de primaria",
     sincronizable: true,
   },
 
-  // Secondary attendance
+  // Asistencia secundaria
   ASISTENCIA_S_1: {
     nombreRemoto: TablasRemoto.Tabla_Asistencia_Secundaria_1,
     nombreLocal: TablasLocal.Tabla_Asistencia_Secundaria_1,
-    descripcion: "Attendance of 1st grade secondary students",
+    descripcion: "Asistencia de estudiantes de 1° de secundaria",
     sincronizable: true,
   },
   ASISTENCIA_S_2: {
     nombreRemoto: TablasRemoto.Tabla_Asistencia_Secundaria_2,
     nombreLocal: TablasLocal.Tabla_Asistencia_Secundaria_2,
-    descripcion: "Attendance of 2nd grade secondary students",
+    descripcion: "Asistencia de estudiantes de 2° de secundaria",
     sincronizable: true,
   },
   ASISTENCIA_S_3: {
     nombreRemoto: TablasRemoto.Tabla_Asistencia_Secundaria_3,
     nombreLocal: TablasLocal.Tabla_Asistencia_Secundaria_3,
-    descripcion: "Attendance of 3rd grade secondary students",
+    descripcion: "Asistencia de estudiantes de 3° de secundaria",
     sincronizable: true,
   },
   ASISTENCIA_S_4: {
     nombreRemoto: TablasRemoto.Tabla_Asistencia_Secundaria_4,
     nombreLocal: TablasLocal.Tabla_Asistencia_Secundaria_4,
-    descripcion: "Attendance of 4th grade secondary students",
+    descripcion: "Asistencia de estudiantes de 4° de secundaria",
     sincronizable: true,
   },
   ASISTENCIA_S_5: {
     nombreRemoto: TablasRemoto.Tabla_Asistencia_Secundaria_5,
     nombreLocal: TablasLocal.Tabla_Asistencia_Secundaria_5,
-    descripcion: "Attendance of 5th grade secondary students",
+    descripcion: "Asistencia de estudiantes de 5° de secundaria",
     sincronizable: true,
   },
 
-  // School structure
+  // Estructura escolar
   AULAS: {
     nombreRemoto: TablasRemoto.Tabla_Aulas,
     nombreLocal: TablasLocal.Tabla_Aulas,
-    descripcion: "Classrooms or sections of the institution",
+    descripcion: "Aulas o secciones de la institución",
     sincronizable: true,
   },
   CURSOS_HORARIO: {
     nombreRemoto: TablasRemoto.Tabla_Cursos_Horario,
     nombreLocal: TablasLocal.Tabla_Cursos_Horario,
-    descripcion: "Course schedules",
+    descripcion: "Horarios de cursos",
     sincronizable: true,
   },
   EVENTOS: {
     nombreRemoto: TablasRemoto.Tabla_Eventos,
     nombreLocal: TablasLocal.Tabla_Eventos,
-    descripcion: "Events and celebrations of the school calendar",
+    descripcion: "Eventos y celebraciones del calendario escolar",
     sincronizable: true,
   },
   COMUNICADOS: {
     nombreRemoto: TablasRemoto.Tabla_Comunicados,
     nombreLocal: TablasLocal.Tabla_Comunicados,
-    descripcion: "Institutional communications",
+    descripcion: "Comunicados institucionales",
     sincronizable: true,
   },
 
-  // Staff attendance control
+  // Control de asistencia personal
   CONTROL_ENTRADA_PROF_PRIMARIA: {
     nombreRemoto: TablasRemoto.Tabla_Control_Entrada_Profesores_Primaria,
     nombreLocal: TablasLocal.Tabla_Control_Entrada_Profesores_Primaria,
-    descripcion: "Entry control for primary teachers",
+    descripcion: "Control de entrada de profesores de primaria",
     sincronizable: true,
   },
   CONTROL_SALIDA_PROF_PRIMARIA: {
     nombreRemoto: TablasRemoto.Tabla_Control_Salida_Profesores_Primaria,
     nombreLocal: TablasLocal.Tabla_Control_Salida_Profesores_Primaria,
-    descripcion: "Exit control for primary teachers",
+    descripcion: "Control de salida de profesores de primaria",
     sincronizable: true,
   },
   CONTROL_ENTRADA_PROF_SECUNDARIA: {
     nombreRemoto: TablasRemoto.Tabla_Control_Entrada_Profesores_Secundaria,
     nombreLocal: TablasLocal.Tabla_Control_Entrada_Profesores_Secundaria,
-    descripcion: "Entry control for secondary teachers",
+    descripcion: "Control de entrada de profesores de secundaria",
     sincronizable: true,
   },
   CONTROL_SALIDA_PROF_SECUNDARIA: {
     nombreRemoto: TablasRemoto.Tabla_Control_Salida_Profesores_Secundaria,
     nombreLocal: TablasLocal.Tabla_Control_Salida_Profesores_Secundaria,
-    descripcion: "Exit control for secondary teachers",
+    descripcion: "Control de salida de profesores de secundaria",
     sincronizable: true,
   },
   CONTROL_ENTRADA_AUXILIAR: {
     nombreRemoto: TablasRemoto.Tabla_Control_Entrada_Auxiliar,
     nombreLocal: TablasLocal.Tabla_Control_Entrada_Auxiliar,
-    descripcion: "Entry control for assistants",
+    descripcion: "Control de entrada de auxiliares",
     sincronizable: true,
   },
   CONTROL_SALIDA_AUXILIAR: {
     nombreRemoto: TablasRemoto.Tabla_Control_Salida_Auxiliar,
     nombreLocal: TablasLocal.Tabla_Control_Salida_Auxiliar,
-    descripcion: "Exit control for assistants",
+    descripcion: "Control de salida de auxiliares",
     sincronizable: true,
   },
   CONTROL_ENTRADA_ADMIN: {
     nombreRemoto: TablasRemoto.Tabla_Control_Entrada_Personal_Administrativo,
     nombreLocal: TablasLocal.Tabla_Control_Entrada_Personal_Administrativo,
-    descripcion: "Entry control for administrative staff",
+    descripcion: "Control de entrada de personal administrativo",
     sincronizable: true,
   },
   CONTROL_SALIDA_ADMIN: {
     nombreRemoto: TablasRemoto.Tabla_Control_Salida_Personal_Administrativo,
     nombreLocal: TablasLocal.Tabla_Control_Salida_Personal_Administrativo,
-    descripcion: "Exit control for administrative staff",
+    descripcion: "Control de salida de personal administrativo",
     sincronizable: true,
   },
 
-  // Configuration and system
+  // Configuración y sistema
   FECHAS_IMPORTANTES: {
     nombreRemoto: TablasRemoto.Tabla_Fechas_Importantes,
     nombreLocal: TablasLocal.Tabla_Fechas_Importantes,
-    descripcion: "Important dates of the school year",
+    descripcion: "Fechas importantes del año escolar",
     sincronizable: true,
   },
   HORARIOS_ASISTENCIA: {
     nombreRemoto: TablasRemoto.Tabla_Horarios_Asistencia,
     nombreLocal: TablasLocal.Tabla_Horarios_Asistencia,
-    descripcion: "Attendance schedule configuration",
+    descripcion: "Configuración de horarios para toma de asistencia",
     sincronizable: true,
   },
   AJUSTES_SISTEMA: {
     nombreRemoto: TablasRemoto.Tabla_Ajustes_Sistema,
     nombreLocal: TablasLocal.Tabla_Ajustes_Sistema,
-    descripcion: "General system settings",
+    descripcion: "Ajustes generales del sistema",
     sincronizable: true,
   },
   BLOQUEO_ROLES: {
     nombreRemoto: TablasRemoto.Tabla_Bloqueo_Roles,
     nombreLocal: TablasLocal.Tabla_Bloqueo_Roles,
-    descripcion: "Temporary role blocking in the system",
+    descripcion: "Bloqueo temporal de roles en el sistema",
     sincronizable: true,
   },
   REGISTRO_FALLOS: {
     nombreRemoto: TablasRemoto.Tabla_Registro_Fallos,
     nombreLocal: TablasLocal.Tabla_Registro_Fallos,
-    descripcion: "System error and failure log",
-    sincronizable: false, // Local errors are generally not synchronized
+    descripcion: "Registro de errores y fallos del sistema",
+    sincronizable: false, // Generalmente no se sincronizan los errores locales
   },
   CODIGOS_OTP: {
     nombreRemoto: TablasRemoto.Tabla_Codigos_OTP,
     nombreLocal: TablasLocal.Tabla_Codigos_OTP,
-    descripcion: "One-time verification codes",
-    sincronizable: false, // OTPs are usually not synchronized for security
+    descripcion: "Códigos de verificación de un solo uso",
+    sincronizable: false, // Los OTP no se suelen sincronizar por seguridad
   },
   ULTIMA_MODIFICACION: {
     nombreRemoto: TablasRemoto.Tabla_Ultima_Modificacion,
     nombreLocal: TablasLocal.Tabla_Ultima_Modificacion,
-    descripcion: "Record of last modifications of each table",
+    descripcion: "Registro de últimas modificaciones de cada tabla",
     sincronizable: true,
   },
 
   ULTIMA_ACTUALIZACION_LOCAL: {
     nombreLocal: TablasLocal.Tabla_Ultima_Actualizacion,
-    descripcion: "Record of last local table update",
+    descripcion: "Registro de última actualización de tablas locales",
     sincronizable: false,
   },
-  // IndexedDB exclusive tables
+  // Tablas exclusivas de IndexedDB
   DATOS_USUARIO: {
     nombreLocal: TablasLocal.Tabla_Datos_Usuario,
-    descripcion: "Current user session data",
+    descripcion: "Datos de sesión del usuario actual",
     sincronizable: false,
   },
   SOLICITUDES_OFFLINE: {
     nombreLocal: TablasLocal.Tabla_Solicitudes_Offline,
-    descripcion: "Queue of pending requests in offline mode",
+    descripcion: "Cola de solicitudes pendientes en modo offline",
     sincronizable: false,
   },
   METADATOS_SISTEMA: {
     nombreLocal: TablasLocal.Tabla_Metadatos_Sistema,
-    descripcion: "Local system metadata and configurations",
+    descripcion: "Metadatos y configuraciones del sistema local",
     sincronizable: false,
   },
 
   ASISTENCIAS_TOMADAS_HOY: {
     nombreLocal: TablasLocal.Tabla_Asistencias_Tomadas_Hoy,
     descripcion:
-      "Temporary cache of attendances queried from Redis for the current day",
-    sincronizable: false, // ✅ IMPORTANT: Not synchronized with server
+      "Cache temporal de asistencias consultadas desde Redis para el día actual",
+    sincronizable: false, // ✅ IMPORTANTE: No se sincroniza con servidor
   },
   USUARIOS_GENERICOS_CACHE: {
     nombreLocal: TablasLocal.Tabla_Usuarios_Genericos_Cache,
-    descripcion: "Cache of generic user queries",
+    descripcion: "Cache de consultas de usuarios genéricos",
     sincronizable: false,
   },
 
-  // Queues
+  // Colas
 
   COLA_ASISTENCIAS_ESCOLARES: {
     nombreLocal: TablasLocal.Tabla_Cola_Asistencias_Escolares,
-    descripcion: "Queue of school attendances",
+    descripcion: "Cola de asistencias escolares",
     sincronizable: false,
   },
 
+  // Reportes
+  REPORTES_ASISTENCIA_ESCOLAR: {
+    nombreRemoto: TablasRemoto.Tabla_Reportes_Asistencia_Escolar,
+    nombreLocal: TablasLocal.Tabla_Reportes_Asistencia_Escolar,
+    descripcion:
+      "Reportes de asistencia escolar generados y almacenados en cache",
+    sincronizable: true,
+  },
 };
 
 export default TablasSistema;

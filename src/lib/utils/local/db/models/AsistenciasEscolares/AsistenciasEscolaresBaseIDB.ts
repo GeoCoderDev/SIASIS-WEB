@@ -18,7 +18,7 @@ import {
 } from "@/constants/GRADOS_POR_NIVEL_EDUCATIVO";
 
 // =====================================================================================
-// SHARED TYPES AND CONSTANTS
+// TIPOS Y CONSTANTES COMPARTIDAS
 // =====================================================================================
 
 export type AsistenciasPorDia = {
@@ -29,7 +29,7 @@ export interface IAsistenciaEscolarLocal {
   Id_Estudiante: string;
   Mes: number;
   Asistencias_Mensuales: string; // JSON string
-  ultima_fecha_actualizacion: number; // Numeric timestamp
+  ultima_fecha_actualizacion: number; // Timestamp numérico
 }
 
 export interface AsistenciaOperationResult {
@@ -42,7 +42,7 @@ export interface AsistenciaOperationResult {
   ultimaActualizacion?: number;
 }
 
-// Mapping of level and grade to table
+// Mapeo de nivel y grado a tabla
 const MAPEO_TABLA_ASISTENCIAS: Record<string, TablasLocal> = {
   "P-1": TablasLocal.Tabla_Asistencia_Primaria_1,
   "P-2": TablasLocal.Tabla_Asistencia_Primaria_2,
@@ -58,20 +58,20 @@ const MAPEO_TABLA_ASISTENCIAS: Record<string, TablasLocal> = {
 };
 
 // =====================================================================================
-// BASE ABSTRACT CLASS
+// CLASE ABSTRACTA BASE
 // =====================================================================================
 
 /**
- * Base abstract class for handling school attendances
- * Provides common functionality for all system roles
+ * Clase abstracta base para el manejo de asistencias escolares
+ * Proporciona funcionalidad común para todos los roles del sistema
  *
- * Roles that can inherit:
- * - Principals (full access to all classrooms)
- * - Primary School Teachers (only their assigned classroom)
- * - Secondary School Tutors (only their assigned classroom)
- * - Assistants (all secondary school classrooms)
- * - Guardians (only linked students)
- * - Any future role
+ * Roles que pueden heredar:
+ * - Directivos (acceso completo a todas las aulas)
+ * - Profesores de Primaria (solo su aula asignada)
+ * - Tutores de Secundaria (solo su aula asignada)
+ * - Auxiliares (todas las aulas de secundaria)
+ * - Responsables (solo estudiantes vinculados)
+ * - Cualquier rol futuro
  */
 export abstract class AsistenciasEscolaresBaseIDB {
   protected dateHelper: AsistenciaDateHelper;
@@ -85,18 +85,18 @@ export abstract class AsistenciasEscolaresBaseIDB {
   }
 
   // =====================================================================================
-  // ABSTRACT METHODS (must be implemented by each role)
+  // MÉTODOS ABSTRACTOS (deben ser implementados por cada rol)
   // =====================================================================================
 
   /**
-   * Main query method - each role implements its specific logic
+   * Método principal de consulta - cada rol implementa su lógica específica
    */
   protected abstract consultarAsistenciasImplementacion(
     ...args: any[]
   ): Promise<AsistenciaOperationResult>;
 
   /**
-   * Verifies frequency control according to the role's rules
+   * Verifica control de frecuencia según las reglas del rol
    */
   protected abstract verificarControlFrecuenciaRol(
     registro: IAsistenciaEscolarLocal,
@@ -104,7 +104,7 @@ export abstract class AsistenciasEscolaresBaseIDB {
   ): { puedeConsultar: boolean; minutosEspera: number };
 
   /**
-   * Determines the query strategy according to the role and context
+   * Determina la estrategia de consulta según el rol y contexto
    */
   protected abstract determinarEstrategiaConsulta(
     mes: number,
@@ -119,7 +119,7 @@ export abstract class AsistenciasEscolaresBaseIDB {
   }>;
 
   // =====================================================================================
-  // MAPPING AND VALIDATION METHODS (shared)
+  // MÉTODOS DE MAPEO Y VALIDACIÓN (compartidos)
   // =====================================================================================
 
   protected obtenerNombreTabla(
@@ -131,7 +131,7 @@ export abstract class AsistenciasEscolaresBaseIDB {
 
     if (!tabla) {
       throw new Error(
-        `Table not found for level ${nivel} and grade ${grado}`
+        `No se encontró tabla para nivel ${nivel} y grado ${grado}`
       );
     }
 
@@ -152,14 +152,14 @@ export abstract class AsistenciasEscolaresBaseIDB {
     mensaje: string;
   } {
     if (mes < 1 || mes > 12) {
-      return { esValido: false, mensaje: "You must select a valid month." };
+      return { esValido: false, mensaje: "Debe seleccionar un mes válido." };
     }
 
     const mesActual = this.dateHelper.obtenerMesActual()!;
     if (mes > mesActual) {
       return {
         esValido: false,
-        mensaje: "You cannot query attendances for future months.",
+        mensaje: "No se pueden consultar asistencias de meses futuros.",
       };
     }
 
@@ -167,7 +167,7 @@ export abstract class AsistenciasEscolaresBaseIDB {
   }
 
   /**
-   * Gets basic information about a student (their classroom)
+   * Obtiene información básica de un estudiante (su aula)
    */
   protected async obtenerInfoEstudiante(
     idEstudiante: string
@@ -186,7 +186,7 @@ export abstract class AsistenciasEscolaresBaseIDB {
 
       if (!estudiante || !estudiante.Id_Aula) return null;
 
-      // Get classroom information
+      // Obtener información del aula
       const { BaseAulasIDB } = await import(
         "@/lib/utils/local/db/models/Aulas/AulasBase"
       );
@@ -202,13 +202,13 @@ export abstract class AsistenciasEscolaresBaseIDB {
         idAula: aula.Id_Aula,
       };
     } catch (error) {
-      console.error("Error getting student information:", error);
+      console.error("Error obteniendo información de estudiante:", error);
       return null;
     }
   }
 
   // =====================================================================================
-  // INDEXEDDB OPERATIONS (shared)
+  // OPERACIONES CON INDEXEDDB (compartidas)
   // =====================================================================================
 
   protected async obtenerRegistroPorClave(
@@ -219,7 +219,7 @@ export abstract class AsistenciasEscolaresBaseIDB {
   ): Promise<IAsistenciaEscolarLocal | null> {
     try {
       if (!this.validarNivelYGrado(nivel, grado)) {
-        throw new Error(`Grade ${grado} is not valid for level ${nivel}`);
+        throw new Error(`Grado ${grado} no válido para nivel ${nivel}`);
       }
 
       const nombreTabla = this.obtenerNombreTabla(nivel, grado);
@@ -234,7 +234,7 @@ export abstract class AsistenciasEscolaresBaseIDB {
     } catch (error) {
       this.handleIndexedDBError(
         error,
-        `get record ${idEstudiante}-${mes}`
+        `obtener registro ${idEstudiante}-${mes}`
       );
       return null;
     }
@@ -247,12 +247,12 @@ export abstract class AsistenciasEscolaresBaseIDB {
   ): Promise<IAsistenciaEscolarLocal[]> {
     try {
       if (!this.validarNivelYGrado(nivel, grado)) {
-        throw new Error(`Grade ${grado} is not valid for level ${nivel}`);
+        throw new Error(`Grado ${grado} no válido para nivel ${nivel}`);
       }
 
       const nombreTabla = this.obtenerNombreTabla(nivel, grado);
       const store = await IndexedDBConnection.getStore(nombreTabla);
-      const index = store.index("by_month");
+      const index = store.index("por_mes");
 
       return new Promise<IAsistenciaEscolarLocal[]>((resolve, reject) => {
         const request = index.getAll(mes);
@@ -261,7 +261,7 @@ export abstract class AsistenciasEscolaresBaseIDB {
         request.onerror = () => reject(request.error);
       });
     } catch (error) {
-      this.handleIndexedDBError(error, `get records for month ${mes}`);
+      this.handleIndexedDBError(error, `obtener registros del mes ${mes}`);
       return [];
     }
   }
@@ -273,7 +273,7 @@ export abstract class AsistenciasEscolaresBaseIDB {
   ): Promise<AsistenciaOperationResult> {
     try {
       if (!this.validarNivelYGrado(nivel, grado)) {
-        throw new Error(`Grade ${grado} is not valid for level ${nivel}`);
+        throw new Error(`Grado ${grado} no válido para nivel ${nivel}`);
       }
 
       const nombreTabla = this.obtenerNombreTabla(nivel, grado);
@@ -293,7 +293,7 @@ export abstract class AsistenciasEscolaresBaseIDB {
         request.onsuccess = () => {
           resolve({
             success: true,
-            message: "Record saved successfully",
+            message: "Registro guardado exitosamente",
             data: registroCompleto,
           });
         };
@@ -301,18 +301,18 @@ export abstract class AsistenciasEscolaresBaseIDB {
         request.onerror = () => reject(request.error);
       });
     } catch (error) {
-      this.handleIndexedDBError(error, "save record");
+      this.handleIndexedDBError(error, "guardar registro");
       return {
         success: false,
-        message: `Error saving: ${
-          error instanceof Error ? error.message : "Unknown error"
+        message: `Error al guardar: ${
+          error instanceof Error ? error.message : "Error desconocido"
         }`,
       };
     }
   }
 
   // =====================================================================================
-  // PARSING UTILITIES (shared)
+  // UTILIDADES DE PARSEO (compartidas)
   // =====================================================================================
 
   protected parsearAsistenciasMensuales(
@@ -321,7 +321,7 @@ export abstract class AsistenciasEscolaresBaseIDB {
     try {
       return JSON.parse(asistenciasJson) as AsistenciasPorDia;
     } catch (error) {
-      console.error("Error parsing attendances:", error);
+      console.error("Error al parsear asistencias:", error);
       return {};
     }
   }
@@ -332,13 +332,13 @@ export abstract class AsistenciasEscolaresBaseIDB {
     try {
       return JSON.stringify(asistencias);
     } catch (error) {
-      console.error("Error stringifying attendances:", error);
+      console.error("Error al stringificar asistencias:", error);
       return "{}";
     }
   }
 
   // =====================================================================================
-  // ERROR AND MESSAGE HANDLING (shared)
+  // MANEJO DE ERRORES Y MENSAJES (compartido)
   // =====================================================================================
 
   protected crearResultadoError(mensaje: string): AsistenciaOperationResult {
@@ -351,21 +351,21 @@ export abstract class AsistenciasEscolaresBaseIDB {
   }
 
   protected handleIndexedDBError(error: unknown, operacion: string): void {
-    console.error(`Error in IndexedDB (${operacion}):`, error);
+    console.error(`Error en IndexedDB (${operacion}):`, error);
 
     let errorType: AllErrorTypes = SystemErrorTypes.UNKNOWN_ERROR;
-    let message = `Error during ${operacion}`;
+    let message = `Error al ${operacion}`;
 
     if (error instanceof Error) {
       if (error.name === "ConstraintError") {
         errorType = DataConflictErrorTypes.VALUE_ALREADY_IN_USE;
-        message = `Constraint error: duplicate value`;
+        message = `Error de restricción: valor duplicado`;
       } else if (error.name === "NotFoundError") {
         errorType = UserErrorTypes.USER_NOT_FOUND;
-        message = `Resource not found`;
+        message = `Recurso no encontrado`;
       } else if (error.name === "QuotaExceededError") {
         errorType = SystemErrorTypes.DATABASE_ERROR;
-        message = `Storage exceeded`;
+        message = `Almacenamiento excedido`;
       } else {
         message = error.message || message;
       }
@@ -379,26 +379,26 @@ export abstract class AsistenciasEscolaresBaseIDB {
   }
 
   // =====================================================================================
-  // GENERAL UTILITIES (shared)
+  // UTILIDADES GENERALES (compartidas)
   // =====================================================================================
 
   protected obtenerNombreMes(mes: number): string {
     const nombres = [
       "",
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
+      "enero",
+      "febrero",
+      "marzo",
+      "abril",
+      "mayo",
+      "junio",
+      "julio",
+      "agosto",
+      "septiembre",
+      "octubre",
+      "noviembre",
+      "diciembre",
     ];
-    return nombres[mes] || "unknown month";
+    return nombres[mes] || "mes desconocido";
   }
 
   protected esDiaEscolar(): boolean {
@@ -411,19 +411,19 @@ export abstract class AsistenciasEscolaresBaseIDB {
 
   protected obtenerNombreDia(dia: number): string {
     const dias = [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
+      "Domingo",
+      "Lunes",
+      "Martes",
+      "Miércoles",
+      "Jueves",
+      "Viernes",
+      "Sábado",
     ];
-    return dias[dia] || "Unknown";
+    return dias[dia] || "Desconocido";
   }
 
   // =====================================================================================
-  // HELPER METHODS FOR QUERIES (shared)
+  // MÉTODOS HELPER PARA CONSULTAS (compartidos)
   // =====================================================================================
 
   protected async obtenerDatosDesdeCache(
@@ -440,7 +440,7 @@ export abstract class AsistenciasEscolaresBaseIDB {
     );
 
     if (!registro) {
-      return { success: false, message: "No data in cache" };
+      return { success: false, message: "No hay datos en caché" };
     }
 
     const asistenciasParsed = this.parsearAsistenciasMensuales(
@@ -449,7 +449,7 @@ export abstract class AsistenciasEscolaresBaseIDB {
 
     return {
       success: true,
-      message: "Data obtained from cache",
+      message: "Datos obtenidos desde caché",
       data: {
         Mes: mes,
         Asistencias: asistenciasParsed,
@@ -487,7 +487,7 @@ export abstract class AsistenciasEscolaresBaseIDB {
         await this.guardarRegistroAsistencia(nivel, grado, registroActualizado);
       }
     } catch (error) {
-      console.error("Error updating timestamp:", error);
+      console.error("Error actualizando timestamp:", error);
     }
   }
 }

@@ -29,39 +29,39 @@ import { Endpoint_Get_Asistencias_Mensuales_De_Personal_API01 } from "@/lib/util
 import { PersonalDelColegio } from "@/interfaces/shared/PersonalDelColegio";
 
 /**
- * 🎯 RESPONSIBILITY: External API calls
- * - Query attendance APIs
- * - Delete attendances via API
- * - Handle API responses
- * - Transform data between formats
- * - Synchronize deletions with local records
+ * 🎯 RESPONSABILIDAD: Llamadas a APIs externas
+ * - Consultar APIs de asistencia
+ * - Eliminar asistencias via API
+ * - Manejar respuestas de API
+ * - Transformar datos entre formatos
+ * - Sincronizar eliminaciones con registros locales
  *
- * ✅ FIXED:
- * - Automatic timestamp after deletions
- * - All temporary logic delegated to DateHelper (SRP)
- * - Full synchronization between APIs and local records
+ * ✅ CORREGIDO:
+ * - Timestamp automático tras eliminaciones
+ * - Toda lógica temporal delegada a DateHelper (SRP)
+ * - Sincronización completa entre APIs y registros locales
  */
 export class AsistenciaDePersonalAPIClient {
   private siasisAPI: SiasisAPIS;
   private mapper: AsistenciaDePersonalMapper;
-  private dateHelper: AsistenciaDateHelper; // ✅ NEW: DateHelper dependency
-  private repository: AsistenciaDePersonalRepository; // ✅ NEW: To update local records
+  private dateHelper: AsistenciaDateHelper; // ✅ NUEVO: Dependencia de DateHelper
+  private repository: AsistenciaDePersonalRepository; // ✅ NUEVO: Para actualizar registros locales
 
   constructor(
     siasisAPI: SiasisAPIS,
     mapper: AsistenciaDePersonalMapper,
-    dateHelper: AsistenciaDateHelper, // ✅ NEW
-    repository: AsistenciaDePersonalRepository // ✅ NEW
+    dateHelper: AsistenciaDateHelper, // ✅ NUEVO
+    repository: AsistenciaDePersonalRepository // ✅ NUEVO
   ) {
     this.siasisAPI = siasisAPI;
     this.mapper = mapper;
-    this.dateHelper = dateHelper; // ✅ NEW
-    this.repository = repository; // ✅ NEW
+    this.dateHelper = dateHelper; // ✅ NUEVO
+    this.repository = repository; // ✅ NUEVO
   }
 
   /**
-   * Queries the API to get monthly attendances
-   * ✅ NO CHANGES: Does not handle timestamps directly
+   * Consulta la API para obtener asistencias mensuales
+   * ✅ SIN CAMBIOS: No maneja timestamps directamente
    */
   public async consultarAsistenciasMensuales(
     rol: RolesSistema | ActoresSistema,
@@ -94,8 +94,8 @@ export class AsistenciaDePersonalAPIClient {
   }
 
   /**
-   * ✅ NEW: Specifically queries Redis for one person
-   * 🎯 PURPOSE: Get specific attendance of a person from Redis
+   * ✅ NUEVO: Consulta Redis específicamente para una persona
+   * 🎯 PROPÓSITO: Obtener asistencia específica de una persona desde Redis
    */
   public async consultarRedisEspecifico(
     rol: RolesSistema,
@@ -107,7 +107,7 @@ export class AsistenciaDePersonalAPIClient {
     mensaje: string;
   }> {
     try {
-      // Build URL for specific query
+      // Construir URL para consulta específica
       const params = new URLSearchParams({
         ModoRegistro: modoRegistro,
         TipoAsistencia: TipoAsistencia.ParaPersonal,
@@ -117,7 +117,7 @@ export class AsistenciaDePersonalAPIClient {
       params.append("Actor", actor);
       params.append("idUsuario", String(idUsuario));
 
-      // If it is a self-query, do not add Actor so that the API detects a self-query
+      // Si ES consulta propia, no agregar Actor para que la API detecte consulta propia
 
       const url = `/api/asistencia-hoy/consultar-asistencias-personal-tomadas?${params.toString()}`;
 
@@ -127,15 +127,15 @@ export class AsistenciaDePersonalAPIClient {
         if (response.status === 404) {
           return {
             encontrado: false,
-            mensaje: "Attendance not found in Redis",
+            mensaje: "No se encontró asistencia en Redis",
           };
         }
-        throw new Error(`HTTP Error: ${response.status}`);
+        throw new Error(`Error HTTP: ${response.status}`);
       }
 
       const data = await response.json();
 
-      // Check if there are results
+      // Verificar si hay resultados
       const tieneResultados =
         data.Resultados &&
         (Array.isArray(data.Resultados)
@@ -144,35 +144,35 @@ export class AsistenciaDePersonalAPIClient {
 
       if (tieneResultados) {
         console.log(
-          `✅ Attendance found in Redis for ${idUsuario} - ${modoRegistro}`
+          `✅ Asistencia encontrada en Redis para ${idUsuario} - ${modoRegistro}`
         );
         return {
           encontrado: true,
           datos: data,
-          mensaje: "Attendance found in Redis",
+          mensaje: "Asistencia encontrada en Redis",
         };
       } else {
         console.log(
-          `📭 Attendance not found in Redis for ${idUsuario} - ${modoRegistro}`
+          `📭 No se encontró asistencia en Redis para ${idUsuario} - ${modoRegistro}`
         );
         return {
           encontrado: false,
-          mensaje: "Attendance not found in Redis for this person",
+          mensaje: "No se encontró asistencia en Redis para esta persona",
         };
       }
     } catch (error) {
-      console.error("❌ Error querying specific Redis:", error);
+      console.error("❌ Error al consultar Redis específico:", error);
       return {
         encontrado: false,
-        mensaje: `Error querying Redis: ${
-          error instanceof Error ? error.message : "Unknown error"
+        mensaje: `Error al consultar Redis: ${
+          error instanceof Error ? error.message : "Error desconocido"
         }`,
       };
     }
   }
 
   /**
-   * ✅ NEW: Queries Redis for both modes (entry and exit) of a person
+   * ✅ NUEVO: Consulta Redis para ambos modos (entrada y salida) de una persona
    */
   public async consultarRedisCompletoPorPersona(
     rol: RolesSistema,
@@ -188,12 +188,12 @@ export class AsistenciaDePersonalAPIClient {
     try {
       const timestampConsulta = this.dateHelper.obtenerTimestampPeruano();
       console.log(
-        `🔍 Full Redis query for ${idUsuario} - includeExits: ${incluirSalidas} (${this.dateHelper.formatearTimestampLegible(
+        `🔍 Consulta Redis completa para ${idUsuario} - incluirSalidas: ${incluirSalidas} (${this.dateHelper.formatearTimestampLegible(
           timestampConsulta
         )})`
       );
 
-      // Query entry
+      // Consultar entrada
       const resultadoEntrada = await this.consultarRedisEspecifico(
         rol,
         idUsuario,
@@ -202,10 +202,10 @@ export class AsistenciaDePersonalAPIClient {
 
       let resultadoSalida = {
         encontrado: false,
-        mensaje: "Exits not requested",
+        mensaje: "Salidas no solicitadas",
       };
 
-      // Query exit only if required
+      // Consultar salida solo si se requiere
       if (incluirSalidas) {
         resultadoSalida = await this.consultarRedisEspecifico(
           rol,
@@ -214,8 +214,8 @@ export class AsistenciaDePersonalAPIClient {
         );
       }
 
-      const mensaje = `Redis: entry=${resultadoEntrada.encontrado}, exit=${
-        incluirSalidas ? resultadoSalida.encontrado : "not queried"
+      const mensaje = `Redis: entrada=${resultadoEntrada.encontrado}, salida=${
+        incluirSalidas ? resultadoSalida.encontrado : "no consultada"
       }`;
 
       return {
@@ -230,12 +230,12 @@ export class AsistenciaDePersonalAPIClient {
         mensaje,
       };
     } catch (error) {
-      console.error("❌ Error in full Redis query:", error);
+      console.error("❌ Error en consulta Redis completa:", error);
       return {
         encontradoEntrada: false,
         encontradoSalida: false,
-        mensaje: `Error in Redis query: ${
-          error instanceof Error ? error.message : "Unknown error"
+        mensaje: `Error en consulta Redis: ${
+          error instanceof Error ? error.message : "Error desconocido"
         }`,
       };
     }

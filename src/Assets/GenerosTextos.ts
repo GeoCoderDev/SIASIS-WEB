@@ -1,8 +1,8 @@
 import { Genero } from "@/interfaces/shared/Genero";
 
-const GendersTexts: Record<Genero, string> = {
-  F: "Female",
-  M: "Male",
+const GenerosTextos: Record<Genero, string> = {
+  F: "Femenino",
+  M: "Masculino",
 };
 
-export default GendersTexts;
+export default GenerosTextos;

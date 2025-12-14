@@ -1,4 +1,4 @@
-// Define interfaces for success responses
+// Define interfaces para las respuestas de éxito
 
 import { T_Ultima_Modificacion_Tablas } from "@prisma/client";
 

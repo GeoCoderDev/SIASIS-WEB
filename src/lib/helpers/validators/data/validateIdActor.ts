@@ -6,9 +6,9 @@ import { ValidationErrorTypes } from "../../../../interfaces/shared/errors";
 import { ValidationResult } from "./types";
 
 /**
- * Validates a Peruvian DNI (reused auxiliary function)
- * @param dniValue - DNI value to validate
- * @returns DNI validation result
+ * Valida un DNI peruano (función auxiliar reutilizada)
+ * @param dniValue - Valor del DNI a validar
+ * @returns Resultado de la validación del DNI
  */
 function validateDNIPart(dniValue: string): ValidationResult {
   const dniRegex = /^\d{8}$/;
@@ -16,55 +16,55 @@ function validateDNIPart(dniValue: string): ValidationResult {
     return {
       isValid: false,
       errorType: ValidationErrorTypes.INVALID_DNI,
-      errorMessage: "The DNI must contain exactly 8 numeric digits",
+      errorMessage: "El DNI debe contener exactamente 8 dígitos numéricos",
     };
   }
   return { isValid: true };
 }
 
 /**
- * Validates a Foreigner's Card
- * @param carnetValue - Card value to validate
- * @returns Card validation result
+ * Valida un Carnet de Extranjería
+ * @param carnetValue - Valor del carnet a validar
+ * @returns Resultado de la validación del carnet
  */
 function validateCarnetExtranjeria(carnetValue: string): ValidationResult {
-  // Foreigner's cards can have between 6 and 12 digits
+  // Los carnets de extranjería pueden tener entre 6 y 12 dígitos
   const carnetRegex = /^\d{6,12}$/;
   if (!carnetRegex.test(carnetValue)) {
     return {
       isValid: false,
       errorType: ValidationErrorTypes.INVALID_FORMAT,
       errorMessage:
-        "The Foreigner's Card must contain between 6 and 12 numeric digits",
+        "El Carnet de Extranjería debe contener entre 6 y 12 dígitos numéricos",
     };
   }
   return { isValid: true };
 }
 
 /**
- * Validates a School Code
- * @param codigoValue - Code value to validate
- * @returns Code validation result
+ * Valida un Código de Escuela
+ * @param codigoValue - Valor del código a validar
+ * @returns Resultado de la validación del código
  */
 function validateCodigoEscuela(codigoValue: string): ValidationResult {
-  // School codes can be alphanumeric and have variable length (4-20 characters)
+  // Los códigos de escuela pueden ser alfanuméricos y tener longitud variable (4-20 caracteres)
   const codigoRegex = /^[A-Z0-9]{4,20}$/;
   if (!codigoRegex.test(codigoValue)) {
     return {
       isValid: false,
       errorType: ValidationErrorTypes.INVALID_FORMAT,
       errorMessage:
-        "The School Code must contain between 4 and 20 uppercase alphanumeric characters",
+        "El Código de Escuela debe contener entre 4 y 20 caracteres alfanuméricos en mayúsculas",
     };
   }
   return { isValid: true };
 }
 
 /**
- * Validates a system actor ID
- * @param value - Value to validate
- * @param required - Indicates if the field is mandatory
- * @returns Validation result with identifier type information
+ * Valida un ID de actor del sistema
+ * @param value - Valor a validar
+ * @param required - Indica si el campo es obligatorio
+ * @returns Resultado de la validación con información del tipo de identificador
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function validateIdActor(
@@ -73,38 +73,38 @@ export function validateIdActor(
 ): ValidationResult & {
   tipoIdentificador?: TiposIdentificadores;
 } {
-  // Validate if required
+  // Validar si es requerido
   if ((value === undefined || value === null) && required) {
     return {
       isValid: false,
       errorType: ValidationErrorTypes.FIELD_REQUIRED,
-      errorMessage: "The ID is required",
+      errorMessage: "El ID es requerido",
     };
   }
 
-  // If not required and empty, it is valid
+  // Si no es requerido y está vacío, es válido
   if (value === undefined || value === null) {
     return { isValid: true };
   }
 
-  // Validate that it is a string
+  // Validar que sea string
   if (typeof value !== "string") {
     return {
       isValid: false,
       errorType: ValidationErrorTypes.INVALID_FORMAT,
-      errorMessage: "The ID must be a text string",
+      errorMessage: "El ID debe ser una cadena de texto",
     };
   }
 
   const trimmedValue = value.trim();
 
-  // Case 1: No hyphen - must be DNI
+  // Caso 1: Sin guión - debe ser DNI
   if (!trimmedValue.includes("-")) {
     const dniValidation = validateDNIPart(trimmedValue);
     if (!dniValidation.isValid) {
       return {
         ...dniValidation,
-        errorMessage: `ID without valid format: ${dniValidation.errorMessage}`,
+        errorMessage: `ID sin formato válido: ${dniValidation.errorMessage}`,
       };
     }
 
@@ -114,22 +114,22 @@ export function validateIdActor(
     };
   }
 
-  // Case 2: With hyphen - validate format and type
+  // Caso 2: Con guión - validar formato y tipo
   const parts = trimmedValue.split("-");
 
-  // Must have exactly 2 parts
+  // Debe tener exactamente 2 partes
   if (parts.length !== 2) {
     return {
       isValid: false,
       errorType: ValidationErrorTypes.INVALID_FORMAT,
       errorMessage:
-        "The ID must have the format: identifier-type (e.g., 12345678-1)",
+        "El ID debe tener el formato: identificador-tipo (ej: 12345678-1)",
     };
   }
 
   const [identificador, tipoStr] = parts;
 
-  // Validate that the type is numeric
+  // Validar que el tipo sea numérico
   const tipoNum = parseInt(tipoStr, 10);
   if (
     isNaN(tipoNum) ||
@@ -138,11 +138,11 @@ export function validateIdActor(
     return {
       isValid: false,
       errorType: ValidationErrorTypes.INVALID_FORMAT,
-      errorMessage: `Invalid identifier type: ${tipoStr}. Must be 1 (DNI), 2 (Foreigner's Card) or 3 (School Code)`,
+      errorMessage: `Tipo de identificador inválido: ${tipoStr}. Debe ser 1 (DNI), 2 (Carnet de Extranjería) o 3 (Código de Escuela)`,
     };
   }
 
-  // Validate the identifier according to its type
+  // Validar el identificador según su tipo
   let validationResult: ValidationResult;
 
   switch (tipoNum) {
@@ -162,26 +162,26 @@ export function validateIdActor(
       return {
         isValid: false,
         errorType: ValidationErrorTypes.INVALID_FORMAT,
-        errorMessage: "Unsupported identifier type",
+        errorMessage: "Tipo de identificador no soportado",
       };
   }
 
-  // If specific validation fails, return the error
+  // Si la validación específica falla, retornar el error
   if (!validationResult.isValid) {
     return {
       ...validationResult,
-      errorMessage: `Invalid ${TiposIdentificadoresTextos[tipoNum]}: ${validationResult.errorMessage}`,
+      errorMessage: `${TiposIdentificadoresTextos[tipoNum]} inválido: ${validationResult.errorMessage}`,
     };
   }
 
-  // If all is valid
+  // Si todo es válido
   return {
     isValid: true,
     tipoIdentificador: tipoNum as TiposIdentificadores,
   };
 }
 
-// Auxiliary function to get only the identifier without the type
+// Función auxiliar para obtener solo el identificador sin el tipo
 export function extractIdentificador(idActor: string): string {
   if (!idActor.includes("-")) {
     return idActor;
@@ -189,7 +189,7 @@ export function extractIdentificador(idActor: string): string {
   return idActor.split("-")[0];
 }
 
-// Auxiliary function to get the identifier type
+// Función auxiliar para obtener el tipo de identificador
 export function extractTipoIdentificador(
   idActor: string
 ): TiposIdentificadores {

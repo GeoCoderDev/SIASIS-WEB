@@ -24,7 +24,7 @@ import {
 import { TIEMPO_EXPIRACION_REPORTES_ASISTENCIAS_ESCOLARES_SEGUNDOS_CACHE_REDIS } from "@/constants/REPORTES_ASISTENCIA";
 
 /**
- * GitHub Actions configuration for reports
+ * Configuración de GitHub Actions para reportes
  */
 const GITHUB_CONFIG = {
   TOKEN: process.env.TGSH01_GITHUB_STATIC_PERSONAL_ACCESS_TOKEN,
@@ -33,39 +33,39 @@ const GITHUB_CONFIG = {
 } as const;
 
 /**
- * Triggers report generation via GitHub Actions
+ * Gatilla la generación de un reporte via GitHub Actions
  */
-async function triggerReportGeneration(
+async function gatillarGeneracionReporte(
   payload: T_Reportes_Asistencia_Escolar
 ): Promise<void> {
   try {
-    console.log(`🚀 STARTING TRIGGER of report generation`);
+    console.log(`🚀 INICIANDO GATILLADO de generación de reporte`);
 
-    // Verify GitHub configuration
+    // Verificar configuración de GitHub
     if (!GITHUB_CONFIG.TOKEN) {
-      throw new Error("GitHub TOKEN not configured");
+      throw new Error("TOKEN de GitHub no configurado");
     }
 
     if (!GITHUB_CONFIG.REPOSITORY_OWNER || !GITHUB_CONFIG.REPOSITORY_NAME) {
-      throw new Error("Incomplete GitHub repository configuration");
+      throw new Error("Configuración de repositorio de GitHub incompleta");
     }
 
     const url = `https://api.github.com/repos/${GITHUB_CONFIG.REPOSITORY_OWNER}/${GITHUB_CONFIG.REPOSITORY_NAME}/dispatches`;
-    console.log(`🌐 GitHub Actions URL: ${url}`);
+    console.log(`🌐 URL GitHub Actions: ${url}`);
 
     const githubPayload = {
-      event_type: "generate-attendance-report",
+      event_type: "generar-reporte-asistencia",
       client_payload: {
-        ReportParameterCombination: payload.Combinacion_Parametros_Reporte,
-        ReportStatus: payload.Estado_Reporte,
-        GoogleDriveDataId: payload.Datos_Google_Drive_Id,
-        GenerationDate: payload.Fecha_Generacion,
-        UserRole: payload.Rol_Usuario,
-        UserId: payload.Id_Usuario,
+        Combinacion_Parametros_Reporte: payload.Combinacion_Parametros_Reporte,
+        Estado_Reporte: payload.Estado_Reporte,
+        Datos_Google_Drive_Id: payload.Datos_Google_Drive_Id,
+        Fecha_Generacion: payload.Fecha_Generacion,
+        Rol_Usuario: payload.Rol_Usuario,
+        Id_Usuario: payload.Id_Usuario,
       },
     };
 
-    console.log(`📦 Payload to send:`, JSON.stringify(githubPayload, null, 2));
+    console.log(`📦 Payload a enviar:`, JSON.stringify(githubPayload, null, 2));
 
     const response = await fetch(url, {
       method: "POST",
@@ -77,28 +77,28 @@ async function triggerReportGeneration(
       body: JSON.stringify(githubPayload),
     });
 
-    console.log(`📡 GitHub Actions Response - Status: ${response.status}`);
+    console.log(`📡 Respuesta GitHub Actions - Status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`❌ Error response body:`, errorText);
       throw new Error(
-        `Error triggering GitHub Action: ${response.status} ${response.statusText} - ${errorText}`
+        `Error al gatillar GitHub Action: ${response.status} ${response.statusText} - ${errorText}`
       );
     }
 
-    console.log(`✅ GitHub Action triggered successfully for report`);
+    console.log(`✅ GitHub Action gatillado exitosamente para reporte`);
   } catch (error) {
-    console.error(`❌ Error triggering GitHub Action:`, error);
+    console.error(`❌ Error al gatillar GitHub Action:`, error);
     throw error;
   }
 }
 
 /**
- * Maps system role to 2-character format for storage
+ * Mapea el rol del sistema al formato de 2 caracteres para almacenamiento
  */
-function mapRoleToShortCode(role: RolesSistema): string {
-  const mapping: Record<RolesSistema, string> = {
+function mapearRolACodigoCorto(rol: RolesSistema): string {
+  const mapeo: Record<RolesSistema, string> = {
     [RolesSistema.Directivo]: "D",
     [RolesSistema.Auxiliar]: "A",
     [RolesSistema.ProfesorPrimaria]: "PP",
@@ -108,13 +108,13 @@ function mapRoleToShortCode(role: RolesSistema): string {
     [RolesSistema.PersonalAdministrativo]: "PA",
   };
 
-  return mapping[role] || "??";
+  return mapeo[rol] || "??";
 }
 
 export async function POST(req: NextRequest) {
   try {
-    // ✅ AUTHENTICATION
-    const { error, rol: role, decodedToken } = await verifyAuthToken(req, [
+    // ✅ AUTENTICACIÓN
+    const { error, rol, decodedToken } = await verifyAuthToken(req, [
       RolesSistema.Directivo,
       RolesSistema.Auxiliar,
       RolesSistema.ProfesorPrimaria,
@@ -122,22 +122,22 @@ export async function POST(req: NextRequest) {
       RolesSistema.Tutor,
     ]);
 
-    if (error && !role && !decodedToken) return error;
+    if (error && !rol && !decodedToken) return error;
 
-    console.log(`🔐 Authenticated user: ${role} - ${decodedToken.ID_Usuario}`);
+    console.log(`🔐 Usuario autenticado: ${rol} - ${decodedToken.ID_Usuario}`);
 
-    // ✅ PARSE BODY
+    // ✅ PARSEAR BODY
     const body = (await req.json()) as {
-      ReportParameterCombination?: string;
+      Combinacion_Parametros_Reporte?: string;
     };
 
-    const { ReportParameterCombination } = body;
+    const { Combinacion_Parametros_Reporte } = body;
 
-    if (!ReportParameterCombination) {
+    if (!Combinacion_Parametros_Reporte) {
       return NextResponse.json(
         {
           success: false,
-          message: "ReportParameterCombination is required in the body",
+          message: "Se requiere Combinacion_Parametros_Reporte en el body",
           errorType: RequestErrorTypes.INVALID_PARAMETERS,
         } as ErrorResponseAPIBase,
         { status: 400 }
@@ -145,21 +145,21 @@ export async function POST(req: NextRequest) {
     }
 
     console.log(
-      `📋 Received parameter combination: ${ReportParameterCombination}`
+      `📋 Combinación de parámetros recibida: ${Combinacion_Parametros_Reporte}`
     );
 
-    // ✅ VALIDATE FORMAT
-    const decodedParameters =
+    // ✅ VALIDAR FORMATO
+    const parametrosDecodificados =
       decodificarCombinacionParametrosParaReporteEscolar(
-        ReportParameterCombination
+        Combinacion_Parametros_Reporte
       );
 
-    if (decodedParameters === false) {
+    if (parametrosDecodificados === false) {
       return NextResponse.json(
         {
           success: false,
           message:
-            "The parameter combination is not valid. Please check the format and provided values.",
+            "La combinación de parámetros no es válida. Verifique el formato y los valores proporcionados.",
           errorType: RequestErrorTypes.INVALID_PARAMETERS,
         } as ErrorResponseAPIBase,
         { status: 400 }
@@ -167,160 +167,160 @@ export async function POST(req: NextRequest) {
     }
 
     console.log(
-      `🔍 Decoded parameters:`,
-      JSON.stringify(decodedParameters, null, 2)
+      `🔍 Parámetros decodificados:`,
+      JSON.stringify(parametrosDecodificados, null, 2)
     );
 
-    // ✅ VALIDATE PERMISSIONS using the helper
-    const attendanceHelper = await DatosAsistenciaHoyHelper.obtenerInstancia();
-    const permissionValidation = attendanceHelper.validarPermisosReporte(
-      role!,
+    // ✅ VALIDAR PERMISOS usando el helper
+    const helperAsistencia = await DatosAsistenciaHoyHelper.obtenerInstancia();
+    const validacionPermisos = helperAsistencia.validarPermisosReporte(
+      rol!,
       decodedToken.ID_Usuario,
-      decodedParameters.aulasSeleccionadas.Nivel,
-      decodedParameters.aulasSeleccionadas.Grado,
-      decodedParameters.aulasSeleccionadas.Seccion
+      parametrosDecodificados.aulasSeleccionadas.Nivel,
+      parametrosDecodificados.aulasSeleccionadas.Grado,
+      parametrosDecodificados.aulasSeleccionadas.Seccion
     );
 
-    if (!permissionValidation.tienePermiso) {
+    if (!validacionPermisos.tienePermiso) {
       console.log(
-        `❌ Permission denied for ${role}: ${permissionValidation.mensaje}`
+        `❌ Permiso denegado para ${rol}: ${validacionPermisos.mensaje}`
       );
       return NextResponse.json(
         {
           success: false,
           message:
-            permissionValidation.mensaje ||
-            "You do not have permission to generate this report",
+            validacionPermisos.mensaje ||
+            "No tiene permisos para generar este reporte",
           errorType: PermissionErrorTypes.INSUFFICIENT_PERMISSIONS,
         } as ErrorResponseAPIBase,
         { status: 403 }
       );
     }
 
-    console.log(`✅ Permissions successfully validated for role ${role}`);
+    console.log(`✅ Permisos validados correctamente para rol ${rol}`);
 
-    // ✅ VERIFY IF ALREADY EXISTS IN REDIS
+    // ✅ VERIFICAR SI YA EXISTE EN REDIS
     const redisClientInstance = redisClient(
       GruposIntanciasDeRedis.ParaReportesDeAsistenciasEscolares
     );
 
-    const existingReport = await redisClientInstance.get(
-      ReportParameterCombination
+    const reporteExistente = await redisClientInstance.get(
+      Combinacion_Parametros_Reporte
     );
 
-    if (existingReport) {
+    if (reporteExistente) {
       console.log(
-        `📋 Report already exists in Redis: ${ReportParameterCombination}`
+        `📋 Reporte ya existe en Redis: ${Combinacion_Parametros_Reporte}`
       );
 
-      // Parse existing data
-      const completeReport: T_Reportes_Asistencia_Escolar =
-        typeof existingReport === "string"
-          ? JSON.parse(existingReport)
-          : existingReport;
+      // Parsear los datos existentes
+      const reporteCompleto: T_Reportes_Asistencia_Escolar =
+        typeof reporteExistente === "string"
+          ? JSON.parse(reporteExistente)
+          : reporteExistente;
 
-      // Filter only anonymous data for the response
-      const reportStatusData: ReporteAsistenciaEscolarAnonimo = {
+      // Filtrar solo los datos anónimos para la respuesta
+      const datosDeEstadoDeReporte: ReporteAsistenciaEscolarAnonimo = {
         Combinacion_Parametros_Reporte:
-          completeReport.Combinacion_Parametros_Reporte,
-        Estado_Reporte: completeReport.Estado_Reporte,
-        Datos_Google_Drive_Id: completeReport.Datos_Google_Drive_Id,
-        Fecha_Generacion: completeReport.Fecha_Generacion,
+          reporteCompleto.Combinacion_Parametros_Reporte,
+        Estado_Reporte: reporteCompleto.Estado_Reporte,
+        Datos_Google_Drive_Id: reporteCompleto.Datos_Google_Drive_Id,
+        Fecha_Generacion: reporteCompleto.Fecha_Generacion,
       };
 
       return NextResponse.json(
         {
           success: true,
-          message: `The report already exists and is in state ${
+          message: `El reporte ya existe y está en estado ${
             EstadosReporteAsistenciaEscolarTextos[
-              reportStatusData.Estado_Reporte as EstadoReporteAsistenciaEscolar
+              datosDeEstadoDeReporte.Estado_Reporte as EstadoReporteAsistenciaEscolar
             ]
           }`,
-          data: reportStatusData,
-          existed: true,
+          data: datosDeEstadoDeReporte,
+          existia: true,
         },
         { status: 200 }
       );
     }
 
     console.log(
-      `🆕 Report does not exist, proceeding to create: ${ReportParameterCombination}`
+      `🆕 Reporte no existe, procediendo a crear: ${Combinacion_Parametros_Reporte}`
     );
 
-    // ✅ CREATE NEW REPORT
-    const generationDate = new Date();
-    const roleCode = mapRoleToShortCode(role!);
+    // ✅ CREAR NUEVO REPORTE
+    const fechaGeneracion = new Date();
+    const rolCodigo = mapearRolACodigoCorto(rol!);
 
-    const newReport: T_Reportes_Asistencia_Escolar = {
-      Combinacion_Parametros_Reporte: ReportParameterCombination,
+    const nuevoReporte: T_Reportes_Asistencia_Escolar = {
+      Combinacion_Parametros_Reporte,
       Estado_Reporte: EstadoReporteAsistenciaEscolar.PENDIENTE,
       Datos_Google_Drive_Id: null,
-      Fecha_Generacion: generationDate,
-      Rol_Usuario: roleCode,
+      Fecha_Generacion: fechaGeneracion,
+      Rol_Usuario: rolCodigo,
       Id_Usuario: decodedToken.ID_Usuario,
     };
 
     console.log(
-      `📦 New report to create:`,
-      JSON.stringify(newReport, null, 2)
+      `📦 Nuevo reporte a crear:`,
+      JSON.stringify(nuevoReporte, null, 2)
     );
 
-    // ✅ SAVE IN REDIS WITH 12 HOUR EXPIRATION
+    // ✅ GUARDAR EN REDIS CON EXPIRACIÓN DE 12 HORAS
     await redisClientInstance.set(
-      ReportParameterCombination,
-      JSON.stringify(newReport),
+      Combinacion_Parametros_Reporte,
+      JSON.stringify(nuevoReporte),
       TIEMPO_EXPIRACION_REPORTES_ASISTENCIAS_ESCOLARES_SEGUNDOS_CACHE_REDIS
     );
 
     console.log(
-      `💾 Report saved to Redis successfully with an expiration of ${
+      `💾 Reporte guardado en Redis exitosamente con expiración de ${
         TIEMPO_EXPIRACION_REPORTES_ASISTENCIAS_ESCOLARES_SEGUNDOS_CACHE_REDIS /
         3600
-      } hours`
+      } horas`
     );
 
-    // ✅ TRIGGER GITHUB ACTIONS
+    // ✅ GATILLAR GITHUB ACTIONS
     try {
-      await triggerReportGeneration(newReport);
-      console.log(`🚀 GitHub Action triggered successfully`);
+      await gatillarGeneracionReporte(nuevoReporte);
+      console.log(`🚀 GitHub Action gatillado exitosamente`);
     } catch (errorGithub) {
       console.error(
-        `⚠️ Error triggering GitHub Action (report saved in Redis):`,
+        `⚠️ Error al gatillar GitHub Action (reporte guardado en Redis):`,
         errorGithub
       );
-      // Don't fail the request if GitHub Actions fails, the report is already in Redis
+      // No fallar la petición si GitHub Actions falla, el reporte ya está en Redis
     }
 
-    // ✅ PREPARE ANONYMOUS RESPONSE
-    const reportStatusData: ReporteAsistenciaEscolarAnonimo = {
+    // ✅ PREPARAR RESPUESTA ANÓNIMA
+    const datosDeEstadoDeReporte: ReporteAsistenciaEscolarAnonimo = {
       Combinacion_Parametros_Reporte:
-        newReport.Combinacion_Parametros_Reporte,
-      Estado_Reporte: newReport.Estado_Reporte,
-      Datos_Google_Drive_Id: newReport.Datos_Google_Drive_Id,
-      Fecha_Generacion: newReport.Fecha_Generacion,
+        nuevoReporte.Combinacion_Parametros_Reporte,
+      Estado_Reporte: nuevoReporte.Estado_Reporte,
+      Datos_Google_Drive_Id: nuevoReporte.Datos_Google_Drive_Id,
+      Fecha_Generacion: nuevoReporte.Fecha_Generacion,
     };
 
     console.log(
-      `✅ Report created successfully: ${ReportParameterCombination}`
+      `✅ Reporte creado exitosamente: ${Combinacion_Parametros_Reporte}`
     );
 
     return NextResponse.json(
       {
         success: true,
         message:
-          "Report created successfully and sent for background generation",
-        data: reportStatusData,
-        existed: false,
+          "Reporte creado exitosamente y enviado para generación en segundo plano",
+        data: datosDeEstadoDeReporte,
+        existia: false,
       },
       { status: 201 }
     );
   } catch (error) {
-    console.error("❌ Error creating attendance report:", error);
+    console.error("❌ Error al crear reporte de asistencia:", error);
 
     return NextResponse.json(
       {
         success: false,
-        message: "Error creating attendance report",
+        message: "Error al crear el reporte de asistencia",
         errorType: SystemErrorTypes.UNKNOWN_ERROR,
         ErrorDetails: error instanceof Error ? error.message : String(error),
       } as ErrorResponseAPIBase,

@@ -2,10 +2,10 @@ import { obtenerApellidosSeparados } from "../../extractors/personalData/obtener
 import { obtenerNombresSeparados } from "../../extractors/personalData/obtenerNombresSeparados";
 
 /**
- * Function to get the first name followed by the first surname
- * @param nombresCompletos - String with full names
- * @param apellidosCompletos - String with full surnames
- * @returns String with "First Name First Surname"
+ * Función para obtener el primer nombre seguido del primer apellido
+ * @param nombresCompletos - String con los nombres completos
+ * @param apellidosCompletos - String con los apellidos completos
+ * @returns String con "Primer Nombre Primer Apellido"
  */
 export function obtenerNombreApellidoSimple(
   nombresCompletos: string,
@@ -17,6 +17,6 @@ export function obtenerNombreApellidoSimple(
   const primerNombre = nombres.length > 0 ? nombres[0] : "";
   const primerApellido = apellidos.length > 0 ? apellidos[0] : "";
 
-  // Combine and trim extra spaces
+  // Combinar y limpiar espacios extra
   return `${primerNombre} ${primerApellido}`.trim();
 }

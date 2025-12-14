@@ -4,7 +4,7 @@ import { Listener } from "../Listener";
 
 export class CommandMenu {
   private speaker: Speaker = Speaker.getInstance();
-  private listener: Listener = Listener.getInstance(); // We use Listener
+  private listener: Listener = Listener.getInstance(); // Usamos Listener
 
   constructor(
     private presentationText: string,
@@ -19,7 +19,7 @@ export class CommandMenu {
       !("SpeechRecognition" in window || "webkitSpeechRecognition" in window)
     ) {
       this.speaker.start(
-        "I'm sorry, your browser is not compatible with voice commands."
+        "Lo siento, tu navegador no es compatible con los comandos de voz."
       );
       return;
     }
@@ -29,7 +29,7 @@ export class CommandMenu {
 
       for (let i = 0; i < this.commandVoices.length; i++) {
         if (this.commandVoices[i].testTranscrip(transcript)) {
-          //Making use of recursion
+          //Haciendo uso de la recursividad
           const handleLoop = (loop: boolean | null) => {
             if (this.commandVoices[i].finalPhrase) {
               // this.listener.stop();
@@ -51,7 +51,7 @@ export class CommandMenu {
         }
       }
 
-      this.speaker.start("Command not recognized. Try again.");
+      this.speaker.start("Comando no reconocido. Intenta nuevamente.");
     };
 
     if (this.callbackPresentationText && currentPath) {
@@ -64,7 +64,7 @@ export class CommandMenu {
       });
     };
 
-    // Executes the start of voice recognition
+    // Ejecuta el inicio del reconocimiento de voz
     startVoiceRecognition();
   }
 }

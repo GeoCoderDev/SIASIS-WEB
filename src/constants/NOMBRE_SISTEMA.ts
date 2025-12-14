@@ -1,1 +1,1 @@
-export const CURRENT_SYSTEM_NAME = "SIASIS";
+export const NOMBRE_ACTUAL_SISTEMA = "SIASIS";

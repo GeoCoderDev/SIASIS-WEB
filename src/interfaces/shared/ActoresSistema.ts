@@ -1,10 +1,12 @@
-export enum SystemActors {
-  Director = "D",
-  PrimaryTeacher = "PP",
-  Assistant = "A",
-  SecondaryTeacher = "PS",
+
+
+export enum ActoresSistema {
+  Directivo = "D",
+  ProfesorPrimaria = "PP",
+  Auxiliar = "A",
+  ProfesorSecundaria = "PS",
   Tutor = "T",
-  Guardian = "R",
-  AdministrativeStaff = "PA",
-  Student = "E",
+  Responsable = "R",
+  PersonalAdministrativo = "PA",
+  Estudiante = "E",
 }

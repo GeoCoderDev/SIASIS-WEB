@@ -1,14 +1,14 @@
 import { Entorno } from "@/interfaces/shared/Entornos";
 
-export const Environments_Texts: Record<Entorno, string> = {
+export const Entornos_Textos: Record<Entorno, string> = {
   [Entorno.LOCAL]: "LOCAL",
-  [Entorno.DESARROLLO]: "DEVELOPMENT",
-  [Entorno.CERTIFICACION]: "CERTIFICATION",
+  [Entorno.DESARROLLO]: "DESARROLLO",
+  [Entorno.CERTIFICACION]: "CERTIFICACION",
   [Entorno.TEST]: "TEST",
-  [Entorno.PRODUCCION]: "PRODUCTION",
+  [Entorno.PRODUCCION]: "PRODUCCION",
 };
 
-export const Environments_Emojis: Record<Entorno, string> = {
+export const Entornos_Emojis: Record<Entorno, string> = {
   [Entorno.LOCAL]: "🏠",
   [Entorno.DESARROLLO]: "🛠️",
   [Entorno.CERTIFICACION]: "✅",

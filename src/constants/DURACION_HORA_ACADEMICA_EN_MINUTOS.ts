@@ -1,1 +1,1 @@
-export const ACADEMIC_HOUR_DURATION_IN_MINUTES = 45; // 45 minutes
+export const DURACION_HORA_ACADEMICA_EN_MINUTOS = 45; // 45 minutos

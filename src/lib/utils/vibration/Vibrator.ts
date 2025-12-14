@@ -8,125 +8,125 @@ export class Vibrator {
   private isSupported: boolean;
 
   constructor() {
-    // Check if the vibration API is available
+    // Verificar si la API de vibración está disponible
     this.isSupported = "vibrate" in navigator;
 
-    // Show warning if not supported
+    // Mostrar advertencia si no está soportado
     if (!this.isSupported) {
       console.warn(
-        "Vibration API is not supported on this device/browser"
+        "Vibration API no está soportada en este dispositivo/navegador"
       );
     }
   }
 
   /**
-   * Executes a simple vibration for a specific duration
-   * @param duration Duration in milliseconds
-   * @returns boolean - true if executed successfully, false if not supported
+   * Ejecuta una vibración simple por una duración específica
+   * @param duration Duración en milisegundos
+   * @returns boolean - true si se ejecutó correctamente, false si no está soportado
    */
   vibrate(duration: number): boolean {
     if (!this.isSupported) {
-      console.warn("Vibration not supported - simulating vibration");
+      console.warn("Vibración no soportada - simulando vibración");
       return false;
     }
 
     try {
-      // Validate that the duration is a positive number
+      // Validar que la duración sea un número positivo
       if (duration <= 0) {
-        console.warn("Vibration duration must be greater than 0");
+        console.warn("Duración de vibración debe ser mayor a 0");
         return false;
       }
 
       navigator.vibrate(duration);
       return true;
     } catch (error) {
-      console.error("Error executing vibration:", error);
+      console.error("Error al ejecutar vibración:", error);
       return false;
     }
   }
 
   /**
-   * Executes a custom vibration pattern
-   * @param pattern Array alternating vibration duration and pause [vibrate, pause, vibrate, pause, ...]
-   * @example vibratePattern([200, 100, 200, 100, 500]) - vibrates 200ms, pauses 100ms, vibrates 200ms, pauses 100ms, vibrates 500ms
+   * Ejecuta un patrón de vibración personalizado
+   * @param pattern Array alternando duración de vibración y pausa [vibrar, pausa, vibrar, pausa, ...]
+   * @example vibratePattern([200, 100, 200, 100, 500]) - vibra 200ms, pausa 100ms, vibra 200ms, pausa 100ms, vibra 500ms
    */
   vibratePattern(pattern: number[]): boolean {
     if (!this.isSupported) {
-      console.warn("Vibration not supported - simulating pattern");
+      console.warn("Vibración no soportada - simulando patrón");
       return false;
     }
 
     try {
       if (!Array.isArray(pattern) || pattern.length === 0) {
-        console.warn("Vibration pattern must be a non-empty array");
+        console.warn("Patrón de vibración debe ser un array no vacío");
         return false;
       }
 
       navigator.vibrate(pattern);
       return true;
     } catch (error) {
-      console.error("Error executing vibration pattern:", error);
+      console.error("Error al ejecutar patrón de vibración:", error);
       return false;
     }
   }
 
   /**
-   * Stops any ongoing vibration
+   * Detiene cualquier vibración en curso
    */
   stop(): boolean {
     if (!this.isSupported) {
-      console.warn("Vibration not supported");
+      console.warn("Vibración no soportada");
       return false;
     }
 
     try {
-      navigator.vibrate(0); // 0 stops the vibration
+      navigator.vibrate(0); // 0 detiene la vibración
       return true;
     } catch (error) {
-      console.error("Error stopping vibration:", error);
+      console.error("Error al detener vibración:", error);
       return false;
     }
   }
 
   /**
-   * Confirmation vibration (short-short pattern)
-   * Useful for confirming actions like marking attendance
+   * Vibración de confirmación (patrón corto-corto)
+   * Útil para confirmar acciones como marcar asistencia
    */
   vibrateConfirmation(): boolean {
     return this.vibratePattern([100, 50, 100]);
   }
 
   /**
-   * Error vibration (long-short-short pattern)
-   * Useful for indicating errors or invalid actions
+   * Vibración de error (patrón largo-corto-corto)
+   * Útil para indicar errores o acciones inválidas
    */
   vibrateError(): boolean {
     return this.vibratePattern([400, 100, 100, 50, 100]);
   }
 
   /**
-   * Success vibration (ascending pattern)
-   * Useful for confirming successful operations
+   * Vibración de éxito (patrón ascendente)
+   * Útil para confirmar operaciones exitosas
    */
   vibrateSuccess(): boolean {
     return this.vibratePattern([150, 75, 200, 75, 300]);
   }
 
   /**
-   * Soft alert vibration
-   * Useful for non-critical notifications
+   * Vibración de alerta suave
+   * Útil para notificaciones no críticas
    */
   vibrateAlert(): boolean {
     return this.vibratePattern([200, 200, 200, 200, 200]);
   }
 
   /**
-   * Checks if vibration is supported on the device
+   * Verifica si la vibración está soportada en el dispositivo
    */
   isVibrationSupported(): boolean {
     return this.isSupported;
   }
 }
 
-// Singleton instance for use throughout the application
+// Instancia singleton para usar en toda la aplicación
 export const vibrator = new Vibrator();

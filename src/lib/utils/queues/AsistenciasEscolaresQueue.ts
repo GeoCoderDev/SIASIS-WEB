@@ -16,7 +16,7 @@ import { ActoresSistema } from "@/interfaces/shared/ActoresSistema";
 import { ModoRegistro } from "@/interfaces/shared/ModoRegistro";
 import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
 
-// Main interface for queue items
+// Interfaz principal para los items de la cola
 export interface ItemDeColaAsistenciaEscolar
   extends QueueItem,
     RegistrarAsistenciaIndividualRequestBody {
@@ -47,7 +47,7 @@ export class AsistenciasEscolaresIDBRepository extends QueueRepository<ItemDeCol
   }
 
   /**
-   * Adds an item to the queue
+   * Añade un item a la cola
    */
   async enqueue(
     item: Omit<ItemDeColaAsistenciaEscolar, "NumeroDeOrden">
@@ -59,26 +59,26 @@ export class AsistenciasEscolaresIDBRepository extends QueueRepository<ItemDeCol
       });
       return true;
     } catch (error) {
-      console.error("Error doing enqueue:", error);
+      console.error("Error al hacer enqueue:", error);
       return false;
     }
   }
 
   /**
-   * Gets the first item WITHOUT removing it
+   * Obtiene el primer item SIN eliminarlo
    */
   async getFirstItem(): Promise<ItemDeColaAsistenciaEscolar | null> {
     try {
       const items = await this.idbModel.getAll();
       return items.length > 0 ? items[0] : null;
     } catch (error) {
-      console.error("Error getting first item:", error);
+      console.error("Error al obtener primer item:", error);
       return null;
     }
   }
 
   /**
-   * Removes the first item from the queue
+   * Elimina el primer item de la cola
    */
   async dequeue(): Promise<boolean> {
     try {
@@ -89,48 +89,48 @@ export class AsistenciasEscolaresIDBRepository extends QueueRepository<ItemDeCol
 
       return await this.idbModel.deleteByNumeroOrden(firstItem.NumeroDeOrden);
     } catch (error) {
-      console.error("Error doing dequeue:", error);
+      console.error("Error al hacer dequeue:", error);
       return false;
     }
   }
 
   /**
-   * NEW: Removes a specific item by its order number
+   * NUEVO: Elimina un item específico por su número de orden
    */
   async deleteByOrderNumber(numeroDeOrden: number): Promise<boolean> {
     try {
       return await this.idbModel.deleteByNumeroOrden(numeroDeOrden);
     } catch (error) {
-      console.error("Error deleting by order number:", error);
+      console.error("Error al eliminar por número de orden:", error);
       return false;
     }
   }
 
   /**
-   * NEW: Moves an item to the end of the queue (assigns a new order number)
+   * NUEVO: Mueve un item al final de la cola (le asigna un nuevo número de orden)
    */
   async moveToEnd(numeroDeOrden: number): Promise<boolean> {
     try {
-      // 1. Get the current item
+      // 1. Obtener el item actual
       const item = await this.idbModel.getByNumeroOrden(numeroDeOrden);
       if (!item) {
         console.error(
-          `Item with order number ${numeroDeOrden} not found`
+          `Item con número de orden ${numeroDeOrden} no encontrado`
         );
         return false;
       }
 
-      // 2. Get new order number (at the end)
+      // 2. Obtener nuevo número de orden (al final)
       const nuevoNumeroDeOrden = await this.getNextOrderNumber();
 
-      // 3. Delete the current item
+      // 3. Eliminar el item actual
       const deleted = await this.idbModel.deleteByNumeroOrden(numeroDeOrden);
       if (!deleted) {
-        console.error(`Could not delete item ${numeroDeOrden}`);
+        console.error(`No se pudo eliminar el item ${numeroDeOrden}`);
         return false;
       }
 
-      // 4. Create the item with the new order number at the end
+      // 4. Crear el item con el nuevo número de orden al final
       await this.idbModel.create({
         ...item,
         NumeroDeOrden: nuevoNumeroDeOrden,
@@ -138,38 +138,38 @@ export class AsistenciasEscolaresIDBRepository extends QueueRepository<ItemDeCol
 
       return true;
     } catch (error) {
-      console.error("Error moving item to end:", error);
+      console.error("Error al mover item al final:", error);
       return false;
     }
   }
 
   /**
-   * Gets all items sorted by NumeroDeOrden
+   * Obtiene todos los items ordenados por NumeroDeOrden
    */
   async getOrderItems(): Promise<ItemDeColaAsistenciaEscolar[]> {
     try {
       return await this.idbModel.getAll();
     } catch (error) {
-      console.error("Error getting ordered items:", error);
+      console.error("Error al obtener items ordenados:", error);
       return [];
     }
   }
 
   /**
-   * Clears all items from the queue
+   * Limpia todos los items de la cola
    */
   async clearItems(): Promise<boolean> {
     try {
       const deletedCount = await this.idbModel.deleteAll();
       return deletedCount > 0;
     } catch (error) {
-      console.error("Error clearing items:", error);
+      console.error("Error al limpiar items:", error);
       return false;
     }
   }
 
   /**
-   * Gets a specific item by its order number
+   * Obtiene un item específico por su número de orden
    */
   async getItemByOrderNumber(
     numeroDeOrden: number
@@ -177,55 +177,55 @@ export class AsistenciasEscolaresIDBRepository extends QueueRepository<ItemDeCol
     try {
       return await this.idbModel.getByNumeroOrden(numeroDeOrden);
     } catch (error) {
-      console.error("Error getting item by order:", error);
+      console.error("Error al obtener item por orden:", error);
       return null;
     }
   }
 
   /**
-   * Gets the next available order number
+   * Obtiene el próximo número de orden disponible
    */
   async getNextOrderNumber(): Promise<number> {
     try {
       return await this.idbModel.getProximoNumeroOrden();
     } catch (error) {
-      console.error("Error getting next order number:", error);
+      console.error("Error al obtener próximo número de orden:", error);
       return Date.now(); // Fallback
     }
   }
 
   /**
-   * Counts the total items in the queue
+   * Cuenta el total de items en la cola
    */
   async count(): Promise<number> {
     try {
       return await this.idbModel.count();
     } catch (error) {
-      console.error("Error counting items:", error);
+      console.error("Error al contar items:", error);
       return 0;
     }
   }
 
   /**
-   * Updates an existing item
+   * Actualiza un item existente
    */
   async updateItem(item: ItemDeColaAsistenciaEscolar): Promise<boolean> {
     try {
       return await this.idbModel.update(item);
     } catch (error) {
-      console.error("Error updating item:", error);
+      console.error("Error al actualizar item:", error);
       return false;
     }
   }
 
   /**
-   * Checks if an item exists with the given order number
+   * Verifica si existe un item con el número de orden dado
    */
   async exists(numeroDeOrden: number): Promise<boolean> {
     try {
       return await this.idbModel.existsByNumeroOrden(numeroDeOrden);
     } catch (error) {
-      console.error("Error checking existence:", error);
+      console.error("Error al verificar existencia:", error);
       return false;
     }
   }
@@ -244,8 +244,8 @@ const PROCESADOR_DE_ASISTENCIAS_ESCOLARES =
       },
     });
 
-    // Important, set the current cancel function
-    // for processing the current item
+    // Importante , setear la actual funcion de cancelacion
+    // del procesamiento del item actual
     this.currentCancelProcessFunction = fetchCancelable.cancel;
 
     try {
@@ -256,7 +256,7 @@ const PROCESADOR_DE_ASISTENCIAS_ESCOLARES =
   });
 
 // ------------------------------------
-// |          ORCHESTRATION           |
+// |           ORQUESTACION           |
 // ------------------------------------
 
 export const Asistencias_Escolares_QUEUE =

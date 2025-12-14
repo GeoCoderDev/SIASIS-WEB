@@ -1,2 +1,2 @@
-export const PRIMARY_TARDINESS_TOLERANCE_MINUTES = 5; // 5 minutes tolerance to consider late arrival
-export const SECONDARY_TARDINESS_TOLERANCE_MINUTES = 5; // 5 minutes tolerance to consider late arrival
+export const MINUTOS_TOLERANCIA_PARA_TARDANZAS_PRIMARIA = 5; // 5 minutos de tolerancia para considerar llegada tardía
+export const MINUTOS_TOLERANCIA_PARA_TARDANZAS_SECUNDARIA = 5; // 5 minutos de tolerancia para considerar llegada tardía

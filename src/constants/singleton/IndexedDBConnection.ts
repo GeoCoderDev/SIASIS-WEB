@@ -1,4 +1,4 @@
 import { IndexedDBConnection } from "@/lib/utils/local/db/IndexedDBConnection";
 
-// Export the unique instance
+// Exportar la instancia única
 export default IndexedDBConnection.getInstance();

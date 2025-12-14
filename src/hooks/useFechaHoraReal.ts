@@ -1,10 +1,10 @@
 import { ENTORNO } from "@/constants/ENTORNO";
 import { INTERVALO_MINUTOS_SINCRONIZACION_HORA_REAL } from "@/constants/INTERVALO_MINUTOS_SINCRONIZACION_HORA_REAL";
-import { LOCAL_TIME_ZONE } from "@/constants/ZONA_HORARIA_LOCAL";
+import { ZONA_HORARIA_LOCAL } from "@/constants/ZONA_HORARIA_LOCAL";
 import {
-  fetchRealCurrentDateTime,
+  fetchFechaHoraActual,
   setTimezone,
-  updateRealCurrentDateTime,
+  updateFechaHoraActual,
 } from "@/global/state/others/fechaHoraActualReal";
 import { AppDispatch, RootState } from "@/global/store";
 import { Entorno } from "@/interfaces/shared/Entornos";
@@ -12,50 +12,50 @@ import { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 interface UseFechaHoraRealOptions {
-  syncInterval?: number; // Synchronization interval in ms
-  updateInterval?: number; // Local update interval in ms
-  autoSync?: boolean; // Automatically sync on mount
-  timezone?: string; // Timezone
+  syncInterval?: number; // Intervalo de sincronización en ms
+  updateInterval?: number; // Intervalo de actualización local en ms
+  autoSync?: boolean; // Sincronizar automáticamente al montar
+  timezone?: string; // Zona horaria
 }
 
 export const useFechaHoraReal = ({
-  syncInterval = INTERVALO_MINUTOS_SINCRONIZACION_HORA_REAL * 60 * 1000, // X minutes
-  updateInterval = 1000, // 1 second
-  autoSync = ENTORNO !== Entorno.LOCAL, // If different from local, sync automatically
-  timezone = LOCAL_TIME_ZONE,
+  syncInterval = INTERVALO_MINUTOS_SINCRONIZACION_HORA_REAL * 60 * 1000, // X minutos
+  updateInterval = 1000, // 1 segundo
+  autoSync = ENTORNO !== Entorno.LOCAL, //Si es diferente de local, sincronizar automáticamente
+  timezone = ZONA_HORARIA_LOCAL,
 }: UseFechaHoraRealOptions = {}) => {
   const dispatch = useDispatch<AppDispatch>();
-  const realCurrentDateTimeState = useSelector(
+  const fechaHoraState = useSelector(
     (state: RootState) => state.others.fechaHoraActualReal
   );
 
   const syncIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const updateIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Function to sync with server
-  const syncWithServer = () => {
-    dispatch(fetchRealCurrentDateTime(timezone));
+  // Función para sincronizar con el servidor
+  const sincronizarConServidor = () => {
+    dispatch(fetchFechaHoraActual(timezone));
   };
 
-  // Change timezone
-  const changeTimezone = (newTimezone: string) => {
-    dispatch(setTimezone({ value: newTimezone }));
-    syncWithServer();
+  // Cambiar la zona horaria
+  const cambiarZonaHoraria = (nuevaZona: string) => {
+    dispatch(setTimezone({ value: nuevaZona }));
+    sincronizarConServidor();
   };
 
-  // Initial and periodic synchronization
+  // Sincronización inicial y periódica
   useEffect(() => {
     if (autoSync) {
-      syncWithServer();
+      sincronizarConServidor();
 
-      // Clear existing interval if there is one
+      // Limpiar intervalo existente si hay uno
       if (syncIntervalRef.current) {
         clearInterval(syncIntervalRef.current);
       }
 
-      // Configure new interval
+      // Configurar nuevo intervalo
       syncIntervalRef.current = setInterval(
-        syncWithServer,
+        sincronizarConServidor,
         syncInterval
       );
     }
@@ -68,16 +68,16 @@ export const useFechaHoraReal = ({
     };
   }, [syncInterval, autoSync, timezone]);
 
-  // Local time update every second
+  // Actualización local del tiempo cada segundo
   useEffect(() => {
-    // Clear existing interval if there is one
+    // Limpiar intervalo existente si hay uno
     if (updateIntervalRef.current) {
       clearInterval(updateIntervalRef.current);
     }
 
-    // Configure new interval
+    // Configurar nuevo intervalo
     updateIntervalRef.current = setInterval(() => {
-      dispatch(updateRealCurrentDateTime());
+      dispatch(updateFechaHoraActual());
     }, updateInterval);
 
     return () => {
@@ -88,17 +88,17 @@ export const useFechaHoraReal = ({
     };
   }, [updateInterval]);
 
-  // We expose only the basic functions
+  // Exponemos solo las funciones básicas
   return {
-    syncWithServer,
-    changeTimezone,
-    error: realCurrentDateTimeState.error,
-    realCurrentDateTimeState: realCurrentDateTimeState,
-    // Current state data
-    dateTime: realCurrentDateTimeState.dateTime,
-    formatted: realCurrentDateTimeState.formatted,
-    utilities: realCurrentDateTimeState.utilities,
-    initialized: realCurrentDateTimeState.initialized,
+    sincronizarConServidor,
+    cambiarZonaHoraria,
+    error: fechaHoraState.error,
+    fechaHoraRealState: fechaHoraState,
+    // Datos del estado actual
+    fechaHora: fechaHoraState.fechaHora,
+    formateada: fechaHoraState.formateada,
+    utilidades: fechaHoraState.utilidades,
+    inicializado: fechaHoraState.inicializado,
   };
 };
 

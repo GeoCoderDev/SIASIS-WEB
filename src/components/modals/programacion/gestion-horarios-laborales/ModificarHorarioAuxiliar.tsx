@@ -13,7 +13,7 @@ const ModificarHorarioAuxiliar= ({
   const [horaInicio, setHoraInicio] = useState(ahora);
   const [horaFin, setHoraFin] = useState(ahora);
 
-  // References to the inputs to control the time picker
+  // Referencias a los inputs para controlar el selector de hora
   const inputInicioRef = useRef<HTMLInputElement>(null);
   const inputFinRef = useRef<HTMLInputElement>(null);
 
@@ -53,17 +53,17 @@ const ModificarHorarioAuxiliar= ({
       eliminateModal={eliminateModal}
     >
       <div className="pt-2 px-4">
-        {/* Title */}
+        {/* Título */}
         <h2 className="text-xl sm:text-2xl font-bold text-center text-gray-800 mb-6">
-          Auxiliary Staff Work Schedule
+          Horario Laboral de Auxiliares
         </h2>
 
-        {/* Schedules */}
+        {/* Horarios */}
         <div className="flex flex-col sm:flex-row justify-between items-start gap-6 mb-6">
-          {/* Start */}
+          {/* Inicio */}
           <div className="flex-1 w-full">
             <label className="block text-base sm:text-lg font-semibold text-gray-800 mb-3 text-center">
-              Start Time
+              Horario de Inicio
             </label>
             <div className="flex items-center justify-center gap-3">
               <div className="relative">
@@ -83,7 +83,7 @@ const ModificarHorarioAuxiliar= ({
                   onChange={manejarCambioHoraInicio}
                   className="absolute opacity-0 pointer-events-none"
                 />
-                {/* Styles */}
+                {/* Estilos */}
                 <style jsx>{`
                   input[type="time"]::-webkit-calendar-picker-indicator {
                     display: none;
@@ -103,10 +103,10 @@ const ModificarHorarioAuxiliar= ({
             </div>
           </div>
 
-          {/* End */}
+          {/* Fin */}
           <div className="flex-1 w-full">
             <label className="block text-base sm:text-lg font-semibold text-gray-800 mb-3 text-center">
-              Closing Time
+              Horario de Cierre
             </label>
             <div className="flex items-center justify-center gap-3">
               <div className="relative">
@@ -126,7 +126,7 @@ const ModificarHorarioAuxiliar= ({
                   onChange={manejarCambioHoraFin}
                   className="absolute opacity-0 pointer-events-none"
                 />
-                {/* Styles */}
+                {/* Estilos */}
                 <style jsx>{`
                   input[type="time"]::-webkit-calendar-picker-indicator {
                     display: none;
@@ -147,10 +147,10 @@ const ModificarHorarioAuxiliar= ({
           </div>
         </div>
 
-        {/* Save Button */}
+        {/* Botón Guardar */}
         <div className="flex justify-center">
           <BotonConIcono
-            texto="Save Changes"
+            texto="Guardar Cambios"
             IconTSX={<GuardarIcon className="w-4 ml-2" />}
             className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-6 py-3 rounded-lg transition-colors xs-only:w-[250px]"
           />

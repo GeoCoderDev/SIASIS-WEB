@@ -7,15 +7,15 @@ export class Speaker {
   private callbackStop?: () => void;
   private callbackStart?: () => void;
 
-  // Private constructor to prevent direct instantiation
+  // Constructor privado para evitar instanciación directa
   private constructor() {
     if (!window?.speechSynthesis) {
-      throw new Error("SpeechSynthesis is not available in this browser.");
+      throw new Error("SpeechSynthesis no está disponible en este navegador.");
     }
     this.synth = window.speechSynthesis;
   }
 
-  // Method to get the unique instance
+  // Método para obtener la instancia única
   public static getInstance(): Speaker {
     if (!Speaker.instance) {
       Speaker.instance = new Speaker();
@@ -24,11 +24,11 @@ export class Speaker {
   }
 
   /**
-   * This method plays the voice message.
-   * @param message Text to synthesize.
-   * @param callback Optional function to execute when synthesis ends.
-   * @param interrumpible Indicates if the synthesis can be interrupted.
-   * @returns The SpeechSynthesis object if interruptible, or undefined if not.
+   * Este método reproduce el mensaje de voz.
+   * @param message Texto a sintetizar.
+   * @param callback Función opcional a ejecutar al finalizar la síntesis.
+   * @param interrumpible Indica si la síntesis se puede interrumpir.
+   * @returns El objeto SpeechSynthesis si es interrumpible, o undefined si no lo es.
    */
   public start(
     message: string,
@@ -45,7 +45,7 @@ export class Speaker {
     const utterance = new SpeechSynthesisUtterance(message);
     utterance.lang = "es-ES";
     this.currentCallback = callback;
-    // When synthesis ends, speaking is set to false and the callback is executed
+    // Al finalizar la síntesis, se cambia speaking a false y se ejecuta el callback
     utterance.onend = () => {
 
       this.callbackStop?.();
@@ -57,8 +57,8 @@ export class Speaker {
   }
 
   /**
-   * Method to interrupt ongoing voice synthesis
-   * @param omitToCallback This parameter specifies if a callback should be executed after the speaker stops
+   * Método para interrumpir la síntesis de voz en curso
+   * @param omitToCallback Este parametro sirve para especificar si despues de la parilacion del speaker se debe ejecutar un callback
    */
   public stop(omitToCallback: boolean = false) {
     if (this.interrumpible) {

@@ -1,45 +1,45 @@
 /**
- * Converts an ISO date in UTC format (with Z) to the same numeric
- * representation but treated as Peruvian time.
+ * Convierte una fecha ISO en formato UTC (con Z) a la misma representación
+ * numérica pero tratada como hora peruana.
  *
- * Example:
+ * Ejemplo:
  * "2025-04-07T03:16:00.000Z" (3:16 AM UTC) →
- * "2025-04-07T03:16:00.000-05:00" (3:16 AM Peruvian time, which would be 8:16 AM UTC)
+ * "2025-04-07T03:16:00.000-05:00" (3:16 AM hora peruana, que sería 8:16 AM UTC)
  *
- * @param fechaUTC Date in ISO format with Z at the end
- * @returns The same date but with -05:00 indicator instead of Z
+ * @param fechaUTC Fecha en formato ISO con Z al final
+ * @returns La misma fecha pero con indicador -05:00 en lugar de Z
  */
 export function alterarUTCaZonaPeruana(fechaUTC: string | Date): string {
 
   if(fechaUTC instanceof Date) {
     return fechaUTC.toISOString().replace("Z", "-05:00");
   }
-
-  // Check if the date has 'Z' at the end
+  
+  // Verificar si la fecha tiene 'Z' al final
   if (!fechaUTC.endsWith("Z")) {
-    // If it doesn't have 'Z', we assume it's already in local format
+    // Si no tiene 'Z', asumimos que ya está en formato local
     return fechaUTC;
   }
 
-  // Remove the 'Z' and add Peru's offset (-05:00)
+  // Quitar la 'Z' y agregar el offset de Perú (-05:00)
   return fechaUTC.replace("Z", "-05:00");
 }
 
 /**
- * Alternative function that creates a new date using the same numeric values
- * but interpreted as Peruvian time
+ * Función alternativa que crea una nueva fecha usando los mismos valores numéricos
+ * pero interpretados como hora peruana
  *
- * @param fechaUTC Date in ISO format with Z at the end
- * @returns A new Date object with Peruvian time
+ * @param fechaUTC Fecha en formato ISO con Z al final
+ * @returns Un nuevo objeto Date con la hora peruana
  */
 export function crearFechaHoraPeruanaDeUTC(fechaUTC: string): Date {
-  // Check if the date has 'Z' at the end
+  // Verificar si la fecha tiene 'Z' al final
   if (!fechaUTC.endsWith("Z")) {
-    // If it doesn't have 'Z', simply parse the date
+    // Si no tiene 'Z', simplemente parsear la fecha
     return new Date(fechaUTC);
   }
 
-  // Extract UTC date components
+  // Extraer componentes de la fecha UTC
   const fechaObj = new Date(fechaUTC);
   const year = fechaObj.getUTCFullYear();
   const month = fechaObj.getUTCMonth();
@@ -49,19 +49,19 @@ export function crearFechaHoraPeruanaDeUTC(fechaUTC: string): Date {
   const seconds = fechaObj.getUTCSeconds();
   const milliseconds = fechaObj.getUTCMilliseconds();
 
-  // Create a new date using those same values but as local
-  // (interpreted as Peruvian time)
+  // Crear una nueva fecha usando esos mismos valores pero como locales
+  // (interpretados como hora peruana)
   return new Date(year, month, day, hours, minutes, seconds, milliseconds);
 }
 
 /**
- * Usage example:
+ * Ejemplo de uso:
  *
- * // Using the first function (returns string)
+ * // Usando la primera función (retorna string)
  * const fechaPeruanaStr = convertirAHoraPeruana("2025-04-07T03:16:00.000Z");
  * console.log(fechaPeruanaStr); // "2025-04-07T03:16:00.000-05:00"
  *
- * // Using the second function (returns Date)
+ * // Usando la segunda función (retorna Date)
  * const fechaPeruanaObj = crearFechaHoraPeruana("2025-04-07T03:16:00.000Z");
- * console.log(fechaPeruanaObj.toISOString()); // New date in ISO
+ * console.log(fechaPeruanaObj.toISOString()); // Nueva fecha en ISO
  */

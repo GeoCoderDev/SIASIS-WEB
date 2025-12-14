@@ -17,7 +17,7 @@ export async function PUT(req: NextRequest) {
 
     const cookies: string[] = [];
 
-    // Only update Google_Drive_Foto_ID if it arrives in the request
+    // Solo actualizar Google_Drive_Foto_ID si llega en el request
     if (Google_Drive_Foto_ID !== undefined) {
       const Google_Drive_Foto_ID_Serialize = serialize(
         "Google_Drive_Foto_ID",
@@ -33,7 +33,7 @@ export async function PUT(req: NextRequest) {
       cookies.push(Google_Drive_Foto_ID_Serialize);
     }
 
-    // Only update Nombres if it arrives in the request
+    // Solo actualizar Nombres si llega en el request
     if (Nombres !== undefined) {
       const nombresSerialize = serialize("Nombres", Nombres, {
         httpOnly: true,
@@ -45,7 +45,7 @@ export async function PUT(req: NextRequest) {
       cookies.push(nombresSerialize);
     }
 
-    // Only update Apellidos if it arrives in the request
+    // Solo actualizar Apellidos si llega en el request
     if (Apellidos !== undefined) {
       const apellidosSerialize = serialize("Apellidos", Apellidos, {
         httpOnly: true,

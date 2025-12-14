@@ -2,10 +2,10 @@ import { ValidationErrorTypes } from "../../../../interfaces/shared/errors";
 import { ValidationResult } from "./types";
 
 /**
- * Validates the gender (M or F)
- * @param value - Value to validate
- * @param required - Indicates if the field is mandatory
- * @returns Validation result
+ * Valida el género (M o F)
+ * @param value - Valor a validar
+ * @param required - Indica si el campo es obligatorio
+ * @returns Resultado de la validación
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function validateGender(
@@ -16,7 +16,7 @@ export function validateGender(
     return {
       isValid: false,
       errorType: ValidationErrorTypes.FIELD_REQUIRED,
-      errorMessage: "The gender is required",
+      errorMessage: "El género es requerido",
     };
   }
 
@@ -28,7 +28,7 @@ export function validateGender(
     return {
       isValid: false,
       errorType: ValidationErrorTypes.INVALID_FORMAT,
-      errorMessage: "The gender must be a string",
+      errorMessage: "El género debe ser una cadena de texto",
     };
   }
 
@@ -36,7 +36,7 @@ export function validateGender(
     return {
       isValid: false,
       errorType: ValidationErrorTypes.INVALID_GENDER,
-      errorMessage: "The gender must be 'M' for male or 'F' for female",
+      errorMessage: "El género debe ser 'M' para masculino o 'F' para femenino",
     };
   }
 

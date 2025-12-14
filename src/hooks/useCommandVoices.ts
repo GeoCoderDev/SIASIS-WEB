@@ -99,26 +99,26 @@ const useCommandVoices = (currentPath: string) => {
     if (!window) return;
 
     const combinationKeys = (event: KeyboardEvent) => {
-      // Detect Ctrl + Alt + C (Announce available commands)
+      // Detectar Ctrl + Alt + C (Anunciar comandos disponibles)
       if (event.ctrlKey && event.altKey && event.key === "c") {
         event.preventDefault();
         iniciarComandosDeVoz();
       }
 
-      // Detect Ctrl + Alt + X (Interrupt speech or browser recognition)
+      // Detectar Ctrl + Alt + X (Interrumpir el habla o reconocimiento del navegador)
       if (event.ctrlKey && event.altKey && event.key === "x") {
         event.preventDefault();
 
         stopListeningOrSpeaking();
       }
 
-      // Detect Ctrl + Alt + S (Mute all and return to "idle" state)
+      // Detectar Ctrl + Alt + S (Silenciar todo y volver a estado "idle")
       if (event.ctrlKey && event.altKey && event.key === "i") {
         event.preventDefault();
         speaker.stop();
       }
 
-      // Detect Ctrl + Alt + R (Repeat last synthesis message)
+      // Detectar Ctrl + Alt + R (Repetir último mensaje de síntesis)
       if (event.ctrlKey && event.altKey && event.key === "r") {
         event.preventDefault();
       }

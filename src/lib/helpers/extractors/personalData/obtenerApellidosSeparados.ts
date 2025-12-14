@@ -1,19 +1,19 @@
 /**
- * Function to correctly separate surnames considering compound surnames
- * @param apellidosCompletos - String with full surnames separated by spaces
- * @returns Array with separated surnames (usually 2 elements)
+ * Función para separar correctamente los apellidos considerando apellidos compuestos
+ * @param apellidosCompletos - String con los apellidos completos separados por espacios
+ * @returns Array con los apellidos separados (normalmente 2 elementos)
  */
 export function obtenerApellidosSeparados(
   apellidosCompletos: string
 ): string[] {
-  // Clean extra spaces and normalize
+  // Limpiar espacios extra y normalizar
   const apellidosLimpio = apellidosCompletos.trim().replace(/\s+/g, " ");
 
   if (!apellidosLimpio) {
     return [];
   }
 
-  // List of particles and prepositions that are part of compound surnames
+  // Lista de partículas y preposiciones que forman parte de apellidos compuestos
   const particulas = new Set([
     "de",
     "del",
@@ -50,23 +50,23 @@ export function obtenerApellidosSeparados(
 
   const palabras = apellidosLimpio.split(" ");
 
-  // If there is only one word, it is a single surname
+  // Si solo hay una palabra, es un solo apellido
   if (palabras.length === 1) {
     return [palabras[0]];
   }
 
-  // If there are only two words, check if the first is a particle
+  // Si solo hay dos palabras, verificar si la primera es una partícula
   if (palabras.length === 2) {
     const primeraMinuscula = palabras[0].toLowerCase();
     if (particulas.has(primeraMinuscula)) {
-      // It is a complete compound surname
+      // Es un apellido compuesto completo
       return [apellidosLimpio];
     }
-    // They are two simple surnames
+    // Son dos apellidos simples
     return [palabras[0], palabras[1]];
   }
 
-  // For more than two words, we need to be smarter
+  // Para más de dos palabras, necesitamos ser más inteligentes
   const apellidos: string[] = [];
   let apellidoActual: string[] = [];
 
@@ -80,14 +80,14 @@ export function obtenerApellidosSeparados(
 
     apellidoActual.push(palabraActual);
 
-    // Check if the next word is a particle
+    // Verificar si la siguiente palabra es una partícula
     const siguienteEsParticula =
       siguienteMinuscula && particulas.has(siguienteMinuscula);
 
-    // Check if the current word is a particle
+    // Verificar si la palabra actual es una partícula
     const actualEsParticula = particulas.has(palabraMinuscula);
 
-    // Special cases for particle combinations
+    // Casos especiales para combinaciones de partículas
     const esCombinacionParticula =
       (palabraMinuscula === "de" &&
         siguienteMinuscula &&
@@ -96,15 +96,15 @@ export function obtenerApellidosSeparados(
         siguienteMinuscula &&
         ["der", "den"].includes(siguienteMinuscula));
 
-    // Decide whether to end the current surname
+    // Decidir si terminar el apellido actual
     const debeTerminarApellido =
-      // It's the last word
+      // Es la última palabra
       i === palabras.length - 1 ||
-      // The next is NOT a particle and the current is NOT a particle
+      // La siguiente NO es partícula y la actual NO es partícula
       (!siguienteEsParticula &&
         !actualEsParticula &&
         !esCombinacionParticula) ||
-      // We already have a surname and have reached a good division
+      // Ya tenemos un apellido y hemos llegado a una buena división
       (apellidos.length === 0 &&
         apellidoActual.length >= 2 &&
         !siguienteEsParticula &&
@@ -114,20 +114,20 @@ export function obtenerApellidosSeparados(
       apellidos.push(apellidoActual.join(" "));
       apellidoActual = [];
 
-      // If we already have 2 surnames, the rest goes to the second surname
+      // Si ya tenemos 2 apellidos, el resto va al segundo apellido
       if (apellidos.length === 2) {
         break;
       }
     }
 
-    // Handle special particle combinations
+    // Manejar combinaciones especiales de partículas
     if (esCombinacionParticula && i < palabras.length - 1) {
       apellidoActual.push(palabras[i + 1]);
-      i++; // Skip the next word since we already processed it
+      i++; // Saltar la siguiente palabra ya que la procesamos
     }
   }
 
-  // If there are unprocessed words left, add them to the last surname
+  // Si quedaron palabras sin procesar, añadirlas al último apellido
   if (apellidoActual.length > 0) {
     if (apellidos.length > 0) {
       apellidos[apellidos.length - 1] += " " + apellidoActual.join(" ");
@@ -136,9 +136,9 @@ export function obtenerApellidosSeparados(
     }
   }
 
-  // Ensure we don't have more than 2 surnames
+  // Asegurar que no tengamos más de 2 apellidos
   if (apellidos.length > 2) {
-    // Combine all extra surnames with the second one
+    // Combinar todos los apellidos extra con el segundo
     const primerApellido = apellidos[0];
     const restantesApellidos = apellidos.slice(1).join(" ");
     apellidos.splice(0, apellidos.length, primerApellido, restantesApellidos);

@@ -2,14 +2,14 @@
 import { PuntoGeografico } from "@/interfaces/Geolocalizacion";
 
 /**
- * Determines if a point is inside a polygon using the ray casting algorithm.
+ * Determina si un punto está dentro de un polígono usando el algoritmo de ray casting.
  */
 export function isPointInPolygon(
   point: PuntoGeografico,
   polygon: PuntoGeografico[]
 ): boolean {
-  const x = point.longitud; // Longitude as x
-  const y = point.latitud;  // Latitude as y
+  const x = point.longitud; // Longitud como x
+  const y = point.latitud;  // latitud como y
   const n = polygon.length;
   let inside = false;
 
@@ -20,19 +20,19 @@ export function isPointInPolygon(
     const p2x = polygon[i % n].longitud;
     const p2y = polygon[i % n].latitud;
 
-    // Check if the point is on a vertex or edge
+    // Verificamos si el punto está sobre un vértice o borde
     if ((x === p1x && y === p1y) || (x === p2x && y === p2y)) {
       return true;
     }
 
-    // Check if it's on a horizontal edge
+    // Verificamos si está en un borde horizontal
     if (p1y === p2y && y === p1y) {
       if (Math.min(p1x, p2x) <= x && x <= Math.max(p1x, p2x)) {
         return true;
       }
     }
 
-    // Check if the ray crosses this edge
+    // Verificamos si el rayo cruza este borde
     if (
       y > Math.min(p1y, p2y) &&
       y <= Math.max(p1y, p2y) &&
