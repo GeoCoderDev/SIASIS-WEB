@@ -16,7 +16,7 @@ interface FiltrosConsultaAsistenciasEscolaresProps {
   onConsultar: () => void;
   onLimpiar: () => void;
   isLoading?: boolean;
-  // Nuevas props para parametrización
+  // // Nuevas props para parametrizacn
   ocultarNivelEducativo?: boolean;
   nivelEducativoFijo?: NivelEducativo;
 }
@@ -44,7 +44,7 @@ const FiltrosConsultaAsistenciasEscolares: React.FC<
   const puedeConsultar =
     nivelTemporal && gradoTemporal && seccionTemporal && !isLoading;
 
-  // Si hay nivel fijo, usarlo automáticamente
+  // // Si hanivel fijo, usarlo automáticamente
   React.useEffect(() => {
     if (nivelEducativoFijo && !nivelTemporal) {
       setNivelTemporal(nivelEducativoFijo);

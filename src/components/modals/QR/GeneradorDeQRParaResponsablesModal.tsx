@@ -19,7 +19,7 @@ declare global {
   }
 }
 
-// Estilos específicos por navegador
+// // Estilos específicos ponavegador
 const ESTILOS_POR_NAVEGADORES: Record<
   NavegadoresWeb,
   {
@@ -114,11 +114,11 @@ const GeneradorDeTarjetaQRModal = ({
     cleanup,
   } = useQRGenerator(EstudianteConAulaYRelacion);
 
-  // Detectar navegador
+  // // Detectanavegador
   const navegador = useDetectorNavegador();
   const estilos = ESTILOS_POR_NAVEGADORES[navegador];
 
-  // Construir clases del loader
+  // //nstruir clases del loader
   const clasesLoader = [
     "my-4 text-center flex items-center justify-center flex-col gap-2",
     "landscape-small:my-[0.9rem] landscape-small:gap-[0.45rem]",
@@ -137,7 +137,7 @@ const GeneradorDeTarjetaQRModal = ({
     "sm-only:gap-1",
   ].join(" ");
 
-  // Construir clases del iframe
+  // //nstruir clases del iframe
   const clasesIframe = [
     "w-full rounded-lg max-md:my-4",
     "landscape-small:max-md:my-[0.9rem]",
@@ -151,9 +151,9 @@ const GeneradorDeTarjetaQRModal = ({
     initializeShareSupport();
   }, [initializeShareSupport]);
 
-  // EFECTO PARA GENERAR PDF INICIAL - SIN DEPENDENCIAS PROBLEMÁTICAS
+  // // EFECTO PARA GENERAR PDF INICIAL - SIN DEPENDENCIAS PROBLEMÁTICAS
   useEffect(() => {
-    let isMounted = true;
+    let isMnted = true;
     let attempts = 0;
     const maxAttempts = 20;
 
@@ -181,7 +181,7 @@ const GeneradorDeTarjetaQRModal = ({
       isMounted = false;
       cleanup();
     };
-  }, [selectedQuantity]); // SOLO selectedQuantity como dependencia
+  }, [selectedQuantity]); // / SOLO selectedQntity como dependencia
 
   useEffect(() => {
     return cleanup;
@@ -190,7 +190,7 @@ const GeneradorDeTarjetaQRModal = ({
   return (
     <>
       <link
-        href="https://fonts.googleapis.com/css2?family=B612:wght@400;700&display=swap"
+        href="https:// fonts.googleapis.com/css2?family=B612:wght@400;700&display=swap"
         rel="stylesheet"
       />
 

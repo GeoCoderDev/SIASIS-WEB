@@ -1,7 +1,7 @@
 import { Socket } from "socket.io";
 
-// 🔧 Constante para activar/desactivar logs
-const ENABLE_SOCKET_LOGS = false; // Cambiar a false para desactivar logs
+// 🔧 Constant to enable/disable logs
+const ENABLE_SOCKET_LOGS = false; // Change to false to disable logs
 
 export class SocketEmitter<T> {
   constructor(
@@ -12,7 +12,7 @@ export class SocketEmitter<T> {
 
   execute(): boolean {
     try {
-      // Verificar que la conexión existe y está conectada
+      // Verify that the connection exists and is connected
       if (!this.socketConnection) {
         if (ENABLE_SOCKET_LOGS) {
           console.error(
@@ -31,9 +31,9 @@ export class SocketEmitter<T> {
         return false;
       }
 
-      // Si hay data, enviarla; si no, enviar evento sin payload
+      // If there is data, send it; if not, send event without payload
       if (this.data !== undefined) {
-        // No serializar a JSON aquí, dejarlo como objeto
+        // Do not serialize to JSON here, leave it as an object
         this.socketConnection.emit(this.nombreEvento, this.data);
         if (ENABLE_SOCKET_LOGS) {
           console.log(
@@ -75,7 +75,7 @@ export class SocketHandler<T> {
 
   hand(): boolean {
     try {
-      // Verificar que la conexión existe
+      // Verify that the connection exists
       if (!this.socketConnection) {
         if (ENABLE_SOCKET_LOGS) {
           console.error(
@@ -85,7 +85,7 @@ export class SocketHandler<T> {
         return false;
       }
 
-      // Evitar listeners duplicados
+      // Avoid duplicate listeners
       if (this.listenerAttached) {
         if (ENABLE_SOCKET_LOGS) {
           console.warn(
@@ -94,7 +94,7 @@ export class SocketHandler<T> {
         }
         return true;
       }
-      // Wrapper para logging y error handling
+      // Wrapper for logging and error handling
       this._wrappedCallback = (data: string) => {
         try {
           if (ENABLE_SOCKET_LOGS) {

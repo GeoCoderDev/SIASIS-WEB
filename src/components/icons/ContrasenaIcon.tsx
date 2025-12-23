@@ -7,7 +7,7 @@ const ContrasenaIcon = ({ className }: IconProps) => {
         className={` ${className}`}
         viewBox="0 0 26 34"
         fill="none"
-        xmlns="http://www.w3.org/2000/svg"
+        xmlns="http:// www.w3.org/2000/svg"
       >
         <rect width="26" height="34" fill="#D32F2F" rx="6" />
         <path

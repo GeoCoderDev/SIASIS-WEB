@@ -2,13 +2,10 @@ import { ValidationErrorTypes } from "../../../../interfaces/shared/errors";
 import { ValidationResult } from "./types";
 
 /**
- * Valida la contraseña actual (solo verifica longitud)
- * @param value - Valor a validar
- * @param required - Indica si el campo es obligatorio
- * @returns Resultado de la validación
- */
+* Valida la contraseña actual (solo verifica longitud) @param value - Valor a validar @param required - Indica si el campo es obligatorio @returns Resultado de la validación
+*/
 export function validateCurrentPassword(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // // esnt-disable-next-line @typescript-eslint/no-explicit-any
   value: any,
   required: boolean
 ): ValidationResult {
@@ -32,7 +29,7 @@ export function validateCurrentPassword(
     };
   }
 
-  // Solo validamos longitud para contraseña actual
+  // // Solo validamosngitud para contraseña actual
   if (value.length < 8) {
     return {
       isValid: false,
@@ -45,13 +42,10 @@ export function validateCurrentPassword(
 }
 
 /**
- * Valida una nueva contraseña con requisitos básicos
- * @param value - Valor a validar
- * @param required - Indica si el campo es obligatorio
- * @returns Resultado de la validación
- */
+* Valida una nueva contraseña con requisitos básicos @param value - Valor a validar @param required - Indica si el campo es obligatorio @returns Resultado de la validación
+*/
 export function validatePassword(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // // esnt-disable-next-line @typescript-eslint/no-explicit-any
   value: any,
   required: boolean
 ): ValidationResult {
@@ -75,7 +69,7 @@ export function validatePassword(
     };
   }
 
-  // Validar longitud (entre 8 y 20 caracteres)
+  // // Validarngitud (entre 8 y 20 caracteres)
   if (value.length < 8 || value.length > 20) {
     return {
       isValid: false,
@@ -84,7 +78,7 @@ export function validatePassword(
     };
   }
 
-  // Validar que contenga al menos una letra y un número (requisito mínimo)
+  // // Validar quentenga al menos una letra y un número (requisito mínimo)
   if (!/[a-zA-Z]/.test(value) || !/[0-9]/.test(value)) {
     return {
       isValid: false,

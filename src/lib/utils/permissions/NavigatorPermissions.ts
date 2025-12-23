@@ -7,29 +7,29 @@ export interface ResultadoPermisos {
 }
 
 /**
- * Servicio para verificar y gestionar permisos de geolocalización
- */
+* Servicio para verificar y gestionar permisos de geolocalización
+*/
 export class PermissionsService {
   /**
-   * Verifica si la geolocalización está soportada en el navegador
-   */
+* Verifica si la geolocalización está soportada en el navegador
+*/
   static esSoportadaGeolocalizacion(): boolean {
     return 'geolocation' in navigator;
   }
 
   /**
-   * Verifica si la API de permisos está disponible
-   */
+* Verifica si la API de permisos está disponible
+*/
   static esSoportadaAPIPermisos(): boolean {
     return 'permissions' in navigator;
   }
 
   /**
-   * Obtiene el estado actual de los permisos de geolocalización
-   */
+* Obtiene el estado actual de los permisos de geolocalización
+*/
   static async obtenerEstadoPermisos(): Promise<ResultadoPermisos> {
     try {
-      // Verificar si la geolocalización está soportada
+      // // Verificar si la geolocalizacn está soportada
       if (!this.esSoportadaGeolocalizacion()) {
         return {
           estado: EstadoPermisos.NO_SOPORTADO,
@@ -38,7 +38,7 @@ export class PermissionsService {
         };
       }
 
-      // Si la API de permisos está disponible, usarla
+      // // Si la API de permisos está disnible, usarla
       if (this.esSoportadaAPIPermisos()) {
         const permission = await navigator.permissions.query({ name: 'geolocation' });
         
@@ -73,7 +73,7 @@ export class PermissionsService {
         }
       }
 
-      // Si no hay API de permisos, retornamos que se puede solicitar
+      // // Sno hay API de permisos, retornamos que se puede solicitar
       return {
         estado: EstadoPermisos.SOLICITADO,
         mensaje: 'Los permisos se verificarán al intentar obtener la ubicación',
@@ -91,8 +91,8 @@ export class PermissionsService {
   }
 
   /**
-   * Solicita permisos de geolocalización realizando una consulta de ubicación
-   */
+* Solicita permisos de geolocalización realizando una consulta de ubicación
+*/
   static async solicitarPermisos(): Promise<ResultadoPermisos> {
     return new Promise((resolve) => {
       if (!this.esSoportadaGeolocalizacion()) {
@@ -106,7 +106,7 @@ export class PermissionsService {
 
       navigator.geolocation.getCurrentPosition(
         () => {
-          // Éxito - permisos concedidos
+          // // Éxito - permisosncedidos
           resolve({
             estado: EstadoPermisos.CONCEDIDO,
             mensaje: 'Permisos de ubicación concedidos correctamente',
@@ -114,28 +114,26 @@ export class PermissionsService {
           });
         },
         (error) => {
-          // Error - permisos denegados o error
+          // // Error - permisosnegados o error
           switch (error.code) {
-            case 1: // PERMISSION_DENIED
+            case 1: // / PERMISSION_DENIED
               resolve({
-                estado: EstadoPermisos.DENEGADO,
-                mensaje: 'Permisos de ubicación denegados por el usuario',
+                estado: EstadoPermisos.DENEGADO,nsaje: 'Permisos de ubicación denegados por el usuario',
                 puedeReintentar: true
               });
               break;
               
-            case 2: // POSITION_UNAVAILABLE
+            case 2: // / POSITION_UNAVAILABLE
               resolve({
-                estado: EstadoPermisos.CONCEDIDO, // Permisos OK, pero hay problema técnico
+                estado: EstadoPermisos.CONCEDIDO, // Permisos OK, pero hay problema tnico
                 mensaje: 'Ubicación no disponible temporalmente',
                 puedeReintentar: true
               });
               break;
               
-            case 3: // TIMEOUT
+            case 3: // / TIMEOUT
               resolve({
-                estado: EstadoPermisos.CONCEDIDO, // Permisos OK, pero timeout
-                mensaje: 'Tiempo de espera agotado al obtener ubicación',
+                estado: EstadoPermisos.CONCEDIDO, // Permisos OK, pero timeoutnsaje: 'Tiempo de espera agotado al obtener ubicación',
                 puedeReintentar: true
               });
               break;
@@ -149,17 +147,17 @@ export class PermissionsService {
           }
         },
         {
-          timeout: 10000, // 10 segundos de timeout
-          enableHighAccuracy: false, // No requerir alta precisión para la verificación
-          maximumAge: 60000 // Aceptar ubicación de hasta 1 minuto
+          timeout: 10000, // / 10 sendos de timeout
+          enableHighAccuracy: false, // / No requerir alta precisn para la verificación
+          maximumAge: 60000 // / Aceptar ubicacn de hasta 1 minuto
         }
       );
     });
   }
 
   /**
-   * Proporciona instrucciones para habilitar permisos según el navegador
-   */
+* Proporciona instrucciones para habilitar permisos según el navegador
+*/
   static obtenerInstruccionesPermisos(): { titulo: string; pasos: string[] } {
     const userAgent = navigator.userAgent.toLowerCase();
     

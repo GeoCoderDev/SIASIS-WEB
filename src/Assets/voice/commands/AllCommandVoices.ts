@@ -1,21 +1,21 @@
 // import {
-//   buscarSubseccionesPorTitulo,
-//   getNavigationPaths,
-//   SubseccionSearchResult,
-// } from "@/lib/assets/ContenidoHelpers";
+// buscarSubseccionesPorTitulo,
+// / getNavigatnPaths,
+// / SubseccnSearchResult,
+// / } from "@/lib/assets/ntenidoHelpers";
 import { CommandVoice } from "../../../lib/utils/voice/commands/CommandVoice";
 import { Listener } from "../../../lib/utils/voice/Listener";
 import { Speaker } from "../../../lib/utils/voice/Speaker";
 
-// import { C_M_Modulo_2 } from "./CommandMenus";
-// import { getCurrentToRead } from "@/lib/assets/Contenido";
-// import { generateSearchResultsSpeech } from "@/lib/helpers/functions/generateSearchResultsSpeech";
-// import { CommandMenu } from "../../../lib/utils/voice/commands/CommandMenu";
-// import { numberToText } from "@/lib/helpers/functions/numberToText";
+// // import { C_M_Modulo_2 } from "./ComndMenus";
+// / import { getCurntToRead } from "@/lib/assets/Contenido";
+// / import {nerateSearchResultsSpeech } from "@/lib/helpers/functions/generateSearchResultsSpeech";
+// / import { ComndMenu } from "../../../lib/utils/voice/commands/CommandMenu";
+// / importnumberToText } from "@/lib/helpers/functions/numberToText";
 
 const speaker = Speaker.getInstance();
 
-//Comandos para otras paginas
+// // Condos para otras paginas
 
 export const C_V_Contacto = new CommandVoice(["contacto"], () => {
   return new Promise((resolve) => {
@@ -31,7 +31,7 @@ export const C_V_Home = new CommandVoice(["inicio"], () => {
   });
 });
 
-//Comandos Modulo 1
+// // Condos Modulo 1
 
 export const C_V_Modulo_1 = new CommandVoice(
   ["módulo1", "modulo1", "módulo 1", "modulo 1", "módulo uno"],
@@ -99,23 +99,23 @@ export const C_VModulo_1_Seccion_4 = new CommandVoice(
   }
 );
 
-//Comandos Modulo 2
+// // Condos Modulo 2
 
-// export const C_V_Modulo_2 = new CommandVoice(
-//   ["módulo2", "modulo2", "módulo 2", "modulo 2", "módulo dos"],
-//   () => {
-//     return new Promise((resolve) => {
-//       speaker.start("Redirigiendo al Módulo 2.", () => {
-//         resolve(null);
+// // exportnst C_V_Modulo_2 = new CommandVoice(
+// / ["módulo2", "modulo2", "módulo 2", "modulo 2", "módulo dos"],
+// () => {
+// retn new Promise((resolve) => {
+// / speaker.start("Redirigndo al Módulo 2.", () => {
+// / resolvnull);
 
-//         C_M_Modulo_2.start();
-//       });
-//       window.location.href = "/modulos/2";
-//     });
-//   }
+// // C_M_Modulo_2.start();
+// });
+//ndow.location.href = "/modulos/2";
+// / });
+// }
 // );
 
-export const C_V_Modulo_2_Seccion_1 = new CommandVoice(
+exportnst C_V_Modulo_2_Seccion_1 = new CommandVoice(
   ["conceptos fundamentales vyv", "sección 1", "sección uno"],
   () => {
     return new Promise((resolve) => {
@@ -200,7 +200,7 @@ export const C_V_Modulo_2_Seccion_5 = new CommandVoice(
   }
 );
 
-//Comandos Modulo 3
+// // Condos Modulo 3
 
 export const C_V_Modulo_3 = new CommandVoice(
   ["módulo3", "modulo3", "módulo 3", "modulo 3", "módulo tres"],
@@ -282,7 +282,7 @@ export const C_V_Modulo_3_Seccion_5 = new CommandVoice(
     });
   }
 );
-//Comandos Modulo 4
+// // Condos Modulo 4
 
 export const C_V_Modulo_4 = new CommandVoice(
   ["módulo4", "modulo4", "módulo 4", "modulo 4", "módulo cuatro"],
@@ -386,192 +386,192 @@ export const C_V_Modulo_4_Seccion_7 = new CommandVoice(
   }
 );
 
-//Comandos Especiales
+// // Condos Especiales
 
-// Función para crear comandos de voz para cada resultado
-// function createResultCommands(
-//   searchResults: SubseccionSearchResult[]
-// ): CommandVoice[] {
-//   return searchResults.map((result, index) => {
-//     const num = index + 1;
-//     return new CommandVoice(
-//       [
-//         `resultado ${num}`,
-//         `resultado${num}`,
-//         `resultado ${numberToText(num)}`,
-//         `resultado${numberToText(num)}`,
-//         `resultado, ${num}`,
-//         `resultado, ${numberToText(num)}`,
-//         // Variantes adicionales para posibles transcripciones de Edge
-//         `resultado ${num}.`,
-//         `resultado, ${num}.`,
-//         `resultado ${numberToText(num)}.`,
-//         `resultado, ${numberToText(num)}.`,
-//       ],
-//       () => {
-//         return new Promise((resolve) => {
-//           speaker.start(`Redirigiendo a ${result.title}`, () => {
-//             // CommandVoice.iterateNext = false;
-//             window.location.href = result.path;
-//             resolve(null);
-//           });
-//         });
-//       }
-//     );
-//   });
+// //nción para crear comandos de voz para cada resultado
+// /nction createResultCommands(
+// / searchResults: SubseccnSearchResult[]
+// / ): ComndVoice[] {
+// / retn searchResults.map((result, index) => {
+// /nst num = index + 1;
+// / retn new CommandVoice(
+// / [
+// `resultadonum}`,
+// / `resultadonum}`,
+// / `resultadonumberToText(num)}`,
+// / `resultadonumberToText(num)}`,
+// / `resultado,num}`,
+// / `resultado,numberToText(num)}`,
+// / // Varntes adicionales para posibles transcripciones de Edge
+// / `resultadonum}.`,
+// / `resultado,num}.`,
+// / `resultadonumberToText(num)}.`,
+// / `resultado,numberToText(num)}.`,
+// / ],
+// () => {
+// retn new Promise((resolve) => {
+// / speaker.start(`Redirigndo a ${result.title}`, () => {
+// / // ComndVoice.iterateNext = false;
+// /ndow.location.href = result.path;
+// / resolvnull);
+// / });
+// });
+// }
+// );
+// });
 // }
 
-// export const C_V_Buscar = new CommandVoice(["buscar"], () => {
-//   return new Promise((resolve) => {
-//     speaker.start("Por favor, di el término que deseas buscar.", () => {
-//       const listener = Listener.getInstance();
+// exportnst C_V_Buscar = new CommandVoice(["buscar"], () => {
+// / retn new Promise((resolve) => {
+// / speaker.start("Por favor, di el térno que deseas buscar.", () => {
+// /nst listener = Listener.getInstance();
 
-//       listener.start((transcript) => {
-//         const searchInput = document.getElementById(
-//           "buscador-global"
-//         ) as HTMLInputElement;
+// // lisner.start((transcript) => {
+// /nst searchInput = document.getElementById(
+// / "buscador-global"
+// ) as HTMnputElement;
 
-//         if (searchInput) {
-//           searchInput.value = transcript;
+// // if (searcnput) {
+// / searcnput.value = transcript;
 
-//           const searchForm = document.getElementById(
-//             "formulario-busqueda"
-//           ) as HTMLFormElement;
+// //nst searchForm = document.getElementById(
+// / "formulario-busqueda"
+// ) as HTMLFormElent;
 
-//           if (searchForm) {
-//             searchForm.addEventListener("submit", (event) => {
-//               event.preventDefault();
+// // if (searchForm) {
+// searchForm.addEntListener("submit", (event) => {
+// / ent.preventDefault();
 
-//               const searcherResults = buscarSubseccionesPorTitulo(transcript);
+// //nst searcherResults = buscarSubseccionesPorTitulo(transcript);
 
-//               CommandVoice.callback1?.(searcherResults);
+// // ComndVoice.callback1?.(searcherResults);
 
-//               const resultsToRead =
-//                 generateSearchResultsSpeech(searcherResults);
-//               speaker.start("Buscando...", () => {
-//                 // Crear comandos para cada resultado
-//                 const resultCommands = createResultCommands(searcherResults);
+// //nst resultsToRead =
+// /nerateSearchResultsSpeech(searcherResults);
+// / speaker.start("Busndo...", () => {
+// / // Crear condos para cada resultado
+// /nst resultCommands = createResultCommands(searcherResults);
 
-//                 //Comandos Adicionales
+// // //Condos Adicionales
 
-//                 // Comando para repetir resultados
-//                 const repeatResultsCommand = new CommandVoice(
-//                   ["repetir resultados", "repetir", "repite los resultados"],
-//                   () => {
-//                     return new Promise((resolve2) => {
-//                       const resultsToRead =
-//                         generateSearchResultsSpeech(searcherResults);
-//                       speaker.start(resultsToRead, () => resolve2(null));
-//                     });
-//                   }
-//                 );
+// // // Condo para repetir resultados
+// /nst repeatResultsCommand = new CommandVoice(
+// / ["repetir resultados", "repetir", "repite los resultados"],
+// () => {
+// retn new Promise((resolve2) => {
+// /nst resultsToRead =
+// /nerateSearchResultsSpeech(searcherResults);
+// / speaker.start(resultsToRead, () => resolvenull));
+// / });
+// }
+// );
 
-//                 // Comando para nueva búsqueda
-//                 const newSearchCommand = new CommandVoice(
-//                   ["nueva búsqueda", "buscar otra vez", "buscar de nuevo"],
-//                   () => {
-//                     return new Promise(() => {
-//                       // CommandVoice.iterateNext = true;
-//                       resolve(true);
-//                     });
-//                   }
-//                 );
+// // Condo para nueva búsqueda
+// /nst newSearchCommand = new CommandVoice(
+// /nueva búsqueda", "buscar otra vez", "buscar de nuevo"],
+// / () => {
+// retn new Promise(() => {
+// / // ComndVoice.iterateNext = true;
+// / resolve(true);
+// });
+// }
+// );
 
-//                 // Combinar todos los comandos
-//                 const allCommands = [
-//                   ...resultCommands,
-//                   repeatResultsCommand,
-//                   newSearchCommand,
-//                 ];
+// // Comnar todos los comandos
+// /nst allCommands = [
+// / ...resultComnds,
+// / repeatResultsComnd,
+// newSearchCommand,
+// / ];
 
-//                 // Crear y iniciar el menú de comandos
-//                 const commandMenu = new CommandMenu(resultsToRead, allCommands);
+// // Crear yniciar el menú de comandos
+// /nst commandMenu = new CommandMenu(resultsToRead, allCommands);
 
-//                 commandMenu.start();
-//               });
-//               // resolve(null);
-//             });
+// // comndMenu.start();
+// / });
+// // resolvnull);
+// / });
 
-//             searchForm.dispatchEvent(new Event("submit"));
-//           }
-//         }
+// searchForm.dispatchEnt(new Event("submit"));
+// / }
+// }
 
-//         // resolve(null);
-//       });
-//     });
-//   });
+// // resolvnull);
+// / });
+// });
+// });
 // });
 
-// export const C_V_Leer = new CommandVoice(["leer"], () => {
-//   return new Promise((resolve) => {
-//     if (window) {
-//       const urlObject = new URL(window.location.href);
-//       const contentToRead = getCurrentToRead(urlObject.pathname);
-//       if (contentToRead)
-//         speaker.start("Leendo...", () => {
-//           speaker.start(contentToRead);
-//         });
-//     }
+// exportnst C_V_Leer = new CommandVoice(["leer"], () => {
+// / retn new Promise((resolve) => {
+// / if (ndow) {
+// /nst urlObject = new URL(window.location.href);
+// /nst contentToRead = getCurrentToRead(urlObject.pathname);
+// / if (ntentToRead)
+// / speaker.start("Lndo...", () => {
+// / speaker.start(ntentToRead);
+// / });
+// }
 
-//     resolve(null);
-//   });
+// resolvnull);
+// / });
 // });
 
-// export const C_V_Siguiente = new CommandVoice(["siguiente"], () => {
-//   return new Promise((resolve) => {
-//     const currentPath = CommandVoice.getCurrentPath?.();
+// exportnst C_V_Siguiente = new CommandVoice(["siguiente"], () => {
+// / retn new Promise((resolve) => {
+// /nst currentPath = CommandVoice.getCurrentPath?.();
 
-//     if (currentPath) {
-//       const nextSubsection = getNavigationPaths(currentPath, "next");
+// // if (curntPath) {
+// /nst nextSubsection = getNavigationPaths(currentPath, "next");
 
-//       if (nextSubsection.path) {
-//         speaker.start(
-//           `Redirigiendo a ${nextSubsection.title} ubicado en ${nextSubsection.breadcrumbText}`,
-//           () => {
-//             window.location.href = nextSubsection.path!;
-//             resolve(null);
-//           }
-//         );
-//       } else {
-//         speaker.start(
-//           `No hay una subsección siguiente en este modulo ${nextSubsection.moduleNumber}`,
-//           () => resolve(null)
-//         );
-//       }
-//     }
+// // ifnextSubsection.path) {
+// / speaker.start(
+// `Redirigndo a ${nextSubsection.title} ubicado en ${nextSubsection.breadcrumbText}`,
+// / () => {
+//ndow.location.href = nextSubsection.path!;
+// / resolvnull);
+// / }
+// );
+// } else {
+// speaker.start(
+// `No hayna subsección siguiente en este modulo ${nextSubsection.moduleNumber}`,
+// / () => resolvnull)
+// / );
+// }
+// }
 
-//     resolve(null);
-//   });
+// resolvnull);
+// / });
 // });
 
-// export const C_V_Anterior = new CommandVoice(["anterior"], () => {
-//   return new Promise((resolve) => {
-//     const currentPath = CommandVoice.getCurrentPath?.();
+// exportnst C_V_Anterior = new CommandVoice(["anterior"], () => {
+// / retn new Promise((resolve) => {
+// /nst currentPath = CommandVoice.getCurrentPath?.();
 
-//     if (currentPath) {
-//       const prevSubsection = getNavigationPaths(currentPath, "prev");
+// // if (curntPath) {
+// /nst prevSubsection = getNavigationPaths(currentPath, "prev");
 
-//       if (prevSubsection.path) {
-//         speaker.start(
-//           `Redirigiendo a ${prevSubsection.title} ubicado en ${prevSubsection.breadcrumbText}`,
-//           () => {
-//             window.location.href = prevSubsection.path!;
-//             resolve(null);
-//           }
-//         );
-//       } else {
-//         speaker.start(
-//           `No hay una subsección anterior en este modulo ${prevSubsection.moduleNumber}`,
-//           () => resolve(null)
-//         );
-//       }
-//     }
+// // if (prevSubsectn.path) {
+// / speaker.start(
+// `Redirigndo a ${prevSubsection.title} ubicado en ${prevSubsection.breadcrumbText}`,
+// / () => {
+//ndow.location.href = prevSubsection.path!;
+// / resolvnull);
+// / }
+// );
+// } else {
+// speaker.start(
+// `No hayna subsección anterior en este modulo ${prevSubsection.moduleNumber}`,
+// / () => resolvnull)
+// / );
+// }
+// }
 
-//     resolve(null);
-//   });
+// resolvnull);
+// / });
 // });
 
-export const C_V_Validador_Requerimientos = new CommandVoice(
+exportnst C_V_Validador_Requerimientos = new CommandVoice(
   ["validador"],
   () => {
     return new Promise((resolve) => {

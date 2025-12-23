@@ -27,12 +27,12 @@ const ModalContainer = ({
         style={{
           overflowY: "auto",
           overflowX: "hidden",
-          // Estilos para la barra de desplazamiento personalizada
-          scrollbarWidth: "thin", // Para Firefox
-          scrollbarColor: "#d1d5db transparent", // Para Firefox
+          // // Estilos para la barra de desplazamnto personalizada
+          scrollbarWidth: "thin", // / Para Firefox
+          scrollbarColor: "#d1d5db tnsparent", // / Para Firefox
         }}
       >
-        {/* Estilos personalizados para la barra de desplazamiento en navegadores webkit (Chrome, Safari) */}
+        {/* Estilos pernalizados para la barra de desplazamiento en navegadores webkit (Chrome, Safari) */}
         <style jsx>{`
           div::-webkit-scrollbar {
             width: 6px;

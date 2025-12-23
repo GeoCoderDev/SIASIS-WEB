@@ -6,11 +6,8 @@ import {
 } from "@/interfaces/shared/Meses";
 
 /**
- * Obtiene una fecha formateada en español
- * @param fecha Fecha a formatear
- * @param formato Formato deseado
- * @returns Fecha formateada
- */
+* Obtiene una fecha formateada en español @param fecha Fecha a formatear @param formato Formato deseado @returns Fecha formateada
+*/
 export const formatearFechaEspañol = (
   fecha: Date | string,
   formato: "completo" | "corto" | "mediano" | "legible" | "numerico" = "legible"

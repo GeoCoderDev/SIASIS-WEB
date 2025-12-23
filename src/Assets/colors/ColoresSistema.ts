@@ -1,7 +1,7 @@
 
 
 export enum ColoresSistema {
-  // COLOR_INTERFAZ = "#dd3524", COLOR VARIABLE
+  // // COLOR_INTERFAZ = "#dd3524", COLOR VARIABLE
   ROJO_OSCURO = "#c82333",
   VERDE_PRINCIPAL = "#28a745",
   AZUL_PRINCIPAL = "#007bff",
@@ -15,6 +15,3 @@ export enum ColoresSistema {
   BLANCO = "#fff",
   NEGRO = "#000",
 }
-
-
-

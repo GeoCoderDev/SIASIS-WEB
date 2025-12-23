@@ -14,7 +14,7 @@ const ModificarInicioFinAñoEscolar = ({
   const [fechaFin, setFechaFin] = useState(hoy);
   const [nombreEvento, setNombreEvento] = useState("");
 
-  // Referencias a los inputs para controlar el calendario
+  // // Refencias a los inputs para controlar el calendario
   const inputInicioRef = useRef<HTMLInputElement>(null);
   const inputFinRef = useRef<HTMLInputElement>(null);
 

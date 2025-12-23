@@ -10,8 +10,8 @@ import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
 import { AsistenciasEscolaresHoyRepository } from "./_utils/AsistenciasEscolaresTomadasHoyRepository";
 
 /**
- * Interfaz para la respuesta del endpoint de consulta de asistencias de estudiantes
- */
+* Interfaz para la respuesta del endpoint de consulta de asistencias de estudiantes
+*/
 interface ConsultarAsistenciasEstudiantesResponseBody {
   TipoAsistencia: TipoAsistencia;
   Dia: number;
@@ -28,8 +28,8 @@ interface ConsultarAsistenciasEstudiantesResponseBody {
 }
 
 /**
- * Mapea string a NivelEducativo
- */
+* Mapea string a NivelEducativo
+*/
 const mapearNivelEducativo = (nivel: string): NivelEducativo => {
   switch (nivel.toUpperCase()) {
     case "P":
@@ -44,8 +44,8 @@ const mapearNivelEducativo = (nivel: string): NivelEducativo => {
 };
 
 /**
- * Valida los permisos según el rol para consultas de asistencia de estudiantes
- */
+* Valida los permisos según el rol para consultas de asistencia de estudiantes
+*/
 const validarPermisosEstudiantes = (
   rol: RolesSistema,
   tipoAsistencia: TipoAsistencia,
@@ -55,11 +55,11 @@ const validarPermisosEstudiantes = (
 ): { esValido: boolean; mensaje?: string } => {
   switch (rol) {
     case RolesSistema.Directivo:
-      // Los directivos pueden consultar cualquier asistencia de estudiantes
+      // // Los directivos puen consultar cualquier asistencia de estudiantes
       return { esValido: true };
 
     case RolesSistema.Auxiliar:
-      // Solo estudiantes de secundaria
+      // // Solo estudntes de secundaria
       if (tipoAsistencia !== TipoAsistencia.ParaEstudiantesSecundaria) {
         return {
           esValido: false,
@@ -70,7 +70,7 @@ const validarPermisosEstudiantes = (
       return { esValido: true };
 
     case RolesSistema.ProfesorPrimaria:
-      // Solo estudiantes de primaria
+      // // Solo estudntes de primaria
       if (tipoAsistencia !== TipoAsistencia.ParaEstudiantesPrimaria) {
         return {
           esValido: false,
@@ -78,11 +78,11 @@ const validarPermisosEstudiantes = (
             "Los profesores de primaria solo pueden consultar estudiantes de primaria",
         };
       }
-      // TODO: Aquí se podría validar que el profesor solo consulte su aula asignada
+      // // TODO: Aquí se podría validar que el profesor solonsulte su aula asignada
       return { esValido: true };
 
     case RolesSistema.Tutor:
-      // Solo estudiantes de secundaria
+      // // Solo estudntes de secundaria
       if (tipoAsistencia !== TipoAsistencia.ParaEstudiantesSecundaria) {
         return {
           esValido: false,
@@ -90,12 +90,12 @@ const validarPermisosEstudiantes = (
             "Los tutores solo pueden consultar estudiantes de secundaria",
         };
       }
-      // TODO: Aquí se podría validar que el tutor solo consulte su aula asignada
+      // // TODO: Aquí se podría validar que el tutor solonsulte su aula asignada
       return { esValido: true };
 
     case RolesSistema.Responsable:
-      // Los responsables pueden consultar estudiantes, pero solo los que tienen bajo su responsabilidad
-      // TODO: Esta validación requeriría consultar la base de datos para verificar la relación
+      // // Los resnsables pueden consultar estudiantes, pero solo los que tienen bajo su responsabilidad
+      // // TODO: Esta validacn requeriría consultar la base de datos para verificar la relación
       return { esValido: true };
 
     case RolesSistema.ProfesorSecundaria:
@@ -124,7 +124,7 @@ export async function GET(req: NextRequest) {
     console.log(`${logPrefix} 🚀 INICIO DE CONSULTA`);
     console.log(`${logPrefix} 🌐 URL completa: ${req.url}`);
 
-    // Verificar autenticación
+    // // Verificar aunticación
     console.log(`${logPrefix} 🔐 Verificando autenticación...`);
     const { error, rol, decodedToken } = await verifyAuthToken(req, [
       RolesSistema.Directivo,
@@ -145,7 +145,7 @@ export async function GET(req: NextRequest) {
       decodedToken ? Object.keys(decodedToken) : "null"
     );
 
-    // Obtener parámetros de la consulta
+    // // Obner parámetros de la consulta
     const searchParams = req.nextUrl.searchParams;
     const tipoAsistenciaParam = searchParams.get(
       "TipoAsistencia"
@@ -164,8 +164,8 @@ export async function GET(req: NextRequest) {
     console.log(`${logPrefix} 📋   Seccion: ${seccionParam}`);
     console.log(`${logPrefix} 📋   totalEstudiantes: ${totalEstudiantesParam}`);
 
-    // Validar parámetros obligatorios
-    if (!tipoAsistenciaParam) {
+    // // Validar parámetros obligatorios
+    if (!tipoAsisnciaParam) {
       console.log(`${logPrefix} ❌ Falta parámetro TipoAsistencia`);
       return NextResponse.json(
         { success: false, message: "Se requiere el parámetro TipoAsistencia" },
@@ -189,7 +189,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // NUEVA VALIDACIÓN: Seccion es obligatoria para la nueva estructura
+    // // NUEVA VALIDACIÓN: Seccn es obligatoria para la nueva estructura
     if (!seccionParam) {
       console.log(`${logPrefix} ❌ Falta parámetro Seccion`);
       return NextResponse.json(
@@ -202,7 +202,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Validar que TipoAsistencia sea válido y sea para estudiantes
+    // // Validar que TipoAsisncia sea válido y sea para estudiantes
     const tiposValidos = [
       TipoAsistencia.ParaEstudiantesPrimaria,
       TipoAsistencia.ParaEstudiantesSecundaria,
@@ -223,7 +223,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Determinar tipo de consulta: individual vs aula
+    // // Deternar tipo de consulta: individual vs aula
     const esConsultaIndividual = !!idEstudianteParam;
     const esConsultaAula = !idEstudianteParam;
 
@@ -233,7 +233,7 @@ export async function GET(req: NextRequest) {
       }`
     );
 
-    // NUEVA VALIDACIÓN: totalEstudiantes obligatorio solo para consultas de aula
+    // // NUEVA VALIDACIÓN: totalEstudntes obligatorio solo para consultas de aula
     if (esConsultaAula && !totalEstudiantesParam) {
       console.log(
         `${logPrefix} ❌ Falta parámetro totalEstudiantes para consulta de aula`
@@ -248,7 +248,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Validar totalEstudiantes si se proporciona
+    // // Validar totalEstudntes si se proporciona
     let totalEstudiantes: number | undefined;
     if (totalEstudiantesParam) {
       totalEstudiantes = parseInt(totalEstudiantesParam);
@@ -274,7 +274,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Convertir y validar parámetros
+    // //nvertir y validar parámetros
     let nivel: NivelEducativo;
     let grado: number;
 
@@ -298,7 +298,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Validar grado según nivel
+    // // Validar grado sen nivel
     if (nivel === NivelEducativo.SECUNDARIA && grado > 5) {
       console.log(`${logPrefix} ❌ Grado inválido para secundaria: ${grado}`);
       return NextResponse.json(
@@ -310,7 +310,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Validar sección (formato básico)
+    // // Validar seccn (formato básico)
     if (seccionParam && !/^[A-Z]{1,2}$/i.test(seccionParam)) {
       console.log(
         `${logPrefix} ❌ Formato de sección inválido: ${seccionParam}`
@@ -329,8 +329,7 @@ export async function GET(req: NextRequest) {
       `${logPrefix} ✅ Parámetros validados - Nivel: ${nivel}, Grado: ${grado}, Sección: ${seccion}`
     );
 
-    // Validar permisos
-    console.log(`${logPrefix} 🔒 Validando permisos para rol: ${rol}`);
+    // // Validar permisosnsole.log(`${logPrefix} 🔒 Validando permisos para rol: ${rol}`);
     const validacionPermisos = validarPermisosEstudiantes(
       rol!,
       tipoAsistenciaParam,
@@ -351,7 +350,7 @@ export async function GET(req: NextRequest) {
 
     console.log(`${logPrefix} ✅ Permisos validados correctamente`);
 
-    // Crear instancia del repositorio
+    // // Crearnstancia del repositorio
     const asistenciasRepo = new AsistenciasEscolaresHoyRepository();
     console.log(`${logPrefix} 📦 Repositorio de asistencias creado`);
 
@@ -362,7 +361,7 @@ export async function GET(req: NextRequest) {
     let mensajeDebug = "";
 
     if (esConsultaIndividual) {
-      // Consulta por ID específico de estudiante
+      // //nsulta por ID específico de estudiante
       console.log(
         `${logPrefix} 🔍 INICIANDO consulta individual: ${idEstudianteParam}`
       );
@@ -390,7 +389,7 @@ export async function GET(req: NextRequest) {
       );
       console.log(`${logPrefix} 📊   Mensaje: ${mensajeDebug}`);
     } else {
-      // Consulta por aula (nivel, grado, sección) - ACTUALIZADA CON totalEstudiantes
+      // //nsulta por aula (nivel, grado, sección) - ACTUALIZADA CON totalEstudiantes
       console.log(
         `${logPrefix} 🏫 INICIANDO consulta por aula: ${nivel} ${grado}° ${seccion} (${totalEstudiantes} estudiantes esperados)`
       );
@@ -400,12 +399,11 @@ export async function GET(req: NextRequest) {
         nivel!,
         grado!,
         seccion!,
-        totalEstudiantes!, // Nuevo parámetro obligatorio
+        totalEstudiantes!, // / Nuevo parámetro obligatorio
         rol!
       );
 
-      resultados = resultado.datos;
-      mensajeDebug = resultado.mensaje;
+      resultados = resultado.datos;nsajeDebug = resultado.mensaje;
 
       console.log(`${logPrefix} 📊 Resultado consulta por aula:`);
       console.log(
@@ -418,7 +416,7 @@ export async function GET(req: NextRequest) {
       console.log(`${logPrefix} 📊   Mensaje: ${mensajeDebug}`);
     }
 
-    // Obtener fecha actual para la respuesta
+    // // Obner fecha actual para la respuesta
     const fechaActual = await asistenciasRepo.obtenerFechaActual();
     const [año, mes, dia] = fechaActual.split("-").map(Number);
 
@@ -426,8 +424,7 @@ export async function GET(req: NextRequest) {
       `${logPrefix} 📅 Fecha actual obtenida: ${fechaActual} (${dia}/${mes}/${año})`
     );
 
-    // Crear respuesta
-    const respuesta: ConsultarAsistenciasEstudiantesResponseBody = {
+    // // Crear respuestanst respuesta: ConsultarAsistenciasEstudiantesResponseBody = {
       TipoAsistencia: tipoAsistenciaParam,
       Dia: dia,
       Mes: mes as Meses,

@@ -17,7 +17,7 @@ import {
 import { alterarUTCaZonaPeruana } from "@/lib/helpers/alteradores/alterarUTCaZonaPeruana";
 import { Endpoint_Get_Asistencias_Mensuales_Escolares_De_Mi_Aula_API02 } from "@/lib/utils/backend/endpoints/api02/AsistenciasMensualesEscolaresDeMiAula";
 
-// Constantes
+// //nstantes
 const INTERVALO_ACTUALIZACION_MINUTOS = 10;
 const HORA_DISPONIBILIDAD_MONGODB = 22;
 
@@ -42,14 +42,8 @@ export interface AsistenciaAulaOperationResult
 }
 
 /**
- * Clase para Tutores de Secundaria
- *
- * Características:
- * - Solo acceso a SU aula asignada (Secundaria)
- * - Usa endpoint específico /api/mi-aula/asistencias-escolares-mensuales
- * - Control de frecuencia: 10 min días laborales, bloqueo fin de semana
- * - Combina datos mensuales con día actual cuando aplica
- */
+* Clase para Tutores de Secundaria Características: - Solo acceso a SU aula asignada (Secundaria) - Usa endpoint específico /api/mi-aula/asistencias-escolares-mensuales - Control de frecuencia: 10 min días laborales, bloqueo fin de semana - Combina datos mensuales con día actual cuando aplica
+*/
 export class AsistenciasEscolaresParaTutoresIDB
   extends AsistenciasEscolaresBaseIDB
   implements IAsistenciasEscolaresIDB
@@ -62,11 +56,11 @@ export class AsistenciasEscolaresParaTutoresIDB
     super(setIsSomethingLoading, setError, setSuccessMessage);
   }
 
-  // =====================================================================================
+  // // =====================================================================================
   // MÉTODOS PÚBLICOS
   // =====================================================================================
 
-  public async consultarAsistenciasMensualesAula(
+  public anc consultarAsistenciasMensualesAula(
     idAula: string,
     mes: number
   ): Promise<AsistenciaAulaOperationResult> {
@@ -135,11 +129,11 @@ export class AsistenciasEscolaresParaTutoresIDB
     }
   }
 
-  // =====================================================================================
+  // // =====================================================================================
   // IMPLEMENTACIÓN DE MÉTODOS ABSTRACTOS
   // =====================================================================================
 
-  protected async consultarAsistenciasImplementacion(
+  protected anc consultarAsistenciasImplementacion(
     idAula: string,
     mes: number
   ): Promise<AsistenciaAulaOperationResult> {
@@ -203,11 +197,11 @@ export class AsistenciasEscolaresParaTutoresIDB
     return { estrategia: "solo_api_mensual", razon: "Fuera de horario" };
   }
 
-  // =====================================================================================
-  // MÉTODOS ESPECÍFICOS (IDÉNTICOS A PROFESORES PRIMARIA excepto TipoAsistencia)
-  // =====================================================================================
+  // // =====================================================================================
+  // MÉTODOS ESPECÍFICOS (IDÉNTICOS A PROFESORES PRIMARIA excepto TipoAsisncia)
+  // // =====================================================================================
 
-  private async manejarMesAnterior(
+  private anc manejarMesAnterior(
     idAula: string,
     mes: number
   ): Promise<AsistenciaAulaOperationResult> {
@@ -486,7 +480,7 @@ export class AsistenciasEscolaresParaTutoresIDB
     totalEstudiantes: number
   ): Promise<DatosAsistenciasDiaActual> {
     try {
-      // DIFERENCIA CLAVE: ParaEstudiantesSecundaria en lugar de Primaria
+      // // DIFERENCIA CLAVE: ParaEstudntesSecundaria en lugar de Primaria
       const tipoAsistencia = TipoAsistencia.ParaEstudiantesSecundaria;
 
       const params = new URLSearchParams({
@@ -540,7 +534,7 @@ export class AsistenciasEscolaresParaTutoresIDB
     }
   }
 
-  // Métodos auxiliares (idénticos a Profesores Primaria)
+  // // Métodos auxiliares (inticos a Profesores Primaria)
   private validarConsulta(
     idAula: string,
     mes: number
@@ -732,7 +726,7 @@ export class AsistenciasEscolaresParaTutoresIDB
       const { DatosAsistenciaHoyIDB } = await import(
         "@/lib/utils/local/db/models/DatosAsistenciaHoy/DatosAsistenciaHoyIDB"
       );
-      // DIFERENCIA CLAVE: HandlerTutorAsistenciaResponse en lugar de HandlerProfesorPrimariaAsistenciaResponse
+      // // DIFERENCIA CLAVE:ndlerTutorAsistenciaResponse en lugar de HandlerProfesorPrimariaAsistenciaResponse
       const { HandlerProfesorTutorSecundariaAsistenciaResponse } = await import(
         "@/lib/utils/local/db/models/DatosAsistenciaHoy/handlers/HandlerProfesorTutorSecundariaAsistenciaResponse"
       );

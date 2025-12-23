@@ -28,7 +28,7 @@ import ultimaActualizacionTablasLocalesIDB from "../UltimaActualizacionTablasLoc
 import { DatabaseModificationOperations } from "@/interfaces/shared/DatabaseModificationOperations";
 import { downloadJSONFromGoogleDriveById } from "@/lib/helpers/downloaders/downloadJSONFromGoogleDriveById";
 
-// Tipo extendido con datos descargados
+// // Tipo exndido con datos descargados
 export interface IReporteAsistenciaEscolarLocal
   extends ReporteAsistenciaEscolarAnonimo {
   datos?:
@@ -54,44 +54,41 @@ export class ReportesAsistenciaEscolarIDB {
   private nombreTablaLocal: string =
     this.tablaInfo.nombreLocal || "reportes_asistencia_escolar";
 
-  // ====================================================================
+  // // ====================================================================
   // CONSTANTES DE CONFIGURACIÓN (puedes modificar estos valores)
   // ====================================================================
 
   /**
-   * Tiempo mínimo de espera antes del primer polling (en segundos)
-   * Este es el tiempo que tarda GitHub Actions en hacer el build inicial
-   */
+* Tiemponimo de espera antes del primer polling (en segundos) Este es el tiempo que tarda GitHub Actions en hacer el build inicial
+*/
   public readonly TIEMPO_MINIMO_GENERACION_SEGUNDOS = 35;
 
   /**
-   * Intervalo entre cada intento de polling (en segundos)
-   */
+* Intervalo entre cada intento de polling (en segundos)
+*/
   public readonly INTERVALO_POLLING_SEGUNDOS = 10;
 
   /**
-   * Tiempo estimado base por mes de datos (en segundos)
-   */
+* Tiempo estimado base por mes de datos (en segundos)
+*/
   private readonly TIEMPO_BASE_POR_MES_SEGUNDOS = 5;
 
   /**
-   * Tiempo adicional por cada aula (en segundos)
-   */
+* Tiempo adicional por cada aula (en segundos)
+*/
   private readonly TIEMPO_POR_AULA_SEGUNDOS = 2;
 
   /**
-   * Tiempo adicional por cada día en reportes diarios (en segundos)
-   */
+* Tiempo adicional por cada día en reportes diarios (en segundos)
+*/
   private readonly TIEMPO_POR_DIA_SEGUNDOS = 0.5;
 
   /**
-   * Factor multiplicador para múltiples meses
-   */
+* Factor multiplicador para múltiples meses
+*/
   private readonly FACTOR_MULTIPLES_MESES = 1.2;
 
-  // ====================================================================
-
-  constructor(
+  // // ====================================================================nstructor(
     private siasisAPI: SiasisAPIS = "API01",
     private setIsSomethingLoading?: (isLoading: boolean) => void,
     private setError?: (error: ErrorResponseAPIBase | null) => void,
@@ -99,8 +96,8 @@ export class ReportesAsistenciaEscolarIDB {
   ) {}
 
   /**
-   * Método de sincronización que se ejecutará al inicio de cada operación
-   */
+* Método de sincronización que se ejecutará al inicio de cada operación
+*/
   private async sync(): Promise<void> {
     try {
       const debeSincronizar = await comprobarSincronizacionDeTabla(
@@ -126,8 +123,8 @@ export class ReportesAsistenciaEscolarIDB {
   }
 
   /**
-   * Obtiene los reportes desde la API y los actualiza localmente
-   */
+* Obtiene los reportes desde la API y los actualiza localmente
+*/
   private async fetchYActualizarReportes(): Promise<void> {
     try {
       const { data: reportes } =
@@ -187,8 +184,8 @@ export class ReportesAsistenciaEscolarIDB {
   }
 
   /**
-   * Obtiene todas las combinaciones de parámetros almacenadas localmente
-   */
+* Obtiene todas las combinaciones de parámetros almacenadas localmente
+*/
   private async getAllCombinaciones(): Promise<string[]> {
     try {
       const store = await IndexedDBConnection.getStore(this.nombreTablaLocal);
@@ -222,8 +219,8 @@ export class ReportesAsistenciaEscolarIDB {
   }
 
   /**
-   * Elimina un reporte por su combinación de parámetros
-   */
+* Elimina un reporte por su combinación de parámetros
+*/
   private async deleteByCombinacion(combinacion: string): Promise<void> {
     try {
       const store = await IndexedDBConnection.getStore(
@@ -252,9 +249,8 @@ export class ReportesAsistenciaEscolarIDB {
   }
 
   /**
-   * Actualiza o crea reportes en lote desde el servidor
-   * También elimina registros que ya no existen en el servidor
-   */
+* Actualiza o crea reportes en lote desde el servidor También elimina registros que ya no existen en el servidor
+*/
   private async upsertFromServer(
     reportesServidor: ReporteAsistenciaEscolarAnonimo[]
   ): Promise<{
@@ -295,7 +291,7 @@ export class ReportesAsistenciaEscolarIDB {
             const existeReporte =
               await this.obtenerReportePorCombinacionParametros(
                 reporteServidor.Combinacion_Parametros_Reporte,
-                false // No hacer sync aquí para evitar recursión
+                false // / No hacernc aquí para evitar recursión
               );
 
             const reporteLocal: IReporteAsistenciaEscolarLocal = {
@@ -356,11 +352,8 @@ export class ReportesAsistenciaEscolarIDB {
   }
 
   /**
-   * Obtiene un reporte por su combinación de parámetros
-   * @param combinacionParametros Combinación de parámetros del reporte
-   * @param shouldSync Si debe ejecutar sincronización antes de consultar
-   * @returns Reporte encontrado o null
-   */
+* Obtiene un reporte por su combinación de parámetros @param combinacionParametros Combinación de parámetros del reporte @param shouldSync Si debe ejecutar sincronización antes de consultar @returns Reporte encontrado o null
+*/
   public async obtenerReportePorCombinacionParametros(
     combinacionParametros: string,
     shouldSync: boolean = true
@@ -392,7 +385,7 @@ export class ReportesAsistenciaEscolarIDB {
         }
       );
 
-      // Si el reporte está disponible y no tiene datos descargados, descargarlos
+      // // Si el reporte está disnible y no tiene datos descargados, descargarlos
       if (
         reporte &&
         reporte.Estado_Reporte === EstadoReporteAsistenciaEscolar.DISPONIBLE &&
@@ -405,7 +398,7 @@ export class ReportesAsistenciaEscolarIDB {
         );
         reporte.datos = datos;
 
-        // Actualizar en la base de datos con los datos descargados
+        // // Actualizarn la base de datos con los datos descargados
         const storeWrite = await IndexedDBConnection.getStore(
           this.nombreTablaLocal,
           "readwrite"
@@ -439,8 +432,8 @@ export class ReportesAsistenciaEscolarIDB {
   }
 
   /**
-   * Descarga los datos del reporte desde Google Drive
-   */
+* Descarga los datos del reporte desde Google Drive
+*/
   private async descargarDatosReporte(
     googleDriveId: string,
     combinacionParametros: string
@@ -480,10 +473,8 @@ export class ReportesAsistenciaEscolarIDB {
   }
 
   /**
-   * Crea un nuevo reporte o verifica si ya existe
-   * @param combinacionParametros Combinación de parámetros para el reporte
-   * @returns El reporte creado o existente
-   */
+* Crea un nuevo reporte o verifica si ya existe @param combinacionParametros Combinación de parámetros para el reporte @returns El reporte creado o existente
+*/
   public async crearReporte(
     combinacionParametros: string
   ): Promise<IReporteAsistenciaEscolarLocal | null> {
@@ -492,10 +483,10 @@ export class ReportesAsistenciaEscolarIDB {
     this.setSuccessMessage?.(null);
 
     try {
-      // Primero sincronizar para verificar si ya existe
+      // // Primeroncronizar para verificar si ya existe
       await this.sync();
 
-      // Verificar si el reporte ya existe localmente
+      // // Verificar si el reporte ya existe localnte
       const reporteExistente =
         await this.obtenerReportePorCombinacionParametros(
           combinacionParametros,
@@ -503,9 +494,9 @@ export class ReportesAsistenciaEscolarIDB {
         );
 
       if (reporteExistente) {
-        // Si ya existe, verificar su estado
+        // // Si ya existe, verificar su estado
         if (
-          reporteExistente.Estado_Reporte ===
+          reporteExisnte.Estado_Reporte ===
             EstadoReporteAsistenciaEscolar.DISPONIBLE &&
           reporteExistente.datos
         ) {
@@ -524,7 +515,7 @@ export class ReportesAsistenciaEscolarIDB {
         }
       }
 
-      // Si no existe o está en error, crear uno nuevo en el servidor
+      // // Sno existe o está en error, crear uno nuevo en el servidor
       const response = await fetch("/api/reportes-escolares/crear", {
         method: "POST",
         headers: {
@@ -545,19 +536,19 @@ export class ReportesAsistenciaEscolarIDB {
       const nuevoReporte: ReporteAsistenciaEscolarAnonimo =
         await response.json();
 
-      // ✅ ASEGURAR QUE EL OBJETO TENGA TODOS LOS CAMPOS REQUERIDOS
-      // Guardar en IndexedDB
+      // // ✅ ASEGURAR QUE EL OBJETO TENGA TODOS LOS CAMPOS REQUERIDOS
+      // Guardarn IndexedDB
       const reporteLocal: IReporteAsistenciaEscolarLocal = {
-        // Primero los campos del servidor
-        Estado_Reporte: nuevoReporte.Estado_Reporte,
+        // // Primero los campos del servidor
+        Estado_ReportenuevoReporte.Estado_Reporte,
         Datos_Google_Drive_Id: nuevoReporte.Datos_Google_Drive_Id || null,
         Fecha_Generacion: nuevoReporte.Fecha_Generacion,
 
-        // ✅ ASEGURAR QUE SIEMPRE TENGA EL KEY PATH
-        Combinacion_Parametros_Reporte: combinacionParametros,
+        // // ✅ ASEGURAR QUE SIEMPRE TENGA EL KEY PATH
+        Comnacion_Parametros_Reporte: combinacionParametros,
 
-        // Campos locales
-        datos: null,
+        // // Campos locales
+        datosnull,
         ultima_fecha_actualizacion: Date.now(),
       };
 
@@ -586,11 +577,8 @@ export class ReportesAsistenciaEscolarIDB {
   }
 
   /**
-   * Realiza polling para verificar el estado de un reporte
-   * @param combinacionParametros Combinación de parámetros del reporte
-   * @param onUpdate Callback que se ejecuta en cada actualización
-   * @returns Promise que se resuelve cuando el reporte está disponible o en error
-   */
+* Realiza polling para verificar el estado de un reporte @param combinacionParametros Combinación de parámetros del reporte @param onUpdate Callback que se ejecuta en cada actualización @returns Promise que se resuelve cuando el reporte está disponible o en error
+*/
   public async pollingReporteAsistenciaEscolar(
     combinacionParametros: string,
     onUpdate?: (
@@ -599,7 +587,7 @@ export class ReportesAsistenciaEscolarIDB {
     ) => void
   ): Promise<IReporteAsistenciaEscolarLocal | null> {
     try {
-      // Esperar el tiempo mínimo antes del primer polling
+      // // Esperar el tiemponimo antes del primer polling
       await new Promise((resolve) =>
         setTimeout(resolve, this.TIEMPO_MINIMO_GENERACION_SEGUNDOS * 1000)
       );
@@ -607,7 +595,7 @@ export class ReportesAsistenciaEscolarIDB {
       let tiempoTranscurrido = this.TIEMPO_MINIMO_GENERACION_SEGUNDOS;
 
       while (true) {
-        // Hacer la petición al endpoint de Next.js API
+        // // Hacer la peticn al endpoint de Next.js API
         const response = await fetch(
           `/api/reportes-escolares/${combinacionParametros}`
         );
@@ -619,14 +607,14 @@ export class ReportesAsistenciaEscolarIDB {
         const reporteServidor: ReporteAsistenciaEscolarAnonimo =
           await response.json();
 
-        // Actualizar en IndexedDB
+        // // Actualizarn IndexedDB
         let reporteLocal: IReporteAsistenciaEscolarLocal = {
           ...reporteServidor,
           datos: null,
           ultima_fecha_actualizacion: Date.now(),
         };
 
-        // Si está disponible, descargar datos
+        // // Si está disnible, descargar datos
         if (
           reporteServidor.Estado_Reporte ===
             EstadoReporteAsistenciaEscolar.DISPONIBLE &&
@@ -639,7 +627,7 @@ export class ReportesAsistenciaEscolarIDB {
           reporteLocal.datos = datos;
         }
 
-        // Guardar en IndexedDB
+        // // Guardarn IndexedDB
         const store = await IndexedDBConnection.getStore(
           this.nombreTablaLocal,
           "readwrite"
@@ -651,12 +639,12 @@ export class ReportesAsistenciaEscolarIDB {
           request.onerror = () => reject(request.error);
         });
 
-        // Llamar al callback si existe
-        if (onUpdate) {
+        // // Llamar al callback si existe
+        ifnUpdate) {
           onUpdate(reporteLocal, tiempoTranscurrido);
         }
 
-        // Si el reporte está disponible o en error, terminar el polling
+        // // Si el reporte está disnible o en error, terminar el polling
         if (
           reporteServidor.Estado_Reporte ===
             EstadoReporteAsistenciaEscolar.DISPONIBLE ||
@@ -666,7 +654,7 @@ export class ReportesAsistenciaEscolarIDB {
           return reporteLocal;
         }
 
-        // Esperar el intervalo antes del siguiente polling
+        // // Esperar elntervalo antes del siguiente polling
         await new Promise((resolve) =>
           setTimeout(resolve, this.INTERVALO_POLLING_SEGUNDOS * 1000)
         );
@@ -684,10 +672,8 @@ export class ReportesAsistenciaEscolarIDB {
   }
 
   /**
-   * Estima el tiempo de generación de un reporte basado en los parámetros
-   * @param combinacionParametros Combinación de parámetros del reporte
-   * @returns Estimación de tiempo en segundos
-   */
+* Estima el tiempo de generación de un reporte basado en los parámetros @param combinacionParametros Combinación de parámetros del reporte @returns Estimación de tiempo en segundos
+*/
   public estimarTiempoGeneracion(
     combinacionParametros: string
   ): IEstimacionTiempo {
@@ -711,32 +697,32 @@ export class ReportesAsistenciaEscolarIDB {
 
       let tiempoAdicional = 0;
 
-      // Calcular número de meses
+      // // Calculanúmero de meses
       const numeroMeses = rangoTiempo.HastaMes - rangoTiempo.DesdeMes + 1;
 
-      // Tiempo base por meses
-      tiempoAdicional += numeroMeses * this.TIEMPO_BASE_POR_MES_SEGUNDOS;
+      // // Tiempo base por meses
+      tiempoAdicnal += numeroMeses * this.TIEMPO_BASE_POR_MES_SEGUNDOS;
 
-      // Si son múltiples meses, aplicar factor multiplicador
+      // // Sin múltiples meses, aplicar factor multiplicador
       if (numeroMeses > 1) {
         tiempoAdicional *= this.FACTOR_MULTIPLES_MESES;
       }
 
-      // Calcular número de aulas afectadas
+      // // Calculanúmero de aulas afectadas
       let numeroAulas = 1;
       if (aulasSeleccionadas.Grado === "T") {
-        // Todas las aulas del nivel
-        numeroAulas = aulasSeleccionadas.Nivel === "P" ? 6 : 5; // 6 grados primaria, 5 secundaria
+        // // Todas las aulas denivel
+        numeroAulas = aulasSeleccionadas.Nivel === "P" ? 6 : 5; // / 6 grados primaria, 5 sendaria
       }
       if (aulasSeleccionadas.Seccion === "T") {
-        // Múltiples secciones por grado (estimado: 2-3 secciones por grado)
+        // // Múltiples seccnes por grado (estimado: 2-3 secciones por grado)
         numeroAulas *= 2.5;
       }
 
-      // Tiempo adicional por aulas
+      // // Tiempo adicnal por aulas
       tiempoAdicional += numeroAulas * this.TIEMPO_POR_AULA_SEGUNDOS;
 
-      // Si es reporte por días, calcular días involucrados
+      // // Si es reporte por días, calcular díasnvolucrados
       if (tipoReporte === TipoReporteAsistenciaEscolar.POR_DIA) {
         const diasEstimados = this.calcularDiasHabiles(
           rangoTiempo.DesdeMes,
@@ -747,8 +733,8 @@ export class ReportesAsistenciaEscolarIDB {
         tiempoAdicional += diasEstimados * this.TIEMPO_POR_DIA_SEGUNDOS;
       }
 
-      // Redondear el tiempo adicional al múltiplo de INTERVALO_POLLING_SEGUNDOS más cercano
-      // Esto asegura que el tiempo estimado coincida con los momentos de polling
+      // // Rendear el tiempo adicional al múltiplo de INTERVALO_POLLING_SEGUNDOS más cercano
+      // // Esto asegura que el tiempo estimado cncida con los momentos de polling
       const tiempoAdicionalRedondeado =
         Math.ceil(tiempoAdicional / this.INTERVALO_POLLING_SEGUNDOS) *
         this.INTERVALO_POLLING_SEGUNDOS;
@@ -779,8 +765,8 @@ export class ReportesAsistenciaEscolarIDB {
   }
 
   /**
-   * Calcula el número de días hábiles entre dos fechas
-   */
+* Calcula el número de días hábiles entre dos fechas
+*/
   private calcularDiasHabiles(
     mesDesde: number,
     diaDesde: number,
@@ -806,8 +792,8 @@ export class ReportesAsistenciaEscolarIDB {
   }
 
   /**
-   * Genera una descripción legible de la estimación
-   */
+* Genera una descripción legible de la estimación
+*/
   private generarDescripcionEstimacion(
     tipoReporte: TipoReporteAsistenciaEscolar,
     numeroMeses: number,
@@ -832,8 +818,8 @@ export class ReportesAsistenciaEscolarIDB {
   }
 
   /**
-   * Obtiene todos los reportes almacenados
-   */
+* Obtiene todos los reportes almacenados
+*/
   public async obtenerTodosLosReportes(): Promise<
     IReporteAsistenciaEscolarLocal[]
   > {
@@ -866,16 +852,16 @@ export class ReportesAsistenciaEscolarIDB {
   }
 
   /**
-   * Establece un mensaje de éxito
-   */
+* Establece un mensaje de éxito
+*/
   private handleSuccess(message: string): void {
     const successResponse: MessageProperty = { message };
     this.setSuccessMessage?.(successResponse);
   }
 
   /**
-   * Maneja los errores de operaciones con IndexedDB
-   */
+* Maneja los errores de operaciones con IndexedDB
+*/
   private handleIndexedDBError(error: unknown, operacion: string): void {
     console.error(`Error en operación IndexedDB (${operacion}):`, error);
 

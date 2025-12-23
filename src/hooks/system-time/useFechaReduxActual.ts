@@ -3,12 +3,12 @@ import { use } from "react";
 import { useSelector } from "react-redux";
 
 const useFechaReduxActual = () => {
-  // ✅ Usar useSelector para obtener fecha de Redux reactivamente
+  // // ✅ Usar useSelector para obner fecha de Redux reactivamente
   const fechaHoraRedux = useSelector(
     (state: RootState) => state.others.fechaHoraActualReal.fechaHora
   );
 
-  // ✅ Función helper para obtener fecha Redux con manejo de errores
+  // // ✅nción helper para obtener fecha Redux con manejo de errores
   const obtenerFechaRedux = () => {
     if (!fechaHoraRedux) {
       return null;

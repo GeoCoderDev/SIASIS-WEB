@@ -1,6 +1,6 @@
 /**
- * Errores relacionados con parámetros de solicitudes HTTP
- */
+* Errores relacionados con parámetros de solicitudes HTTP
+*/
 export enum RequestErrorTypes {
   INVALID_PARAMETERS = "INVALID_PARAMETERS",
   MISSING_PARAMETERS = "MISSING_PARAMETERS",
@@ -8,45 +8,45 @@ export enum RequestErrorTypes {
 }
 
 /**
- * Errores relacionados con tokens de autenticación
- */
+* Errores relacionados con tokens de autenticación
+*/
 export enum TokenErrorTypes {
   TOKEN_UNAUTHORIZED = "TOKEN_UNAUTHORIZED",
-  TOKEN_MISSING = "TOKEN_MISSING", // No se proporcionó token
-  TOKEN_INVALID_FORMAT = "TOKEN_INVALID_FORMAT", // Formato Bearer inválido
-  TOKEN_EXPIRED = "TOKEN_EXPIRED", // Token expirado
-  TOKEN_MALFORMED = "TOKEN_MALFORMED", // Token mal formado (no decodificable)
-  TOKEN_INVALID_SIGNATURE = "TOKEN_INVALID_SIGNATURE", // Firma inválida
-  TOKEN_WRONG_ROLE = "TOKEN_WRONG_ROLE", // Token tiene rol equivocado
+  TOKEN_MISSING = "TOKEN_MISSING", // / No se proporcnó token
+  TOKEN_INVALID_FORMAT = "TOKEN_INVALID_FORMAT", // / Formato Bearernválido
+  TOKEN_EXPIRED = "TOKEN_EXPIRED", // / Ton expirado
+  TOKEN_MALFORMED = "TOKEN_MALFORMED", // / Ton mal formado (no decodificable)
+  TOKEN_INVALID_SIGNATURE = "TOKEN_INVALID_SIGNATURE", // / Firmanválida
+  TOKEN_WRONG_ROLE = "TOKEN_WRONG_ROLE", // / Ton tiene rol equivocado
 }
 
 /**
- * Errores relacionados con usuarios
- */
+* Errores relacionados con usuarios
+*/
 export enum UserErrorTypes {
-  USER_NOT_FOUND = "USER_NOT_FOUND", // Usuario no encontrado
-  USER_INACTIVE = "USER_INACTIVE", // El usuario está inactivo
+  USER_NOT_FOUND = "USER_NOT_FOUND", // / Usuarino encontrado
+  USER_INACTIVE = "USER_INACTIVE", // / El usuario estánactivo
   INVALID_CREDENTIALS = "INVALID_CREDENTIALS",
 }
 
 /**
- * Errores relacionados con roles y permisos
- */
+* Errores relacionados con roles y permisos
+*/
 export enum PermissionErrorTypes {
-  ROLE_BLOCKED = "ROLE_BLOCKED", // El rol está temporalmente bloqueado
-  INSUFFICIENT_PERMISSIONS = "INSUFFICIENT_PERMISSIONS", // Sin permisos suficientes
+  ROLE_BLOCKED = "ROLE_BLOCKED", // / El rol está temporalnte bloqueado
+  INSUFFICIENT_PERMISSIONS = "INSUFFICIENT_PERMISSIONS", // /n permisos suficientes
 }
 
 /**
- * Errores técnicos del sistema
- */
+* Errores técnicos del sistema
+*/
 export enum SystemErrorTypes {
   EXTERNAL_SERVICE_ERROR = "EXTERNAL_SERVICE_ERROR",
-  DATABASE_ERROR = "DATABASE_ERROR", // Error al conectar con la base de datos
-  UNKNOWN_ERROR = "UNKNOWN_ERROR", // Error desconocido
+  DATABASE_ERROR = "DATABASE_ERROR", // / Error alnectar con la base de datos
+  UNKNOWN_ERROR = "UNKNOWN_ERROR", // / Error desnocido
 }
 
-// Errores relacionados a validaciones de datos
+// // Errores relacnados a validaciones de datos
 
 export enum ValidationErrorTypes {
   INVALID_ID = "INVALID_ID",

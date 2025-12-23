@@ -8,7 +8,7 @@ const TardanzasIcon = ({ className, title }: IconProps) => {
         className={`${className}`}
         viewBox="0 0 19 25"
         fill="none"
-        xmlns="http://www.w3.org/2000/svg"
+        xmlns="http:// www.w3.org/2000/svg"
       >
         <path
           d="M14.4762 0.857604C14.6411 1.11192 14.9417 1.92376 14.8932 1.97267C14.8641 2.00201 14.3696 1.35645 14.1272 0.974979C14.0884 0.906511 14.1175 0.808698 14.1853 0.740229C14.3017 0.652198 14.3599 0.671761 14.4762 0.857604Z"

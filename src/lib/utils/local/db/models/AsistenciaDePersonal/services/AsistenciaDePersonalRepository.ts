@@ -14,16 +14,8 @@ import { AsistenciaDePersonalMapper } from "./AsistenciaDePersonalMapper";
 import { AsistenciaDateHelper } from "../../utils/AsistenciaDateHelper";
 
 /**
- * 🎯 RESPONSABILIDAD: Operaciones CRUD con IndexedDB
- * - Guardar registros mensuales
- * - Obtener registros mensuales
- * - Eliminar registros
- * - Verificar existencia
- * - Operaciones de consulta y filtrado
- *
- * ✅ ACTUALIZADO: Soporta tanto IDs (directivos) como DNIs (otros roles)
- * ✅ NUEVO: Timestamp automático en todos los registros guardados/actualizados
- */
+* 🎯 RESPONSABILIDAD: Operaciones CRUD con IndexedDB - Guardar registros mensuales - Obtener registros mensuales - Eliminar registros - Verificar existencia - Operaciones de consulta y filtrado ✅ ACTUALIZADO: Soporta tanto IDs (directivos) como DNIs (otros roles) ✅ NUEVO: Timestamp automático en todos los registros guardados/actualizados
+*/
 export class AsistenciaDePersonalRepository {
   private mapper: AsistenciaDePersonalMapper;
   private dateHelper: AsistenciaDateHelper;
@@ -37,10 +29,8 @@ export class AsistenciaDePersonalRepository {
   }
 
   /**
-   * Guarda un registro mensual de asistencia usando el ID real de la API
-   * ✅ ACTUALIZADO: Soporta idUsuario_Personal
-   * ✅ NUEVO: Siempre incluye timestamp peruano actual
-   */
+* Guarda un registro mensual de asistencia usando el ID real de la API ✅ ACTUALIZADO: Soporta idUsuario_Personal ✅ NUEVO: Siempre incluye timestamp peruano actual
+*/
   public async guardarRegistroMensual(
     tipoPersonal: TipoPersonal,
     modoRegistro: ModoRegistro,
@@ -56,7 +46,7 @@ export class AsistenciaDePersonalRepository {
         modoRegistro
       );
 
-      // ✅ NUEVO: Obtener timestamp peruano actual SIEMPRE
+      // // ✅ NUEVO: Obner timestamp peruano actual SIEMPRE
       const timestampPeruanoActual = this.dateHelper.obtenerTimestampPeruano();
 
       console.log(
@@ -74,7 +64,7 @@ export class AsistenciaDePersonalRepository {
               tipoPersonal,
               datos.idUsuario_Personal
             ),
-            // ✅ NUEVO: SIEMPRE incluir timestamp peruano actual
+            // // ✅ NUEVO: SIEMPREncluir timestamp peruano actual
             ultima_fecha_actualizacion: timestampPeruanoActual,
           };
 
@@ -86,7 +76,7 @@ export class AsistenciaDePersonalRepository {
 
           console.log(`💾 Objeto a guardar en ${storeName}:`, {
             ...registroToSave,
-            // Solo mostrar resumen de registros para no saturar el log
+            // // Solo mostrar resun de registros para no saturar el log
             [modoRegistro === ModoRegistro.Entrada
               ? "Entradas"
               : "Salidas"]: `${
@@ -137,8 +127,8 @@ export class AsistenciaDePersonalRepository {
   }
 
   /**
-   * ✅ CORREGIDO: Verificación menos restrictiva - AL MENOS 1 día con datos es suficiente
-   */
+* ✅ CORREGIDO: Verificación menos restrictiva - AL MENOS 1 día con datos es suficiente
+*/
   public async verificarDatosEnUltimosDiasEscolares(
     tipoPersonal: TipoPersonal,
     modoRegistro: ModoRegistro,
@@ -185,12 +175,12 @@ export class AsistenciaDePersonalRepository {
           ? (diasConDatos.length / ultimosDiasEscolares.length) * 100
           : 0;
 
-      // ✅ CORREGIDO: Criterio menos restrictivo
-      // Si hay al menos 40% de cobertura O al menos 2 días con datos, es suficiente
+      // // ✅ CORREGIDO: Criterionos restrictivo
+      // // Si hay alnos 40% de cobertura O al menos 2 días con datos, es suficiente
       let tieneDatosSuficientes =
         porcentajeCobertura >= 40 || diasConDatos.length >= 2;
 
-      // ✅ NUEVA VALIDACIÓN: Verificar que los días sin datos NO sean los últimos seguidos
+      // // ✅ NUEVA VALIDACIÓN: Verificar que los díasn datos NO sean los últimos seguidos
       if (
         diasSinDatos.length > 0 &&
         ultimosDiasEscolares.length >= diasSinDatos.length
@@ -242,10 +232,8 @@ export class AsistenciaDePersonalRepository {
   }
 
   /**
-   * Obtiene el registro mensual de asistencia para un personal específico
-   * ✅ ACTUALIZADO: Usa idUsuario_Personal
-   * ✅ MEJORADO: Mejor logging para debugging
-   */
+* Obtiene el registro mensual de asistencia para un personal específico ✅ ACTUALIZADO: Usa idUsuario_Personal ✅ MEJORADO: Mejor logging para debugging
+*/
   public async obtenerRegistroMensual(
     tipoPersonal: TipoPersonal,
     modoRegistro: ModoRegistro,
@@ -258,7 +246,7 @@ export class AsistenciaDePersonalRepository {
       const storeName = this.mapper.getStoreName(tipoPersonal, modoRegistro);
       const store = await IndexedDBConnection.getStore(storeName, "readonly");
 
-      // Si se proporciona ID del registro, buscar directamente
+      // // Si se proporcna ID del registro, buscar directamente
       if (id_registro_mensual) {
         const request = store.get(id_registro_mensual);
 
@@ -302,7 +290,7 @@ export class AsistenciaDePersonalRepository {
         });
       }
 
-      // ✅ VALIDAR valores antes de usar en índice
+      // // ✅ VALIDAR valoresntes de usar en índice
       this.validarValoresParaIndice(idUsuario_Personal, mes, tipoPersonal);
 
       const indexName = this.mapper.getIndexNameForPersonalMes(tipoPersonal);
@@ -311,7 +299,7 @@ export class AsistenciaDePersonalRepository {
         try {
           const index = store.index(indexName);
 
-          // ✅ CONVERTIR identificador al tipo correcto
+          // // ✅ CONVERTIR intificador al tipo correcto
           const identificadorConvertido = this.convertirIdentificadorParaDB(
             tipoPersonal,
             idUsuario_Personal
@@ -372,8 +360,8 @@ export class AsistenciaDePersonalRepository {
   }
 
   /**
-   * ✅ NUEVO: Convierte el identificador al tipo correcto según el personal
-   */
+* ✅ NUEVO: Convierte el identificador al tipo correcto según el personal
+*/
   private convertirIdentificadorParaDB(
     tipoPersonal: TipoPersonal,
     idUsuario: string | number
@@ -382,21 +370,21 @@ export class AsistenciaDePersonalRepository {
       tipoPersonal === TipoPersonal.DIRECTIVO &&
       typeof idUsuario === "string"
     ) {
-      // Para directivos: convertir a número (Id_Directivo es INT en la BD)
+      // // Para directivos:nvertir a número (Id_Directivo es INT en la BD)
       const id = parseInt(idUsuario, 10);
       if (isNaN(id)) {
         throw new Error(`ID de directivo inválido: ${idUsuario}`);
       }
       return id;
     } else {
-      // Para otros roles: mantener como string (DNI)
+      // // Para otros roles:ntener como string (DNI)
       return idUsuario;
     }
   }
 
   /**
-   * ✅ CORREGIDO: Validar valores antes de usar en índices
-   */
+* ✅ CORREGIDO: Validar valores antes de usar en índices
+*/
   private validarValoresParaIndice(
     idUsuario: string | number,
     mes: number,
@@ -410,9 +398,9 @@ export class AsistenciaDePersonalRepository {
       throw new Error(`Mes inválido: ${mes}. Debe estar entre 1 y 12`);
     }
 
-    // Validar formato específico
+    // // Validar formato específico
     if (
-      !this.mapper.validarFormatoIdentificador(tipoPersonal, String(idUsuario))
+      !this.mapper.validarFormatoIntificador(tipoPersonal, String(idUsuario))
     ) {
       const tipoEsperado =
         this.mapper.getTipoIdentificadorLegible(tipoPersonal);
@@ -423,9 +411,8 @@ export class AsistenciaDePersonalRepository {
   }
 
   /**
-   * Elimina registros mensuales locales
-   * ✅ ACTUALIZADO: Usa id
-   */
+* Elimina registros mensuales locales ✅ ACTUALIZADO: Usa id
+*/
   public async eliminarRegistroMensual(
     tipoPersonal: TipoPersonal,
     modoRegistro: ModoRegistro,
@@ -504,9 +491,8 @@ export class AsistenciaDePersonalRepository {
   }
 
   /**
-   * Verifica si existe un registro mensual para un personal específico
-   * ✅ ACTUALIZADO: Usa id
-   */
+* Verifica si existe un registro mensual para un personal específico ✅ ACTUALIZADO: Usa id
+*/
   public async verificarExistenciaRegistroMensual(
     tipoPersonal: TipoPersonal,
     modoRegistro: ModoRegistro,
@@ -560,9 +546,8 @@ export class AsistenciaDePersonalRepository {
   }
 
   /**
-   * Verifica si ya existe un registro diario para un personal específico
-   * ✅ CORREGIDO: Aplica validaciones y conversiones
-   */
+* Verifica si ya existe un registro diario para un personal específico ✅ CORREGIDO: Aplica validaciones y conversiones
+*/
   public async verificarSiExisteRegistroDiario(
     tipoPersonal: TipoPersonal,
     modoRegistro: ModoRegistro,
@@ -575,7 +560,7 @@ export class AsistenciaDePersonalRepository {
       const storeName = this.mapper.getStoreName(tipoPersonal, modoRegistro);
       const store = await IndexedDBConnection.getStore(storeName, "readonly");
 
-      // ✅ AGREGAR: Validar valores antes de usar en índice
+      // // ✅ AGREGAR: Validar valoresntes de usar en índice
       this.validarValoresParaIndice(id, mes, tipoPersonal);
 
       const indexName = this.mapper.getIndexNameForPersonalMes(tipoPersonal);
@@ -584,7 +569,7 @@ export class AsistenciaDePersonalRepository {
         try {
           const index = store.index(indexName);
 
-          // ✅ AGREGAR: Convertir identificador al tipo correcto
+          // // ✅ AGREGAR:nvertir identificador al tipo correcto
           const identificadorConvertido = this.convertirIdentificadorParaDB(
             tipoPersonal,
             id
@@ -647,9 +632,8 @@ export class AsistenciaDePersonalRepository {
   }
 
   /**
-   * Obtiene todos los registros mensuales para un tipo de personal y un mes específico
-   * ✅ MEJORADO: Mejor logging y manejo de timestamp
-   */
+* Obtiene todos los registros mensuales para un tipo de personal y un mes específico ✅ MEJORADO: Mejor logging y manejo de timestamp
+*/
   public async obtenerTodosRegistrosMensuales(
     tipoPersonal: TipoPersonal,
     modoRegistro: ModoRegistro,
@@ -674,7 +658,7 @@ export class AsistenciaDePersonalRepository {
             if (request.result && request.result.length > 0) {
               const registrosMensuales: AsistenciaMensualPersonalLocal[] =
                 request.result.map((item) => {
-                  // ✅ NUEVO: Preservar timestamp original o usar timestamp actual si no existe
+                  // // ✅ NUEVO: Preservar timestamp orinal o usar timestamp actual si no existe
                   const timestampOriginal = item.ultima_fecha_actualizacion;
                   const timestampFinal =
                     timestampOriginal ||
@@ -730,9 +714,8 @@ export class AsistenciaDePersonalRepository {
   }
 
   /**
-   * Actualiza un registro existente agregando un nuevo día
-   * ✅ ACTUALIZADO: Usa id y garantiza timestamp actualizado
-   */
+* Actualiza un registro existente agregando un nuevo día ✅ ACTUALIZADO: Usa id y garantiza timestamp actualizado
+*/
   public async actualizarRegistroExistente(
     tipoPersonal: TipoPersonal,
     modoRegistro: ModoRegistro,
@@ -756,10 +739,10 @@ export class AsistenciaDePersonalRepository {
       );
 
       if (registroActual) {
-        // Actualizar el registro del día específico
-        registroActual.registros[dia.toString()] = registro;
+        // // Actualizar el registro del día específico
+        registroActual.registros[dia.toStng()] = registro;
 
-        // ✅ NUEVO: SIEMPRE actualizar el timestamp cuando se modifica el registro
+        // // ✅ NUEVO: SIEMPRE actualizar el timestamp cndo se modifica el registro
         registroActual.ultima_fecha_actualizacion =
           this.dateHelper.obtenerTimestampPeruano();
 
@@ -794,9 +777,8 @@ export class AsistenciaDePersonalRepository {
   }
 
   /**
-   * Mapea un registro obtenido del store a la interfaz AsistenciaMensualPersonalLocal
-   * ✅ ACTUALIZADO: Usa idUsuario_Personal y maneja timestamp correctamente
-   */
+* Mapea un registro obtenido del store a la interfaz AsistenciaMensualPersonalLocal ✅ ACTUALIZADO: Usa idUsuario_Personal y maneja timestamp correctamente
+*/
   private mapearRegistroMensualDesdeStore(
     registroStore: any,
     tipoPersonal: TipoPersonal,
@@ -805,7 +787,7 @@ export class AsistenciaDePersonalRepository {
     const idField = this.mapper.getIdFieldForStore(tipoPersonal, modoRegistro);
     const idPersonalField = this.mapper.getIdFieldName(tipoPersonal);
 
-    // ✅ NUEVO: Manejo robusto del timestamp
+    // // ✅ NUEVO:nejo robusto del timestamp
     const timestampOriginal = registroStore.ultima_fecha_actualizacion;
     const timestampFinal =
       timestampOriginal || this.dateHelper.obtenerTimestampPeruano();
@@ -829,9 +811,8 @@ export class AsistenciaDePersonalRepository {
   }
 
   /**
-   * Elimina un día específico de un registro mensual
-   * ✅ ACTUALIZADO: Usa id y actualiza timestamp al modificar
-   */
+* Elimina un día específico de un registro mensual ✅ ACTUALIZADO: Usa id y actualiza timestamp al modificar
+*/
   public async eliminarDiaDeRegistroMensual(
     tipoPersonal: TipoPersonal,
     modoRegistro: ModoRegistro,
@@ -844,7 +825,7 @@ export class AsistenciaDePersonalRepository {
         `🗑️ Eliminando día ${dia} del registro mensual para ${tipoPersonal} - ${idUsuario} - mes ${mes}`
       );
 
-      // Obtener el registro mensual actual
+      // // Obner el registro mensual actual
       const registroMensual = await this.obtenerRegistroMensual(
         tipoPersonal,
         modoRegistro,
@@ -859,8 +840,7 @@ export class AsistenciaDePersonalRepository {
         };
       }
 
-      // Verificar si existe el día específico
-      const claveDay = dia.toString();
+      // // Verificar si existe el día específiconst claveDay = dia.toString();
       if (!registroMensual.registros[claveDay]) {
         return {
           exitoso: false,
@@ -868,13 +848,13 @@ export class AsistenciaDePersonalRepository {
         };
       }
 
-      // Eliminar el día específico
+      // // Elinar el día específico
       delete registroMensual.registros[claveDay];
       console.log(`🗑️ Día ${dia} eliminado del registro mensual`);
 
-      // Decidir si mantener o eliminar todo el registro mensual
+      // // Decidir sintener o eliminar todo el registro mensual
       if (Object.keys(registroMensual.registros).length === 0) {
-        // Si no quedan más días, eliminar todo el registro mensual
+        // // Sno quedan más días, eliminar todo el registro mensual
         console.log(`📱 Eliminando registro mensual completo (sin más días)`);
         return await this.eliminarRegistroMensual(
           tipoPersonal,
@@ -883,15 +863,15 @@ export class AsistenciaDePersonalRepository {
           mes
         );
       } else {
-        // Si quedan más días, actualizar el registro
+        // // Si quen más días, actualizar el registro
         console.log(
           `📱 Actualizando registro mensual (quedan ${
             Object.keys(registroMensual.registros).length
           } días)`
         );
 
-        // ✅ NUEVO: Actualizar timestamp al modificar el registro
-        registroMensual.ultima_fecha_actualizacion =
+        // // ✅ NUEVO: Actualizar timestamp al modificar el registro
+        registronsual.ultima_fecha_actualizacion =
           this.dateHelper.obtenerTimestampPeruano();
         console.log(
           `🔄 Actualizando timestamp tras eliminación de día: ${registroMensual.ultima_fecha_actualizacion}`
@@ -915,9 +895,8 @@ export class AsistenciaDePersonalRepository {
   }
 
   /**
-   * Valida la estructura de un registro antes de guardarlo
-   * ✅ ACTUALIZADO: Validación mejorada para idUsuario_Personal y timestamp
-   */
+* Valida la estructura de un registro antes de guardarlo ✅ ACTUALIZADO: Validación mejorada para idUsuario_Personal y timestamp
+*/
   public validarEstructuraAntesSalvar(
     datos: AsistenciaMensualPersonalLocal,
     tipoPersonal?: TipoPersonal
@@ -932,24 +911,24 @@ export class AsistenciaDePersonalRepository {
       errores.push("El mes debe ser un número entre 1 y 12");
     }
 
-    // ✅ VALIDACIÓN MEJORADA: Soporte para ID (directivos) y DNI (otros)
+    // // ✅ VALIDACIÓN MEJORADA: Soporte para ID (directivos) y DNI (otros)
     if (
-      typeof datos.idUsuario_Personal !== "string" ||
+      typeof datos.idUsuario_Pernal !== "string" ||
       datos.idUsuario_Personal.trim().length === 0
     ) {
       errores.push("idUsuario_Personal debe ser un string no vacío");
     } else {
-      // Validación específica según el tipo de personal
+      // // Validacn específica según el tipo de personal
       if (tipoPersonal === TipoPersonal.DIRECTIVO) {
-        // Para directivos: puede ser cualquier string válido (usualmente números)
+        // // Para directivos: puede ser cualquier stng válido (usualmente números)
         if (!/^[a-zA-Z0-9]+$/.test(datos.idUsuario_Personal)) {
           errores.push(
             "idUsuario_Personal para directivos debe contener solo caracteres alfanuméricos"
           );
         }
       } else {
-        // Para otros roles: debe ser DNI de 8 dígitos
-        if (!/^\d{8}$/.test(datos.idUsuario_Personal)) {
+        // // Para otros roles: debe ser DNI de 8 dígitos
+        if (!\d{8}$/.test(datos.idUsuario_Personal)) {
           errores.push(
             "idUsuario_Personal para personal no-directivo debe ser un DNI de 8 dígitos"
           );
@@ -957,8 +936,8 @@ export class AsistenciaDePersonalRepository {
       }
     }
 
-    // ✅ NUEVA VALIDACIÓN: Verificar timestamp
-    if (typeof datos.ultima_fecha_actualizacion !== "number") {
+    // // ✅ NUEVA VALIDACIÓN: Verificar timestamp
+    if (typeof datos.ultima_fecha_actualizacn !== "number") {
       errores.push("ultima_fecha_actualizacion debe ser un número (timestamp)");
     } else if (datos.ultima_fecha_actualizacion <= 0) {
       errores.push(
@@ -969,7 +948,7 @@ export class AsistenciaDePersonalRepository {
     if (!datos.registros || typeof datos.registros !== "object") {
       errores.push("registros debe ser un objeto");
     } else {
-      // Validar cada registro individual
+      // // Validar cada registrondividual
       for (const [dia, registro] of Object.entries(datos.registros)) {
         if (isNaN(parseInt(dia))) {
           errores.push(`El día '${dia}' debe ser un número`);
@@ -1001,9 +980,8 @@ export class AsistenciaDePersonalRepository {
   }
 
   /**
-   * ✅ NUEVO: Método para actualizar masivamente timestamps de registros antiguos
-   * Útil para migrar registros que no tenían el campo ultima_fecha_actualizacion
-   */
+* ✅ NUEVO: Método para actualizar masivamente timestamps de registros antiguos Útil para migrar registros que no tenían el campo ultima_fecha_actualizacion
+*/
   public async actualizarTimestampsRegistrosAntiguos(
     tipoPersonal: TipoPersonal,
     modoRegistro: ModoRegistro,
@@ -1044,7 +1022,7 @@ export class AsistenciaDePersonalRepository {
             const actualizaciones: Promise<void>[] = [];
 
             registros.forEach((registro) => {
-              // Solo actualizar si no tiene timestamp o es inválido
+              // // Solo actualizar sno tiene timestamp o es inválido
               if (
                 !registro.ultima_fecha_actualizacion ||
                 registro.ultima_fecha_actualizacion <= 0

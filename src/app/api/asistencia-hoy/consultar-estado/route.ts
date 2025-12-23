@@ -19,7 +19,7 @@ import { GrupoInstaciasDeRedisPorTipoAsistencia } from "../marcar/route";
 
 export async function GET(req: NextRequest) {
   try {
-    // Verificar autenticación
+    // // Verificar aunticación
     const { error } = await verifyAuthToken(req, [
       RolesSistema.Directivo,
       RolesSistema.Auxiliar,
@@ -30,14 +30,14 @@ export async function GET(req: NextRequest) {
 
     if (error) return error;
 
-    // Obtener parámetros de la consulta
+    // // Obner parámetros de la consulta
     const searchParams = req.nextUrl.searchParams;
     const tipoAsistenciaParam = searchParams.get(
       "TipoAsistencia"
     ) as TipoAsistencia;
 
-    // Validar parámetros
-    if (!tipoAsistenciaParam) {
+    // // Validar parámetros
+    if (!tipoAsisnciaParam) {
       return NextResponse.json(
         {
           success: false,
@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Validar que TipoAsistencia sea válido
+    // // Validar que TipoAsisncia sea válido
     if (
       !Object.values(TipoAsistencia).includes(
         tipoAsistenciaParam as TipoAsistencia
@@ -62,11 +62,11 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Obtener la fecha actual en Perú
+    // // Obner la fecha actual en Perú
     const fechaActualPeru = await obtenerFechaActualPeru();
     const [anio, mes, dia] = fechaActualPeru.split("-").map(Number);
 
-    // Determinar la key correcta en Redis según el TipoAsistencia
+    // // Deternar la key correcta en Redis según el TipoAsistencia
     let redisKey;
     const tipoAsistencia = tipoAsistenciaParam;
 
@@ -87,19 +87,19 @@ export async function GET(req: NextRequest) {
         );
     }
 
-    // Obtener la instancia de Redis correspondiente al tipo de asistencia
+    // // Obner la instancia de Redis correspondiente al tipo de asistencia
     const redisClientInstance = redisClient(
       GrupoInstaciasDeRedisPorTipoAsistencia[tipoAsistencia]
     );
 
-    // Consultar el valor en Redis
+    // //nsultar el valor en Redis
     const valor = await redisClientInstance.get(redisKey);
 
-    // Determinar si la asistencia está iniciada - Si no hay valor, simplemente consideramos que no está iniciada
+    // // Deternar si la asistencia está iniciada - Si no hay valor, simplemente consideramos que no está iniciada
     const asistenciaIniciada = valor === true;
     console.log("prueba", valor);
 
-    // Construir la respuesta - siempre devolvemos una respuesta válida con el estado actual
+    // //nstruir la respuesta - siempre devolvemos una respuesta válida con el estado actual
     const respuesta: EstadoTomaAsistenciaResponseBody = {
       TipoAsistencia: tipoAsistencia,
       Dia: dia,
@@ -112,7 +112,7 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error("Error al consultar estado de toma de asistencia:", error);
 
-    // Determinar el tipo de error
+    // // Deternar el tipo de error
     let logoutType: LogoutTypes | null = null;
     const errorDetails: ErrorDetailsForLogout = {
       mensaje: "Error al consultar estado de toma de asistencia",
@@ -122,7 +122,7 @@ export async function GET(req: NextRequest) {
     };
 
     if (error instanceof Error) {
-      // Si es un error de redis crítico o problemas de conexión severos
+      // // Si esn error de redis crítico o problemas de conexión severos
       if (
         error.message.includes("Redis connection lost") ||
         error.message.includes("Redis connection failed") ||
@@ -135,12 +135,12 @@ export async function GET(req: NextRequest) {
       errorDetails.mensaje += `: ${error.message}`;
     }
 
-    // Si identificamos un error crítico, redirigir al login
+    // // Si intificamos un error crítico, redirigir al login
     if (logoutType) {
       return redirectToLogin(logoutType, errorDetails);
     }
 
-    // Para otros errores, simplemente devolver una respuesta JSON de error
+    // // Para otros errores, simplente devolver una respuesta JSON de error
     return NextResponse.json(
       {
         success: false,

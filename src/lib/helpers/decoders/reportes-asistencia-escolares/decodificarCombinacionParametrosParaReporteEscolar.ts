@@ -10,38 +10,35 @@ export interface ParametrosDecodificadosCombinacionReporteEscolar {
 }
 
 /**
- * Decodifica una cadena de combinación de parámetros para reporte escolar
- * @param combinacionCodificada - String codificado que representa los parámetros del reporte
- * @returns Objeto con los parámetros decodificados o false si la cadena no es válida
- */
+* Decodifica una cadena de combinación de parámetros para reporte escolar @param combinacionCodificada - String codificado que representa los parámetros del reporte @returns Objeto con los parámetros decodificados o false si la cadena no es válida
+*/
 const decodificarCombinacionParametrosParaReporteEscolar = (
   combinacionCodificada: string
 ): ParametrosDecodificadosCombinacionReporteEscolar | false => {
   try {
-    // Validar que la cadena no esté vacía
+    // // Validar que la cana no esté vacía
     if (!combinacionCodificada || combinacionCodificada.length === 0) {
       return false;
     }
 
-    // Extraer el tipo de reporte (primer carácter)
-    const tipoReporte =
+    // // Extraer el tipo de reporte (primer carácter)nst tipoReporte =
       combinacionCodificada[0] as TipoReporteAsistenciaEscolar;
 
-    // Validar que el tipo de reporte sea válido
-    if (!Object.values(TipoReporteAsistenciaEscolar).includes(tipoReporte)) {
+    // // Validar que el tipo de reporte sea válido
+    if (!Object.values(TipoReporteAsisnciaEscolar).includes(tipoReporte)) {
       return false;
     }
 
-    let posicion = 1; // Empezamos después del tipo de reporte
+    let posicion = 1; // / Empezamos después del tipo de reporte
 
-    if (tipoReporte === TipoReporteAsistenciaEscolar.POR_DIA) {
-      // Formato: D + MesDesde(1) + DiaDesde(1) + MesHasta(1) + DiaHasta(1) + Nivel(1) + Grado(1) + Seccion(1)
-      // Longitud mínima esperada: 8 caracteres
+    if (tipoReporte === TipoReporteAsisnciaEscolar.POR_DIA) {
+      // // Formato: D + MesDesde(1) + DiaDesde(1) + MesHasta(1) + DiaHasta(1) + Nivel(1) + Grado(1) + Seccn(1)
+      // //ngitud mínima esperada: 8 caracteres
       if (combinacionCodificada.length < 8) {
         return false;
       }
 
-      // Decodificar MesDesde (posición 1)
+      // // Decodificar MesDesde (posicn 1)
       const mesDesdeCodificado = combinacionCodificada[posicion];
       const mesDesde = decodificarCaracterANumero(mesDesdeCodificado);
       if (
@@ -53,7 +50,7 @@ const decodificarCombinacionParametrosParaReporteEscolar = (
       }
       posicion++;
 
-      // Decodificar DiaDesde (posición 2)
+      // // Decodificar DiaDesde (posicn 2)
       const diaDesdeCodificado = combinacionCodificada[posicion];
       const diaDesde = decodificarCaracterANumero(diaDesdeCodificado);
       if (diaDesde === null || diaDesde < 1 || diaDesde > 31) {
@@ -61,7 +58,7 @@ const decodificarCombinacionParametrosParaReporteEscolar = (
       }
       posicion++;
 
-      // Decodificar MesHasta (posición 3)
+      // // Decodificar MesHasta (posicn 3)
       const mesHastaCodificado = combinacionCodificada[posicion];
       const mesHasta = decodificarCaracterANumero(mesHastaCodificado);
       if (mesHasta === null || mesHasta < 1 || mesHasta > 12) {
@@ -69,7 +66,7 @@ const decodificarCombinacionParametrosParaReporteEscolar = (
       }
       posicion++;
 
-      // Decodificar DiaHasta (posición 4)
+      // // Decodificar DiaHasta (posicn 4)
       const diaHastaCodificado = combinacionCodificada[posicion];
       const diaHasta = decodificarCaracterANumero(diaHastaCodificado);
       if (diaHasta === null || diaHasta < 1 || diaHasta > 31) {
@@ -77,7 +74,7 @@ const decodificarCombinacionParametrosParaReporteEscolar = (
       }
       posicion++;
 
-      // Extraer Nivel (posición 5) - 1 carácter
+      // // Extraer Nivel (posicn 5) - 1 carácter
       const nivel = combinacionCodificada[posicion];
       if (
         !nivel ||
@@ -87,7 +84,7 @@ const decodificarCombinacionParametrosParaReporteEscolar = (
       }
       posicion++;
 
-      // Extraer Grado (posición 6) - 1 carácter (puede ser número 1-6 o "T" para todos)
+      // // Extraer Grado (posicn 6) - 1 carácter (puede ser número 1-6 o "T" para todos)
       const gradoStr = combinacionCodificada[posicion];
       let grado: number | string;
 
@@ -102,7 +99,7 @@ const decodificarCombinacionParametrosParaReporteEscolar = (
       }
       posicion++;
 
-      // Extraer Sección (posición 7) - 1 carácter (letra A-Z o "T" para todas)
+      // // Extraer Seccn (posición 7) - 1 carácter (letra A-Z o "T" para todas)
       const seccion = combinacionCodificada[posicion];
       if (!seccion || (!/^[A-Z]$/.test(seccion) && seccion !== "T")) {
         return false;
@@ -123,14 +120,14 @@ const decodificarCombinacionParametrosParaReporteEscolar = (
         },
       };
     } else {
-      // TipoReporteAsistenciaEscolar.POR_MES
-      // Formato: M + MesDesde(1) + MesHasta(1) + Nivel(1) + Grado(1) + Seccion(1)
-      // Longitud mínima esperada: 6 caracteres
+      // // TipoReporteAsisnciaEscolar.POR_MES
+      // // Formato: M + MesDesde(1) + MesHasta(1) + Nivel(1) + Grado(1) + Seccn(1)
+      // //ngitud mínima esperada: 6 caracteres
       if (combinacionCodificada.length < 6) {
         return false;
       }
 
-      // Decodificar MesDesde (posición 1)
+      // // Decodificar MesDesde (posicn 1)
       const mesDesdeCodificado = combinacionCodificada[posicion];
       const mesDesde = decodificarCaracterANumero(mesDesdeCodificado);
       if (mesDesde === null || mesDesde < 1 || mesDesde > 12) {
@@ -138,7 +135,7 @@ const decodificarCombinacionParametrosParaReporteEscolar = (
       }
       posicion++;
 
-      // Decodificar MesHasta (posición 2)
+      // // Decodificar MesHasta (posicn 2)
       const mesHastaCodificado = combinacionCodificada[posicion];
       const mesHasta = decodificarCaracterANumero(mesHastaCodificado);
       if (mesHasta === null || mesHasta < 1 || mesHasta > 12) {
@@ -146,7 +143,7 @@ const decodificarCombinacionParametrosParaReporteEscolar = (
       }
       posicion++;
 
-      // Extraer Nivel (posición 3) - 1 carácter
+      // // Extraer Nivel (posicn 3) - 1 carácter
       const nivel = combinacionCodificada[posicion];
       if (
         !nivel ||
@@ -156,7 +153,7 @@ const decodificarCombinacionParametrosParaReporteEscolar = (
       }
       posicion++;
 
-      // Extraer Grado (posición 4) - 1 carácter (puede ser número 1-6 o "T" para todos)
+      // // Extraer Grado (posicn 4) - 1 carácter (puede ser número 1-6 o "T" para todos)
       const gradoStr = combinacionCodificada[posicion];
       let grado: number | string;
 
@@ -171,7 +168,7 @@ const decodificarCombinacionParametrosParaReporteEscolar = (
       }
       posicion++;
 
-      // Extraer Sección (posición 5) - 1 carácter (letra A-Z o "T" para todas)
+      // // Extraer Seccn (posición 5) - 1 carácter (letra A-Z o "T" para todas)
       const seccion = combinacionCodificada[posicion];
       if (!seccion || (!/^[A-Z]$/.test(seccion) && seccion !== "T")) {
         return false;

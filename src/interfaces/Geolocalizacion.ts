@@ -8,11 +8,11 @@ export interface PuntoGeografico {
 }
 
 
-// src/enums/GeolocationEnums.ts
+// // srcnums/GeolocationEnums.ts
 
 /**
- * Estados posibles del dispositivo en relación a la geolocalización
- */
+* Estados posibles del dispositivo en relación a la geolocalización
+*/
 export enum EstadoDispositivo {
   DENTRO_DEL_COLEGIO = 'DENTRO_DEL_COLEGIO',
   FUERA_DEL_COLEGIO = 'FUERA_DEL_COLEGIO',
@@ -25,8 +25,8 @@ export enum EstadoDispositivo {
 }
 
 /**
- * Estados de permisos de geolocalización
- */
+* Estados de permisos de geolocalización
+*/
 export enum EstadoPermisos {
   CONCEDIDO = 'granted',
   DENEGADO = 'denied',
@@ -35,8 +35,8 @@ export enum EstadoPermisos {
 }
 
 /**
- * Tipos de errores de geolocalización
- */
+* Tipos de errores de geolocalización
+*/
 export enum TipoErrorGeolocalizacion {
   PERMISSION_DENIED = 1,
   POSITION_UNAVAILABLE = 2,
@@ -44,8 +44,8 @@ export enum TipoErrorGeolocalizacion {
 }
 
 /**
- * Tipos de modales a mostrar
- */
+* Tipos de modales a mostrar
+*/
 export enum TipoModal {
   BIENVENIDA_DENTRO_COLEGIO = 'BIENVENIDA_DENTRO_COLEGIO',
   ALERTA_FUERA_COLEGIO = 'ALERTA_FUERA_COLEGIO',
@@ -57,8 +57,8 @@ export enum TipoModal {
 }
 
 /**
- * Acciones disponibles en los modales
- */
+* Acciones disponibles en los modales
+*/
 export enum AccionModal {
   REINTENTAR = 'REINTENTAR',
   CONFIGURAR_PERMISOS = 'CONFIGURAR_PERMISOS',

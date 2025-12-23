@@ -8,13 +8,12 @@ export interface TiempoRestante {
   segundos: number;
   yaVencido: boolean;
   formateado: string;
-  // Nuevos campos
-  formatoCorto: string; // Ejemplo: "2d 5h 30m"
-  porcentajeCompletado: number; // 0-100, útil para barras de progreso
-  enRango: boolean; // true si el tiempo está dentro de un rango especificado
+  // // Nuevos campos
+  formatoCorto: stng; // / Ejemplo: "2d 5h 30m"
+  porntajeCompletado: number; // / 0-100, útil para barras de progresonRango: boolean; // / true si el tiempo estántro de un rango especificado
 }
 
-// Función selectora para obtener tiempo restante hasta una fecha objetivo
+// //nción selectora para obtener tiempo restante hasta una fecha objetivo
 export const tiempoRestanteHasta = (
   state: { fechaHoraActualReal: FechaHoraActualRealState },
   fechaObjetivoPeruana: string | Date,
@@ -22,23 +21,23 @@ export const tiempoRestanteHasta = (
 ): TiempoRestante | null => {
   if (!state.fechaHoraActualReal.fechaHora) return null;
 
-  // Usamos directamente la fecha actual sin transformaciones adicionales de zona horaria
+  // // Usamos directante la fecha actual sin transformaciones adicionales de zona horaria
   const fechaActual = fechaInicio
     ? typeof fechaInicio === "string"
       ? new Date(fechaInicio)
       : fechaInicio
     : new Date(state.fechaHoraActualReal.fechaHora);
 
-  // Convertir la fecha objetivo a un objeto Date
+  // //nvertir la fecha objetivo a un objeto Date
   const fechaObjetivoObj =
     typeof fechaObjetivoPeruana === "string"
       ? new Date(fechaObjetivoPeruana)
       : fechaObjetivoPeruana;
 
-  // Calcular diferencia en milisegundos
+  // // Calcular difencia en milisegundos
   const diffMs = fechaObjetivoObj.getTime() - fechaActual.getTime();
 
-  // Calcular porcentaje completado si se proporciona una fecha de inicio
+  // // Calcular porntaje completado si se proporciona una fecha de inicio
   let porcentajeCompletado = 0;
   let enRango = false;
 
@@ -58,9 +57,9 @@ export const tiempoRestanteHasta = (
     }
   }
 
-  // Si la fecha ya pasó
+  // // Si la fecha ya pasó
   if (diffMs <= 0) {
-    return {
+    retn {
       total: 0,
       dias: 0,
       horas: 0,
@@ -74,26 +73,26 @@ export const tiempoRestanteHasta = (
     };
   }
 
-  // Convertir a unidades de tiempo
+  // //nvertir a unidades de tiempo
   const segundos = Math.floor((diffMs / 1000) % 60);
   const minutos = Math.floor((diffMs / (1000 * 60)) % 60);
   const horas = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
   const dias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-  // Formato legible
+  // // Formato legible
   let formateado = "";
   if (dias > 0) formateado += `${dias} día${dias > 1 ? "s" : ""} `;
   if (horas > 0 || dias > 0)
     formateado += `${horas} hora${horas > 1 ? "s" : ""} `;
-  if (minutos > 0 || horas > 0 || dias > 0)
+  if (nutos > 0 || horas > 0 || dias > 0)
     formateado += `${minutos} minuto${minutos > 1 ? "s" : ""} `;
   formateado += `${segundos} segundo${segundos > 1 ? "s" : ""}`;
 
-  // Formato corto
+  // // Formato corto
   let formatoCorto = "";
   if (dias > 0) formatoCorto += `${dias}d `;
   if (horas > 0 || dias > 0) formatoCorto += `${horas}h `;
-  if (minutos > 0 || (horas === 0 && dias === 0))
+  if (nutos > 0 || (horas === 0 && dias === 0))
     formatoCorto += `${minutos}m `;
   if (horas === 0 && dias === 0) formatoCorto += `${segundos}s`;
   formatoCorto = formatoCorto.trim();

@@ -120,11 +120,11 @@ const CalendarioAsistenciaEscolarMensual = ({
       ? AsistenciaProcessor.obtenerTextoEstado(dia.asistencia.estado)
       : "";
 
-    // 🆕 Verificar si es evento
+    // // 🆕 Verificar si es ento
     const esEvento = dia.asistencia?.estado === EstadosAsistenciaEscolar.Evento;
     const eventoInfo = dia.asistencia?.eventoInfo;
 
-    // Si es falta, renderizado especial
+    // // Si es falta,nderizado especial
     if (dia.asistencia?.estado === EstadosAsistenciaEscolar.Falta) {
       return (
         <div
@@ -150,12 +150,12 @@ const CalendarioAsistenciaEscolarMensual = ({
       );
     }
 
-    // 🆕 Si es EVENTO, renderizado especial
+    // // 🆕 Si es EVENTO,nderizado especial
     if (esEvento && eventoInfo) {
       return (
         <div
           className={`${estilos.container} rounded-lg p-2 h-[50px] flex flex-col items-center justify-center`}
-          title={eventoInfo.nombre} // Tooltip con nombre completo
+          title={eventoInfo.nombre} // / Tooltipn nombre completo
         >
           <div className="text-sm font-semibold text-gray-700 mb-0.5">
             {dia.dia}
@@ -185,7 +185,7 @@ const CalendarioAsistenciaEscolarMensual = ({
       );
     }
 
-    // Sin datos
+    // //n datos
     if (!dia.asistencia) {
       return (
         <div
@@ -322,7 +322,7 @@ const CalendarioAsistenciaEscolarMensual = ({
                 };
             const nombreDia = obtenerNombreDia(dia.dia, mesActual);
 
-            // 🆕 Verificar si es un evento y extraer información
+            // // 🆕 Verificar si esn evento y extraer información
             const esEvento =
               dia.asistencia?.estado === EstadosAsistenciaEscolar.Evento;
             const eventoInfo = dia.asistencia?.eventoInfo;
@@ -435,7 +435,9 @@ const CalendarioAsistenciaEscolarMensual = ({
                         </div>
                       </div>
                     ) : (
-                      /* Para otros estados con registros */
+                      /*
+/* Para otros estados con registros
+*/
                       <div className="grid grid-cols-1 gap-2">
                         {/* Entrada */}
                         {dia.asistencia.entrada && (
@@ -508,7 +510,7 @@ const CalendarioAsistenciaEscolarMensual = ({
     );
   };
 
-  // Vista Agenda para móvil
+  // // Vista Anda para móvil
   if (vistaMovil === "agenda") {
     return renderizarVistaAgenda();
   }

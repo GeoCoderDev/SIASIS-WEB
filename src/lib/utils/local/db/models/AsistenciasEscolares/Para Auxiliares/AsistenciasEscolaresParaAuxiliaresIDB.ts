@@ -16,11 +16,11 @@ import {
 } from "../AsistenciasEscolaresBaseIDB";
 import { alterarUTCaZonaPeruana } from "@/lib/helpers/alteradores/alterarUTCaZonaPeruana";
 
-// Constantes específicas para auxiliares
+// //nstantes específicas para auxiliares
 const INTERVALO_ACTUALIZACION_MINUTOS = 10;
 const HORA_DISPONIBILIDAD_MONGODB = 22;
 
-// Interfaces específicas
+// //nterfaces específicas
 export interface AsistenciaAulaOperationResult
   extends AsistenciaOperationResult {
   data?: {
@@ -42,15 +42,8 @@ interface DatosAsistenciasDiaActual {
 }
 
 /**
- * Clase especializada para Auxiliares
- *
- * Características:
- * - SOLO acceso a aulas de SECUNDARIA (sin permisos para Primaria)
- * - Puede consultar asistencias por aula completa o por estudiante individual
- * - Maneja eventos escolares
- * - Control de frecuencia adaptado (10 min días laborales, bloqueo fin de semana)
- * - Lógica idéntica a Directivos excepto por la restricción de nivel
- */
+* Clase especializada para Auxiliares Características: - SOLO acceso a aulas de SECUNDARIA (sin permisos para Primaria) - Puede consultar asistencias por aula completa o por estudiante individual - Maneja eventos escolares - Control de frecuencia adaptado (10 min días laborales, bloqueo fin de semana) - Lógica idéntica a Directivos excepto por la restricción de nivel
+*/
 export class AsistenciasEscolaresParaAuxiliaresIDB extends AsistenciasEscolaresBaseIDB {
   constructor(
     setIsSomethingLoading?: (isLoading: boolean) => void,
@@ -60,13 +53,13 @@ export class AsistenciasEscolaresParaAuxiliaresIDB extends AsistenciasEscolaresB
     super(setIsSomethingLoading, setError, setSuccessMessage);
   }
 
-  // =====================================================================================
+  // // =====================================================================================
   // MÉTODOS PÚBLICOS
   // =====================================================================================
 
   /**
-   * Consulta asistencias mensuales de un aula completa (solo Secundaria)
-   */
+* nsulta asistencias mensuales de un aula completa (solo Secundaria)
+*/
   public async consultarAsistenciasMensualesAula(
     idAula: string,
     mes: number
@@ -90,9 +83,8 @@ export class AsistenciasEscolaresParaAuxiliaresIDB extends AsistenciasEscolaresB
   }
 
   /**
-   * Consulta asistencias mensuales de un estudiante individual (solo Secundaria)
-   * FLUJO UNIFICADO con restricción de Secundaria
-   */
+* Consulta asistencias mensuales de un estudiante individual (solo Secundaria) FLUJO UNIFICADO con restricción de Secundaria
+*/
   public async consultarAsistenciasMensualesEstudiante(
     idEstudiante: string,
     mes: number,
@@ -104,7 +96,7 @@ export class AsistenciasEscolaresParaAuxiliaresIDB extends AsistenciasEscolaresB
     this.setSuccessMessage?.(null);
 
     try {
-      // RESTRICCIÓN ESPECÍFICA DE AUXILIARES: Solo Secundaria
+      // // RESTRICCIÓN ESPECÍFICA DE AUXILIARES: Solo Sendaria
       if (nivel !== NivelEducativo.SECUNDARIA) {
         return this.crearResultadoError(
           "No tiene permisos para consultar asistencias de Primaria. Solo puede acceder a estudiantes de Secundaria."
@@ -122,7 +114,7 @@ export class AsistenciasEscolaresParaAuxiliaresIDB extends AsistenciasEscolaresB
         );
       }
 
-      // Seguir el flujo unificado
+      // // Seguir el flujonificado
       return await this.consultarAsistenciasImplementacionEstudiante(
         idEstudiante,
         mes,
@@ -136,11 +128,11 @@ export class AsistenciasEscolaresParaAuxiliaresIDB extends AsistenciasEscolaresB
     }
   }
 
-  // =====================================================================================
+  // // =====================================================================================
   // IMPLEMENTACIÓN DE MÉTODOS ABSTRACTOS
   // =====================================================================================
 
-  protected async consultarAsistenciasImplementacion(
+  protected anc consultarAsistenciasImplementacion(
     idAula: string,
     mes: number
   ): Promise<AsistenciaAulaOperationResult> {
@@ -219,11 +211,11 @@ export class AsistenciasEscolaresParaAuxiliaresIDB extends AsistenciasEscolaresB
     };
   }
 
-  // =====================================================================================
+  // // =====================================================================================
   // MÉTODOS ESPECÍFICOS DEL ROL
   // =====================================================================================
 
-  private async manejarMesAnterior(
+  private anc manejarMesAnterior(
     idAula: string,
     mes: number
   ): Promise<AsistenciaAulaOperationResult> {
@@ -566,12 +558,12 @@ export class AsistenciasEscolaresParaAuxiliaresIDB extends AsistenciasEscolaresB
     }
   }
 
-  // COPIAR TODOS ESTOS MÉTODOS PRIVADOS DE LA CLASE DIRECTIVOS:
-  // (Son exactamente iguales, sin cambios)
+  // // COPIAR TODOS ESTOS MÉTODOS PRIVADOS DE LA CLASE DIRECTIVOS:
+  // (n exactamente iguales, sin cambios)
 
   /**
-   * Implementación del flujo unificado para estudiante individual
-   */
+* Implementación del flujo unificado para estudiante individual
+*/
   private async consultarAsistenciasImplementacionEstudiante(
     idEstudiante: string,
     mes: number,
@@ -637,7 +629,7 @@ export class AsistenciasEscolaresParaAuxiliaresIDB extends AsistenciasEscolaresB
         );
       }
 
-      // Verificar nuevamente que sea Secundaria (por si acaso)
+      // // Verificanuevamente que sea Secundaria (por si acaso)
       if (infoEstudiante.nivel !== NivelEducativo.SECUNDARIA) {
         return this.crearResultadoError(
           "El estudiante no pertenece a Secundaria"
@@ -698,7 +690,7 @@ export class AsistenciasEscolaresParaAuxiliaresIDB extends AsistenciasEscolaresB
       );
     }
 
-    // Verificar que sea Secundaria
+    // // Verificar que sea Sendaria
     if (infoEstudiante.nivel !== NivelEducativo.SECUNDARIA) {
       return this.crearResultadoError(
         "El estudiante no pertenece a Secundaria"
@@ -979,13 +971,13 @@ export class AsistenciasEscolaresParaAuxiliaresIDB extends AsistenciasEscolaresB
     }
   }
 
-  // =====================================================================================
+  // // =====================================================================================
   // MÉTODOS AUXILIARES
   // =====================================================================================
 
   /**
-   * Validación específica para auxiliares: solo pueden consultar aulas de Secundaria
-   */
+* Validacn específica para auxiliares: solo pueden consultar aulas de Secundaria
+*/
   private async validarConsultaAulaAuxiliar(
     idAula: string,
     mes: number
@@ -994,7 +986,7 @@ export class AsistenciasEscolaresParaAuxiliaresIDB extends AsistenciasEscolaresB
       return { esValido: false, mensaje: "Debe seleccionar un aula válida." };
     }
 
-    // Validar que el aula sea de Secundaria
+    // // Validar que el aula sea de Sendaria
     const infoAula = await this.obtenerInformacionAula(idAula);
     if (!infoAula) {
       return {
@@ -1248,51 +1240,46 @@ export class AsistenciasEscolaresParaAuxiliaresIDB extends AsistenciasEscolaresB
   }
 
   /**
-   * Calcula la fecha límite de consolidación de datos
-   * Esto es el último día laboral (viernes) a la hora configurada en HORA_DISPONIBILIDAD_MONGODB
-   * @param fechaReferencia Fecha actual desde la cual calcular
-   * @returns Date objeto representando la fecha límite de consolidación
-   */
+* Calcula la fecha límite de consolidación de datos Esto es el último día laboral (viernes) a la hora configurada en HORA_DISPONIBILIDAD_MONGODB @param fechaReferencia Fecha actual desde la cual calcular @returns Date objeto representando la fecha límite de consolidación
+*/
   private calcularFechaLimiteConsolidacionDatos(fechaReferencia: Date): Date {
     const ultimoDiaLaboral = new Date(fechaReferencia);
     const diaActual = ultimoDiaLaboral.getDay();
 
-    // Calcular cuántos días retroceder hasta el último día laboral
+    // // Calcular cntos días retroceder hasta el último día laboral
     let diasRetroceso: number;
 
     if (diaActual === 0) {
-      // Domingo
-      diasRetroceso = 2; // Retroceder al viernes
+      // // Dongo
+      diasRetroceso = 2; // / Retroceder al vines
     } else if (diaActual === 6) {
-      // Sábado
-      diasRetroceso = 1; // Retroceder al viernes
+      // // Sábado
+      diasRetroceso = 1; // Retroceder al vines
     } else if (diaActual === 5) {
-      // Último día laboral de la semana
-      // Si es el último día laboral, verificar si ya pasó la hora de consolidación
+      // // Último día laboral de la sena
+      // // Si es el último día laboral, verificar si ya pasó la hora densolidación
       const horaActual = fechaReferencia.getHours();
       diasRetroceso = horaActual >= HORA_DISPONIBILIDAD_MONGODB ? 0 : 7;
     } else {
-      // Lunes a Jueves
-      // Calcular días hasta el último día laboral anterior
-      diasRetroceso = diaActual + 2; // L(1)+2=3, M(2)+2=4, Mi(3)+2=5, J(4)+2=6
+      // //nes a Jueves
+      // // Calcular días hasta el último día laboralnterior
+      diasRetroceso = diaActual + 2; // / L(1)+2=3, M(2)+2=4, Mi(3)+2=5, J(4)+2=6
     }
 
     ultimoDiaLaboral.setDate(ultimoDiaLaboral.getDate() - diasRetroceso);
     ultimoDiaLaboral.setHours(HORA_DISPONIBILIDAD_MONGODB, 0, 0, 0);
 
-    return ultimoDiaLaboral;
+    retn ultimoDiaLaboral;
   }
 
   /**
-   * Calcula los minutos que faltan hasta el próximo día laboral (lunes) a las 00:00
-   * @param diaActual Día de la semana actual (0 = domingo, 6 = sábado)
-   * @returns Minutos hasta el inicio del próximo día laboral
-   */
+* Calcula los minutos que faltan hasta el próximo día laboral (lunes) a las 00:00 @param diaActual Día de la semana actual (0 = domingo, 6 = sábado) @returns Minutos hasta el inicio del próximo día laboral
+*/
   private calcularMinutosHastaProximoDiaLaboral(diaActual: number): number {
     const ahora = new Date();
     const proximoDiaLaboral = new Date(ahora);
 
-    // Calcular días hasta el lunes
+    // // Calcular días hasta elnes
     const diasHastaProximoDiaLaboral =
       diaActual === 6 ? 2 : diaActual === 0 ? 1 : 0;
     proximoDiaLaboral.setDate(ahora.getDate() + diasHastaProximoDiaLaboral);
@@ -1306,9 +1293,8 @@ export class AsistenciasEscolaresParaAuxiliaresIDB extends AsistenciasEscolaresB
   }
 
   /**
-   * Verifica el control de frecuencia para consultas de asistencias por aula
-   * Implementa lógica especial para fines de semana
-   */
+* Verifica el control de frecuencia para consultas de asistencias por aula Implementa lógica especial para fines de semana
+*/
   private async verificarControlFrecuenciaAula(
     idAula: string,
     mes: number
@@ -1359,13 +1345,13 @@ export class AsistenciasEscolaresParaAuxiliaresIDB extends AsistenciasEscolaresB
       const esFinDeSemanaActual = diaActual === 0 || diaActual === 6;
       const eraFinDeSemana = diaUltimoRegistro === 0 || diaUltimoRegistro === 6;
 
-      // === LÓGICA ESPECIAL PARA FIN DE SEMANA ===
-      if (esFinDeSemanaActual && eraFinDeSemana) {
-        // Calcular la fecha límite de consolidación (último día laboral a la hora configurada)
+      // // === LÓGICA ESPECIAL PARA FIN DE SEMANA ===
+      if (esnDeSemanaActual && eraFinDeSemana) {
+        // // Calcular la fecha límite densolidación (último día laboral a la hora configurada)
         const fechaLimiteConsolidacion =
           this.calcularFechaLimiteConsolidacionDatos(ahora);
 
-        // Si el registro es anterior a la consolidación, los datos están desactualizados
+        // // Si el registro esnterior a la consolidación, los datos están desactualizados
         if (
           registroMasReciente.ultima_fecha_actualizacion <
           fechaLimiteConsolidacion.getTime()
@@ -1376,7 +1362,7 @@ export class AsistenciasEscolaresParaAuxiliaresIDB extends AsistenciasEscolaresB
           };
         }
 
-        // Si el registro es posterior a la consolidación, ya tiene datos actualizados
+        // // Si el registro es posterior a lansolidación, ya tiene datos actualizados
         const minutosHastaProximoDiaLaboral =
           this.calcularMinutosHastaProximoDiaLaboral(diaActual);
         return {
@@ -1385,8 +1371,8 @@ export class AsistenciasEscolaresParaAuxiliaresIDB extends AsistenciasEscolaresB
         };
       }
 
-      // === LÓGICA PARA DÍAS LABORALES ===
-      if (!esFinDeSemanaActual && !eraFinDeSemana) {
+      // // === LÓGICA PARA DÍAS LABORALES ===
+      if (!esnDeSemanaActual && !eraFinDeSemana) {
         const intervaloMs = INTERVALO_ACTUALIZACION_MINUTOS * 60 * 1000;
         if (tiempoTranscurrido < intervaloMs) {
           const minutosEspera = Math.ceil(

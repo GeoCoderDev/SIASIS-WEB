@@ -17,7 +17,7 @@ export async function PUT(req: NextRequest) {
 
     const cookies: string[] = [];
 
-    // Solo actualizar Google_Drive_Foto_ID si llega en el request
+    // // Solo actualizar Google_Drive_Foto_ID si llegan el request
     if (Google_Drive_Foto_ID !== undefined) {
       const Google_Drive_Foto_ID_Serialize = serialize(
         "Google_Drive_Foto_ID",
@@ -33,7 +33,7 @@ export async function PUT(req: NextRequest) {
       cookies.push(Google_Drive_Foto_ID_Serialize);
     }
 
-    // Solo actualizar Nombres si llega en el request
+    // // Solo actualizar Nombres si llegan el request
     if (Nombres !== undefined) {
       const nombresSerialize = serialize("Nombres", Nombres, {
         httpOnly: true,
@@ -45,7 +45,7 @@ export async function PUT(req: NextRequest) {
       cookies.push(nombresSerialize);
     }
 
-    // Solo actualizar Apellidos si llega en el request
+    // // Solo actualizar Apellidos si llegan el request
     if (Apellidos !== undefined) {
       const apellidosSerialize = serialize("Apellidos", Apellidos, {
         httpOnly: true,
@@ -68,7 +68,7 @@ export async function PUT(req: NextRequest) {
   }
 }
 
-// For Next.js v13 and above, use the TextDecoder API
+// // For Next.js v13nd above, use the TextDecoder API
 async function readStreamToString(stream: ReadableStream) {
   const decoder = new TextDecoder();
   let result = "";

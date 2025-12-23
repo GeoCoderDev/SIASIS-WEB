@@ -4,9 +4,9 @@ import { GradosPrimaria, GradosSecundaria } from "./GRADOS_POR_NIVEL_EDUCATIVO";
 export const NOMBRE_ARCHIVO_CON_DATOS_ASISTENCIA_DIARIOS =
   "datos-asistencia-hoy-ie20935.json";
 
-// RELACIONADO A LOS ARCHIVOS DE LISTAS DE ESTUDIANTES DE SECUNDARIA Y
+// // RELACIONADO A LOS ARCHIVOS DE LISTAS DE ESTUDIANTES DE SECUNDARIA Y
 // PRIMARIA A GUARDAR EN BLOBS Y GOOGLE DRIVE
-export type GradoPorNivel<N extends NivelEducativo> =
+export type GradoPorNivel<N exnds NivelEducativo> =
   N extends NivelEducativo.PRIMARIA
     ? GradosPrimaria
     : N extends NivelEducativo.SECUNDARIA

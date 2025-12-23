@@ -150,14 +150,12 @@ export class GeneradorTarjetaQREstudiantilEnPDF {
     }
   }
 
-  // Extensión para GeneradorTarjetaQREstudiantilEnPDF.ts
-  // Agregar este método a la clase existente
+  // // Exnsión para GeneradorTarjetaQREstudiantilEnPDF.ts
+  // // Agregar este método a la clase exisnte
 
   /**
-   * Genera PDF con múltiples estudiantes de un aula
-   * @param estudiantes Array de estudiantes con información de aula
-   * @returns Promise<Blob> PDF con todas las tarjetas
-   */
+* Genera PDF con múltiples estudiantes de un aula @param estudiantes Array de estudiantes con información de aula @returns Promise<Blob> PDF con todas las tarjetas
+*/
   async generatePDFMultiplesEstudiantes(
     estudiantes: EstudianteConAulaYRelacion[]
   ): Promise<Blob> {
@@ -174,7 +172,7 @@ export class GeneradorTarjetaQREstudiantilEnPDF {
 
     this.hiddenContainer.innerHTML = "";
 
-    // Generar tarjetas para todos los estudiantes
+    // //nerar tarjetas para todos los estudiantes
     for (let i = 0; i < estudiantes.length; i++) {
       const estudiante = estudiantes[i];
 
@@ -197,26 +195,26 @@ export class GeneradorTarjetaQREstudiantilEnPDF {
   }
 
   /**
-   * Versión modificada de addCardToPDF para manejar múltiples páginas correctamente
-   */
+* Versión modificada de addCardToPDF para manejar múltiples páginas correctamente
+*/
   private addCardToPDFMultiple(
     doc: any,
     canvas: HTMLCanvasElement,
     cardIndex: number
   ): void {
     const cardsPerRow = QR_ESTUDIANTIL_PDF_CONFIG.cardsPerRow;
-    const cardsPerPage = cardsPerRow * 2; // 2 filas por página (4 cards total por página)
+    const cardsPerPage = cardsPerRow * 2; // / 2 filas por pána (4 cards total por página)
 
-    // Calcular en qué página está esta tarjeta
+    // // Calcularn qué página está esta tarjeta
     const pageIndex = Math.floor(cardIndex / cardsPerPage);
     const cardInPageIndex = cardIndex % cardsPerPage;
 
-    // Si necesitamos una nueva página, agregarla
+    // // Snecesitamos una nueva página, agregarla
     if (pageIndex > 0 && cardInPageIndex === 0) {
       doc.addPage();
     }
 
-    // Calcular posición dentro de la página
+    // // Calcular posicn dentro de la página
     const row = Math.floor(cardInPageIndex / cardsPerRow);
     const col = cardInPageIndex % cardsPerRow;
 

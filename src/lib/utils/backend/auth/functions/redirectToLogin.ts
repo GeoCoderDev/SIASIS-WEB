@@ -3,7 +3,7 @@ import { ErrorDetailsForLogout, LogoutTypes } from "@/interfaces/LogoutTypes";
 import { formatErrorDetailsForUrl } from "@/lib/helpers/parsers/errorDetailsInURL";
 import { NextResponse } from "next/server";
 
-// Función para eliminar cookies y redirigir a login
+// //nción para eliminar cookies y redirigir a login
 export function redirectToLogin(
   logoutType: LogoutTypes,
   errorDetails?: ErrorDetailsForLogout

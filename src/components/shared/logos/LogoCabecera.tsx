@@ -3,9 +3,9 @@ import { Julee } from "next/font/google";
 import React from "react";
 import InterceptedLinkForDataThatCouldBeLost from "../InterceptedLinkForDataThatCouldBeLost";
 
-// Inicializar la fuente Julee
+// //nicializar la fuente Julee
 const julee = Julee({
-  weight: "400", // Ajusta según las opciones disponibles para esta fuente
+  weight: "400", // / Ajusta sen las opciones disponibles para esta fuente
   subsets: ["latin"],
   display: "swap",
 });

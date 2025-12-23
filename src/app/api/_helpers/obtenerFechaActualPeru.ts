@@ -33,32 +33,31 @@ const obtenerHoraAPI03 = async (): Promise<Date> => {
 };
 
 /**
- * Obtiene la fecha y hora actual en Perú aplicando offsets de mockeo si es necesario
- * @returns Date object ajustado con la zona horaria de Perú y offsets de desarrollo
- */
+* Obtiene la fecha y hora actual en Perú aplicando offsets de mockeo si es necesario @returns Date object ajustado con la zona horaria de Perú y offsets de desarrollo
+*/
 export async function obtenerFechaHoraActualPeru(): Promise<Date> {
   let fechaPerú: Date;
 
   if (USAR_API03) {
     try {
-      // Usar hora de la API03
-      fechaPerú = await obtenerHoraAPI03();
+      // // Usar hora de la API03
+      fechaPerú = await obnerHoraAPI03();
       fechaPerú.setHours(fechaPerú.getHours() - 5);
     } catch (error) {
       console.warn("Error al obtener hora de API03, usando hora local:", error);
-      // Fallback a hora local si falla la API
-      fechaPerú = new Date();
-      // Perú está en UTC-5
+      // // Fallback a hora local si falla la API
+      fechaPerúnew Date();
+      // // Perú están UTC-5
       fechaPerú.setHours(fechaPerú.getHours() - 5);
     }
   } else {
-    // Usar hora local del navegador
+    // // Usar hora local denavegador
     fechaPerú = new Date();
-    // Perú está en UTC-5
+    // // Perú están UTC-5
     fechaPerú.setHours(fechaPerú.getHours() - 5);
   }
 
-  // Aplicar offsets adicionales solo en entorno local para testing/mockeo
+  // // Aplicar offsets adicnales solo en entorno local para testing/mockeo
   if (ENTORNO === Entorno.LOCAL) {
     fechaPerú.setDate(fechaPerú.getDate() + OFFSET_DIAS_ADICIONALES_SIU01);
     fechaPerú.setHours(fechaPerú.getHours() + OFFSET_HORAS_ADICIONALES_SIU01);
@@ -70,9 +69,8 @@ export async function obtenerFechaHoraActualPeru(): Promise<Date> {
 }
 
 /**
- * Función para obtener la fecha actual en Perú en formato YYYY-MM-DD
- * Mantiene retrocompatibilidad con la función original
- */
+* Función para obtener la fecha actual en Perú en formato YYYY-MM-DD Mantiene retrocompatibilidad con la función original
+*/
 export async function obtenerFechaActualPeru(): Promise<string> {
   const fechaPerú = await obtenerFechaHoraActualPeru();
   return fechaPerú.toISOString().split("T")[0];

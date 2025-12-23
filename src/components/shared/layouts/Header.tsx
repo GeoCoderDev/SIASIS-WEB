@@ -40,8 +40,8 @@ import {
 } from "@/constants/INTERVALO_MINUTOS_SINCRONIZACION_HORA_REAL";
 
 /**
- * Componente Header - Barra superior con información del usuario y controles del sidebar
- */
+* Componente Header - Barra superior con información del usuario y controles del sidebar
+*/
 const Header = ({
   Nombres,
   Apellidos,
@@ -67,8 +67,7 @@ const Header = ({
     }
   );
 
-  // Estados
-  const [menuVisible, setMenuVisible] = useState(false);
+  // // Estadosnst [menuVisible, setMenuVisible] = useState(false);
   const isLoginPage = pathname.startsWith("/login");
 
   const toggleMenu = () => {
@@ -86,14 +85,14 @@ const Header = ({
   useEffect(() => {
     if (!inicializado) return;
 
-    // Obtener datos de asistencia de hoy para Auxiliar
+    // // Obner datos de asistencia de hoy para Auxiliar
     const obtenerDatosAsistenciaHoy = async () => {
       const datosAsistenciaHoy = new DatosAsistenciaHoyIDB();
       await datosAsistenciaHoy.obtenerDatos();
     };
     obtenerDatosAsistenciaHoy();
 
-    //Obtener listas de estudiantes
+    // // Obner listas de estudiantes
     const obtenerListasEstudiantes = async () => {
       const { ListasEstudiantesPorGradosHoyIDB } = await import(
         "@/lib/utils/local/db/models/ListasEstudiantesPorGradosHoy/ListasEstudiantesPorGradosHoyIDB"
@@ -104,11 +103,11 @@ const Header = ({
       );
 
       await listasEstudiantesIDB.actualizarTodasLasListasDisponibles();
-      // Inicializar COLA DE ASISTENCIAS en caso hayan items pendientes
+      // //nicializar COLA DE ASISTENCIAS en caso hayan items pendientes
       inicializarColaDeAsistencias();
     };
 
-    //Solicitar todas las listas de estudiantes de manera secuencial
+    // // Solicitar todas las listas de estudntes de manera secuencial
     if (
       Rol !== RolesSistema.PersonalAdministrativo &&
       Rol !== RolesSistema.Responsable
@@ -117,17 +116,17 @@ const Header = ({
     }
   }, [inicializado]);
 
-  // Efecto para obtener datos de asistencia al cargar el componente
+  // // Efecto para obner datos de asistencia al cargar el componente
   useEffect(() => {
-    // Sincronizar la hora cuando la ventana vuelve a ser visible
+    // //ncronizar la hora cuando la ventana vuelve a ser visible
     sincronizarConServidor();
 
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "visible") {
-        // Inicializar COLA DE ASISTENCIAS en caso hayan items pendientes
+        // //nicializar COLA DE ASISTENCIAS en caso hayan items pendientes
         inicializarColaDeAsistencias();
 
-        // Comprobar si ha pasado el tiempo mínimo antes de sincronizar
+        // // Comprobar si ha pasado el tiemponimo antes de sincronizar
         const ultimaConsulta = localStorage.getItem(
           NOMBRE_TIMESTAMP_ULTIMA_CONSULTA_LOCAL_STORAGE
         );
@@ -141,7 +140,7 @@ const Header = ({
           sincronizarConServidor();
         }
       } else {
-        // Cuando la página deja de ser visible, guardar el timestamp
+        // // Cndo la página deja de ser visible, guardar el timestamp
         localStorage.setItem(
           NOMBRE_TIMESTAMP_ULTIMA_CONSULTA_LOCAL_STORAGE,
           Date.now().toString()
@@ -150,11 +149,11 @@ const Header = ({
     });
   }, []);
 
-  // Efecto para manejar dimensiones y eventos del header
+  // // Efecto paranejar dimensiones y eventos del header
   useEffect(() => {
     if (!delegarEvento) return;
 
-    // Observer para actualizar la altura del header en el store
+    // // Observer para actualizar la altura del headern el store
     const resizeObserverHeader = new ResizeObserver((entries) => {
       entries.forEach((entry) => {
         dispatch(
@@ -165,16 +164,16 @@ const Header = ({
       });
     });
 
-    // Establecer sidebar abierto por defecto en desktop
+    // // Establecer sidebar abierto por defecton desktop
     if (window.innerWidth > 768) {
       dispatch(setSidebarIsOpen({ value: true }));
     }
 
-    // Inicializar dimensiones de ventana
+    // //nicializar dimensiones de ventana
     dispatch(setWindowHeight({ value: window.innerHeight }));
     dispatch(setWindowWidth({ value: window.innerWidth }));
 
-    // Actualizar dimensiones en redimensionamiento
+    // // Actualizar dinsiones en redimensionamiento
     const handleResize = () => {
       dispatch(setWindowHeight({ value: window.innerHeight }));
       dispatch(setWindowWidth({ value: window.innerWidth }));
@@ -187,7 +186,7 @@ const Header = ({
 
     resizeObserverHeader.observe(headerHTML);
 
-    // Cerrar menú desplegable al hacer clic fuera
+    // // Cerrarnú desplegable al hacer clic fuera
     delegarEvento(
       "mousedown",
       "#Menu-deplegable, #Menu-deplegable *, #despliegue-icon, #despliegue-icon *",
@@ -203,12 +202,12 @@ const Header = ({
     };
   }, [delegarEvento, dispatch]);
 
-  // No mostrar el header en la página de login
+  // // No mostrar el headern la página de login
   if (isLoginPage) {
     return null;
   }
 
-  // Verificar que los datos necesarios están disponibles
+  // // Verificar que los datonecesarios están disponibles
   if (!Nombres || !Apellidos) {
     return null;
   }

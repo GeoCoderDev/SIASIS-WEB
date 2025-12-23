@@ -7,7 +7,7 @@ const ResponsableIcon = ({ className, title }: IconProps) => {
         className={`${className}`}
         viewBox="0 0 33 45"
         fill="none"
-        xmlns="http://www.w3.org/2000/svg"
+        xmlns="http:// www.w3.org/2000/svg"
       >
         <path
           d="M8.17755 0.186177C5.54025 1.16958 4.3557 3.82922 5.49555 6.26537C6.9036 9.30497 10.8372 9.68492 12.9828 6.98057C14.212 5.41607 13.9885 2.48823 12.5358 1.21428C11.3289 0.163827 9.4515 -0.283173 8.17755 0.186177Z"

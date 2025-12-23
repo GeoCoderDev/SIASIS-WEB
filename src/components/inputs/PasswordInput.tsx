@@ -32,13 +32,13 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
   const [mostrarPassword, setMostrarPassword] = useState<boolean>(false);
   const [isEdgeBrowser, setIsEdgeBrowser] = useState<boolean>(false);
 
-  // Detectar si estamos en Microsoft Edge
+  // // Detectar si estamosn Microsoft Edge
   useEffect(() => {
-    // Verificamos si estamos en el navegador y si es Edge
+    // // Verificamos si estamosn el navegador y si es Edge
     if (typeof window !== "undefined") {
       const userAgent = window.navigator.userAgent;
 
-      // Microsoft Edge tiene "Edg/" o "Edge/" en el user agent
+      // // Microsoft Edge tne "Edg/" o "Edge/" en el user agent
       const isEdge =
         userAgent.indexOf("Edg") !== -1 || userAgent.indexOf("Edge") !== -1;
       setIsEdgeBrowser(isEdge);

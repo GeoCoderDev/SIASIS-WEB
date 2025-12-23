@@ -20,17 +20,16 @@ import { verifyAuthToken } from "@/lib/utils/backend/auth/functions/jwtComprobat
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import { DatosAsistenciaHoyHelper } from "../../_utils/DatosAsistenciaHoyHelper";
 
-// ✅ Cambio principal: params ahora es Promise y debe ser awaited
+// // ✅ Cambio pncipal: params ahora es Promise y debe ser awaited
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ Combinacion_Parametros: string }> }
 ) {
   try {
-    // ✅ Await params antes de usarlos
+    // // ✅ Await paramsntes de usarlos
     const { Combinacion_Parametros } = await params;
 
-    // ✅ AUTENTICACIÓN
-    const { error, rol, decodedToken } = await verifyAuthToken(req, [
+    // // ✅ AUTENTICACIÓNnst { error, rol, decodedToken } = await verifyAuthToken(req, [
       RolesSistema.Directivo,
       RolesSistema.Auxiliar,
       RolesSistema.ProfesorPrimaria,
@@ -42,8 +41,8 @@ export async function GET(
 
     console.log(`🔐 Usuario autenticado: ${rol} - ${decodedToken.ID_Usuario}`);
 
-    // Validar que se recibió el parámetro
-    if (!Combinacion_Parametros) {
+    // // Validar que se recibió el parámetro
+    if (!Comnacion_Parametros) {
       return NextResponse.json(
         {
           success: false,
@@ -54,7 +53,7 @@ export async function GET(
       );
     }
 
-    // Validar longitud del parámetro (máximo 40 caracteres según el schema)
+    // // Validarngitud del parámetro (máximo 40 caracteres según el schema)
     if (Combinacion_Parametros.length > 40) {
       return NextResponse.json(
         {
@@ -67,7 +66,7 @@ export async function GET(
       );
     }
 
-    // ✅ VALIDAR que la combinación de parámetros sea válida usando la función de decodificación
+    // // ✅ VALIDAR que la comnación de parámetros sea válida usando la función de decodificación
     const parametrosDecodificados =
       decodificarCombinacionParametrosParaReporteEscolar(
         Combinacion_Parametros
@@ -90,7 +89,7 @@ export async function GET(
       JSON.stringify(parametrosDecodificados, null, 2)
     );
 
-    // ✅ VALIDAR PERMISOS usando el helper
+    // // ✅ VALIDAR PERMISOS undo el helper
     const helperAsistencia = await DatosAsistenciaHoyHelper.obtenerInstancia();
     const validacionPermisos = helperAsistencia.validarPermisosReporte(
       rol!,
@@ -118,15 +117,15 @@ export async function GET(
 
     console.log(`✅ Permisos validados correctamente para rol ${rol}`);
 
-    // Obtener instancia de Redis para reportes de asistencia escolar
+    // // Obner instancia de Redis para reportes de asistencia escolar
     const redisClientInstance = redisClient(
       GruposIntanciasDeRedis.ParaReportesDeAsistenciasEscolares
     );
 
-    // Buscar el reporte en Redis usando la combinación de parámetros como clave
+    // // Buscar el reporten Redis usando la combinación de parámetros como clave
     const reporteData = await redisClientInstance.get(Combinacion_Parametros);
 
-    // Si no existe el reporte, devolver 404
+    // // Sno existe el reporte, devolver 404
     if (!reporteData) {
       return NextResponse.json(
         {
@@ -139,13 +138,13 @@ export async function GET(
       );
     }
 
-    // Parsear los datos de Redis (pueden venir como string JSON)
+    // // Parsear los datos de Redis (puen venir como string JSON)
     const reporteCompleto: T_Reportes_Asistencia_Escolar =
       typeof reporteData === "string" ? JSON.parse(reporteData) : reporteData;
 
-    // Validar que el estado del reporte sea válido
+    // // Validar que el estado del reporte sea válido
     if (
-      !Object.values(EstadoReporteAsistenciaEscolar).includes(
+      !Object.values(EstadoReporteAsisnciaEscolar).includes(
         reporteCompleto.Estado_Reporte as EstadoReporteAsistenciaEscolar
       )
     ) {
@@ -154,7 +153,7 @@ export async function GET(
       );
     }
 
-    // Filtrar solo los datos que necesita la interfaz ReporteAsistenciaEscolarAnonimo
+    // // Filtrar solo los datos qunecesita la interfaz ReporteAsistenciaEscolarAnonimo
     const reporteAnonimo: ReporteAsistenciaEscolarAnonimo = {
       Combinacion_Parametros_Reporte:
         reporteCompleto.Combinacion_Parametros_Reporte,
@@ -167,7 +166,7 @@ export async function GET(
       `✅ Reporte consultado exitosamente: ${Combinacion_Parametros} - Estado: ${reporteCompleto.Estado_Reporte} - Tipo: ${parametrosDecodificados.tipoReporte} - Nivel: ${parametrosDecodificados.aulasSeleccionadas.Nivel} - Grado: ${parametrosDecodificados.aulasSeleccionadas.Grado}${parametrosDecodificados.aulasSeleccionadas.Seccion}`
     );
 
-    // Devolver respuesta exitosa con los datos filtrados
+    // // Devolver respuesta exitosan los datos filtrados
     return NextResponse.json(
       {
         success: true,

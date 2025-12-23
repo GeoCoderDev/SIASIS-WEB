@@ -11,9 +11,7 @@ import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
 export const useQRGeneratorPorAula = () => {
   const hiddenCardsRef = useRef<HTMLDivElement>(null);
   const [estudiantesIDB] = useState(() => new BaseEstudiantesIDB());
-  const [aulasIDB] = useState(() => new BaseAulasIDB()); // Estados para filtros
-
-  const [grados, setGrados] = useState<number[]>([]);
+  const [aulasIDB] = useState(() => new BaseAulasIDB()); // / Estados para filtrosnst [grados, setGrados] = useState<number[]>([]);
   const [gradoSeleccionado, setGradoSeleccionado] = useState<number | null>(
     null
   );
@@ -26,7 +24,7 @@ export const useQRGeneratorPorAula = () => {
   );
   const [estudiantesDelAula, setEstudiantesDelAula] = useState<T_Estudiantes[]>(
     []
-  ); // Estados para generación
+  ); // / Estados paraneración
 
   const [isGeneratingPDF, setIsGeneratingPDF] = useState<boolean>(false);
   const [currentPdfBlob, setCurrentPdfBlob] = useState<Blob | null>(null);
@@ -35,14 +33,14 @@ export const useQRGeneratorPorAula = () => {
 
   const initializeShareSupport = useCallback(() => {
     setShareSupported(checkWebShareApiSupport());
-  }, []); // Cargar grados disponibles
+  }, []); // / Cargar grados disnibles
 
   const cargarGradosDisponibles = useCallback(
     async (nivelRestringido?: NivelEducativo, idAulaRestringida?: string) => {
       try {
         const todasLasAulas = await aulasIDB.getTodasLasAulas();
 
-        // Si hay restricción de aula, cargar automáticamente
+        // // Si hay restriccn de aula, cargar automáticamente
         if (idAulaRestringida) {
           const aulaRestringida = todasLasAulas.find(
             (aula) => aula.Id_Aula === idAulaRestringida
@@ -88,7 +86,7 @@ export const useQRGeneratorPorAula = () => {
       }
     },
     [aulasIDB, estudiantesIDB]
-  ); // Cargar secciones de un grado específico
+  ); // / Cargar seccnes de un grado específico
 
   const cargarSeccionesDelGrado = useCallback(
     async (grado: number) => {
@@ -108,7 +106,7 @@ export const useQRGeneratorPorAula = () => {
       }
     },
     [aulasIDB]
-  ); // Obtener el aula seleccionada
+  ); // / Obner el aula seleccionada
 
   const seleccionarAula = useCallback(
     async (grado: number, seccion: string) => {
@@ -129,7 +127,7 @@ export const useQRGeneratorPorAula = () => {
       }
     },
     [aulasIDB]
-  ); // Cargar estudiantes de un aula
+  ); // / Cargar estudntes de un aula
 
   const cargarEstudiantesDelAula = useCallback(
     async (idAula: string) => {
@@ -139,7 +137,7 @@ export const useQRGeneratorPorAula = () => {
         );
         const estudiantesDelAula = todosLosEstudiantes.filter(
           (estudiante) => estudiante.Id_Aula === idAula && estudiante.Estado
-        ); // Ordenar por apellidos
+        ); // / Ornar por apellidos
 
         estudiantesDelAula.sort((a, b) =>
           `${a.Apellidos} ${a.Nombres}`.localeCompare(
@@ -155,7 +153,7 @@ export const useQRGeneratorPorAula = () => {
       }
     },
     [estudiantesIDB]
-  ); // Manejar cambio de grado
+  ); // /nejar cambio de grado
 
   const handleGradoChange = useCallback(
     (grado: number) => {
@@ -163,7 +161,7 @@ export const useQRGeneratorPorAula = () => {
       setSeccionSeleccionada(null);
       setAulaSeleccionada(null);
       setEstudiantesDelAula([]);
-      setSecciones([]); // Limpiar PDF anterior
+      setSecciones([]); // / Limpiar PDFnterior
 
       if (currentPdfBlob) {
         setCurrentPdfBlob(null);
@@ -171,16 +169,16 @@ export const useQRGeneratorPorAula = () => {
           URL.revokeObjectURL(pdfPreviewUrl);
           setPdfPreviewUrl(null);
         }
-      } // Cargar secciones del grado seleccionado
+      } // / Cargar seccnes del grado seleccionado
 
       cargarSeccionesDelGrado(grado);
     },
     [cargarSeccionesDelGrado, currentPdfBlob, pdfPreviewUrl]
-  ); // Manejar cambio de sección
+  ); // /nejar cambio de sección
 
   const handleSeccionChange = useCallback(
     async (seccion: string) => {
-      setSeccionSeleccionada(seccion); // Limpiar PDF anterior
+      setSeccionSeleccionada(seccion); // / Limpiar PDFnterior
 
       if (currentPdfBlob) {
         setCurrentPdfBlob(null);
@@ -204,7 +202,7 @@ export const useQRGeneratorPorAula = () => {
       currentPdfBlob,
       pdfPreviewUrl,
     ]
-  ); // Generar PDF para todos los estudiantes del aula
+  ); // /nerar PDF para todos los estudiantes del aula
 
   const generatePDFParaAula = useCallback(async () => {
     if (
@@ -219,19 +217,19 @@ export const useQRGeneratorPorAula = () => {
     try {
       const pdfService = new GeneradorTarjetaQREstudiantilEnPDF(
         hiddenCardsRef.current
-      ); // Convertir estudiantes a formato compatible con EstudianteDelResponsableConAula
+      ); // /nvertir estudiantes a formato compatible con EstudianteDelResponsableConAula
 
       const estudiantesConAula = estudiantesDelAula.map((estudiante) => ({
         ...estudiante,
-        Tipo_Relacion: "Estudiante", // Valor por defecto
-        aula: aulaSeleccionada,
-      })); // Generar PDF con todos los estudiantes
+        Tipo_Relacion: "Estudiante", // / Valor por defecto
+        aula: aulaSeleccnada,
+      })); // /nerar PDF con todos los estudiantes
 
       const pdfBlob = await pdfService.generatePDFMultiplesEstudiantes(
         estudiantesConAula
       );
 
-      setCurrentPdfBlob(pdfBlob); // Limpiar URL anterior y crear nueva
+      setCurrentPdfBlob(pdfBlob); // / Limpiar URLnterior y crear nueva
 
       setPdfPreviewUrl((prevUrl) => {
         if (prevUrl) {
@@ -284,33 +282,33 @@ export const useQRGeneratorPorAula = () => {
     setAulaSeleccionada(null);
     setEstudiantesDelAula([]);
     setSecciones([]);
-    setCurrentPdfBlob(null); // Limpiar preview URL
+    setCurrentPdfBlob(null); // / Limpiar preview URL
 
     if (pdfPreviewUrl) {
       URL.revokeObjectURL(pdfPreviewUrl);
-      setPdfPreviewUrl(null);
+      setPdfPreviewUrnull);
     }
-  }, [pdfPreviewUrl]); // Calcular páginas estimadas basándose en configuración real: 2 cartas por fila, 4 cartas por página
+  }, [pdfPreviewUrl]); // / Calcular pánas estimadas basándose en configuración real: 2 cartas por fila, 4 cartas por página
   const paginasEstimadas =
     estudiantesDelAula.length > 0
       ? Math.ceil(estudiantesDelAula.length / 4)
       : 0;
 
   return {
-    hiddenCardsRef, // Estados de filtros
+    hiddenCardsRef, // / Estados de filtros
     grados,
-    gradoSeleccionado,
+    gradoSeleccnado,
     secciones,
     seccionSeleccionada,
     aulaSeleccionada,
-    estudiantesDelAula, // Estados de generación
+    estudiantesDelAula, // / Estados deneración
     isGeneratingPDF,
     currentPdfBlob,
     shareSupported,
-    pdfPreviewUrl, // Cálculos
-    paginasEstimadas, // Funciones de inicialización
+    pdfPreviewUrl, // / Cálculos
+    panasEstimadas, // /nciones de inicialización
     initializeShareSupport,
-    cargarGradosDisponibles, // Funciones de manejo
+    cargarGradosDisponibles, // /nciones de manejo
     handleGradoChange,
     handleSeccionChange,
     generatePDFParaAula,

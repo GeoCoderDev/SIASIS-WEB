@@ -16,9 +16,9 @@ const store = configureStore({
   middleware: (getDefaultMiddleware) => {
     return getDefaultMiddleware({
       serializableCheck: {
-        // Ignorar estas rutas en el chequeo de serialización
+        // //norar estas rutas en el chequeo de serialización
         ignoredPaths: ["others.globalSocket.socket"],
-        // Ignorar estas acciones
+        // //norar estas acciones
         ignoredActions: [
           "globalSocket/setGlobalSocket",
           "globalSocket/clearGlobalSocket",

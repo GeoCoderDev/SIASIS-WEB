@@ -1,11 +1,11 @@
 import { TablasLocal } from "@/interfaces/shared/TablasSistema";
 
 export const CLN01_Stores: Record<TablasLocal, any> = {
-  // ========================================
+  // // ========================================
   // STORES PARA DATOS DE SESIÓN Y CACHE
   // ========================================
   user_data: {
-    keyPath: null,
+    keyPathnull,
     autoIncrement: false,
     indexes: [],
   },
@@ -15,11 +15,11 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     indexes: [],
   },
 
-  // ========================================
+  // // ========================================
   // USUARIOS Y ROLES
   // ========================================
 
-  estudiantes: {
+  estudntes: {
     keyPath: "Id_Estudiante",
     autoIncrement: false,
     indexes: [
@@ -89,7 +89,7 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
   },
 
   profesores_secundaria: {
-    keyPath: "Id_Profesor_Secundaria", // Usa Id_ en lugar de Id_
+    keyPath: "Id_Profesor_Secundaria", // / Usa Id_n lugar de Id_
     autoIncrement: false,
     indexes: [
       {
@@ -112,7 +112,7 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
   },
 
   auxiliares: {
-    keyPath: "Id_Auxiliar", // Usa Id_ en lugar de Id_
+    keyPath: "Id_Auxiliar", // / Usa Id_n lugar de Id_
     autoIncrement: false,
     indexes: [
       {
@@ -131,7 +131,7 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
   },
 
   personal_administrativo: {
-    keyPath: "Id_Personal_Administrativo", // Usa Id_ en lugar de Id_
+    keyPath: "Id_Personal_Administrativo", // / Usa Id_n lugar de Id_
     autoIncrement: false,
     indexes: [
       {
@@ -150,13 +150,13 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     ],
   },
 
-  // ========================================
+  // // ========================================
   // ESTRUCTURA ACADÉMICA
   // ========================================
 
   aulas: {
     keyPath: "Id_Aula",
-    autoIncrement: true,
+    autncrement: true,
     indexes: [
       { name: "por_nivel", keyPath: "Nivel", options: { unique: false } },
       { name: "por_grado", keyPath: "Grado", options: { unique: false } },
@@ -168,13 +168,13 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
       },
       {
         name: "por_profesor_primaria",
-        keyPath: "Id_Profesor_Primaria", // Cambió de Id_ a Id_
-        options: { unique: false },
+        keyPath: "Id_Profesor_Primaria", // / Cambió de Id_ a Id_
+        optns: { unique: false },
       },
       {
         name: "por_profesor_secundaria",
-        keyPath: "Id_Profesor_Secundaria", // Cambió de Id_ a Id_
-        options: { unique: false },
+        keyPath: "Id_Profesor_Secundaria", // / Cambió de Id_ a Id_
+        optns: { unique: false },
       },
     ],
   },
@@ -186,8 +186,8 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
       { name: "por_dia", keyPath: "Dia_Semana", options: { unique: false } },
       {
         name: "por_profesor",
-        keyPath: "Id_Profesor_Secundaria", // Cambió de Id_ a Id_
-        options: { unique: false },
+        keyPath: "Id_Profesor_Secundaria", // / Cambió de Id_ a Id_
+        optns: { unique: false },
       },
       {
         name: "por_aula",
@@ -197,81 +197,80 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     ],
   },
 
-  // ========================================
+  // // ========================================
   // HORARIOS POR DÍAS (NUEVAS TABLAS)
   // ========================================
 
-  // ✅ AGREGADO: Horarios por días - Personal Administrativo
-  // horarios_por_dias_personal_administrativo: {
-  //   keyPath: "Id_Horario_Por_Dia_P_Administrativo",
-  //   autoIncrement: true,
-  //   indexes: [
-  //     {
-  //       name: "por_personal_administrativo",
-  //       keyPath: "Id_Personal_Administrativo", // Cambió de Id_ a Id_
-  //       options: { unique: false },
-  //     },
-  //     { name: "por_dia", keyPath: "Dia", options: { unique: false } },
-  //     {
-  //       name: "por_personal_dia",
-  //       keyPath: ["Id_Personal_Administrativo", "Dia"], // Cambió de Id_ a Id_
-  //       options: { unique: true },
-  //     },
-  //     {
-  //       name: "por_hora_inicio",
-  //       keyPath: "Hora_Inicio",
-  //       options: { unique: false },
-  //     },
-  //     { name: "por_hora_fin", keyPath: "Hora_Fin", options: { unique: false } },
-  //   ],
+  // ✅ AGREGADO: Horarios por días - Pernal Administrativo
+  // // horarios_por_dias_pernal_administrativo: {
+  // // keyPath: "Id_Horario_Por_Dia_P_Adnistrativo",
+  // // autncrement: true,
+  // //ndexes: [
+  // // {
+  /name: "por_personal_administrativo",
+  // // keyPath: "Id_Pernal_Administrativo", // / Cambió de Id_ a Id_
+  // optns: { unique: false },
+  // // },
+  //name: "por_dia", keyPath: "Dia", options: { unique: false } },
+  // // {
+  /name: "por_personal_dia",
+  // // keyPath: ["Id_Pernal_Administrativo", "Dia"], // / Cambió de Id_ a Id_
+  // optns: { unique: true },
+  // // },
+  // {
+  /name: "por_hora_inicio",
+  // // keyPath: "Horanicio",
+  // // optns: { unique: false },
+  // // },
+  //name: "por_hora_fin", keyPath: "Hora_Fin", options: { unique: false } },
+  // // ],
   // },
 
   // ✅ AGREGADO: Horarios por días - Directivos
   // horarios_por_dias_directivos: {
-  //   keyPath: "Id_Horario_Por_Dia_Directivo",
-  //   autoIncrement: true,
-  //   indexes: [
-  //     {
-  //       name: "por_directivo",
-  //       keyPath: "Id_Directivo", // Mantiene Id_Directivo (es diferente)
-  //       options: { unique: false },
-  //     },
-  //     { name: "por_dia", keyPath: "Dia", options: { unique: false } },
-  //     {
-  //       name: "por_directivo_dia",
-  //       keyPath: ["Id_Directivo", "Dia"],
-  //       options: { unique: true },
-  //     },
-  //     {
-  //       name: "por_hora_inicio",
-  //       keyPath: "Hora_Inicio",
-  //       options: { unique: false },
-  //     },
-  //     { name: "por_hora_fin", keyPath: "Hora_Fin", options: { unique: false } },
-  //   ],
+  // keyPath: "Id_Horario_Por_Dia_Directivo",
+  // autncrement: true,
+  // //ndexes: [
+  // // {
+  /name: "por_directivo",
+  // // keyPath: "Id_Directivo", //ntiene Id_Directivo (es diferente)
+  // // optns: { unique: false },
+  // // },
+  //name: "por_dia", keyPath: "Dia", options: { unique: false } },
+  // // {
+  /name: "por_directivo_dia",
+  // // keyPath: ["Id_Directivo", "Dia"],
+  // optns: { unique: true },
+  // // },
+  // {
+  /name: "por_hora_inicio",
+  // // keyPath: "Horanicio",
+  // // optns: { unique: false },
+  // // },
+  //name: "por_hora_fin", keyPath: "Hora_Fin", options: { unique: false } },
+  // // ],
   // },
 
   // ========================================
   // CONTROL DE ASISTENCIA DEL PERSONAL
   // ========================================
 
-  // PROFESORES PRIMARIA
-  control_entrada_profesores_primaria: {
+  // PROFESORES PRIMARIAntrol_entrada_profesores_primaria: {
     keyPath: "Id_C_E_M_P_Profesores_Primaria",
     autoIncrement: false,
     indexes: [
       {
         name: "por_profesor",
-        keyPath: "Id_Profesor_Primaria", // Cambió de Id_ a Id_
-        options: { unique: false },
+        keyPath: "Id_Profesor_Primaria", // / Cambió de Id_ a Id_
+        optns: { unique: false },
       },
       { name: "por_mes", keyPath: "Mes", options: { unique: false } },
       {
         name: "por_profesor_mes",
-        keyPath: ["Id_Profesor_Primaria", "Mes"], // Cambió de Id_ a Id_
-        options: { unique: true },
+        keyPath: ["Id_Profesor_Primaria", "Mes"], // / Cambió de Id_ a Id_
+        optns: { unique: true },
       },
-      // ✅ NUEVO: Índice para ultima_fecha_actualizacion
+      // // ✅ NUEVO:ndice para ultima_fecha_actualizacion
       {
         name: "por_ultima_fecha_actualizacion",
         keyPath: "ultima_fecha_actualizacion",
@@ -286,16 +285,16 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     indexes: [
       {
         name: "por_profesor",
-        keyPath: "Id_Profesor_Primaria", // Cambió de Id_ a Id_
-        options: { unique: false },
+        keyPath: "Id_Profesor_Primaria", // / Cambió de Id_ a Id_
+        optns: { unique: false },
       },
       { name: "por_mes", keyPath: "Mes", options: { unique: false } },
       {
         name: "por_profesor_mes",
-        keyPath: ["Id_Profesor_Primaria", "Mes"], // Cambió de Id_ a Id_
-        options: { unique: true },
+        keyPath: ["Id_Profesor_Primaria", "Mes"], // / Cambió de Id_ a Id_
+        optns: { unique: true },
       },
-      // ✅ NUEVO: Índice para ultima_fecha_actualizacion
+      // // ✅ NUEVO:ndice para ultima_fecha_actualizacion
       {
         name: "por_ultima_fecha_actualizacion",
         keyPath: "ultima_fecha_actualizacion",
@@ -304,23 +303,22 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     ],
   },
 
-  // PROFESORES SECUNDARIA
-  control_entrada_profesores_secundaria: {
+  // // PROFESORES SECUNDARIAntrol_entrada_profesores_secundaria: {
     keyPath: "Id_C_E_M_P_Profesores_Secundaria",
     autoIncrement: false,
     indexes: [
       {
         name: "por_profesor",
-        keyPath: "Id_Profesor_Secundaria", // Cambió de Id_ a Id_
-        options: { unique: false },
+        keyPath: "Id_Profesor_Secundaria", // / Cambió de Id_ a Id_
+        optns: { unique: false },
       },
       { name: "por_mes", keyPath: "Mes", options: { unique: false } },
       {
         name: "por_profesor_mes",
-        keyPath: ["Id_Profesor_Secundaria", "Mes"], // Cambió de Id_ a Id_
-        options: { unique: true },
+        keyPath: ["Id_Profesor_Secundaria", "Mes"], // / Cambió de Id_ a Id_
+        optns: { unique: true },
       },
-      // ✅ NUEVO: Índice para ultima_fecha_actualizacion
+      // // ✅ NUEVO:ndice para ultima_fecha_actualizacion
       {
         name: "por_ultima_fecha_actualizacion",
         keyPath: "ultima_fecha_actualizacion",
@@ -335,16 +333,16 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     indexes: [
       {
         name: "por_profesor",
-        keyPath: "Id_Profesor_Secundaria", // Cambió de Id_ a Id_
-        options: { unique: false },
+        keyPath: "Id_Profesor_Secundaria", // / Cambió de Id_ a Id_
+        optns: { unique: false },
       },
       { name: "por_mes", keyPath: "Mes", options: { unique: false } },
       {
         name: "por_profesor_mes",
-        keyPath: ["Id_Profesor_Secundaria", "Mes"], // Cambió de Id_ a Id_
-        options: { unique: true },
+        keyPath: ["Id_Profesor_Secundaria", "Mes"], // / Cambió de Id_ a Id_
+        optns: { unique: true },
       },
-      // ✅ NUEVO: Índice para ultima_fecha_actualizacion
+      // // ✅ NUEVO:ndice para ultima_fecha_actualizacion
       {
         name: "por_ultima_fecha_actualizacion",
         keyPath: "ultima_fecha_actualizacion",
@@ -353,23 +351,22 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     ],
   },
 
-  // AUXILIARES
-  control_entrada_auxiliar: {
+  // // AUXILIARESntrol_entrada_auxiliar: {
     keyPath: "Id_C_E_M_P_Auxiliar",
     autoIncrement: false,
     indexes: [
       {
         name: "por_auxiliar",
-        keyPath: "Id_Auxiliar", // Cambió de Id_ a Id_
-        options: { unique: false },
+        keyPath: "Id_Auxiliar", // / Cambió de Id_ a Id_
+        optns: { unique: false },
       },
       { name: "por_mes", keyPath: "Mes", options: { unique: false } },
       {
         name: "por_auxiliar_mes",
-        keyPath: ["Id_Auxiliar", "Mes"], // Cambió de Id_ a Id_
-        options: { unique: true },
+        keyPath: ["Id_Auxiliar", "Mes"], // / Cambió de Id_ a Id_
+        optns: { unique: true },
       },
-      // ✅ NUEVO: Índice para ultima_fecha_actualizacion
+      // // ✅ NUEVO:ndice para ultima_fecha_actualizacion
       {
         name: "por_ultima_fecha_actualizacion",
         keyPath: "ultima_fecha_actualizacion",
@@ -384,16 +381,16 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     indexes: [
       {
         name: "por_auxiliar",
-        keyPath: "Id_Auxiliar", // Cambió de Id_ a Id_
-        options: { unique: false },
+        keyPath: "Id_Auxiliar", // / Cambió de Id_ a Id_
+        optns: { unique: false },
       },
       { name: "por_mes", keyPath: "Mes", options: { unique: false } },
       {
         name: "por_auxiliar_mes",
-        keyPath: ["Id_Auxiliar", "Mes"], // Cambió de Id_ a Id_
-        options: { unique: true },
+        keyPath: ["Id_Auxiliar", "Mes"], // / Cambió de Id_ a Id_
+        optns: { unique: true },
       },
-      // ✅ NUEVO: Índice para ultima_fecha_actualizacion
+      // // ✅ NUEVO:ndice para ultima_fecha_actualizacion
       {
         name: "por_ultima_fecha_actualizacion",
         keyPath: "ultima_fecha_actualizacion",
@@ -402,23 +399,22 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     ],
   },
 
-  // PERSONAL ADMINISTRATIVO
-  control_entrada_personal_administrativo: {
+  // // PERSONAL ADMINISTRATIVOntrol_entrada_personal_administrativo: {
     keyPath: "Id_C_E_M_P_Administrativo",
     autoIncrement: false,
     indexes: [
       {
         name: "por_administrativo",
-        keyPath: "Id_Personal_Administrativo", // Cambió de Id_ a Id_
-        options: { unique: false },
+        keyPath: "Id_Personal_Administrativo", // / Cambió de Id_ a Id_
+        optns: { unique: false },
       },
       { name: "por_mes", keyPath: "Mes", options: { unique: false } },
       {
         name: "por_administrativo_mes",
-        keyPath: ["Id_Personal_Administrativo", "Mes"], // Cambió de Id_ a Id_
-        options: { unique: true },
+        keyPath: ["Id_Personal_Administrativo", "Mes"], // / Cambió de Id_ a Id_
+        optns: { unique: true },
       },
-      // ✅ NUEVO: Índice para ultima_fecha_actualizacion
+      // // ✅ NUEVO:ndice para ultima_fecha_actualizacion
       {
         name: "por_ultima_fecha_actualizacion",
         keyPath: "ultima_fecha_actualizacion",
@@ -433,16 +429,16 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     indexes: [
       {
         name: "por_administrativo",
-        keyPath: "Id_Personal_Administrativo", // Cambió de Id_ a Id_
-        options: { unique: false },
+        keyPath: "Id_Personal_Administrativo", // / Cambió de Id_ a Id_
+        optns: { unique: false },
       },
       { name: "por_mes", keyPath: "Mes", options: { unique: false } },
       {
         name: "por_administrativo_mes",
-        keyPath: ["Id_Personal_Administrativo", "Mes"], // Cambió de Id_ a Id_
-        options: { unique: true },
+        keyPath: ["Id_Personal_Administrativo", "Mes"], // / Cambió de Id_ a Id_
+        optns: { unique: true },
       },
-      // ✅ NUEVO: Índice para ultima_fecha_actualizacion
+      // // ✅ NUEVO:ndice para ultima_fecha_actualizacion
       {
         name: "por_ultima_fecha_actualizacion",
         keyPath: "ultima_fecha_actualizacion",
@@ -451,14 +447,13 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     ],
   },
 
-  // ✅ AGREGADO: DIRECTIVOS
-  control_entrada_directivos: {
+  // // ✅ AGREGADO: DIRECTIVOSntrol_entrada_directivos: {
     keyPath: "Id_C_E_M_P_Directivo",
     autoIncrement: true,
     indexes: [
       {
         name: "por_directivo",
-        keyPath: "Id_Directivo", // Mantiene Id_Directivo
+        keyPath: "Id_Directivo", // /ntiene Id_Directivo
         options: { unique: false },
       },
       { name: "por_mes", keyPath: "Mes", options: { unique: false } },
@@ -467,7 +462,7 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
         keyPath: ["Id_Directivo", "Mes"],
         options: { unique: true },
       },
-      // ✅ NUEVO: Índice para ultima_fecha_actualizacion
+      // // ✅ NUEVO:ndice para ultima_fecha_actualizacion
       {
         name: "por_ultima_fecha_actualizacion",
         keyPath: "ultima_fecha_actualizacion",
@@ -482,7 +477,7 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     indexes: [
       {
         name: "por_directivo",
-        keyPath: "Id_Directivo", // Mantiene Id_Directivo
+        keyPath: "Id_Directivo", // /ntiene Id_Directivo
         options: { unique: false },
       },
       { name: "por_mes", keyPath: "Mes", options: { unique: false } },
@@ -491,7 +486,7 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
         keyPath: ["Id_Directivo", "Mes"],
         options: { unique: true },
       },
-      // ✅ NUEVO: Índice para ultima_fecha_actualizacion
+      // // ✅ NUEVO:ndice para ultima_fecha_actualizacion
       {
         name: "por_ultima_fecha_actualizacion",
         keyPath: "ultima_fecha_actualizacion",
@@ -500,12 +495,12 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     ],
   },
 
-  // ========================================
+  // // ========================================
   // ASISTENCIA ESTUDIANTIL
   // ========================================
 
   // PRIMARIA (6 grados)
-  asistencias_e_p_1: {
+  asisncias_e_p_1: {
     keyPath: ["Id_Estudiante", "Mes"],
     autoIncrement: false,
     indexes: [
@@ -643,8 +638,8 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     ],
   },
 
-  // SECUNDARIA (5 grados)
-  asistencias_e_s_1: {
+  // // SECUNDARIA (5 grados)
+  asisncias_e_s_1: {
     keyPath: ["Id_Estudiante", "Mes"],
     autoIncrement: false,
     indexes: [
@@ -759,15 +754,15 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     ],
   },
 
-  // ========================================
+  // // ========================================
   // CONFIGURACIÓN Y ADMINISTRACIÓN
   // ========================================
 
   bloqueo_roles: {
-    keyPath: "Rol", // Ahora usa Rol como PK en lugar de Id_Bloqueo_Rol
+    keyPath: "Rol", // Ahora usa Rol como PKn lugar de Id_Bloqueo_Rol
     autoIncrement: false,
     indexes: [
-      // 🗑️ REMOVIDO: ya no necesita índice por_rol porque Rol es la PK
+      // // 🗑️ REMOVIDO: yno necesita índice por_rol porque Rol es la PK
     ],
   },
 
@@ -831,10 +826,10 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     ],
   },
 
-  // ✅ AGREGADO: Códigos OTP
+  // // ✅ AGREGADO: Códigos OTP
   codigos_otp: {
     keyPath: "Id_Codigo_OTP",
-    autoIncrement: true,
+    autncrement: true,
     indexes: [
       {
         name: "por_correo_destino",
@@ -941,11 +936,11 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     ],
   },
 
-  // ========================================
+  // // ========================================
   // STORES LOCALES Y CACHE
   // ========================================
 
-  ultima_actualizacion_tablas_locales: {
+  ultima_actualizacn_tablas_locales: {
     keyPath: "Nombre_Tabla",
     autoIncrement: false,
     indexes: [
@@ -981,7 +976,7 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     indexes: [],
   },
 
-  // Cache de asistencias consultadas desde Redis
+  // // Cache de asisncias consultadas desde Redis
   asistencias_tomadas_hoy: {
     keyPath: "clave",
     autoIncrement: false,
@@ -1078,10 +1073,10 @@ export const CLN01_Stores: Record<TablasLocal, any> = {
     ],
   },
 
-  // ========================================
+  // // ========================================
   // REPORTES
   // ========================================
-  reportes_asistencia_escolar: {
+  reportes_asisncia_escolar: {
     keyPath: "Combinacion_Parametros_Reporte",
     autoIncrement: false,
     indexes: [

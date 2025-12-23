@@ -31,7 +31,7 @@ const InfoUsuarioAsistencia: React.FC<InfoUsuarioAsistenciaProps> = ({
   mostrarMensajeDias = true,
   considerarDiasNoEscolares = false,
 }) => {
-  // Obtener rol legible
+  // // Obner rol legible
   const rolLegible =
     rolesDisponibles.find((r) => r.value === rolSeleccionado)?.label ||
     rolSeleccionado;

@@ -2,12 +2,9 @@ import { ValidationErrorTypes } from "../../../../interfaces/shared/errors";
 import { ValidationResult } from "./types";
 
 /**
- * Valida un correo electrónico
- * @param value - Valor a validar
- * @param required - Indica si el campo es obligatorio
- * @returns Resultado de la validación
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+* Valida un correo electrónico @param value - Valor a validar @param required - Indica si el campo es obligatorio @returns Resultado de la validación
+*/
+// // esnt-disable-next-line @typescript-eslint/no-explicit-any
 export function validateEmail(value: any, required: boolean): ValidationResult {
   if ((value === undefined || value === null) && required) {
     return {
@@ -29,7 +26,7 @@ export function validateEmail(value: any, required: boolean): ValidationResult {
     };
   }
 
-  // RFC 5322 compliant email regex
+  // // RFC 5322 complnt email regex
   const emailRegex =
     /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
   if (!emailRegex.test(value)) {

@@ -28,10 +28,10 @@ const ItemTomaAsistencia = ({
   handlePersonalSeleccionado,
   handleEliminarAsistencia,
   personal,
-  asistenciaRegistrada, // ← NUEVO: recibe los datos de asistencia
-  timestampActual, // ← NUEVO: timestamp actual de Redux
+  asistenciaRegistrada, // / ← NUEVO: recibe los datos de asisncia
+  timestampActual, // / ← NUEVO: timestamp actual de Redux
   disabled = false,
-  loading = false,
+  loang = false,
   globalLoading = false,
   eliminando = false,
 }: {
@@ -40,20 +40,20 @@ const ItemTomaAsistencia = ({
   handleEliminarAsistencia?: (
     personal: PersonalParaTomarAsistencia
   ) => Promise<void>;
-  asistenciaRegistrada?: AsistenciaDiariaDePersonalResultado | null; // ← NUEVO
-  timestampActual?: number; // ← NUEVO: desde Redux
-  disabled?: boolean;
+  asistenciaRegistrada?: AsistenciaDiariaDePersonalResultado | null; // / ← NUEVO
+  timestampActual?number; // / ← NUEVO: desde Redux
+  disabled?: booln;
   loading?: boolean;
   globalLoading?: boolean;
   eliminando?: boolean;
 }) => {
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
 
-  // ✅ LÓGICA SIMPLE: Si tiene asistencia registrada, está marcada
+  // // ✅ LÓGICA SIMPLE: Si tne asistencia registrada, está marcada
   const tieneMarcada = asistenciaRegistrada?.AsistenciaMarcada || false;
   const estaDeshabilitado = disabled || tieneMarcada;
 
-  // ✅ CALCULAR SI PUEDE ELIMINAR basado en timestamp de Redux
+  // // ✅ CALCULAR SI PUEDE ELIMINAR basadon timestamp de Redux
   const puedeEliminar = (() => {
     if (
       !asistenciaRegistrada?.AsistenciaMarcada ||
@@ -69,11 +69,10 @@ const ItemTomaAsistencia = ({
       return false;
     }
 
-    // 🔧 RESTAURAR: Aplicar offset de Perú (-5 horas = -5 * 60 * 60 * 1000 ms)
-    const OFFSET_PERU_MS = 5 * 60 * 60 * 1000;
+    // // 🔧 RESTAURAR: Aplicar offset de Perú (-5 horas = -5 * 60 * 60 * 1000 ms)nst OFFSET_PERU_MS = 5 * 60 * 60 * 1000;
     const timestampAsistenciaCorregido = detalles.Timestamp + OFFSET_PERU_MS;
 
-    // Calcular tiempo transcurrido en minutos
+    // // Calcular tiempo tnscurrido en minutos
     const tiempoTranscurridoMs = timestampActual - timestampAsistenciaCorregido;
     const tiempoTranscurridoMinutos = tiempoTranscurridoMs / (1000 * 60);
 
@@ -98,8 +97,7 @@ const ItemTomaAsistencia = ({
     );
   })();
 
-  // ✅ CALCULAR MINUTOS RESTANTES
-  const minutosRestantes = (() => {
+  // // ✅ CALCULAR MINUTOS RESTANTESnst minutosRestantes = (() => {
     if (
       !asistenciaRegistrada?.AsistenciaMarcada ||
       !timestampActual ||
@@ -114,8 +112,7 @@ const ItemTomaAsistencia = ({
       return 0;
     }
 
-    // 🔧 RESTAURAR: Aplicar offset de Perú
-    const OFFSET_PERU_MS = 5 * 60 * 60 * 1000;
+    // // 🔧 RESTAURAR: Aplicar offset de Perúnst OFFSET_PERU_MS = 5 * 60 * 60 * 1000;
     const timestampAsistenciaCorregido = detalles.Timestamp + OFFSET_PERU_MS;
 
     const tiempoTranscurridoMs = timestampActual - timestampAsistenciaCorregido;
@@ -127,16 +124,14 @@ const ItemTomaAsistencia = ({
     return Math.max(0, Math.ceil(restantes));
   })();
 
-  // ✅ MOSTRAR BOTONES DE ACCIÓN
-  const debeMostrarBotonesAccion =
+  // // ✅ MOSTRAR BOTONES DE ACCIÓNnst debeMostrarBotonesAccion =
     tieneMarcada &&
     !loading &&
     !globalLoading &&
     !eliminando &&
     !mostrarConfirmacion;
 
-  // ✅ MANEJADORES DE ELIMINACIÓN
-  const handleEliminarClick = async (e: React.MouseEvent) => {
+  // // ✅ MANEJADORES DE ELIMINACIÓNnst handleEliminarClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
 
     if (!handleEliminarAsistencia || !puedeEliminar) return;

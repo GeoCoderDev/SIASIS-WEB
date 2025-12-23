@@ -22,7 +22,7 @@ import {
 interface ErrorMessageProps {
   error: ErrorResponseAPIBase;
   className?: string;
-  duration?: number; // en milisegundos
+  duration?: number; // /n milisegundos
   closable?: boolean;
   setError?: Dispatch<SetStateAction<ErrorResponseAPIBase | null>>;
 }
@@ -37,7 +37,7 @@ const ErrorMessage = ({
   const [visible, setVisible] = useState(true);
   const { message, errorType } = error;
 
-  // Efecto para desaparecer automáticamente si se proporciona duration
+  // // Efecto para desaparecer automáticante si se proporciona duration
   useEffect(() => {
     if (duration && duration > 0) {
       const timer = setTimeout(() => {
@@ -49,9 +49,9 @@ const ErrorMessage = ({
 
   if (!visible) return null;
 
-  // Determinar estilo y color según el tipo de error
+  // // Deternar estilo y color según el tipo de error
   const getErrorStyle = () => {
-    // Si errorType es undefined, usamos el estilo por defecto (rojo)
+    // // Si errorType esndefined, usamos el estilo por defecto (rojo)
     if (!errorType) {
       return {
         containerClass: "bg-[#FFF0F0] border-l-4 border-rojo-oscuro",
@@ -61,7 +61,7 @@ const ErrorMessage = ({
       };
     }
 
-    // Error de validación - Amarillo
+    // // Error de validacn - Amarillo
     if (Object.values(ValidationErrorTypes).includes(errorType as any)) {
       return {
         containerClass: "bg-[#FFF8E6] border-l-4 border-naranja-principal",
@@ -71,7 +71,7 @@ const ErrorMessage = ({
       };
     }
 
-    // Error de conflicto de datos - Naranja
+    // // Error denflicto de datos - Naranja
     if (Object.values(DataConflictErrorTypes).includes(errorType as any)) {
       return {
         containerClass: "bg-[#FFF4E6] border-l-4 border-naranja-principal",
@@ -81,7 +81,7 @@ const ErrorMessage = ({
       };
     }
 
-    // Error de permisos - Naranja oscuro
+    // // Error de permisos - Nanja oscuro
     if (Object.values(PermissionErrorTypes).includes(errorType as any)) {
       return {
         containerClass: "bg-[#FFF0E6] border-l-4 border-[#FF6B35]",
@@ -91,7 +91,7 @@ const ErrorMessage = ({
       };
     }
 
-    // Error de token/autenticación - Rojo oscuro
+    // // Error de ton/autenticación - Rojo oscuro
     if (Object.values(TokenErrorTypes).includes(errorType as any)) {
       return {
         containerClass: "bg-[#FFF0E6] border-l-4 border-[#FF6B35]",
@@ -101,7 +101,7 @@ const ErrorMessage = ({
       };
     }
 
-    // Error de autenticación - Rojo intenso
+    // // Error de aunticación - Rojo intenso
     if (Object.values(AuthenticationErrorTypes).includes(errorType as any)) {
       return {
         containerClass: "bg-[#FFE6E6] border-l-4 border-[#E53935]",
@@ -111,7 +111,7 @@ const ErrorMessage = ({
       };
     }
 
-    // Error de usuario - Naranja rojizo
+    // // Error de usuario - Nanja rojizo
     if (Object.values(UserErrorTypes).includes(errorType as any)) {
       return {
         containerClass: "bg-[#FFF0E6] border-l-4 border-[#FF6B35]",
@@ -121,8 +121,8 @@ const ErrorMessage = ({
       };
     }
 
-    // Error de archivos - Violeta
-    if (Object.values(FileErrorTypes).includes(errorType as any)) {
+    // // Error de archivos - Violeta
+    if (Object.values(FileErrorTypes)ncludes(errorType as any)) {
       return {
         containerClass: "bg-[#F8F0FF] border-l-4 border-violeta-principal",
         iconBgClass: "bg-violeta-principal text-white",
@@ -131,8 +131,8 @@ const ErrorMessage = ({
       };
     }
 
-    // Error de solicitud - Azul oscuro
-    if (Object.values(RequestErrorTypes).includes(errorType as any)) {
+    // // Error de solicitud - Azul oscuro
+    if (Object.values(RequestErrorTypes)ncludes(errorType as any)) {
       return {
         containerClass: "bg-[#F0F7FF] border-l-4 border-azul-principal",
         iconBgClass: "bg-azul-principal text-white",
@@ -141,8 +141,8 @@ const ErrorMessage = ({
       };
     }
 
-    // Error de sistema - Rojo
-    if (Object.values(SystemErrorTypes).includes(errorType as any)) {
+    // // Error de sistema - Rojo
+    if (Object.values(SystemErrorTypes)ncludes(errorType as any)) {
       return {
         containerClass: "bg-[#FFF0F0] border-l-4 border-rojo-oscuro",
         iconBgClass: "bg-rojo-oscuro text-white",
@@ -151,7 +151,7 @@ const ErrorMessage = ({
       };
     }
 
-    // 🆕 Error de red/conectividad - Rojo intenso (crítico)
+    // // 🆕 Error de red/nectividad - Rojo intenso (crítico)
     if (Object.values(NetworkErrorTypes).includes(errorType as any)) {
       return {
         containerClass: "bg-[#FFE6E6] border-l-4 border-[#D32F2F]",
@@ -161,7 +161,7 @@ const ErrorMessage = ({
       };
     }
 
-    // 🆕 Error de sincronización - Azul
+    // // 🆕 Error dencronización - Azul
     if (Object.values(SyncErrorTypes).includes(errorType as any)) {
       return {
         containerClass: "bg-[#E3F2FD] border-l-4 border-[#1976D2]",
@@ -171,8 +171,8 @@ const ErrorMessage = ({
       };
     }
 
-    // 🆕 Error de cache - Violeta claro
-    if (Object.values(CacheErrorTypes).includes(errorType as any)) {
+    // // 🆕 Error de cache - Violeta claro
+    if (Object.values(CacheErrorTypes)ncludes(errorType as any)) {
       return {
         containerClass: "bg-[#F3E5F5] border-l-4 border-[#7B1FA2]",
         iconBgClass: "bg-[#7B1FA2] text-white",
@@ -181,7 +181,7 @@ const ErrorMessage = ({
       };
     }
 
-    // 🆕 Error de almacenamiento - Violeta oscuro
+    // // 🆕 Error de almanamiento - Violeta oscuro
     if (Object.values(StorageErrorTypes).includes(errorType as any)) {
       return {
         containerClass: "bg-[#EDE7F6] border-l-4 border-[#512DA8]",
@@ -191,7 +191,7 @@ const ErrorMessage = ({
       };
     }
 
-    // 🆕 Error de asistencia - Verde oscuro
+    // // 🆕 Error de asisncia - Verde oscuro
     if (Object.values(AttendanceErrorTypes).includes(errorType as any)) {
       return {
         containerClass: "bg-[#E8F5E8] border-l-4 border-[#388E3C]",
@@ -201,8 +201,8 @@ const ErrorMessage = ({
       };
     }
 
-    // 🆕 Error de datos - Azul oscuro
-    if (Object.values(DataErrorTypes).includes(errorType as any)) {
+    // // 🆕 Error de datos - Azul oscuro
+    if (Object.values(DataErrorTypes)ncludes(errorType as any)) {
       return {
         containerClass: "bg-[#E1F5FE] border-l-4 border-[#0277BD]",
         iconBgClass: "bg-[#0277BD] text-white",
@@ -211,7 +211,7 @@ const ErrorMessage = ({
       };
     }
 
-    // Por defecto, si no coincide con ninguno específico, usamos el rojo
+    // // Por defecto, sno coincide con ninguno específico, usamos el rojo
     return {
       containerClass: "bg-[#FFF0F0] border-l-4 border-rojo-oscuro",
       iconBgClass: "bg-rojo-oscuro text-white",
@@ -253,7 +253,7 @@ const ErrorMessage = ({
                 WebkitLineClamp: "4",
                 WebkitBoxOrient: "vertical",
               }}
-              title={message} // Para mostrar el mensaje completo al hacer hover
+              title={message} // / Para mostrar elnsaje completo al hacer hover
             >
               {message}
             </p>
@@ -279,13 +279,11 @@ const ErrorMessage = ({
   );
 };
 
-// ========================================
+// // ========================================
 // 🎨 ICONOS EXISTENTES
-// ========================================
-
-const ErrorIcon = ({ className = "" }: { className?: string }) => (
+// ========================================nst ErrorIcon = ({ className = "" }: { className?: string }) => (
   <svg
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="http:// www.w3.org/2000/svg"
     className={className}
     fill="none"
     viewBox="0 0 24 24"
@@ -302,7 +300,7 @@ const ErrorIcon = ({ className = "" }: { className?: string }) => (
 
 const WarningIcon = ({ className = "" }: { className?: string }) => (
   <svg
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="http:// www.w3.org/2000/svg"
     className={className}
     fill="none"
     viewBox="0 0 24 24"
@@ -319,7 +317,7 @@ const WarningIcon = ({ className = "" }: { className?: string }) => (
 
 const LockIcon = ({ className = "" }: { className?: string }) => (
   <svg
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="http:// www.w3.org/2000/svg"
     className={className}
     fill="none"
     viewBox="0 0 24 24"
@@ -336,7 +334,7 @@ const LockIcon = ({ className = "" }: { className?: string }) => (
 
 const FileIcon = ({ className = "" }: { className?: string }) => (
   <svg
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="http:// www.w3.org/2000/svg"
     className={className}
     fill="none"
     viewBox="0 0 24 24"
@@ -353,7 +351,7 @@ const FileIcon = ({ className = "" }: { className?: string }) => (
 
 const UserIcon = ({ className = "" }: { className?: string }) => (
   <svg
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="http:// www.w3.org/2000/svg"
     className={className}
     fill="none"
     viewBox="0 0 24 24"
@@ -370,7 +368,7 @@ const UserIcon = ({ className = "" }: { className?: string }) => (
 
 const TokenIcon = ({ className = "" }: { className?: string }) => (
   <svg
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="http:// www.w3.org/2000/svg"
     className={className}
     fill="none"
     viewBox="0 0 24 24"
@@ -387,7 +385,7 @@ const TokenIcon = ({ className = "" }: { className?: string }) => (
 
 const AuthIcon = ({ className = "" }: { className?: string }) => (
   <svg
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="http:// www.w3.org/2000/svg"
     className={className}
     fill="none"
     viewBox="0 0 24 24"
@@ -404,7 +402,7 @@ const AuthIcon = ({ className = "" }: { className?: string }) => (
 
 const DataIcon = ({ className = "" }: { className?: string }) => (
   <svg
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="http:// www.w3.org/2000/svg"
     className={className}
     fill="none"
     viewBox="0 0 24 24"
@@ -421,7 +419,7 @@ const DataIcon = ({ className = "" }: { className?: string }) => (
 
 const RequestIcon = ({ className = "" }: { className?: string }) => (
   <svg
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="http:// www.w3.org/2000/svg"
     className={className}
     fill="none"
     viewBox="0 0 24 24"
@@ -436,13 +434,11 @@ const RequestIcon = ({ className = "" }: { className?: string }) => (
   </svg>
 );
 
-// ========================================
+// // ========================================
 // 🆕 NUEVOS ICONOS PARA NUEVOS TIPOS DE ERROR
-// ========================================
-
-const NetworkIcon = ({ className = "" }: { className?: string }) => (
+// ========================================nst NetworkIcon = ({ className = "" }: { className?: string }) => (
   <svg
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="http:// www.w3.org/2000/svg"
     className={className}
     fill="none"
     viewBox="0 0 24 24"
@@ -459,7 +455,7 @@ const NetworkIcon = ({ className = "" }: { className?: string }) => (
 
 const SyncIcon = ({ className = "" }: { className?: string }) => (
   <svg
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="http:// www.w3.org/2000/svg"
     className={className}
     fill="none"
     viewBox="0 0 24 24"
@@ -476,7 +472,7 @@ const SyncIcon = ({ className = "" }: { className?: string }) => (
 
 const CacheIcon = ({ className = "" }: { className?: string }) => (
   <svg
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="http:// www.w3.org/2000/svg"
     className={className}
     fill="none"
     viewBox="0 0 24 24"
@@ -493,7 +489,7 @@ const CacheIcon = ({ className = "" }: { className?: string }) => (
 
 const StorageIcon = ({ className = "" }: { className?: string }) => (
   <svg
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="http:// www.w3.org/2000/svg"
     className={className}
     fill="none"
     viewBox="0 0 24 24"
@@ -510,7 +506,7 @@ const StorageIcon = ({ className = "" }: { className?: string }) => (
 
 const AttendanceIcon = ({ className = "" }: { className?: string }) => (
   <svg
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="http:// www.w3.org/2000/svg"
     className={className}
     fill="none"
     viewBox="0 0 24 24"
@@ -527,7 +523,7 @@ const AttendanceIcon = ({ className = "" }: { className?: string }) => (
 
 const DatabaseIcon = ({ className = "" }: { className?: string }) => (
   <svg
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="http:// www.w3.org/2000/svg"
     className={className}
     fill="none"
     viewBox="0 0 24 24"
@@ -544,7 +540,7 @@ const DatabaseIcon = ({ className = "" }: { className?: string }) => (
 
 const CloseIcon = ({ className = "" }: { className?: string }) => (
   <svg
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="http:// www.w3.org/2000/svg"
     className={className}
     fill="none"
     viewBox="0 0 24 24"

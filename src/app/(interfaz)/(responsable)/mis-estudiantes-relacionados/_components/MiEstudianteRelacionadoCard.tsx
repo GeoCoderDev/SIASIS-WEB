@@ -38,7 +38,7 @@ const MiEstudianteRelacionadoCard = ({
     Tipo_Relacion,
   } = miEstudianteRelacionado;
 
-  // Aplicar reducción de tamaños cuando está minimizado (aproximadamente 80% del tamaño original)
+  // // Aplicar reduccn de tamaños cuando está minimizado (aproximadamente 80% del tamaño original)
   const scale = minimizado ? 0.8 : 1;
 
   return (

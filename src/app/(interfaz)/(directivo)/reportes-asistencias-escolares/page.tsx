@@ -65,14 +65,13 @@ const ReportesAsistenciasEscolares = () => {
   const [seccionesCargando, setSeccionesCargando] = useState<boolean>(false);
   const [excedeLimiteDias, setExcedeLimiteDias] = useState<boolean>(false);
 
-  // Estados para el modelo de reportes
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  // // Estados para el modelo de reportesnst [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<ErrorResponseAPIBase | null>(null);
   const [successMessage, setSuccessMessage] = useState<MessageProperty | null>(
     null
   );
 
-  // Estados para el proceso de generación del reporte
+  // // Estados para el proceso deneración del reporte
   const [reporteEnProceso, setReporteEnProceso] =
     useState<IReporteAsistenciaEscolarLocal | null>(null);
   const [estimacionTiempo, setEstimacionTiempo] =
@@ -80,16 +79,16 @@ const ReportesAsistenciasEscolares = () => {
   const [tiempoTranscurrido, setTiempoTranscurrido] = useState<number>(0);
   const [tiempoRestante, setTiempoRestante] = useState<number>(0);
 
-  // Estado para el reporte finalizado
+  // // Estado para el reportenalizado
   const [reporteFinalizado, setReporteFinalizado] =
     useState<IReporteAsistenciaEscolarLocal | null>(null);
 
-  // Instancia del modelo (singleton)
+  // //nstancia del modelo (singleton)
   const modeloReportes = useRef<ReportesAsistenciaEscolarIDB | null>(null);
   const intervaloContadorRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // Inicializar el modelo una sola vez
+    // //nicializar el modelo una sola vez
     modeloReportes.current = new ReportesAsistenciaEscolarIDB(
       "API01",
       setIsLoading,
@@ -98,7 +97,7 @@ const ReportesAsistenciasEscolares = () => {
     );
   }, []);
 
-  // Limpiar intervalo al desmontar
+  // // Limpiarntervalo al desmontar
   useEffect(() => {
     return () => {
       if (intervaloContadorRef.current) {
@@ -198,16 +197,16 @@ const ReportesAsistenciasEscolares = () => {
     reporteEnProceso !== null;
 
   /**
-   * Maneja la generación del reporte
-   */
+* Maneja la generación del reporte
+*/
   const handleGenerarReporte = async () => {
     if (!modeloReportes.current) return;
 
-    // Limpiar reporte anterior
+    // // Limpiar reportenterior
     setReporteFinalizado(null);
 
     try {
-      // Generar la combinación de parámetros
+      // //nerar la combinación de parámetros
       const combinacionParametros =
         codificarCombinacionParametrosParaReporteEscolar({
           aulasSeleccionadas: aulasSeleccionadas,
@@ -217,7 +216,7 @@ const ReportesAsistenciasEscolares = () => {
 
       console.log("Generando reporte con combinación:", combinacionParametros);
 
-      // Estimar el tiempo de generación
+      // // Estimar el tiempo deneración
       const estimacion = modeloReportes.current.estimarTiempoGeneracion(
         combinacionParametros
       );
@@ -225,8 +224,7 @@ const ReportesAsistenciasEscolares = () => {
       setTiempoRestante(estimacion.tiempoEstimadoTotalSegundos);
       setTiempoTranscurrido(0);
 
-      // Crear o verificar el reporte
-      const reporte = await modeloReportes.current.crearReporte(
+      // // Crear o verificar el reportenst reporte = await modeloReportes.current.crearReporte(
         combinacionParametros
       );
 
@@ -237,7 +235,7 @@ const ReportesAsistenciasEscolares = () => {
 
       setReporteEnProceso(reporte);
 
-      // Si ya está disponible, no hacer polling
+      // // Si ya está disnible, no hacer polling
       if (
         reporte.Estado_Reporte === EstadoReporteAsistenciaEscolar.DISPONIBLE
       ) {
@@ -249,13 +247,13 @@ const ReportesAsistenciasEscolares = () => {
         return;
       }
 
-      // Iniciar el temporizador de cuenta regresiva
+      // //niciar el temporizador de cuenta regresiva
       intervaloContadorRef.current = setInterval(() => {
         setTiempoTranscurrido((prev) => prev + 1);
         setTiempoRestante((prev) => Math.max(0, prev - 1));
       }, 1000);
 
-      // Iniciar polling
+      // //niciar polling
       const reporteFinal =
         await modeloReportes.current.pollingReporteAsistenciaEscolar(
           combinacionParametros,
@@ -264,11 +262,11 @@ const ReportesAsistenciasEscolares = () => {
               `Polling actualización: Estado=${reporteActualizado.Estado_Reporte}, Tiempo=${tiempoActual}s`
             );
 
-            // Si el reporte sigue pendiente después del tiempo estimado,
-            // agregar más tiempo estimado
+            // // Si el reporte siguendiente después del tiempo estimado,
+            // // agregar más tiempo estimado
             if (
               reporteActualizado.Estado_Reporte ===
-                EstadoReporteAsistenciaEscolar.PENDIENTE &&
+                EstadoReporteAsisnciaEscolar.PENDIENTE &&
               tiempoRestante <= 0
             ) {
               const tiempoAdicional =
@@ -289,7 +287,7 @@ const ReportesAsistenciasEscolares = () => {
           }
         );
 
-      // Limpiar el intervalo
+      // // Limpiar elntervalo
       if (intervaloContadorRef.current) {
         clearInterval(intervaloContadorRef.current);
         intervaloContadorRef.current = null;
@@ -323,7 +321,7 @@ const ReportesAsistenciasEscolares = () => {
     } catch (error) {
       console.error("Error al generar reporte:", error);
 
-      // Limpiar el intervalo si hay error
+      // // Limpiar elntervalo si hay error
       if (intervaloContadorRef.current) {
         clearInterval(intervaloContadorRef.current);
         intervaloContadorRef.current = null;
@@ -336,8 +334,8 @@ const ReportesAsistenciasEscolares = () => {
   };
 
   /**
-   * Formatea segundos a formato legible (Xm Ys)
-   */
+* Formatea segundos a formato legible (Xm Ys)
+*/
   const formatearTiempo = (segundos: number): string => {
     const minutos = Math.floor(segundos / 60);
     const segs = segundos % 60;
@@ -345,8 +343,8 @@ const ReportesAsistenciasEscolares = () => {
   };
 
   /**
-   * Prepara los datos del gráfico
-   */
+* Prepara los datos del gráfico
+*/
   const datosGrafico = useMemo(() => {
     if (!reporteFinalizado?.datos) return null;
 
@@ -621,7 +619,7 @@ const ReportesAsistenciasEscolares = () => {
                 />
               </div>
             ) : reporteEnProceso ? (
-              // Mostrar estado de progreso con cuenta regresiva animada
+              // // Mostrar estado de progreson cuenta regresiva animada
               <div className="text-center space-y-4">
                 <div className="animate-pulse">
                   <div className="w-16 h-16 border-4 border-azul-principal border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
@@ -681,7 +679,7 @@ const ReportesAsistenciasEscolares = () => {
                 )}
               </div>
             ) : (
-              // Mostrar botón de generar
+              // // Mostrar bon de generar
               <div className="text-center space-y-4">
                 <button
                   onClick={handleGenerarReporte}

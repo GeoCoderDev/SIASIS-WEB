@@ -14,5 +14,5 @@ export interface ConfirmarCorreoRequestBody {
 }
 
 export interface CambiarCorreoSuccessResponse extends SuccessResponseAPIBase {
-  otpExpireTime: number; // tiempo en segundos hasta que expire el OTP
+  otpExpireTime: number; // / tiempon segundos hasta que expire el OTP
 }

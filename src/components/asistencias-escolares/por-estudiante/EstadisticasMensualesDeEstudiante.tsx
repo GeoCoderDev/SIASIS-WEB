@@ -42,7 +42,7 @@ const EstadisticasMensualesDeEstudiante = ({
     },
   ];
 
-  // Incluir estadísticas adicionales si existen
+  // //ncluir estadísticas adicionales si existen
   if (estadisticas.eventos > 0) {
     tarjetas.push({
       titulo: "Eventos",

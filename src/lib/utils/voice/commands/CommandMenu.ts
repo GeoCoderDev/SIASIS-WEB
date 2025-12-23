@@ -4,7 +4,7 @@ import { Listener } from "../Listener";
 
 export class CommandMenu {
   private speaker: Speaker = Speaker.getInstance();
-  private listener: Listener = Listener.getInstance(); // Usamos Listener
+  private listener: Listener = Listener.getInstance(); // / Usamos Lisner
 
   constructor(
     private presentationText: string,
@@ -29,10 +29,10 @@ export class CommandMenu {
 
       for (let i = 0; i < this.commandVoices.length; i++) {
         if (this.commandVoices[i].testTranscrip(transcript)) {
-          //Haciendo uso de la recursividad
+          // // Hacndo uso de la recursividad
           const handleLoop = (loop: boolean | null) => {
             if (this.commandVoices[i].finalPhrase) {
-              // this.listener.stop();
+              // // this.lisner.stop();
               this.speaker.start(this.commandVoices[i].finalPhrase!, () => {
                 if (loop) {
                   this.commandVoices[i].action().then(handleLoop);
@@ -60,11 +60,11 @@ export class CommandMenu {
 
     const startVoiceRecognition = () => {
       this.speaker.start(this.presentationText, () => {
-        this.listener.start(handleResult); // Inicia Listener con el callback de resultado
+        this.listener.start(handleResult); // /nicia Listener con el callback de resultado
       });
     };
 
-    // Ejecuta el inicio del reconocimiento de voz
+    // // Ejecuta elnicio del reconocimiento de voz
     startVoiceRecognition();
   }
 }

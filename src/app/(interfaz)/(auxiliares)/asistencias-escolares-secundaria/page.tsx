@@ -5,13 +5,8 @@ import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
 import ConsultaAsistenciasPorRol from "@/components/asistencias-escolares/por-aula/ConsultaAsistenciasEscolaresPorRol";
 
 /**
- * Página de consulta de asistencias escolares para Auxiliares
- *
- * Características:
- * - Solo acceso a aulas de Secundaria
- * - Restricción de nivel educativo fija
- * - Puede generar QRs solo para aulas de Secundaria
- */
+* Página de consulta de asistencias escolares para Auxiliares Características: - Solo acceso a aulas de Secundaria - Restricción de nivel educativo fija - Puede generar QRs solo para aulas de Secundaria
+*/
 const AsistenciasEscolaresAuxiliares = () => {
   return (
     <ConsultaAsistenciasPorRol

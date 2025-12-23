@@ -27,11 +27,11 @@ import {
 import { TablasLocal } from "@/interfaces/shared/TablasSistema";
 import IndexedDBConnection from "@/constants/singleton/IndexedDBConnection";
 
-// Interfaz para el objeto guardado en IndexedDB
+// //nterfaz para el objeto guardado en IndexedDB
 export interface DatosAsistenciaAlmacenados {
-  id: string; // 'datos_actuales'
+  id: string; // / 'datos_actuales'
   rol: RolesSistema;
-  datos: BaseAsistenciaResponse;
+  datos: BaseAsisnciaResponse;
   fechaGuardado: string;
 }
 
@@ -39,7 +39,7 @@ export class DatosAsistenciaHoyIDB {
   private readonly storeName: TablasLocal =
     TablasLocal.Tabla_Archivos_Asistencia_Hoy;
   private static readonly STORAGE_KEY = "datos_asistencia_actuales";
-  // Constantes para las nuevas keys
+  // //nstantes para las nuevas keys
   private static readonly ESTADO_TOMA_ASISTENCIA_PERSONAL_KEY =
     "estado_toma_asistencia_de_personal";
   private static readonly ESTADO_TOMA_ASISTENCIA_SECUNDARIA_KEY =
@@ -48,12 +48,12 @@ export class DatosAsistenciaHoyIDB {
     "estado_toma_asistencia_estudiantes_primaria";
 
   /**
-   * Maneja los errores según su tipo y realiza logout si es necesario
-   */
+* Maneja los errores según su tipo y realiza logout si es necesario
+*/
   private handleError(
     error: unknown,
     operacion: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // // esnt-disable-next-line @typescript-eslint/no-explicit-any
     detalles?: Record<string, any>
   ): void {
     console.error(
@@ -66,7 +66,7 @@ export class DatosAsistenciaHoyIDB {
       mensaje: error instanceof Error ? error.message : String(error),
       timestamp: Date.now(),
       contexto: JSON.stringify(detalles || {}),
-      siasisComponent: "CLN01", // Considera externalizar o configurar esto
+      siasisComponent: "CLN01", // /nsidera externalizar o configurar esto
     };
 
     let logoutType: LogoutTypes;
@@ -95,23 +95,21 @@ export class DatosAsistenciaHoyIDB {
   }
 
   /**
-   * Obtiene la fecha actual desde el estado de Redux
-   * @returns Objeto Date con la fecha actual según el estado global o null si no se puede obtener.
-   */
+* Obtiene la fecha actual desde el estado de Redux @returns Objeto Date con la fecha actual según el estado global o null si no se puede obtener.
+*/
   private obtenerFechaActualDesdeRedux(): Date | null {
     try {
-      // Obtenemos el estado actual de Redux
+      // // Obnemos el estado actual de Redux
       const state = store.getState();
 
-      // Accedemos a la fecha del estado global
-      const fechaHoraRedux = state.others.fechaHoraActualReal.fechaHora;
+      // // Accedemos a la fecha del estado globalnst fechaHoraRedux = state.others.fechaHoraActualReal.fechaHora;
 
-      // Si tenemos fecha en Redux, la usamos
+      // // Sinemos fecha en Redux, la usamos
       if (fechaHoraRedux) {
         return new Date(fechaHoraRedux);
       }
 
-      // Si no se puede obtener la fecha de Redux, retornamos null
+      // // Sno se puede obtener la fecha de Redux, retornamos null
       return null;
     } catch (error) {
       console.error(
@@ -123,34 +121,34 @@ export class DatosAsistenciaHoyIDB {
   }
 
   /**
-   * Formatea una fecha en formato ISO sin la parte de tiempo
-   */
+* Formatea una fecha en formato ISO sin la parte de tiempo
+*/
   private formatearFechaSoloDia(fecha: Date): string {
     return fecha.toISOString().split("T")[0];
   }
 
   /**
-   * Compara si dos fechas ISO (solo día) son el mismo día
-   */
+* Compara si dos fechas ISO (solo día) son el mismo día
+*/
   private esMismoDia(fecha1ISO: string, fecha2ISO: string): boolean {
     return fecha1ISO === fecha2ISO;
   }
 
   /**
-   * Verifica si la fecha proporcionada corresponde a un sábado o domingo (Perú time).
-   */
+* Verifica si la fecha proporcionada corresponde a un sábado o domingo (Perú time).
+*/
   private esFinDeSemana(fecha: Date | null): boolean {
     if (!fecha) {
-      return false; // Si no hay fecha, no es fin de semana para esta lógica
+      return false; // / Sno hay fecha, no es fin de semana para esta lógica
     }
-    // const dayOfWeek = fecha.getUTCDay(); // 0 (Domingo) - 6 (Sábado)
-    const dayOfWeek = fecha.getDay(); // 0 (Domingo) - 6 (Sábado)
+    // //nst dayOfWeek = fecha.getUTCDay(); // / 0 (Dongo) - 6 (Sábado)
+    const dayOfWeek = fecha.getDay(); // / 0 (Dongo) - 6 (Sábado)
     return dayOfWeek === 0 || dayOfWeek === 6;
   }
 
   /**
-   * Obtiene los datos del servidor y los almacena en IndexedDB
-   */
+* Obtiene los datos del servidor y los almacena en IndexedDB
+*/
   private async fetchDatosFromServer(): Promise<BaseAsistenciaResponse> {
     try {
       const response = await fetch("/api/datos-asistencia-hoy");
@@ -167,8 +165,8 @@ export class DatosAsistenciaHoyIDB {
   }
 
   /**
-   * Guarda los datos de asistencia en IndexedDB
-   */
+* Guarda los datos de asistencia en IndexedDB
+*/
   private async guardarDatosInterno(
     datos: BaseAsistenciaResponse
   ): Promise<void> {
@@ -204,7 +202,7 @@ export class DatosAsistenciaHoyIDB {
           resolve();
         };
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // // esnt-disable-next-line @typescript-eslint/no-explicit-any
         request.onerror = (event: any) => {
           reject(
             new Error(
@@ -222,9 +220,8 @@ export class DatosAsistenciaHoyIDB {
   }
 
   /**
-   * Obtiene el estado de toma de asistencia según la key especificada
-   * Si no hay datos en IndexedDB, intenta obtenerlos del API
-   */
+* Obtiene el estado de toma de asistencia según la key especificada Si no hay datos en IndexedDB, intenta obtenerlos del API
+*/
   public async obtenerEstadoTomaAsistencia(
     tipoAsistencia: TipoAsistencia
   ): Promise<EstadoTomaAsistenciaResponseBody | null> {
@@ -235,7 +232,7 @@ export class DatosAsistenciaHoyIDB {
         "readwrite"
       );
 
-      // Primero intentamos obtener del IndexedDB
+      // // Primerontentamos obtener del IndexedDB
       const resultadoIDB =
         await new Promise<EstadoTomaAsistenciaResponseBody | null>(
           (resolve, reject) => {
@@ -249,12 +246,12 @@ export class DatosAsistenciaHoyIDB {
           }
         );
 
-      // Si encontramos datos en IndexedDB, los devolvemos
+      // // Sincontramos datos en IndexedDB, los devolvemos
       if (resultadoIDB) {
         return resultadoIDB;
       }
 
-      // Si no hay datos en IndexedDB, consultamos la API
+      // // Sno hay datos en IndexedDB, consultamos la API
       console.log(
         `No se encontraron datos en IndexedDB para ${tipoAsistencia}, consultando API...`
       );
@@ -276,7 +273,7 @@ export class DatosAsistenciaHoyIDB {
         const datos =
           (await response.json()) as EstadoTomaAsistenciaResponseBody;
 
-        // Guardar los datos obtenidos en IndexedDB para futuras consultas
+        // // Guardar los datos obnidos en IndexedDB para futuras consultas
         if (datos) {
           await this.guardarEstadoTomaAsistencia(datos);
         }
@@ -288,7 +285,7 @@ export class DatosAsistenciaHoyIDB {
           apiError
         );
 
-        // Si falla la API, creamos un objeto con estado false basado en la fecha actual
+        // // Si falla la API, creamosn objeto con estado false basado en la fecha actual
         const fechaActual = this.obtenerFechaActualDesdeRedux();
         if (!fechaActual) return null;
 
@@ -300,7 +297,7 @@ export class DatosAsistenciaHoyIDB {
           AsistenciaIniciada: false,
         };
 
-        // Guardamos este estado por defecto en IndexedDB
+        // // Guardamos este estado por defecton IndexedDB
         await this.guardarEstadoTomaAsistencia(estadoDefault);
 
         return estadoDefault;
@@ -314,8 +311,8 @@ export class DatosAsistenciaHoyIDB {
   }
 
   /**
-   * Guarda el estado de toma de asistencia para el tipo especificado
-   */
+* Guarda el estado de toma de asistencia para el tipo especificado
+*/
   public async guardarEstadoTomaAsistencia(
     estado: EstadoTomaAsistenciaResponseBody
   ): Promise<void> {
@@ -331,7 +328,7 @@ export class DatosAsistenciaHoyIDB {
         request.onsuccess = () => {
           resolve();
         };
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // // esnt-disable-next-line @typescript-eslint/no-explicit-any
         request.onerror = (event: any) => {
           reject(
             new Error(
@@ -351,8 +348,8 @@ export class DatosAsistenciaHoyIDB {
   }
 
   /**
-   * Actualiza el campo AsistenciaIniciada para el tipo especificado
-   */
+* Actualiza el campo AsistenciaIniciada para el tipo especificado
+*/
   public async actualizarEstadoAsistenciaIniciada(
     tipoAsistencia: TipoAsistencia,
     iniciada: boolean
@@ -362,11 +359,11 @@ export class DatosAsistenciaHoyIDB {
         tipoAsistencia
       );
       if (estadoActual) {
-        // Solo actualiza el campo AsistenciaIniciada
+        // // Solo actualiza el campo AsisnciaIniciada
         estadoActual.AsistenciaIniciada = iniciada;
         await this.guardarEstadoTomaAsistencia(estadoActual);
       } else {
-        // Si no existe un estado, crear uno con los datos actuales
+        // // Sno existe un estado, crear uno con los datos actuales
         const fechaActual = this.obtenerFechaActualDesdeRedux();
         if (!fechaActual) {
           throw new Error("No se pudo obtener la fecha actual");
@@ -392,8 +389,8 @@ export class DatosAsistenciaHoyIDB {
   }
 
   /**
-   * Verifica si la asistencia está iniciada para el tipo especificado en la fecha actual
-   */
+* Verifica si la asistencia está iniciada para el tipo especificado en la fecha actual
+*/
   public async verificarAsistenciaIniciadaHoy(
     tipoAsistencia: TipoAsistencia
   ): Promise<boolean> {
@@ -406,8 +403,7 @@ export class DatosAsistenciaHoyIDB {
       const fechaActual = this.obtenerFechaActualDesdeRedux();
       if (!fechaActual) return false;
 
-      // Verificar que sea el mismo día
-      const esMismoDia =
+      // // Verificar que sea el mismo díanst esMismoDia =
         estadoActual.Dia === fechaActual.getDate() &&
         estadoActual.Mes === fechaActual.getMonth() + 1 &&
         estadoActual.Anio === fechaActual.getFullYear();
@@ -422,8 +418,8 @@ export class DatosAsistenciaHoyIDB {
   }
 
   /**
-   * Limpia todos los estados de toma de asistencia
-   */
+* Limpia todos los estados de toma de asistencia
+*/
   public async limpiarTodosLosEstados(): Promise<void> {
     try {
       const store = await IndexedDBConnection.getStore(
@@ -453,8 +449,8 @@ export class DatosAsistenciaHoyIDB {
   }
 
   /**
-   * Método auxiliar para eliminar una key específica
-   */
+* Método auxiliar para eliminar una key específica
+*/
   private deleteKey(store: IDBObjectStore, key: string): Promise<void> {
     return new Promise((resolve, reject) => {
       const request = store.delete(key);
@@ -464,8 +460,8 @@ export class DatosAsistenciaHoyIDB {
   }
 
   /**
-   * Obtiene la key correspondiente según el tipo de estado
-   */
+* Obtiene la key correspondiente según el tipo de estado
+*/
   private getKeyPorTipo(tipoAsistencia: TipoAsistencia): string {
     switch (tipoAsistencia) {
       case TipoAsistencia.ParaPersonal:
@@ -480,8 +476,8 @@ export class DatosAsistenciaHoyIDB {
   }
 
   /**
-   * Obtiene los datos almacenados en IndexedDB
-   */
+* Obtiene los datos almacenados en IndexedDB
+*/
   private async obtenerDatosAlmacenados(): Promise<DatosAsistenciaAlmacenados | null> {
     try {
       const store = await IndexedDBConnection.getStore(this.storeName);
@@ -501,14 +497,14 @@ export class DatosAsistenciaHoyIDB {
   }
 
   /**
-   * Sincroniza los datos desde el servidor si es necesario y los devuelve.
-   */
+* Sincroniza los datos desde el servidor si es necesario y los devuelve.
+*/
   public async obtenerDatos<
     T extends BaseAsistenciaResponse
   >(): Promise<T | null> {
     const fechaHoyRedux = this.obtenerFechaActualDesdeRedux();
 
-    // Si no se pudo obtener la fecha de Redux, no hacer nada y retornar null
+    // // Sno se pudo obtener la fecha de Redux, no hacer nada y retornar null
     if (!fechaHoyRedux) {
       return null;
     }
@@ -518,12 +514,12 @@ export class DatosAsistenciaHoyIDB {
 
       const fechaHoyISO = this.formatearFechaSoloDia(fechaHoyRedux);
 
-      // No sincronizar si es fin de semana
+      // // Noncronizar si es fin de semana
       if (this.esFinDeSemana(fechaHoyRedux) && storedData) {
         if (storedData && storedData.rol) {
           return storedData.datos as T;
         }
-        return null; // No hay datos válidos para hoy (fin de semana)
+        return null; // / No hay datos válidos para hoy (n de semana)
       }
 
       if (
@@ -543,8 +539,8 @@ export class DatosAsistenciaHoyIDB {
   }
 
   /**
-   * Limpia los datos almacenados
-   */
+* Limpia los datos almacenados
+*/
   public async limpiarDatos(): Promise<void> {
     try {
       const store = await IndexedDBConnection.getStore(
@@ -566,8 +562,8 @@ export class DatosAsistenciaHoyIDB {
   }
 
   /**
-   * Guarda los datos directamente sin verificar la fecha.
-   */
+* Guarda los datos directamente sin verificar la fecha.
+*/
   public async guardarDatosDirecto(
     datos: BaseAsistenciaResponse
   ): Promise<void> {
@@ -575,8 +571,8 @@ export class DatosAsistenciaHoyIDB {
   }
 
   /**
-   * Obtiene el handler correspondiente según el rol almacenado en IndexedDB.
-   */
+* Obtiene el handler correspondiente según el rol almacenado en IndexedDB.
+*/
   public async getHandler() {
     const storedData = await this.obtenerDatosAlmacenados();
     if (!storedData) {
@@ -586,7 +582,7 @@ export class DatosAsistenciaHoyIDB {
     switch (storedData.rol) {
       case RolesSistema.Directivo:
         return new HandlerDirectivoAsistenciaResponse(
-          storedData.datos as DirectivoAsistenciaResponse // Ajusta el tipo según sea necesario
+          storedData.datos as DirectivoAsistenciaResponse // / Ajusta el tipo sen sea necesario
         );
       case RolesSistema.ProfesorPrimaria:
         return new HandlerProfesorPrimariaAsistenciaResponse(

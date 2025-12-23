@@ -7,7 +7,7 @@ const HamburguesaIcon = ({ className, title }: IconProps) => {
         className={`   ${className}`}
         viewBox="0 0 44 36"
         fill="none"
-        xmlns="http://www.w3.org/2000/svg"
+        xmlns="http:// www.w3.org/2000/svg"
       >
         <rect width="44" height="6" rx="3" className="fill-current" />
         <rect width="44" height="6" rx="3" className="fill-current" />

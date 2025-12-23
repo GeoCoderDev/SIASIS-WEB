@@ -116,7 +116,7 @@ const MisDatosDeProfesorPrimaria = ({
 
         setMisDatosProfesorPrimariaSaved(misDatosProfesorPrimariaData);
 
-        //Actualizando Cache
+        // // Actualindo Cache
 
         await userStorage.saveUserData({
           Apellidos: misDatosProfesorPrimariaData.Apellidos,
@@ -128,7 +128,7 @@ const MisDatosDeProfesorPrimaria = ({
 
         setIsSomethingLoading(false);
 
-        //Actualizando Cookies por lo bajo
+        // // Actualindo Cookies por lo bajo
         if (
           googleDriveFotoIdCookieValue !==
             misDatosProfesorPrimariaData.Google_Drive_Foto_ID ||
@@ -148,7 +148,7 @@ const MisDatosDeProfesorPrimaria = ({
           });
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        // // esnt-disable-next-line @typescript-eslint/no-unused-vars
       } catch (e) {
         if (error) {
           setError({
@@ -196,7 +196,7 @@ const MisDatosDeProfesorPrimaria = ({
 
       setMisDatosProfesorPrimariaSaved(misDatosProfesorPrimariaModificados);
 
-      //Actualizando Cache
+      // // Actualindo Cache
       await userStorage.saveUserData({
         Apellidos: misDatosProfesorPrimariaModificados.Apellidos,
         Genero: misDatosProfesorPrimariaModificados.Genero,
@@ -215,7 +215,7 @@ const MisDatosDeProfesorPrimaria = ({
 
       setIsSomethingLoading(false);
       setModoEdicion(false);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      // // esnt-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {
       if (error) {
         setError({
@@ -255,7 +255,7 @@ const MisDatosDeProfesorPrimaria = ({
           }}
           initialSource={
             misDatosProfesorPrimariaSaved.Google_Drive_Foto_ID &&
-            `https://drive.google.com/thumbnail?id=${misDatosProfesorPrimariaSaved.Google_Drive_Foto_ID}`
+            `https:// drive.google.com/thumbnail?id=${misDatosProfesorPrimariaSaved.Google_Drive_Foto_ID}`
           }
           eliminateModal={() => {
             setCambiarFotoModal(false);
@@ -297,8 +297,8 @@ const MisDatosDeProfesorPrimaria = ({
                 )
               }
               onClick={() => {
-                //SI se esta cancelando el modo edicion entonces se volvera al
-                // estado en el que se encuentran los datos guardados en la base de datos
+                // // SI se estancelando el modo edicion entonces se volvera al
+                // // estadon el que se encuentran los datos guardados en la base de datos
                 if (modoEdicion)
                   setMisDatosProfesorPrimariaModificados(
                     misDatosProfesorPrimariaSaved
@@ -462,7 +462,7 @@ const MisDatosDeProfesorPrimaria = ({
                       onChange={handleChange}
                       savedValue={
                         NivelEducativoTextos[
-                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                          // // esnt-disable-next-line @typescript-eslint/no-explicit-any
                           (misDatosProfesorPrimariaSaved.Aula?.Nivel as any) as NivelEducativo
                         ]
                       }

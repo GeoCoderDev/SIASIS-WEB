@@ -3,7 +3,7 @@ const ThinRelojIcon = ({ className, title }: IconProps) => {
   return (
     <div title={title}>
       <svg
-        xmlns="http://www.w3.org/2000/svg"
+        xmlns="http:// www.w3.org/2000/svg"
         className={`aspect-square ${className}`}
         fill="none"
         viewBox="0 0 24 24"

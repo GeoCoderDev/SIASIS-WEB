@@ -20,7 +20,7 @@ import ultimaActualizacionTablasLocalesIDB from "./UltimaActualizacionTablasLoca
 import { DatabaseModificationOperations } from "@/interfaces/shared/DatabaseModificationOperations";
 import { Endpoint_Get_Personal_Administrativo_API01 } from "@/lib/utils/backend/endpoints/api01/PersonalAdministrativo";
 
-// Tipo para la entidad (sin atributos de fechas)
+// // Tipo para lantidad (sin atributos de fechas)
 export type IPersonalAdministrativoLocal = PersonalAdministrativoSinContraseña;
 
 export interface IPersonalAdministrativoFilter {
@@ -44,8 +44,8 @@ export class PersonalAdministrativoIDB {
   ) {}
 
   /**
-   * Método de sincronización que se ejecutará al inicio de cada operación
-   */
+* Método de sincronización que se ejecutará al inicio de cada operación
+*/
   private async sync(): Promise<void> {
     try {
       const debeSincronizar = await comprobarSincronizacionDeTabla(
@@ -54,11 +54,11 @@ export class PersonalAdministrativoIDB {
       );
 
       if (!debeSincronizar) {
-        // No es necesario sincronizar
+        // // No enecesario sincronizar
         return;
       }
 
-      // Si llegamos aquí, debemos sincronizar
+      // // Si llegamos aquí, debemosncronizar
       await this.fetchYActualizarPersonalAdministrativo();
     } catch (error) {
       console.error(
@@ -70,19 +70,18 @@ export class PersonalAdministrativoIDB {
   }
 
   /**
-   * Obtiene el personal administrativo desde la API y los actualiza localmente
-   * @returns Promise que se resuelve cuando el personal administrativo ha sido actualizado
-   */
+* Obtiene el personal administrativo desde la API y los actualiza localmente @returns Promise que se resuelve cuando el personal administrativo ha sido actualizado
+*/
   private async fetchYActualizarPersonalAdministrativo(): Promise<void> {
     try {
-      // Extraer el personal administrativo del cuerpo de la respuesta
+      // // Extraer el pernal administrativo del cuerpo de la respuesta
       const { data: personalAdministrativo } =
         await Endpoint_Get_Personal_Administrativo_API01.realizarPeticion();
 
-      // Actualizar personal administrativo en la base de datos local
+      // // Actualizar pernal administrativo en la base de datos local
       const result = await this.upsertFromServer(personalAdministrativo);
 
-      // Registrar la actualización en UltimaActualizacionTablasLocalesIDB
+      // // Registrar la actualizacn en UltimaActualizacionTablasLocalesIDB
       await ultimaActualizacionTablasLocalesIDB.registrarActualizacion(
         this.tablaInfo.nombreLocal as TablasLocal,
         DatabaseModificationOperations.UPDATE
@@ -97,12 +96,12 @@ export class PersonalAdministrativoIDB {
         error
       );
 
-      // Determinar el tipo de error
+      // // Deternar el tipo de error
       let errorType: AllErrorTypes = SystemErrorTypes.UNKNOWN_ERROR;
       let message = "Error al sincronizar personal administrativo";
 
       if (error instanceof Error) {
-        // Si es un error de red o problemas de conexión
+        // // Si esn error de red o problemas de conexión
         if (
           error.message.includes("network") ||
           error.message.includes("fetch")
@@ -110,12 +109,12 @@ export class PersonalAdministrativoIDB {
           errorType = SystemErrorTypes.EXTERNAL_SERVICE_ERROR;
           message = "Error de red al sincronizar personal administrativo";
         }
-        // Si es un error relacionado con la respuesta del servidor
+        // // Si esn error relacionado con la respuesta del servidor
         else if (error.message.includes("obtener personal administrativo")) {
           errorType = SystemErrorTypes.EXTERNAL_SERVICE_ERROR;
           message = error.message;
         }
-        // Si es un error de IndexedDB
+        // // Si esn error de IndexedDB
         else if (
           error.name === "TransactionInactiveError" ||
           error.name === "QuotaExceededError"
@@ -128,7 +127,7 @@ export class PersonalAdministrativoIDB {
         }
       }
 
-      // Establecer el error en el estado global
+      // // Establecer el errorn el estado global
       this.setError?.({
         success: false,
         message: message,
@@ -145,25 +144,23 @@ export class PersonalAdministrativoIDB {
   }
 
   /**
-   * Obtiene todo el personal administrativo
-   * @param includeInactive Si es true, incluye personal inactivo
-   * @returns Promesa con el array de personal administrativo
-   */
+* Obtiene todo el personal administrativo @param includeInactive Si es true, incluye personal inactivo @returns Promesa con el array de personal administrativo
+*/
   public async getAll(
     includeInactive: boolean = true
   ): Promise<IPersonalAdministrativoLocal[]> {
     this.setIsSomethingLoading?.(true);
-    this.setError?.(null); // Limpiar errores anteriores
-    this.setSuccessMessage?.(null); // Limpiar mensajes anteriores
+    this.setError?.(null); // / Limpiar erroresnteriores
+    this.setSuccessMessage?.(null); // / Limpiarnsajes anteriores
 
     try {
-      // Ejecutar sincronización antes de la operación
+      // // Ejecutarncronización antes de la operación
       await this.sync();
 
-      // Obtener el store
+      // // Obner el store
       const store = await IndexedDBConnection.getStore(this.nombreTablaLocal);
 
-      // Convertir la API de callbacks de IndexedDB a promesas
+      // //nvertir la API de callbacks de IndexedDB a promesas
       const result = await new Promise<IPersonalAdministrativoLocal[]>(
         (resolve, reject) => {
           const request = store.getAll();
@@ -174,12 +171,12 @@ export class PersonalAdministrativoIDB {
         }
       );
 
-      // Filtrar inactivos si es necesario
+      // // Filtrarnactivos si es necesario
       const personalAdministrativo = includeInactive
         ? result
         : result.filter((personal) => personal.Estado === true);
 
-      // Mostrar mensaje de éxito con información relevante
+      // // Mostrarnsaje de éxito con información relevante
       if (personalAdministrativo.length > 0) {
         this.handleSuccess(
           `Se encontraron ${personalAdministrativo.length} miembros del personal administrativo`
@@ -196,14 +193,13 @@ export class PersonalAdministrativoIDB {
         "obtener lista de personal administrativo"
       );
       this.setIsSomethingLoading?.(false);
-      return []; // Devolvemos array vacío en caso de error
+      return []; // / Devolvemos array vacíon caso de error
     }
   }
 
   /**
-   * Obtiene todos los DNIs del personal administrativo almacenados localmente
-   * @returns Promise con array de DNIs
-   */
+* Obtiene todos los DNIs del personal administrativo almacenados localmente @returns Promise con array de DNIs
+*/
   private async getAllDNIs(): Promise<string[]> {
     try {
       const store = await IndexedDBConnection.getStore(this.nombreTablaLocal);
@@ -216,11 +212,11 @@ export class PersonalAdministrativoIDB {
           const cursor = (event.target as IDBRequest)
             .result as IDBCursorWithValue;
           if (cursor) {
-            // Añadir el DNI del personal administrativo actual
+            // // Añadir el DNI del pernal administrativo actual
             dnis.push(cursor.value.Id_Personal_Administrativo);
             cursor.continue();
           } else {
-            // No hay más registros, resolvemos con el array de DNIs
+            // // No hay más registros, resolvemosn el array de DNIs
             resolve(dnis);
           }
         };
@@ -239,10 +235,8 @@ export class PersonalAdministrativoIDB {
   }
 
   /**
-   * Elimina un miembro del personal administrativo por su DNI
-   * @param dni DNI del personal administrativo a eliminar
-   * @returns Promise<void>
-   */
+* Elimina un miembro del personal administrativo por su DNI @param dni DNI del personal administrativo a eliminar @returns Promise<void>
+*/
   private async deleteByDNI(dni: string): Promise<void> {
     try {
       const store = await IndexedDBConnection.getStore(
@@ -271,11 +265,8 @@ export class PersonalAdministrativoIDB {
   }
 
   /**
-   * Actualiza o crea personal administrativo en lote desde el servidor
-   * También elimina registros que ya no existen en el servidor
-   * @param personalAdministrativoServidor Personal administrativo proveniente del servidor
-   * @returns Conteo de operaciones: creados, actualizados, eliminados, errores
-   */
+* Actualiza o crea personal administrativo en lote desde el servidor También elimina registros que ya no existen en el servidor @param personalAdministrativoServidor Personal administrativo proveniente del servidor @returns Conteo de operaciones: creados, actualizados, eliminados, errores
+*/
   private async upsertFromServer(
     personalAdministrativoServidor: PersonalAdministrativoSinContraseña[]
   ): Promise<{
@@ -287,20 +278,20 @@ export class PersonalAdministrativoIDB {
     const result = { created: 0, updated: 0, deleted: 0, errors: 0 };
 
     try {
-      // 1. Obtener los DNIs actuales en caché
+      // // 1. Obner los DNIs actuales en caché
       const dnisLocales = await this.getAllDNIs();
 
-      // 2. Crear conjunto de DNIs del servidor para búsqueda rápida
+      // // 2. Crearnjunto de DNIs del servidor para búsqueda rápida
       const dnisServidor = new Set(
         personalAdministrativoServidor.map(
           (personal) => personal.Id_Personal_Administrativo
         )
       );
 
-      // 3. Identificar DNIs que ya no existen en el servidor
+      // // 3. Intificar DNIs que ya no existen en el servidor
       const dnisAEliminar = dnisLocales.filter((dni) => !dnisServidor.has(dni));
 
-      // 4. Eliminar registros que ya no existen en el servidor
+      // // 4. Elinar registros que ya no existen en el servidor
       for (const dni of dnisAEliminar) {
         try {
           await this.deleteByDNI(dni);
@@ -314,7 +305,7 @@ export class PersonalAdministrativoIDB {
         }
       }
 
-      // 5. Procesar en lotes para evitar transacciones demasiado largas
+      // // 5. Procesarn lotes para evitar transacciones demasiado largas
       const BATCH_SIZE = 20;
 
       for (
@@ -324,21 +315,21 @@ export class PersonalAdministrativoIDB {
       ) {
         const lote = personalAdministrativoServidor.slice(i, i + BATCH_SIZE);
 
-        // Para cada miembro del personal administrativo en el lote
+        // // Para cada miembro del pernal administrativo en el lote
         for (const personalServidor of lote) {
           try {
-            // Verificar si ya existe el personal administrativo
+            // // Verificar si ya existe el pernal administrativo
             const existePersonal = await this.getById(
               personalServidor.Id_Personal_Administrativo
             );
 
-            // Obtener un store fresco para cada operación
+            // // Obner un store fresco para cada operación
             const store = await IndexedDBConnection.getStore(
               this.nombreTablaLocal,
               "readwrite"
             );
 
-            // Ejecutar la operación put
+            // // Ejecutar la operacn put
             await new Promise<void>((resolve, reject) => {
               const request = store.put(personalServidor);
 
@@ -369,7 +360,7 @@ export class PersonalAdministrativoIDB {
           }
         }
 
-        // Dar un pequeño respiro al bucle de eventos entre lotes
+        // // Darn pequeño respiro al bucle de eventos entre lotes
         await new Promise((resolve) => setTimeout(resolve, 0));
       }
 
@@ -382,10 +373,8 @@ export class PersonalAdministrativoIDB {
   }
 
   /**
-   * Obtiene un miembro del personal administrativo por su DNI
-   * @param dni DNI del personal administrativo
-   * @returns Personal administrativo encontrado o null
-   */
+* Obtiene un miembro del personal administrativo por su DNI @param dni DNI del personal administrativo @returns Personal administrativo encontrado o null
+*/
   public async getById(
     dni: string
   ): Promise<IPersonalAdministrativoLocal | null> {
@@ -419,10 +408,8 @@ export class PersonalAdministrativoIDB {
   }
 
   /**
-   * Obtiene personal administrativo por cargo
-   * @param cargo Cargo del personal administrativo
-   * @returns Array con el personal administrativo que coincide con el cargo
-   */
+* Obtiene personal administrativo por cargo @param cargo Cargo del personal administrativo @returns Array con el personal administrativo que coincide con el cargo
+*/
   public async getByCargo(
     cargo: string
   ): Promise<IPersonalAdministrativoLocal[]> {
@@ -455,19 +442,16 @@ export class PersonalAdministrativoIDB {
   }
 
   /**
-   * Establece un mensaje de éxito
-   * @param message Mensaje de éxito
-   */
+* Establece un mensaje de éxito @param message Mensaje de éxito
+*/
   private handleSuccess(message: string): void {
     const successResponse: MessageProperty = { message };
     this.setSuccessMessage?.(successResponse);
   }
 
   /**
-   * Maneja los errores de operaciones con IndexedDB
-   * @param error El error capturado
-   * @param operacion Nombre de la operación que falló
-   */
+* Maneja los errores de operaciones con IndexedDB @param error El error capturado @param operacion Nombre de la operación que falló
+*/
   private handleIndexedDBError(error: unknown, operacion: string): void {
     console.error(`Error en operación IndexedDB (${operacion}):`, error);
 
@@ -475,7 +459,7 @@ export class PersonalAdministrativoIDB {
     let message = `Error al ${operacion}`;
 
     if (error instanceof Error) {
-      // Intentar categorizar el error según su mensaje o nombre
+      // //ntentar categorizar el error según su mensaje o nombre
       if (error.name === "ConstraintError") {
         errorType = DataConflictErrorTypes.VALUE_ALREADY_IN_USE;
         message = `Error de restricción al ${operacion}: valor duplicado`;
@@ -489,7 +473,7 @@ export class PersonalAdministrativoIDB {
         errorType = SystemErrorTypes.DATABASE_ERROR;
         message = `Transacción inactiva al ${operacion}`;
       } else {
-        // Si no podemos categorizar específicamente, usamos el mensaje del error
+        // // Sno podemos categorizar específicamente, usamos el mensaje del error
         message = error.message || message;
       }
     }

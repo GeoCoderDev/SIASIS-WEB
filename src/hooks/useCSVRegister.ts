@@ -1,30 +1,30 @@
 // import { Alerts } from "@/interfaces/Alerts";
-// import { useState } from "react";
+// / import { useState } from "react";
 
-// const useCSVRegister = <T>(initialForm: T) => {
-//   const [registerWithCSV, setRegisterWithCSV] = useState(false);
-//   const [resultsMode, setResultsMode] = useState(false);
-//   const [alerts, setAlerts] = useState<Alerts>([]);
-//   const [form, setForm] = useState<T>(initialForm);
-//   const [isThereFileUploaded, setIsThereFileUploaded] = useState(false);
-//   const [csvData, setCsvData] = useState<
-//     number[][] | string[][] | (string | number)[][] | null
-//   >();
+//nst useCSVRegister = <T>(initialForm: T) => {
+// /nst [registerWithCSV, setRegisterWithCSV] = useState(false);
+// /nst [resultsMode, setResultsMode] = useState(false);
+// /nst [alerts, setAlerts] = useState<Alerts>([]);
+// /nst [form, setForm] = useState<T>(initialForm);
+// /nst [isThereFileUploaded, setIsThereFileUploaded] = useState(false);
+// /nst [csvData, setCsvData] = useState<
+// number[][] | string[][] | (string | number)[][] | null
+// / >();
 
-//   return {
-//     registerWithCSV,
-//     setRegisterWithCSV,
-//     resultsMode,
-//     setResultsMode,
-//     alerts,
-//     setAlerts,
-//     form,
-//     setForm,
-//     isThereFileUploaded,
-//     setIsThereFileUploaded,
-//     csvData,
-//     setCsvData,
-//   };
+// retn {
+// / registerWithCSV,
+// setRegisterWithCSV,
+// resultsMode,
+// setResultsMode,
+// alerts,
+// setAlerts,
+// form,
+// setForm,
+// isThereFileUploaded,
+// setIsThereFileUploaded,
+// csvData,
+// setCsvData,
+// };
 // };
 
-// export default useCSVRegister;
+// export default useCSVRegister

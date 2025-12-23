@@ -1,50 +1,47 @@
 // ============================================================================
 // AulasParaResponsablesIDB.ts - Implementación específica para responsables
-// ============================================================================
+// / ============================================================================
 
-import { Endpoint_Get_Aulas_API02 } from "@/lib/utils/backend/endpoints/api02/Aulas";
+import {ndpoint_Get_Aulas_API02 } from "@/lib/utils/backend/endpoints/api02/Aulas";
 import { BaseAulasIDB } from "./AulasBase";
 import { T_Aulas, T_Estudiantes } from "@prisma/client";
 
 /**
- * Gestión específica de aulas para responsables (padres de familia)
- * Hereda de BaseAulasIDB y almacena en la tabla común "aulas"
- * Sincroniza solo las aulas relacionadas a los estudiantes del responsable
- */
+* Gestión específica de aulas para responsables (padres de familia) Hereda de BaseAulasIDB y almacena en la tabla común "aulas" Sincroniza solo las aulas relacionadas a los estudiantes del responsable
+*/
 export class AulasParaResponsablesIDB extends BaseAulasIDB<T_Aulas> {
   /**
-   * Sincronización específica para responsables
-   * Los responsables NO sincronizan todas las aulas, solo las específicas según demanda
-   */
+* Sincronización específica para responsables Los responsables NO sincronizan todas las aulas, solo las específicas según demanda
+*/
   protected async sync(): Promise<void> {
-    // Los responsables no sincronizan automáticamente todas las aulas
-    // Solo sincronizan aulas específicas cuando se requieren
+    // // Los resnsables no sincronizan automáticamente todas las aulas
+    // // Soloncronizan aulas específicas cuando se requieren
     return Promise.resolve();
   }
 
   /**
-   * Endpoint específico para obtener aulas
-   */
+* Endpoint específico para obtener aulas
+*/
   protected getEndpoint(): string {
     return "/api/aulas";
   }
 
   /**
-   * MÉTODO SIMPLE: Obtiene un aula por ID con sync automático
-   */
+* MÉTODO SIMPLE: Obtiene un aula por ID con sync automático
+*/
   public async obtenerAulaPorId(idAula: string): Promise<T_Aulas | null> {
     this.setIsSomethingLoading?.(true);
     this.setError?.(null);
     this.setSuccessMessage?.(null);
 
     try {
-      // SIMPLE: Solo ejecutar sync antes de consultar
+      // // SIMPLE: Solo ejecutarnc antes de consultar
       await this.sync();
 
-      // Consultar localmente primero
+      // //nsultar localmente primero
       let aula = await this.getAulaPorId(idAula);
 
-      // Si no existe localmente, consultar API específica
+      // // Sno existe localmente, consultar API específica
       if (!aula) {
         const aulasDesdeAPI = await this.solicitarAulasDesdeAPI([idAula]);
 
@@ -74,8 +71,8 @@ export class AulasParaResponsablesIDB extends BaseAulasIDB<T_Aulas> {
   }
 
   /**
-   * Solicita aulas desde la API
-   */
+* Solicita aulas desde la API
+*/
   protected async solicitarAulasDesdeAPI(
     idsAulas?: string[]
   ): Promise<T_Aulas[]> {
@@ -92,10 +89,8 @@ export class AulasParaResponsablesIDB extends BaseAulasIDB<T_Aulas> {
   }
 
   /**
-   * MÉTODO ÚTIL PRINCIPAL
-   * Obtiene las aulas correspondientes a una lista de estudiantes
-   * Sincroniza solo las aulas faltantes de manera eficiente
-   */
+* MÉTODO ÚTIL PRINCIPAL Obtiene las aulas correspondientes a una lista de estudiantes Sincroniza solo las aulas faltantes de manera eficiente
+*/
   public async obtenerAulasPorEstudiantes(
     estudiantes: T_Estudiantes[]
   ): Promise<T_Aulas[]> {
@@ -104,10 +99,10 @@ export class AulasParaResponsablesIDB extends BaseAulasIDB<T_Aulas> {
     this.setSuccessMessage?.(null);
 
     try {
-      // 1. Ejecutar sync antes de cualquier consulta
+      // // 1. Ejecutarnc antes de cualquier consulta
       await this.sync();
 
-      // 2. Extraer IDs de aulas únicos (sin duplicados y sin nulls)
+      // // 2. Extraer IDs de aulasnicos (sin duplicados y sin nulls)
       const idsAulasRequeridas = Array.from(
         new Set(
           estudiantes
@@ -128,7 +123,7 @@ export class AulasParaResponsablesIDB extends BaseAulasIDB<T_Aulas> {
         `Procesando ${idsAulasRequeridas.length} aulas únicas para ${estudiantes.length} estudiantes`
       );
 
-      // 3. Verificar qué aulas ya están en IndexedDB
+      // // 3. Verificar qué aulas ya esn en IndexedDB
       const aulasEnCache: T_Aulas[] = [];
       const idsFaltantes: string[] = [];
 
@@ -145,7 +140,7 @@ export class AulasParaResponsablesIDB extends BaseAulasIDB<T_Aulas> {
         `Aulas en caché: ${aulasEnCache.length}, Aulas faltantes: ${idsFaltantes.length}`
       );
 
-      // 4. Si todas las aulas están en caché, retornar directamente
+      // // 4. Si todas las aulas esn en caché, retornar directamente
       if (idsFaltantes.length === 0) {
         this.handleSuccess(
           `Se encontraron todas las ${aulasEnCache.length} aulas en caché local`
@@ -154,7 +149,7 @@ export class AulasParaResponsablesIDB extends BaseAulasIDB<T_Aulas> {
         return aulasEnCache;
       }
 
-      // 5. Consultar solo las aulas faltantes a la API
+      // // 5.nsultar solo las aulas faltantes a la API
       console.log(
         `Consultando ${idsFaltantes.length} aulas faltantes a la API:`,
         idsFaltantes
@@ -162,7 +157,7 @@ export class AulasParaResponsablesIDB extends BaseAulasIDB<T_Aulas> {
 
       const aulasDesdeAPI = await this.solicitarAulasDesdeAPI(idsFaltantes);
 
-      // 6. Almacenar las nuevas aulas en la tabla común
+      // // 6. Almanar las nuevas aulas en la tabla común
       if (aulasDesdeAPI.length > 0) {
         const result = await this.upsertFromServer(aulasDesdeAPI);
         console.log(
@@ -170,10 +165,10 @@ export class AulasParaResponsablesIDB extends BaseAulasIDB<T_Aulas> {
         );
       }
 
-      // 7. Combinar aulas del caché con las obtenidas de la API
+      // // 7. Comnar aulas del caché con las obtenidas de la API
       const todasLasAulas = [...aulasEnCache, ...aulasDesdeAPI];
 
-      // 8. Verificar si se obtuvieron todas las aulas requeridas
+      // // 8. Verificar si se obtuvien todas las aulas requeridas
       const idsObtenidos = new Set(todasLasAulas.map((aula) => aula.Id_Aula));
       const aulasFaltantesFinal = idsAulasRequeridas.filter(
         (id) => !idsObtenidos.has(id)
@@ -203,18 +198,18 @@ export class AulasParaResponsablesIDB extends BaseAulasIDB<T_Aulas> {
   }
 
   /**
-   * Obtiene aulas específicas por sus IDs, consultando la API si es necesario
-   */
+* Obtiene aulas específicas por sus IDs, consultando la API si es necesario
+*/
   public async obtenerAulasEspecificas(idsAulas: string[]): Promise<T_Aulas[]> {
     this.setIsSomethingLoading?.(true);
     this.setError?.(null);
     this.setSuccessMessage?.(null);
 
     try {
-      // 1. Ejecutar sync antes de cualquier consulta
+      // // 1. Ejecutarnc antes de cualquier consulta
       await this.sync();
 
-      // 2. Eliminar duplicados
+      // // 2. Elinar duplicados
       const idsUnicos = Array.from(new Set(idsAulas));
 
       if (idsUnicos.length === 0) {
@@ -223,7 +218,7 @@ export class AulasParaResponsablesIDB extends BaseAulasIDB<T_Aulas> {
         return [];
       }
 
-      // 3. Verificar qué aulas ya están en IndexedDB
+      // // 3. Verificar qué aulas ya esn en IndexedDB
       const aulasEnCache: T_Aulas[] = [];
       const idsFaltantes: string[] = [];
 
@@ -236,7 +231,7 @@ export class AulasParaResponsablesIDB extends BaseAulasIDB<T_Aulas> {
         }
       }
 
-      // 4. Si todas las aulas están en caché, retornar directamente
+      // // 4. Si todas las aulas esn en caché, retornar directamente
       if (idsFaltantes.length === 0) {
         this.handleSuccess(
           `Se encontraron todas las ${aulasEnCache.length} aulas en caché local`
@@ -245,15 +240,15 @@ export class AulasParaResponsablesIDB extends BaseAulasIDB<T_Aulas> {
         return aulasEnCache;
       }
 
-      // 5. Consultar solo las aulas faltantes a la API
+      // // 5.nsultar solo las aulas faltantes a la API
       const aulasDesdeAPI = await this.solicitarAulasDesdeAPI(idsFaltantes);
 
-      // 6. Almacenar las nuevas aulas en la tabla común
+      // // 6. Almanar las nuevas aulas en la tabla común
       if (aulasDesdeAPI.length > 0) {
         await this.upsertFromServer(aulasDesdeAPI);
       }
 
-      // 7. Combinar resultados
+      // // 7. Comnar resultados
       const todasLasAulas = [...aulasEnCache, ...aulasDesdeAPI];
 
       this.handleSuccess(
@@ -270,8 +265,8 @@ export class AulasParaResponsablesIDB extends BaseAulasIDB<T_Aulas> {
   }
 
   /**
-   * Manejo específico de errores de sincronización para responsables
-   */
+* Manejo específico de errores de sincronización para responsables
+*/
   protected async handleSyncError(error: unknown): Promise<void> {
     let errorType: any = "UNKNOWN_ERROR";
     let message = "Error al sincronizar aulas del responsable";
@@ -305,12 +300,12 @@ export class AulasParaResponsablesIDB extends BaseAulasIDB<T_Aulas> {
         logoutType = LogoutTypes.ERROR_BASE_DATOS;
       } else {
         message = error.message;
-        // Para aulas, errores menores no requieren logout automático
+        // // Para aulas, erroresnores no requieren logout automático
         shouldLogout = false;
       }
     }
 
-    // Establecer error en el estado
+    // // Establecer errorn el estado
     this.setError?.({
       success: false,
       message: message,
@@ -321,7 +316,7 @@ export class AulasParaResponsablesIDB extends BaseAulasIDB<T_Aulas> {
       },
     });
 
-    // Solo cerrar sesión en errores críticos
+    // // Solo cerrar sesn en errores críticos
     if (shouldLogout && logoutType) {
       console.error(
         "Error crítico en sincronización de aulas - cerrando sesión:",

@@ -16,7 +16,7 @@ import { MARQUE_LA_ASISTENCIA_DE_ESTE_PERSONAL_PAYLOAD } from "../interfaces/Pay
 export class TomaAsistenciaPersonalSIU01Events {
   public static socketConnection: SocketIOClient.Socket | null = null;
 
-  // Método para verificar si hay conexión disponible
+  // // Método para verificar si haynexión disponible
   private static checkConnection(): boolean {
     if (!this.socketConnection) {
       console.error(
@@ -105,14 +105,14 @@ export class TomaAsistenciaPersonalSIU01Events {
       }
     }
 
-    // Método para limpiar el listener
+    // // Método para limpiar el lisner
     unhand(): boolean {
       if (!this.socketHandler) {
         return false;
       }
 
       try {
-        // Asumir que SocketHandler tiene un método para limpiar
+        // // Asumir que Socketndler tiene un método para limpiar
         if (TomaAsistenciaPersonalSIU01Events.socketConnection) {
           TomaAsistenciaPersonalSIU01Events.socketConnection.off(
             NombresEventosTomaAsistenciaDePersonalSS01.RESPUESTA_SALUDO
@@ -293,14 +293,14 @@ export class TomaAsistenciaPersonalSIU01Events {
       }
     }
 
-    // Método para limpiar el listener
+    // // Método para limpiar el lisner
     unhand(): boolean {
       if (!this.socketHandler) {
         return false;
       }
 
       try {
-        // Asumir que SocketHandler tiene un método para limpiar
+        // // Asumir que Socketndler tiene un método para limpiar
         if (TomaAsistenciaPersonalSIU01Events.socketConnection) {
           TomaAsistenciaPersonalSIU01Events.socketConnection.off(
             NombresEventosTomaAsistenciaDePersonalSS01.SE_ACABA_DE_MARCAR_LA_ASISTENCIA_DE_ESTE_PERSONAL
@@ -362,14 +362,14 @@ export class TomaAsistenciaPersonalSIU01Events {
       }
     }
 
-    // Método para limpiar el listener
+    // // Método para limpiar el lisner
     unhand(): boolean {
       if (!this.socketHandler) {
         return false;
       }
 
       try {
-        // Asumir que SocketHandler tiene un método para limpiar
+        // // Asumir que Socketndler tiene un método para limpiar
         if (TomaAsistenciaPersonalSIU01Events.socketConnection) {
           TomaAsistenciaPersonalSIU01Events.socketConnection.off(
             NombresEventosTomaAsistenciaDePersonalSS01.SE_ACABA_DE_ELIMINAR_LA_ASISTENCIA_DE_ESTE_PERSONAL
@@ -389,7 +389,7 @@ export class TomaAsistenciaPersonalSIU01Events {
     }
   };
 
-  // Método estático para limpiar todos los listeners
+  // // Método estático para limpiar todos los lisners
   static cleanup(): void {
     if (this.socketConnection) {
       this.socketConnection.removeAllListeners();
@@ -399,7 +399,7 @@ export class TomaAsistenciaPersonalSIU01Events {
     }
   }
 
-  // Método para verificar el estado de la conexión
+  // // Método para verificar el estado de lanexión
   static getConnectionStatus(): {
     hasConnection: boolean;
     isConnected: boolean;

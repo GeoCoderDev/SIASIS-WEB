@@ -95,7 +95,7 @@ const GestionHorariosAsistenciaEscolares = () => {
               ))}
             </section>
 
-            {/* Asistencia Secundaria*/}
+            {/* Asistencia Secundaria */}
             <section className="mb-12 sxs-only:mb-8 xs-only:mb-9 sm-only:mb-10 md-only:mb-10 lg-only:mb-8 xl-only:mb-10">
               <h2 className="text-2xl sxs-only:text-lg xs-only:text-xl sm-only:text-xl md-only:text-xl lg-only:text-lg xl-only:text-xl font-semibold text-negro mb-3 sxs-only:mb-2 xs-only:mb-2 sm-only:mb-2 md-only:mb-2 lg-only:mb-2 xl-only:mb-2">
                 Horario de Registro de Asistencia de Estudiantes de Secundaria

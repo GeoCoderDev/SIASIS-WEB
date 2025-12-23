@@ -4,8 +4,8 @@ import { redisClient } from "../../../../config/Redis/RedisClient";
 import { esContenidoJSON } from "../_helpers/esContenidoJSON";
 
 /**
- * Resultado de la operación de obtener datos de asistencia
- */
+* Resultado de la operación de obtener datos de asistencia
+*/
 export interface ResultadoObtenerDatosAsistencia {
   datos: DatosAsistenciaHoyIE20935;
   fuente: "cache" | "blob" | "respaldo";
@@ -13,19 +13,19 @@ export interface ResultadoObtenerDatosAsistencia {
 }
 
 /**
- * Configuración del servicio de datos de asistencia
- */
+* Configuración del servicio de datos de asistencia
+*/
 const CONFIG_SERVICIO_DATOS_ASISTENCIA = {
-  // Duración del cache en milisegundos (2 horas)
+  // // Duracn del cache en milisegundos (2 horas)
   CACHE_DURACION: 2 * 60 * 60 * 1000,
 
-  // Timeout para las peticiones HTTP (10 segundos)
+  // // Timeout para las peticnes HTTP (10 segundos)
   TIMEOUT_HTTP: 10 * 1000,
 } as const;
 
 /**
- * Cache global para los datos de asistencia
- */
+* Cache global para los datos de asistencia
+*/
 class CacheDatosAsistencia {
   private static datos: DatosAsistenciaHoyIE20935 | null = null;
   private static ultimaActualizacion = 0;
@@ -57,8 +57,8 @@ class CacheDatosAsistencia {
 }
 
 /**
- * Crea un fetch con timeout personalizado
- */
+* Crea un fetch con timeout personalizado
+*/
 function fetchConTimeout(url: string, timeout: number): Promise<Response> {
   return Promise.race([
     fetch(url),
@@ -69,8 +69,8 @@ function fetchConTimeout(url: string, timeout: number): Promise<Response> {
 }
 
 /**
- * Obtiene los datos de asistencia desde el blob principal
- */
+* Obtiene los datos de asistencia desde el blob principal
+*/
 async function obtenerDatosDesdeBlob(): Promise<DatosAsistenciaHoyIE20935> {
   const url = `${process.env
     .RDP04_THIS_INSTANCE_VERCEL_BLOB_BASE_URL!}/${NOMBRE_ARCHIVO_CON_DATOS_ASISTENCIA_DIARIOS}`;
@@ -99,12 +99,12 @@ async function obtenerDatosDesdeBlob(): Promise<DatosAsistenciaHoyIE20935> {
 }
 
 /**
- * Obtiene los datos de asistencia desde Google Drive (respaldo)
- */
+* Obtiene los datos de asistencia desde Google Drive (respaldo)
+*/
 async function obtenerDatosDesdeRespaldo(): Promise<DatosAsistenciaHoyIE20935> {
   console.log("📁 Obteniendo datos desde respaldo Google Drive...");
 
-  // Obtener el ID de Google Drive desde Redis
+  // // Obner el ID de Google Drive desde Redis
   const googleDriveId = await redisClient().get(
     NOMBRE_ARCHIVO_CON_DATOS_ASISTENCIA_DIARIOS
   );
@@ -113,7 +113,7 @@ async function obtenerDatosDesdeRespaldo(): Promise<DatosAsistenciaHoyIE20935> {
     throw new Error("No se encontró el ID del archivo de respaldo en Redis");
   }
 
-  const url = `https://drive.google.com/uc?export=download&id=${googleDriveId}`;
+  const url = `https:// drive.google.com/uc?export=download&id=${googleDriveId}`;
 
   const response = await fetchConTimeout(
     url,
@@ -137,25 +137,12 @@ async function obtenerDatosDesdeRespaldo(): Promise<DatosAsistenciaHoyIE20935> {
 }
 
 /**
- * Obtiene los datos de asistencia con cache, fuente principal y respaldo
- *
- * @param forzarActualizacion - Si es true, ignora el cache y obtiene datos frescos
- * @returns Promesa con los datos de asistencia y información sobre la fuente
- *
- * @example
- * ```typescript
- * // Uso básico (con cache)
- * const resultado = await obtenerDatosAsistenciaHoy();
- * console.log(resultado.datos, resultado.fuente);
- *
- * // Forzar actualización
- * const resultado = await obtenerDatosAsistenciaHoy(true);
- * ```
- */
+* Obtiene los datos de asistencia con cache, fuente principal y respaldo @param forzarActualizacion - Si es true, ignora el cache y obtiene datos frescos @returns Promesa con los datos de asistencia y información sobre la fuente @example ```typescript // // Uso básico (n cache) const resultado = await obtenerDatosAsistenciaHoy(); console.log(resultado.datos, resultado.fuente); // // Forzar actualizacn const resultado = await obtenerDatosAsistenciaHoy(true); ```
+*/
 export async function obtenerDatosAsistenciaHoy(
   forzarActualizacion = false
 ): Promise<ResultadoObtenerDatosAsistencia> {
-  // Verificar cache primero (si no se fuerza actualización)
+  // // Verificar cache primero (sno se fuerza actualización)
   if (!forzarActualizacion) {
     const datosCache = CacheDatosAsistencia.get(
       CONFIG_SERVICIO_DATOS_ASISTENCIA.CACHE_DURACION
@@ -181,11 +168,11 @@ export async function obtenerDatosAsistenciaHoy(
     }
   }
 
-  // Intentar obtener desde fuente principal (blob)
+  // //ntentar obtener desde fuente principal (blob)
   try {
     const datos = await obtenerDatosDesdeBlob();
 
-    // Actualizar cache con los nuevos datos
+    // // Actualizar cachen los nuevos datos
     CacheDatosAsistencia.set(datos);
 
     return {
@@ -199,11 +186,11 @@ export async function obtenerDatosAsistenciaHoy(
       errorBlob
     );
 
-    // Intentar obtener desde respaldo (Google Drive)
+    // //ntentar obtener desde respaldo (Google Drive)
     try {
       const datos = await obtenerDatosDesdeRespaldo();
 
-      // Actualizar cache con los datos del respaldo
+      // // Actualizar cachen los datos del respaldo
       CacheDatosAsistencia.set(datos);
 
       return {
@@ -216,7 +203,7 @@ export async function obtenerDatosAsistenciaHoy(
     } catch (errorRespaldo) {
       console.error("❌ Error en respaldo:", errorRespaldo);
 
-      // Si ambos fallan, lanzar error descriptivo
+      // // Si ambos faln, lanzar error descriptivo
       throw new Error(
         `Falló el acceso principal y el respaldo. ` +
           `Principal: ${(errorBlob as Error).message}. ` +
@@ -227,17 +214,16 @@ export async function obtenerDatosAsistenciaHoy(
 }
 
 /**
- * Limpia el cache de datos de asistencia
- * Útil para testing o para forzar una nueva obtención de datos
- */
+* Limpia el cache de datos de asistencia Útil para testing o para forzar una nueva obtención de datos
+*/
 export function limpiarCacheDatosAsistencia(): void {
   CacheDatosAsistencia.limpiar();
   console.log("🧹 Cache de datos de asistencia limpiado");
 }
 
 /**
- * Obtiene información sobre el estado actual del cache
- */
+* Obtiene información sobre el estado actual del cache
+*/
 export function obtenerEstadoCache(): {
   tieneCache: boolean;
   tiempoRestanteMinutos: number;

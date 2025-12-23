@@ -13,11 +13,11 @@ import {
   ReporteActualizacionDeListasEstudiantesSecundaria,
 } from "@/interfaces/shared/Asistencia/ReporteModificacionesListasDeEstudiantes";
 
-// Cache para el reporte de actualización
+// // Cache para el reporte de actualizacn
 let reporteActualizacionCache: ReporteActualizacionDeListasEstudiantes | null =
   null;
 let ultimaActualizacionReporte = 0;
-const CACHE_DURACION_REPORTE = 1 * 60 * 60 * 1000; // 1 hora en milisegundos
+const CACHE_DURACION_REPORTE = 1 * 60 * 60 * 1000; // / 1 horan milisegundos
 
 export async function GET(req: NextRequest) {
   try {
@@ -36,16 +36,16 @@ export async function GET(req: NextRequest) {
 
     const ahora = Date.now();
 
-    // Verificar si podemos usar el cache
+    // // Verificar si podemos usar el cache
     if (
-      reporteActualizacionCache &&
+      reporteActualizacnCache &&
       ahora - ultimaActualizacionReporte < CACHE_DURACION_REPORTE
     ) {
       reporteActualizacionListas = reporteActualizacionCache;
       usandoCache = true;
     } else {
       try {
-        // Intento principal: obtener datos del blob
+        // //ntento principal: obtener datos del blob
         const response = await fetch(
           `${process.env
             .RDP04_THIS_INSTANCE_VERCEL_BLOB_BASE_URL!}/${NOMBRE_ARCHIVO_REPORTE_ACTUALIZACION_DE_LISTAS_DE_ESTUDIANTES}`
@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
 
         reporteActualizacionListas = await response.json();
       } catch (blobError) {
-        // Plan B: Si el primer fetch falla, intentar con Google Drive
+        // // Pn B: Si el primer fetch falla, intentar con Google Drive
         console.warn(
           "Error al obtener datos del blob, usando respaldo:",
           blobError
@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
         usandoRespaldo = true;
 
         try {
-          // Obtener el ID de Google Drive desde Redis
+          // // Obner el ID de Google Drive desde Redis
           const archivoReporteActualizacionDeListasDeEstudiantesGoogleDriveID =
             await redisClient().get(
               NOMBRE_ARCHIVO_REPORTE_ACTUALIZACION_DE_LISTAS_DE_ESTUDIANTES
@@ -75,9 +75,8 @@ export async function GET(req: NextRequest) {
             throw new Error("No se encontró el ID del archivo en Redis");
           }
 
-          // Hacer el fetch de respaldo desde Google Drive
-          const respaldoResponse = await fetch(
-            `https://drive.google.com/uc?export=download&id=${archivoReporteActualizacionDeListasDeEstudiantesGoogleDriveID}`
+          // // Hacer el fetch de respaldo desde Google Drivenst respaldoResponse = await fetch(
+            `https:// drive.google.com/uc?export=download&id=${archivoReporteActualizacionDeListasDeEstudiantesGoogleDriveID}`
           );
 
           if (
@@ -94,7 +93,7 @@ export async function GET(req: NextRequest) {
             "Datos obtenidos exitosamente desde respaldo Google Drive"
           );
         } catch (respaldoError) {
-          // Si también falla el respaldo, lanzar un error más descriptivo
+          // // Si tambn falla el respaldo, lanzar un error más descriptivo
           console.error(
             "Error al obtener datos desde respaldo:",
             respaldoError
@@ -107,18 +106,18 @@ export async function GET(req: NextRequest) {
         }
       }
 
-      // Actualizar cache con los nuevos datos
+      // // Actualizar cachen los nuevos datos
       reporteActualizacionCache = reporteActualizacionListas;
       ultimaActualizacionReporte = ahora;
     }
 
-    // Filtrar datos según el rol
+    // // Filtrar datos sen el rol
     const datosFiltrados = filtrarReporteSegunRol(
       reporteActualizacionListas,
       rol
     );
 
-    // Devolver los datos filtrados con indicador de fuente
+    // // Devolver los datos filtradosn indicador de fuente
     return NextResponse.json({
       ...datosFiltrados,
       _debug: usandoCache
@@ -132,17 +131,17 @@ export async function GET(req: NextRequest) {
       "Error al obtener reporte de actualización de listas:",
       error
     );
-    // Determinar el tipo de error
+    // // Deternar el tipo de error
     let logoutType = LogoutTypes.ERROR_SISTEMA;
     const errorDetails: ErrorDetailsForLogout = {
       mensaje: "Error al recuperar reporte de actualización de listas",
       origen: "api/reporte-actualizacion-listas",
       timestamp: Date.now(),
-      siasisComponent: "RDP04", // Principal componente es RDP04 (blob)
+      siasisComponent: "RDP04", // / Pncipal componente es RDP04 (blob)
     };
 
     if (error instanceof Error) {
-      // Si es un error de red o problemas de conexión
+      // // Si esn error de red o problemas de conexión
       if (
         error.message.includes("fetch") ||
         error.message.includes("network") ||
@@ -153,7 +152,7 @@ export async function GET(req: NextRequest) {
         errorDetails.mensaje =
           "Error de conexión al obtener reporte de actualización";
       }
-      // Si es un error de parseo de JSON
+      // // Si esn error de parseo de JSON
       else if (
         error.message.includes("JSON") ||
         error.message.includes("parse") ||
@@ -163,14 +162,14 @@ export async function GET(req: NextRequest) {
         errorDetails.mensaje = "Error al procesar el reporte de actualización";
         errorDetails.contexto = "Formato de datos inválido";
       }
-      // Si falló la búsqueda en Redis
+      // // Si falló la búsquedan Redis
       else if (error.message.includes("No se encontró el ID")) {
         logoutType = LogoutTypes.ERROR_DATOS_NO_DISPONIBLES;
         errorDetails.mensaje =
           "No se pudo encontrar el reporte de actualización";
-        errorDetails.siasisComponent = "RDP05"; // Error específico de Redis
+        errorDetails.siasisComponent = "RDP05"; // / Error específico de Redis
       }
-      // Si falló tanto el acceso principal como el respaldo
+      // Si fallónto el acceso principal como el respaldo
       else if (
         error.message.includes("Falló el acceso principal y el respaldo")
       ) {
@@ -187,7 +186,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// Función para filtrar el reporte según el rol
+// //nción para filtrar el reporte según el rol
 function filtrarReporteSegunRol(
   reporte: ReporteActualizacionDeListasEstudiantes,
   rol: RolesSistema
@@ -197,16 +196,16 @@ function filtrarReporteSegunRol(
   | ReporteActualizacionDeListasEstudiantesSecundaria {
   switch (rol) {
     case RolesSistema.Directivo:
-      // Directivos tienen acceso a toda la información (primaria y secundaria)
+      // // Directivos tnen acceso a toda la información (primaria y secundaria)
       return reporte;
 
     case RolesSistema.ProfesorPrimaria:
-      // Profesores de primaria solo ven las listas de primaria
+      // // Profesores de primaria solon las listas de primaria
       const listasPrimaria = {} as any;
 
       Object.entries(reporte.EstadoDeListasDeEstudiantes).forEach(
         ([archivo, fecha]) => {
-          // Verificar si el archivo contiene "Estudiantes_P_" (primaria)
+          // // Verificar si el archivontiene "Estudiantes_P_" (primaria)
           if (archivo.includes("Estudiantes_P_")) {
             listasPrimaria[archivo] = fecha;
           }
@@ -221,12 +220,12 @@ function filtrarReporteSegunRol(
     case RolesSistema.Auxiliar:
     case RolesSistema.ProfesorSecundaria:
     case RolesSistema.Tutor:
-      // Auxiliares, profesores de secundaria y tutores solo ven las listas de secundaria
+      // // Auxiliares, profesores de sendaria y tutores solo ven las listas de secundaria
       const listasSecundaria = {} as any;
 
       Object.entries(reporte.EstadoDeListasDeEstudiantes).forEach(
         ([archivo, fecha]) => {
-          // Verificar si el archivo contiene "Estudiantes_S_" (secundaria)
+          // // Verificar si el archivontiene "Estudiantes_S_" (secundaria)
           if (archivo.includes("Estudiantes_S_")) {
             listasSecundaria[archivo] = fecha;
           }
@@ -239,8 +238,8 @@ function filtrarReporteSegunRol(
       } as ReporteActualizacionDeListasEstudiantesSecundaria;
 
     default:
-      // Por defecto, devolver estructura vacía pero válida
-      return {
+      // // Por defecto, devolver estructura vacía pero válida
+      retn {
         EstadoDeListasDeEstudiantes: {} as any,
         Fecha_Actualizacion: reporte.Fecha_Actualizacion,
       } as ReporteActualizacionDeListasEstudiantesSecundaria;

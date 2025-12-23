@@ -105,7 +105,7 @@ const GestionHorariosLaborales = () => {
         {/* Contenido alineado a la izquierda */}
         <div className="flex-1 flex justify-start px-6 sxs-only:px-4 xs-only:px-4 sm-only:px-5 md-only:px-5 lg-only:px-4 xl-only:px-5 py-4 sxs-only:py-3 xs-only:py-3 sm-only:py-3 md-only:py-3 lg-only:py-3 xl-only:py-3 overflow-y-auto">
           <div className="w-full max-w-5xl">
-            {/*Registro Asistencia*/}
+            {/* Registro Asistencia */}
             <section className="mb-12 sxs-only:mb-8 xs-only:mb-9 sm-only:mb-10 md-only:mb-10 lg-only:mb-8 xl-only:mb-10">
               <h2 className="text-2xl sxs-only:text-lg xs-only:text-xl sm-only:text-xl md-only:text-xl lg-only:text-lg xl-only:text-xl font-semibold text-negro mb-3 sxs-only:mb-2 xs-only:mb-2 sm-only:mb-2 md-only:mb-2 lg-only:mb-2 xl-only:mb-2">
                 Horario Total de Registro de Asistencia
@@ -145,7 +145,7 @@ const GestionHorariosLaborales = () => {
               ))}
             </section>
 
-            {/*Profesores de Primaria*/}
+            {/* Profesores de Primaria */}
             <section className="mb-12 sxs-only:mb-8 xs-only:mb-9 sm-only:mb-10 md-only:mb-10 lg-only:mb-8 xl-only:mb-10">
               <h2 className="text-2xl sxs-only:text-lg xs-only:text-xl sm-only:text-xl md-only:text-xl lg-only:text-lg xl-only:text-xl font-semibold text-negro mb-3 sxs-only:mb-2 xs-only:mb-2 sm-only:mb-2 md-only:mb-2 lg-only:mb-2 xl-only:mb-2">
                 Horario Laboral de los Profesores de Primaria
@@ -185,7 +185,7 @@ const GestionHorariosLaborales = () => {
               ))}
             </section>
 
-            {/*Profesores de Secundaria*/}
+            {/* Profesores de Secundaria */}
             <section className="mb-12 sxs-only:mb-8 xs-only:mb-9 sm-only:mb-10 md-only:mb-10 lg-only:mb-8 xl-only:mb-10">
               <h2 className="text-2xl sxs-only:text-lg xs-only:text-xl sm-only:text-xl md-only:text-xl lg-only:text-lg xl-only:text-xl font-semibold text-negro mb-3 sxs-only:mb-2 xs-only:mb-2 sm-only:mb-2 md-only:mb-2 lg-only:mb-2 xl-only:mb-2">
                 Horario Laboral de los Profesores de Secundaria
@@ -226,7 +226,7 @@ const GestionHorariosLaborales = () => {
               ))}
             </section>
 
-            {/*Auxiliares*/}
+            {/* Auxiliares */}
             <section className="mb-12 sxs-only:mb-8 xs-only:mb-9 sm-only:mb-10 md-only:mb-10 lg-only:mb-8 xl-only:mb-10">
               <h2 className="text-2xl sxs-only:text-lg xs-only:text-xl sm-only:text-xl md-only:text-xl lg-only:text-lg xl-only:text-xl font-semibold text-negro mb-3 sxs-only:mb-2 xs-only:mb-2 sm-only:mb-2 md-only:mb-2 lg-only:mb-2 xl-only:mb-2">
                 Horario Laboral de los Auxiliares
@@ -266,7 +266,7 @@ const GestionHorariosLaborales = () => {
               ))}
             </section>
 
-            {/*Vacaciones Interescolares*/}
+            {/* Vacaciones Interescolares */}
             <section className="mb-12 sxs-only:mb-8 xs-only:mb-9 sm-only:mb-10 md-only:mb-10 lg-only:mb-8 xl-only:mb-10">
               <h2 className="text-2xl sxs-only:text-lg xs-only:text-xl sm-only:text-xl md-only:text-xl lg-only:text-lg xl-only:text-xl font-semibold text-negro mb-3 sxs-only:mb-2 xs-only:mb-2 sm-only:mb-2 md-only:mb-2 lg-only:mb-2 xl-only:mb-2">
                 Horario Laboral para el Personal durante Vacaciones
@@ -308,7 +308,7 @@ const GestionHorariosLaborales = () => {
               ))}
             </section>
 
-            {/*Semana de Gestión*/}
+            {/* Semana de Gestión */}
             <section className="mb-12 sxs-only:mb-8 xs-only:mb-9 sm-only:mb-10 md-only:mb-10 lg-only:mb-8 xl-only:mb-10">
               <h2 className="text-2xl sxs-only:text-lg xs-only:text-xl sm-only:text-xl md-only:text-xl lg-only:text-lg xl-only:text-xl font-semibold text-negro mb-3 sxs-only:mb-2 xs-only:mb-2 sm-only:mb-2 md-only:mb-2 lg-only:mb-2 xl-only:mb-2">
                 Horario Laboral para el Personal durante la Semana de Gestión

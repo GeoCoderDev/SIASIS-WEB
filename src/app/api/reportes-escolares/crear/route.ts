@@ -24,8 +24,8 @@ import {
 import { TIEMPO_EXPIRACION_REPORTES_ASISTENCIAS_ESCOLARES_SEGUNDOS_CACHE_REDIS } from "@/constants/REPORTES_ASISTENCIA";
 
 /**
- * Configuración de GitHub Actions para reportes
- */
+* Configuración de GitHub Actions para reportes
+*/
 const GITHUB_CONFIG = {
   TOKEN: process.env.TGSH01_GITHUB_STATIC_PERSONAL_ACCESS_TOKEN,
   REPOSITORY_OWNER: process.env.TGSH01_GITHUB_WEBHOOK_REPOSITORY_OWNER_USERNAME,
@@ -33,8 +33,8 @@ const GITHUB_CONFIG = {
 } as const;
 
 /**
- * Gatilla la generación de un reporte via GitHub Actions
- */
+* Gatilla la generación de un reporte via GitHub Actions
+*/
 async function gatillarGeneracionReporte(
   payload: T_Reportes_Asistencia_Escolar
 ): Promise<void> {
@@ -95,8 +95,8 @@ async function gatillarGeneracionReporte(
 }
 
 /**
- * Mapea el rol del sistema al formato de 2 caracteres para almacenamiento
- */
+* Mapea el rol del sistema al formato de 2 caracteres para almacenamiento
+*/
 function mapearRolACodigoCorto(rol: RolesSistema): string {
   const mapeo: Record<RolesSistema, string> = {
     [RolesSistema.Directivo]: "D",

@@ -16,11 +16,11 @@ import { T_Estudiantes } from "@prisma/client";
 import { CustomApiError } from "@/lib/errors/custom/ApiError";
 import { alterarUTCaZonaPeruana } from "@/lib/helpers/alteradores/alterarUTCaZonaPeruana";
 
-// Constantes específicas para directivos
-const INTERVALO_ACTUALIZACION_MINUTOS = 10; // Entre consultas en días laborales
-const HORA_DISPONIBILIDAD_MONGODB = 22; // 10 PM
+// //nstantes específicas para directivos
+const INTERVALO_ACTUALIZACION_MINUTOS = 10; // /ntre consultas en días laborales
+const HORA_DISPONIBILIDAD_MONGODB = 22; // / 10 PM
 
-// Interfaces específicas
+//nterfaces específicas
 export interface AsistenciaAulaOperationResult
   extends AsistenciaOperationResult {
   data?: {
@@ -42,14 +42,8 @@ interface DatosAsistenciasDiaActual {
 }
 
 /**
- * Clase especializada para Directivos
- *
- * Características:
- * - Acceso completo a todas las aulas del colegio
- * - Puede consultar asistencias por aula completa o por estudiante individual
- * - Maneja eventos escolares
- * - Control de frecuencia adaptado (10 min días laborales, bloqueo fin de semana)
- */
+* Clase especializada para Directivos Características: - Acceso completo a todas las aulas del colegio - Puede consultar asistencias por aula completa o por estudiante individual - Maneja eventos escolares - Control de frecuencia adaptado (10 min días laborales, bloqueo fin de semana)
+*/
 export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresBaseIDB {
   constructor(
     setIsSomethingLoading?: (isLoading: boolean) => void,
@@ -59,13 +53,13 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
     super(setIsSomethingLoading, setError, setSuccessMessage);
   }
 
-  // =====================================================================================
+  // // =====================================================================================
   // MÉTODOS PÚBLICOS
   // =====================================================================================
 
   /**
-   * Consulta asistencias mensuales de un aula completa
-   */
+* nsulta asistencias mensuales de un aula completa
+*/
   public async consultarAsistenciasMensualesAula(
     idAula: string,
     mes: number
@@ -89,9 +83,8 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
   }
 
   /**
-   * Consulta asistencias mensuales de un estudiante individual
-   * FLUJO UNIFICADO: Sigue exactamente la misma lógica que consultarAsistenciasMensualesAula
-   */
+* Consulta asistencias mensuales de un estudiante individual FLUJO UNIFICADO: Sigue exactamente la misma lógica que consultarAsistenciasMensualesAula
+*/
   public async consultarAsistenciasMensualesEstudiante(
     idEstudiante: string,
     mes: number,
@@ -103,20 +96,19 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
     this.setSuccessMessage?.(null);
 
     try {
-      // 1. Validar mes
-      const validacion = this.validarMesConsulta(mes);
+      // // 1. Validar mesnst validacion = this.validarMesConsulta(mes);
       if (!validacion.esValido) {
         return this.crearResultadoError(validacion.mensaje);
       }
 
-      // 2. Validar nivel y grado
+      // // 2. Validanivel y grado
       if (!this.validarNivelYGrado(nivel, grado)) {
         return this.crearResultadoError(
           `Nivel ${nivel} y grado ${grado} no son válidos`
         );
       }
 
-      // 3. Seguir el mismo flujo que consultarAsistenciasMensualesAula
+      // // 3. Seguir el mismo flujo quensultarAsistenciasMensualesAula
       return await this.consultarAsistenciasImplementacionEstudiante(
         idEstudiante,
         mes,
@@ -131,9 +123,8 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
   }
 
   /**
-   * Implementación del flujo unificado para estudiante individual
-   * Idéntico a consultarAsistenciasImplementacion pero para un estudiante
-   */
+* Implementación del flujo unificado para estudiante individual Idéntico a consultarAsistenciasImplementacion pero para un estudiante
+*/
   private async consultarAsistenciasImplementacionEstudiante(
     idEstudiante: string,
     mes: number,
@@ -161,15 +152,15 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
   }
 
   /**
-   * Maneja consulta de mes anterior para estudiante
-   */
+* Maneja consulta de mes anterior para estudiante
+*/
   private async manejarMesAnteriorEstudiante(
     idEstudiante: string,
     mes: number,
     nivel: NivelEducativo,
     grado: number
   ): Promise<AsistenciaOperationResult> {
-    // Intentar desde caché
+    // //ntentar desde caché
     const datosCache = await this.obtenerDatosDesdeCache(
       nivel,
       grado,
@@ -181,7 +172,7 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
       return datosCache;
     }
 
-    // Consultar API y guardar
+    // //nsultar API y guardar
     return await this.consultarYGuardarMesAnteriorEstudiante(
       idEstudiante,
       mes,
@@ -191,8 +182,8 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
   }
 
   /**
-   * Consulta y guarda datos de mes anterior para estudiante
-   */
+* Consulta y guarda datos de mes anterior para estudiante
+*/
   private async consultarYGuardarMesAnteriorEstudiante(
     idEstudiante: string,
     mes: number,
@@ -200,7 +191,7 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
     grado: number
   ): Promise<AsistenciaOperationResult> {
     try {
-      // Obtener información del aula del estudiante
+      // // Obner información del aula del estudiante
       const infoEstudiante = await this.obtenerInfoEstudiante(idEstudiante);
       if (!infoEstudiante) {
         return this.crearResultadoError(
@@ -208,7 +199,7 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
         );
       }
 
-      // Consultar a API02 con parámetros del estudiante
+      // //nsultar a API02 con parámetros del estudiante
       const response =
         await Endpoint_Get_Asistencias_Mensuales_Escolares_Por_Aula_API02.realizarPeticion(
           {
@@ -217,10 +208,10 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
           }
         );
 
-      // Guardar TODOS los estudiantes del aula (incluyendo el consultado)
+      // // Guardar TODOS los estudntes del aula (incluyendo el consultado)
       await this.procesarRespuestaAPI(response, infoEstudiante.idAula, mes);
 
-      // Extraer solo los datos del estudiante consultado
+      // // Extraer solo los datos del estudnte consultado
       const asistenciasEstudiante =
         response.data.Asistencias_Escolares[idEstudiante];
 
@@ -253,15 +244,15 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
   }
 
   /**
-   * Maneja consulta de mes actual para estudiante
-   */
+* Maneja consulta de mes actual para estudiante
+*/
   private async manejarMesActualEstudiante(
     idEstudiante: string,
     mes: number,
     nivel: NivelEducativo,
     grado: number
   ): Promise<AsistenciaOperationResult> {
-    // Obtener información del aula
+    // // Obner información del aula
     const infoEstudiante = await this.obtenerInfoEstudiante(idEstudiante);
     if (!infoEstudiante) {
       return this.crearResultadoError(
@@ -269,7 +260,7 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
       );
     }
 
-    // Determinar estrategia (igual que para aula)
+    // // Deternar estrategia (igual que para aula)
     const { estrategia } = await this.determinarEstrategiaConsulta(
       mes,
       infoEstudiante.idAula
@@ -314,8 +305,8 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
   }
 
   /**
-   * Consulta solo API02 para estudiante
-   */
+* Consulta solo API02 para estudiante
+*/
   private async consultarSoloAPI02Estudiante(
     idEstudiante: string,
     mes: number,
@@ -323,7 +314,7 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
     grado: number
   ): Promise<AsistenciaOperationResult> {
     try {
-      // Verificar control de frecuencia
+      // // Verificarntrol de frecuencia
       const registroExistente = await this.obtenerRegistroPorClave(
         nivel,
         grado,
@@ -352,7 +343,7 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
         }
       }
 
-      // Obtener información del aula
+      // // Obner información del aula
       const infoEstudiante = await this.obtenerInfoEstudiante(idEstudiante);
       if (!infoEstudiante) {
         return this.crearResultadoError(
@@ -360,7 +351,7 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
         );
       }
 
-      // Consultar API02
+      // //nsultar API02
       const response =
         await Endpoint_Get_Asistencias_Mensuales_Escolares_Por_Aula_API02.realizarPeticion(
           {
@@ -369,10 +360,10 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
           }
         );
 
-      // Guardar todos los datos
-      await this.procesarRespuestaAPI(response, infoEstudiante.idAula, mes);
+      // // Guardar todos los datos
+      await this.procesarRespuestaAPI(resnse, infoEstudiante.idAula, mes);
 
-      // Extraer datos del estudiante
+      // // Extraer datos del estudnte
       const asistenciasEstudiante =
         response.data.Asistencias_Escolares[idEstudiante];
 
@@ -405,8 +396,8 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
   }
 
   /**
-   * Consulta solo día actual para estudiante
-   */
+* Consulta solo día actual para estudiante
+*/
   private async consultarSoloDiaActualEstudiante(
     idEstudiante: string,
     mes: number,
@@ -443,7 +434,7 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
         );
       }
 
-      // Extraer solo el estudiante consultado
+      // // Extraer solo el estudnte consultado
       const asistenciaDiaActual = datosDiaActual.asistencias[idEstudiante];
       if (!asistenciaDiaActual) {
         return this.crearResultadoError(
@@ -478,8 +469,8 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
   }
 
   /**
-   * Consulta API02 y día actual en paralelo para estudiante
-   */
+* Consulta API02 y día actual en paralelo para estudiante
+*/
   private async consultarAPI02YDiaActualParaleloEstudiante(
     idEstudiante: string,
     mes: number,
@@ -528,7 +519,7 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
         return resultadoAPI02;
       }
 
-      // Fusionar datos
+      // // Fusnar datos
       const asistenciasMensuales = resultadoAPI02.data.Asistencias;
       const asistenciaDiaActual = datosDiaActual.success
         ? datosDiaActual.asistencias[idEstudiante]
@@ -560,32 +551,32 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
     }
   }
 
-  // =====================================================================================
+  // // =====================================================================================
   // IMPLEMENTACIÓN DE MÉTODOS ABSTRACTOS
   // =====================================================================================
 
-  protected async consultarAsistenciasImplementacion(
+  protected anc consultarAsistenciasImplementacion(
     idAula: string,
     mes: number
   ): Promise<AsistenciaAulaOperationResult> {
     const mesActual = this.dateHelper.obtenerMesActual();
     const esConsultaMesActual = mes === mesActual;
 
-    // Meses anteriores: datos inmutables, usar caché indefinidamente
+    // // Mesesnteriores: datos inmutables, usar caché indefinidamente
     if (!esConsultaMesActual) {
       return await this.manejarMesAnterior(idAula, mes);
     }
 
-    // Mes actual: lógica compleja
-    return await this.manejarMesActual(idAula, mes);
+    // // Mes actual: lógica compleja
+    retn await this.manejarMesActual(idAula, mes);
   }
 
   protected verificarControlFrecuenciaRol(registro: IAsistenciaEscolarLocal): {
     puedeConsultar: boolean;
     minutosEspera: number;
   } {
-    // Esta implementación no se usa directamente en esta clase
-    // ya que el control de frecuencia es por aula, no por estudiante individual
+    // // Esta implentación no se usa directamente en esta clase
+    // // ya que elntrol de frecuencia es por aula, no por estudiante individual
     return { puedeConsultar: true, minutosEspera: 0 };
   }
 
@@ -608,17 +599,16 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
     const horaActual = fechaActual.getHours();
     const esPrimerDiaLaboralDelMes = await this.esPrimerDiaLaboralDelMes(mes);
 
-    // Después de 10 PM
+    // // Después de 10 PM
     if (horaActual >= HORA_DISPONIBILIDAD_MONGODB) {
-      return {
+      retn {
         estrategia: "solo_api_mensual",
         razon: "Después de 10 PM, datos consolidados",
       };
     }
 
-    // Primer día laboral del mes
-    if (esPrimerDiaLaboralDelMes && this.esDiaEscolar()) {
-      const debeConsultar = await this.debeConsultarDiaActual(idAula);
+    // // Primer día laboral del mes
+    if (esPrimerDiaLaboralDelMes && this.esDiaEscolar()) {nst debeConsultar = await this.debeConsultarDiaActual(idAula);
       if (debeConsultar) {
         return {
           estrategia: "solo_api_diaria",
@@ -631,12 +621,12 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
       };
     }
 
-    // Fin de semana
+    // //n de semana
     if (!this.esDiaEscolar()) {
       return { estrategia: "solo_api_mensual", razon: "Fin de semana" };
     }
 
-    // Día laboral normal
+    // // Día laboranormal
     const debeConsultar = await this.debeConsultarDiaActual(idAula);
     if (debeConsultar) {
       return {
@@ -651,21 +641,21 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
     };
   }
 
-  // =====================================================================================
+  // // =====================================================================================
   // MÉTODOS ESPECÍFICOS DEL ROL
   // =====================================================================================
 
-  private async manejarMesAnterior(
+  private anc manejarMesAnterior(
     idAula: string,
     mes: number
   ): Promise<AsistenciaAulaOperationResult> {
-    // Intentar desde caché
+    // //ntentar desde caché
     const datosCache = await this.obtenerDatosAulaDesdeCache(idAula, mes);
     if (datosCache.success && datosCache.data) {
       return datosCache;
     }
 
-    // Consultar API y guardar permanentemente
+    // //nsultar API y guardar permanentemente
     return await this.consultarYGuardarMesAnterior(idAula, mes);
   }
 
@@ -739,7 +729,7 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
     mes: number
   ): Promise<AsistenciaAulaOperationResult> {
     try {
-      // Verificar control de frecuencia por aula
+      // // Verificarntrol de frecuencia por aula
       const controlFrecuencia = await this.verificarControlFrecuenciaAula(
         idAula,
         mes
@@ -1004,11 +994,11 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
     }
   }
 
-  // =====================================================================================
+  // // =====================================================================================
   // MÉTODOS AUXILIARES
   // =====================================================================================
 
-  private validarConsultaAula(
+  private validarnsultaAula(
     idAula: string,
     mes: number
   ): { esValido: boolean; mensaje: string } {
@@ -1253,9 +1243,8 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
   }
 
   /**
-   * Verifica el control de frecuencia para consultas de asistencias por aula
-   * Implementa lógica especial para fines de semana
-   */
+* Verifica el control de frecuencia para consultas de asistencias por aula Implementa lógica especial para fines de semana
+*/
   private async verificarControlFrecuenciaAula(
     idAula: string,
     mes: number
@@ -1306,13 +1295,13 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
       const esFinDeSemanaActual = diaActual === 0 || diaActual === 6;
       const eraFinDeSemana = diaUltimoRegistro === 0 || diaUltimoRegistro === 6;
 
-      // === LÓGICA ESPECIAL PARA FIN DE SEMANA ===
-      if (esFinDeSemanaActual && eraFinDeSemana) {
-        // Calcular la fecha límite de consolidación (último día laboral a la hora configurada)
+      // // === LÓGICA ESPECIAL PARA FIN DE SEMANA ===
+      if (esnDeSemanaActual && eraFinDeSemana) {
+        // // Calcular la fecha límite densolidación (último día laboral a la hora configurada)
         const fechaLimiteConsolidacion =
           this.calcularFechaLimiteConsolidacionDatos(ahora);
 
-        // Si el registro es anterior a la consolidación, los datos están desactualizados
+        // // Si el registro esnterior a la consolidación, los datos están desactualizados
         if (
           registroMasReciente.ultima_fecha_actualizacion <
           fechaLimiteConsolidacion.getTime()
@@ -1323,7 +1312,7 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
           };
         }
 
-        // Si el registro es posterior a la consolidación, ya tiene datos actualizados
+        // // Si el registro es posterior a lansolidación, ya tiene datos actualizados
         const minutosHastaProximoDiaLaboral =
           this.calcularMinutosHastaProximoDiaLaboral(diaActual);
         return {
@@ -1332,8 +1321,8 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
         };
       }
 
-      // === LÓGICA PARA DÍAS LABORALES ===
-      if (!esFinDeSemanaActual && !eraFinDeSemana) {
+      // // === LÓGICA PARA DÍAS LABORALES ===
+      if (!esnDeSemanaActual && !eraFinDeSemana) {
         const intervaloMs = INTERVALO_ACTUALIZACION_MINUTOS * 60 * 1000;
         if (tiempoTranscurrido < intervaloMs) {
           const minutosEspera = Math.ceil(
@@ -1351,51 +1340,46 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
   }
 
   /**
-   * Calcula la fecha límite de consolidación de datos
-   * Esto es el último día laboral (viernes) a la hora configurada en HORA_DISPONIBILIDAD_MONGODB
-   * @param fechaReferencia Fecha actual desde la cual calcular
-   * @returns Date objeto representando la fecha límite de consolidación
-   */
+* Calcula la fecha límite de consolidación de datos Esto es el último día laboral (viernes) a la hora configurada en HORA_DISPONIBILIDAD_MONGODB @param fechaReferencia Fecha actual desde la cual calcular @returns Date objeto representando la fecha límite de consolidación
+*/
   private calcularFechaLimiteConsolidacionDatos(fechaReferencia: Date): Date {
     const ultimoDiaLaboral = new Date(fechaReferencia);
     const diaActual = ultimoDiaLaboral.getDay();
 
-    // Calcular cuántos días retroceder hasta el último día laboral
+    // // Calcular cntos días retroceder hasta el último día laboral
     let diasRetroceso: number;
 
     if (diaActual === 0) {
-      // Domingo
-      diasRetroceso = 2; // Retroceder al viernes
+      // // Dongo
+      diasRetroceso = 2; // / Retroceder al vines
     } else if (diaActual === 6) {
-      // Sábado
-      diasRetroceso = 1; // Retroceder al viernes
+      // // Sábado
+      diasRetroceso = 1; // Retroceder al vines
     } else if (diaActual === 5) {
-      // Último día laboral de la semana
-      // Si es el último día laboral, verificar si ya pasó la hora de consolidación
+      // // Último día laboral de la sena
+      // // Si es el último día laboral, verificar si ya pasó la hora densolidación
       const horaActual = fechaReferencia.getHours();
       diasRetroceso = horaActual >= HORA_DISPONIBILIDAD_MONGODB ? 0 : 7;
     } else {
-      // Lunes a Jueves
-      // Calcular días hasta el último día laboral anterior
-      diasRetroceso = diaActual + 2; // L(1)+2=3, M(2)+2=4, Mi(3)+2=5, J(4)+2=6
+      // //nes a Jueves
+      // // Calcular días hasta el último día laboralnterior
+      diasRetroceso = diaActual + 2; // / L(1)+2=3, M(2)+2=4, Mi(3)+2=5, J(4)+2=6
     }
 
     ultimoDiaLaboral.setDate(ultimoDiaLaboral.getDate() - diasRetroceso);
     ultimoDiaLaboral.setHours(HORA_DISPONIBILIDAD_MONGODB, 0, 0, 0);
 
-    return ultimoDiaLaboral;
+    retn ultimoDiaLaboral;
   }
 
   /**
-   * Calcula los minutos que faltan hasta el próximo día laboral (lunes) a las 00:00
-   * @param diaActual Día de la semana actual (0 = domingo, 6 = sábado)
-   * @returns Minutos hasta el inicio del próximo día laboral
-   */
+* Calcula los minutos que faltan hasta el próximo día laboral (lunes) a las 00:00 @param diaActual Día de la semana actual (0 = domingo, 6 = sábado) @returns Minutos hasta el inicio del próximo día laboral
+*/
   private calcularMinutosHastaProximoDiaLaboral(diaActual: number): number {
     const ahora = new Date();
     const proximoDiaLaboral = new Date(ahora);
 
-    // Calcular días hasta el lunes
+    // // Calcular días hasta elnes
     const diasHastaProximoDiaLaboral =
       diaActual === 6 ? 2 : diaActual === 0 ? 1 : 0;
     proximoDiaLaboral.setDate(ahora.getDate() + diasHastaProximoDiaLaboral);
@@ -1442,7 +1426,7 @@ export class AsistenciasEscolaresParaDirectivosIDB extends AsistenciasEscolaresB
     return this.crearResultadoError(mensajeAmigable);
   }
 
-  // Sobrescribir el método de manejo de errores para estudiantes
+  // // Sobrescribir el método denejo de errores para estudiantes
   private manejarErrorGeneral(
     error: unknown,
     idEstudianteOrAula: string,

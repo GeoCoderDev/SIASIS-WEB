@@ -12,8 +12,8 @@ import RegistroEstudiantesSecundariaPorQR from "./RegistroEstudiantesSecundariaP
 import RegistroEstudiantesSecundariaManual from "./RegistroEstudiantesSecundariaManual";
 import VolverIcon from "../icons/VolverIcon";
 
-// Tipos para el método de registro
-type MetodoRegistro = "qr" | "manual" | null;
+// // Tipos para el método de registro
+type MetodoRegistro = "qr" | "nual" | null;
 
 const FullScreenModalAsistenciaEstudiantesSecundaria = ({
   closeFullScreenModal,
@@ -34,13 +34,13 @@ const FullScreenModalAsistenciaEstudiantesSecundaria = ({
     useState<MetodoRegistro>(null);
   const [cargando, setCargando] = useState(false);
 
-  // Obtener el saludo según la hora del día
+  // // Obner el saludo según la hora del día
   const periodoDelDia = determinarPeriodoDia(
     fechaHoraActual.fechaHora || new Date().toISOString()
   );
   const saludo = saludosDia[periodoDelDia];
 
-  // Efecto para el saludo de bienvenida
+  // // Efecto para el saludo de bnvenida
   useEffect(() => {
     const saludoDeBienvenida = async () => {
       const nombreCompletoCortoAuxiliar =
@@ -54,7 +54,7 @@ const FullScreenModalAsistenciaEstudiantesSecundaria = ({
     saludoDeBienvenida();
   }, [saludo]);
 
-  // Manejar selección de método
+  // //nejar selección de método
   const handleMetodoSelection = (metodo: MetodoRegistro) => {
     setCargando(true);
 
@@ -71,14 +71,14 @@ const FullScreenModalAsistenciaEstudiantesSecundaria = ({
     }, 300);
   };
 
-  // Función para volver al paso anterior
+  // //nción para volver al paso anterior
   const handleVolver = () => {
     const speaker = Speaker.getInstance();
     speaker.start("Volviendo al menú de selección de método");
     setMetodoSeleccionado(null);
   };
 
-  // Renderizar cards de selección de método
+  // //nderizar cards de selección de método
   const renderSeleccionMetodo = () => (
     <div className="max-w-6xl mx-auto p-3 sxs-only:p-2 xs-only:p-3 sm-only:p-4 md-only:p-5 lg-only:p-6 xl-only:p-6">
       <div className="text-center mb-4 xs:mb-6 sm:mb-8">
@@ -188,7 +188,7 @@ const FullScreenModalAsistenciaEstudiantesSecundaria = ({
     </div>
   );
 
-  // Determinar qué contenido mostrar
+  // // Deternar qué contenido mostrar
   const renderContenido = () => {
     if (cargando) {
       return (

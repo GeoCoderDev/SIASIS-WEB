@@ -26,7 +26,7 @@ import AllErrorTypes, {
 export type IEventoLocal = Pick<T_Eventos, "Id_Evento" | "Nombre"> & {
   Fecha_Inicio: string;
   Fecha_Conclusion: string;
-  ultima_actualizacion?: number; // ⚠️ ELIMINAR mes_consultado y año_consultado
+  ultima_actualizacion?: number; // / ⚠️ ELIMINAR mes_nsultado y año_consultado
 };
 
 export interface IEventoFilter {
@@ -51,36 +51,35 @@ export class EventosIDB {
     return fechaISO.split("T")[0];
   }
 
-  //  NUEVA LÓGICA: Sincronización basada en última modificación de tabla remota
+  // // NUEVA LÓGICA:ncronización basada en última modificación de tabla remota
   private async debeActualizarEventos(): Promise<boolean> {
     try {
       console.log(`[SYNC] 📊 Verificando si debe actualizar eventos...`);
 
-      // Obtener última actualización local
+      // // Obner última actualización local
       const ultimaActLocal =
         await ultimaActualizacionTablasLocalesIDB.getByTabla(
           this.tablaInfo.nombreLocal as TablasLocal
         );
 
-      // Obtener última modificación remota
+      // // Obner última modificación remota
       const ultimaModRemota = await new UltimaModificacionTablasIDB(
         this.siasisAPI
       ).getByTabla(this.tablaInfo.nombreRemoto!);
 
-      // Si no hay datos locales, actualizar
+      // // Sno hay datos locales, actualizar
       if (!ultimaActLocal) {
         console.log(`[SYNC] ❌ NO HAY DATOS LOCALES → DEBE ACTUALIZAR`);
         return true;
       }
 
-      // Si no hay modificación remota, mantener local
+      // // Sno hay modificación remota, mantener local
       if (!ultimaModRemota) {
         console.log(`[SYNC] ⚠️ NO HAY MOD. REMOTA → MANTENER LOCAL`);
         return false;
       }
 
-      // Comparar timestamps
-      const timestampLocal = new Date(
+      // // Comparar timestampsnst timestampLocal = new Date(
         ultimaActLocal.Fecha_Actualizacion
       ).getTime();
       const timestampRemoto = new Date(
@@ -101,12 +100,12 @@ export class EventosIDB {
       return debeActualizar;
     } catch (error) {
       console.error(`[SYNC] ❌ ERROR:`, error);
-      // En caso de error, mejor actualizar para estar seguros
+      // //n caso de error, mejor actualizar para estar seguros
       return true;
     }
   }
 
-  //  REEMPLAZAR fetchYActualizarEventosPorMes con nueva lógica global
+  // // REEMPLAZAR fetchYActualizarEntosPorMes con nueva lógica global
   private async fetchYActualizarTodosLosEventos(): Promise<void> {
     console.log(`[API] 🌐 Consultando TODOS los eventos...`);
     let consultaExitosa = false;
@@ -114,7 +113,7 @@ export class EventosIDB {
     try {
       const { fetchSiasisAPI } = fetchSiasisApiGenerator(this.siasisAPI);
 
-      // Consultar SIN filtros de mes/año para obtener TODOS los eventos activos
+      // //nsultar SIN filtros de mes/año para obtener TODOS los eventos activos
       const endpoint = `/api/eventos`;
 
       const fetchCancelable = await fetchSiasisAPI({
@@ -145,7 +144,7 @@ export class EventosIDB {
 
       console.log(`[API] ✅ Respuesta: ${cantidadEventos} eventos`);
 
-      // LIMPIAR TODOS los eventos anteriores
+      // // LIMPIAR TODOS los entos anteriores
       try {
         await this.eliminarTodosLosEventos();
         console.log(`[IDB] 🗑️ Eventos anteriores eliminados`);
@@ -153,7 +152,7 @@ export class EventosIDB {
         console.warn(`[IDB] ⚠️ Error limpiando (continuando):`, e);
       }
 
-      // Guardar eventos solo si hay
+      // // Guardar entos solo si hay
       if (cantidadEventos > 0) {
         try {
           const eventosNormalizados: IEventoLocal[] = eventosServidor.map(
@@ -164,7 +163,7 @@ export class EventosIDB {
                 String(evento.Fecha_Conclusion)
               ),
               ultima_actualizacion: Date.now(),
-              // ⚠️ NO incluir mes_consultado ni año_consultado
+              // // ⚠️ NOncluir mes_consultado ni año_consultado
             })
           );
 
@@ -172,7 +171,7 @@ export class EventosIDB {
           console.log(`[IDB] ✅ ${cantidadEventos} eventos guardados`);
         } catch (e) {
           console.error(`[IDB] ❌ Error guardando eventos:`, e);
-          throw e; // Propagar error para que se maneje en el catch principal
+          throw e; // / Propagar error para que seneje en el catch principal
         }
       } else {
         console.log(`[IDB] ℹ️ No hay eventos activos`);
@@ -186,9 +185,9 @@ export class EventosIDB {
         }`,
         errorType: SystemErrorTypes.EXTERNAL_SERVICE_ERROR,
       });
-      throw error; // Re-lanzar para que se maneje arriba
+      throw error; // / Re-nzar para que se maneje arriba
     } finally {
-      // Registrar actualización solo si fue exitosa
+      // // Registrar actualizacn solo si fue exitosa
       if (consultaExitosa) {
         try {
           await ultimaActualizacionTablasLocalesIDB.registrarActualizacion(
@@ -206,7 +205,7 @@ export class EventosIDB {
     }
   }
 
-  //  NUEVO método para eliminar TODOS los eventos
+  // // NUEVO método para elinar TODOS los eventos
   private async eliminarTodosLosEventos(): Promise<void> {
     try {
       const store = await IndexedDBConnection.getStore(
@@ -215,7 +214,7 @@ export class EventosIDB {
       );
 
       await new Promise<void>((resolve, reject) => {
-        const request = store.clear(); // Eliminar todos los registros
+        const request = store.clear(); // / Elinar todos los registros
         request.onsuccess = () => {
           console.log(`[IDB] 🗑️ Todos los eventos eliminados`);
           resolve();
@@ -228,7 +227,7 @@ export class EventosIDB {
     }
   }
 
-  //  NUEVO método para obtener eventos que afectan a un mes específico
+  // // NUEVO método para obner eventos que afectan a un mes específico
   private obtenerEventosQueAfectanMes(
     todosEventos: IEventoLocal[],
     mes: number,
@@ -241,13 +240,13 @@ export class EventosIDB {
       const fechaInicio = new Date(evento.Fecha_Inicio + "T00:00:00");
       const fechaConclusion = new Date(evento.Fecha_Conclusion + "T00:00:00");
 
-      // El evento afecta al mes si:
-      // - Comienza antes o durante el mes Y termina durante o después del mes
+      // // El ento afecta al mes si:
+      // // - Comnza antes o durante el mes Y termina durante o después del mes
       return fechaInicio <= ultimoDiaMes && fechaConclusion >= primerDiaMes;
     });
   }
 
-  //  REEMPLAZAR getEventosPorMes con nueva lógica
+  // // REEMPLAZAR getEntosPorMes con nueva lógica
   public async getEventosPorMes(
     mes: number,
     año?: number
@@ -257,11 +256,11 @@ export class EventosIDB {
     this.setSuccessMessage?.(null);
 
     try {
-      // Validar mes
+      // // Validar mes
       if (mes < 1 || mes > 12) {
         this.setError?.({
           success: false,
-          message: "El mes debe estar entre 1 y 12",
+          message: "El mes debe estarntre 1 y 12",
           errorType: SystemErrorTypes.UNKNOWN_ERROR,
         });
         return [];
@@ -273,7 +272,7 @@ export class EventosIDB {
         `\n[EVENTOS] ========== CONSULTA ${mes}/${añoFinal} ==========`
       );
 
-      // Verificar si debe actualizar TODOS los eventos
+      // // Verificar si debe actualizar TODOS los entos
       const debeActualizar = await this.debeActualizarEventos();
 
       if (debeActualizar) {
@@ -283,10 +282,10 @@ export class EventosIDB {
         console.log(`[EVENTOS] ✅ Eventos locales actualizados`);
       }
 
-      // Obtener TODOS los eventos locales
+      // // Obner TODOS los eventos locales
       const todosEventos = await this.obtenerTodosLosEventosLocales();
 
-      // Filtrar solo los que afectan al mes consultado
+      // // Filtrar solo los que afecn al mes consultado
       const eventosDelMes = this.obtenerEventosQueAfectanMes(
         todosEventos,
         mes,
@@ -299,7 +298,7 @@ export class EventosIDB {
         `  Eventos del mes ${mes}/${añoFinal}: ${eventosDelMes.length}`
       );
 
-      // Ordenar por fecha de inicio
+      // // Ornar por fecha de inicio
       eventosDelMes.sort(
         (a, b) =>
           new Date(a.Fecha_Inicio + "T00:00:00").getTime() -
@@ -322,7 +321,7 @@ export class EventosIDB {
     }
   }
 
-  //  NUEVO método para obtener todos los eventos locales
+  // // NUEVO método para obner todos los eventos locales
   private async obtenerTodosLosEventosLocales(): Promise<IEventoLocal[]> {
     try {
       const store = await IndexedDBConnection.getStore(this.nombreTablaLocal);
@@ -344,25 +343,24 @@ export class EventosIDB {
     }
   }
 
-  //  ACTUALIZAR getAll para usar la nueva lógica
+  // // ACTUALIZAR getAll para usar lnueva lógica
   public async getAll(filtros?: IEventoFilter): Promise<IEventoLocal[]> {
-    // Si hay filtro de mes, usar getEventosPorMes
+    // // Si hay filtro de mes, usar getEntosPorMes
     if (filtros?.mes) {
       return this.getEventosPorMes(filtros.mes, filtros.año);
     }
 
     try {
-      // Verificar si debe actualizar
-      const debeActualizar = await this.debeActualizarEventos();
+      // // Verificar si debe actualizarnst debeActualizar = await this.debeActualizarEventos();
 
       if (debeActualizar) {
         await this.fetchYActualizarTodosLosEventos();
       }
 
-      // Obtener todos los eventos
+      // // Obner todos los eventos
       const todosEventos = await this.obtenerTodosLosEventosLocales();
 
-      // Aplicar filtros si existen
+      // // Aplicar filtros si exisn
       let eventosFiltrados = todosEventos;
 
       if (filtros) {
@@ -429,12 +427,12 @@ export class EventosIDB {
       const mes = fechaObj.getMonth() + 1;
       const año = fechaObj.getFullYear();
 
-      // Obtener eventos del mes
+      // // Obner eventos del mes
       const eventos = await this.getEventosPorMes(mes, año);
 
       const fechaBuscada = new Date(fecha + "T00:00:00");
 
-      // Verificar si la fecha está dentro de algún evento
+      // // Verificar si la fecha estántro de algún evento
       return eventos.some((evento) => {
         const fechaInicio = new Date(evento.Fecha_Inicio + "T00:00:00");
         const fechaConclusion = new Date(evento.Fecha_Conclusion + "T00:00:00");

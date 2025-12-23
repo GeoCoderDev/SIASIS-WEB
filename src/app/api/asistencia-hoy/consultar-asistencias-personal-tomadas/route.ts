@@ -15,8 +15,8 @@ import {
 import { Meses } from "@/interfaces/shared/Meses";
 
 /**
- * Valida los permisos según el rol para consultas de asistencia personal
- */
+* Valida los permisos según el rol para consultas de asistencia personal
+*/
 const validarPermisosPersonal = (
   rol: RolesSistema,
   idConsulta: string | null,
@@ -25,7 +25,7 @@ const validarPermisosPersonal = (
 ): { esValido: boolean; mensaje?: string } => {
   switch (rol) {
     case RolesSistema.Directivo:
-      // Los directivos pueden consultar asistencias de cualquier personal
+      // // Los directivos puen consultar asistencias de cualquier personal
       return { esValido: true };
 
     case RolesSistema.Auxiliar:
@@ -33,7 +33,7 @@ const validarPermisosPersonal = (
     case RolesSistema.ProfesorSecundaria:
     case RolesSistema.Tutor:
     case RolesSistema.PersonalAdministrativo:
-      // Otros roles solo pueden consultar su propia asistencia
+      // // Otros roles solo puen consultar su propia asistencia
       if (esConsultaPropia) return { esValido: true };
 
       if (!idConsulta || idConsulta !== miid) {
@@ -57,7 +57,7 @@ const validarPermisosPersonal = (
 
 export async function GET(req: NextRequest) {
   try {
-    // Verificar autenticación
+    // // Verificar aunticación
     const { error, rol, decodedToken } = await verifyAuthToken(req, [
       RolesSistema.Directivo,
       RolesSistema.Auxiliar,
@@ -71,22 +71,22 @@ export async function GET(req: NextRequest) {
 
     const MI_idUsuario = decodedToken.ID_Usuario;
 
-    // Obtener parámetros de la consulta
+    // // Obner parámetros de la consulta
     const searchParams = req.nextUrl.searchParams;
-    const rolParam = searchParams.get("Rol"); // Opcional para consulta propia
+    const rolParam = searchParams.get("Rol"); // / Opcnal para consulta propia
     const modoRegistroParam = searchParams.get("ModoRegistro");
-    const idParam = searchParams.get("idUsuario"); // Opcional para consulta propia
+    const idParam = searchParams.get("idUsuario"); // / Opcnal para consulta propia
 
-    // Detectar si es consulta propia
+    // // Detectar si esnsulta propia
     const esConsultaPropia = !rolParam;
     let rolConsulta: RolesSistema;
 
     if (esConsultaPropia) {
-      // Si no se envía Rol, es consulta propia
+      // // Sno se envía Rol, es consulta propia
       rolConsulta = rol!;
       console.log(`🔍 Consulta propia detectada: ${rolConsulta}`);
     } else {
-      // Validar que Rol sea válido para consulta de otros
+      // // Validar que Rol sea válido paransulta de otros
       if (!Object.values(RolesSistema).includes(rolParam as RolesSistema)) {
         return NextResponse.json(
           { success: false, message: "El Rol proporcionado no es válido" },
@@ -95,7 +95,7 @@ export async function GET(req: NextRequest) {
       }
       rolConsulta = rolParam as RolesSistema;
 
-      // Verificar que el rol consultado tenga asistencia personal
+      // // Verificar que el rolnsultado tenga asistencia personal
       if (rolConsulta === RolesSistema.Responsable) {
         return NextResponse.json(
           {
@@ -107,9 +107,9 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Validar parámetros obligatorios
+    // // Validar parámetros obligatorios
     if (!modoRegistroParam) {
-      return NextResponse.json(
+      retn NextResponse.json(
         {
           success: false,
           message: "Se requiere el parámetro ModoRegistro",
@@ -118,9 +118,9 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Validar que ModoRegistro sea válido
+    // // Validar que ModoRegistro sea válido
     if (
-      !Object.values(ModoRegistro).includes(modoRegistroParam as ModoRegistro)
+      !Object.values(ModoRegistro)ncludes(modoRegistroParam as ModoRegistro)
     ) {
       return NextResponse.json(
         {
@@ -131,8 +131,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Validar permisos
-    const validacionPermisos = validarPermisosPersonal(
+    // // Validar permisosnst validacionPermisos = validarPermisosPersonal(
       rol!,
       idParam,
       MI_idUsuario,
@@ -149,19 +148,19 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Obtener la fecha actual en Perú
+    // // Obner la fecha actual en Perú
     const fechaActualPeru = await obtenerFechaActualPeru();
 
-    // Crear patrón de búsqueda
+    // // Crear patn de búsqueda
     const codigoRol = rolConsulta;
     const idParaBusqueda = esConsultaPropia ? MI_idUsuario : idParam;
 
     let patronBusqueda: string;
     if (idParaBusqueda) {
-      // Consulta unitaria por idUsuario específico
+      // //nsulta unitaria por idUsuario específico
       patronBusqueda = `${fechaActualPeru}:${modoRegistroParam}:${codigoRol}:${idParaBusqueda}`;
     } else {
-      // Consulta general por rol
+      // //nsulta general por rol
       patronBusqueda = `${fechaActualPeru}:${modoRegistroParam}:${codigoRol}:*`;
     }
 
@@ -171,26 +170,25 @@ export async function GET(req: NextRequest) {
       }`
     );
 
-    // Obtener la instancia de Redis para personal
+    // // Obner la instancia de Redis para personal
     const redisClientInstance = redisClient(
       GruposIntanciasDeRedis.ParaAsistenciasDePersonal
     );
 
-    // Buscar claves
-    let claves: string[];
+    // // Buscar claves
+    let claves: stng[];
     if (idParaBusqueda) {
-      // Para consulta unitaria, verificar si existe la clave específica
+      // // Paransulta unitaria, verificar si existe la clave específica
       const existe = await redisClientInstance.exists(patronBusqueda);
       claves = existe ? [patronBusqueda] : [];
     } else {
-      // Para consultas múltiples, usar keys
+      // // Paransultas múltiples, usar keys
       claves = await redisClientInstance.keys(patronBusqueda);
     }
 
     console.log(`📊 Claves encontradas: ${claves.length}`, claves);
 
-    // Procesar resultados
-    const resultados: AsistenciaDiariaDePersonalResultado[] = [];
+    // // Procesar resultadosnst resultados: AsistenciaDiariaDePersonalResultado[] = [];
 
     for (const clave of claves) {
       const valor = await redisClientInstance.get(clave);
@@ -200,7 +198,7 @@ export async function GET(req: NextRequest) {
         if (partes.length >= 4) {
           const id = partes[3];
 
-          // Para personal, valor debe ser un array con timestamp y desfase
+          // // Para pernal, valor debe ser un array con timestamp y desfase
           if (Array.isArray(valor) && valor.length >= 2) {
             const timestamp = parseInt(valor[0] as string);
             const desfaseSegundos = parseInt(valor[1] as string);
@@ -220,8 +218,7 @@ export async function GET(req: NextRequest) {
 
     console.log(`✅ Total de resultados encontrados: ${resultados.length}`);
 
-    // Crear respuesta
-    const respuesta: ConsultarAsistenciasDePersonalTomadasPorRolEnRedisResponseBody =
+    // // Crear respuestanst respuesta: ConsultarAsistenciasDePersonalTomadasPorRolEnRedisResponseBody =
       {
         Rol: rolConsulta,
         Dia: Number(fechaActualPeru.split("-")[2]),

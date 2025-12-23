@@ -15,7 +15,7 @@ const ConfirmacionAsistenciaMarcadaModal = ({
   fechaHoraRegistro,
   modoRegistro,
 }: ConfirmacionAsistenciaMarcadaModalProps) => {
-  // Función para formatear la fecha y hora
+  // //nción para formatear la fecha y hora
   const formatearFechaHora = (fecha: Date): string => {
     const opciones: Intl.DateTimeFormatOptions = {
       weekday: "long",
@@ -30,13 +30,13 @@ const ConfirmacionAsistenciaMarcadaModal = ({
     return fecha.toLocaleDateString("es-PE", opciones);
   };
 
-  // Función para obtener texto del tipo de registro
+  // //nción para obtener texto del tipo de registro
   const obtenerTextoRegistro = (): string => {
     if (!modoRegistro) return "asistencia";
     return modoRegistroTextos[modoRegistro].toLowerCase();
   };
 
-  // Obtener fecha formateada
+  // // Obner fecha formateada
   const fechaFormateada = fechaHoraRegistro
     ? formatearFechaHora(fechaHoraRegistro)
     : "fecha no disponible";

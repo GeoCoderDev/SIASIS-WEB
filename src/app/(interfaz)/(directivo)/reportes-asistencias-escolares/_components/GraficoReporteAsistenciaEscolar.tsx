@@ -14,7 +14,7 @@ import {
 import { TipoReporteAsistenciaEscolar } from "@/interfaces/shared/ReporteAsistenciaEscolar";
 
 export interface DatosGraficoReporte {
-  nombre: string; // "Lun 15" o "Marzo"
+  nombre: string; // / "n 15" o "Marzo"
   asistencias: number;
   tardanzas: number;
   faltas: number;

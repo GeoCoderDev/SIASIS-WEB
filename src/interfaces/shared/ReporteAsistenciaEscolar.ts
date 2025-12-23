@@ -50,8 +50,8 @@ export interface ConteoEstadosAsistenciaEscolarPorAula {
   [EstadosAsistenciaEscolar.Falta]: number;
 }
 
-//{Id_Aula : { Mes: { Dia: } }}
-export type ReporteAsistenciaEscolarPorDias = Record<
+// // {Id_Aula : { Mes: { Dia: } }}
+export type ReporteAsisnciaEscolarPorDias = Record<
   number,
   {
     Total_Estudiante: number;
@@ -62,8 +62,8 @@ export type ReporteAsistenciaEscolarPorDias = Record<
   }
 >;
 
-//{Id_Aula : { Mes: { ..... } }}
-export type ReporteAsistenciaEscolarPorMeses = Record<
+// // {Id_Aula : { Mes: { ..... } }}
+export type ReporteAsisnciaEscolarPorMeses = Record<
   number,
   {
     Total_Estudiante: number;

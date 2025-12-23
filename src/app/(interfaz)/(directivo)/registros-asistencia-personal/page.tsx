@@ -34,8 +34,7 @@ import {
 import { getMesesDisponibles } from "@/lib/getters/getMesesDisponibles";
 import useFechaReduxActual from "@/hooks/system-time/useFechaReduxActual";
 
-// 🔧 CONSTANTE DE CONFIGURACIÓN PARA DESARROLLO
-const CONSIDERAR_DIAS_NO_ESCOLARES = false; // false = solo días laborales, true = incluir sábados y domingos
+// // 🔧 CONSTANTE DE CONFIGURACIÓN PARA DESARROLLOnst CONSIDERAR_DIAS_NO_ESCOLARES = false; // / false = solo días laborales, true =ncluir sábados y domingos
 
 interface RegistroDia {
   fecha: string;
@@ -67,7 +66,7 @@ const RegistrosAsistenciaDePersonal = () => {
 
   const { diaActual, mesActual, añoActual } = useFechaReduxActual();
 
-  // ✅ Roles disponibles
+  // // ✅ Roles disnibles
   const roles = [
     { value: RolesSistema.Directivo, label: "Directivo" },
     { value: RolesSistema.ProfesorPrimaria, label: "Profesor de Primaria" },
@@ -79,7 +78,7 @@ const RegistrosAsistenciaDePersonal = () => {
     },
   ];
 
-  // Instancia del orquestador
+  // //nstancia del orquestador
   const [asistenciaPersonalIDB] = useState(
     () =>
       new AsistenciaDePersonalIDB(
@@ -106,21 +105,21 @@ const RegistrosAsistenciaDePersonal = () => {
       )
   );
 
-  // 🆕 useEffect para limpiar resultados cuando cambie el usuario seleccionado
+  // // 🆕 useEffect para limpiar resultados cndo cambie el usuario seleccionado
   useEffect(() => {
     if (data || registros.length > 0) {
       limpiarResultados();
     }
   }, [usuarioSeleccionado?.ID_Usuario]);
 
-  // Función para verificar si una fecha debe mostrarse (no futura)
+  // //nción para verificar si una fecha debe mostrarse (no futura)
   const esFechaValida = (fecha: string): boolean => {
     const fechaObj = new Date(fecha + "T00:00:00");
     const fechaHoy = new Date(añoActual, mesActual - 1, diaActual);
     return fechaObj <= fechaHoy;
   };
 
-  // 🔧 🆕 FUNCIÓN MODIFICADA: Verificar si un día es evento (PRIORIDAD ABSOLUTA)
+  // // 🔧 🆕 FUNCIÓN MODIFICADA: Verificar sin día es evento (PRIORIDAD ABSOLUTA)
   const esEvento = (
     fecha: string,
     eventosParaUsar: IEventoLocal[] = eventos
@@ -137,7 +136,7 @@ const RegistrosAsistenciaDePersonal = () => {
       nombreEvento: evento?.Nombre,
     };
 
-    // 🆕 LOG para debugging de eventos encontrados
+    // // 🆕 LOG para debugng de eventos encontrados
     if (resultado.esEvento) {
       console.log(
         `🎉 EVENTO DETECTADO para ${fecha}: ${resultado.nombreEvento}`
@@ -147,7 +146,7 @@ const RegistrosAsistenciaDePersonal = () => {
     return resultado;
   };
 
-  // Función para mapear estados del enum a strings para la UI
+  // //nción para mapear estados del enum a strings para la UI
   const mapearEstadoParaUI = (estado: EstadosAsistenciaPersonal): string => {
     const mapeoEstados: Record<EstadosAsistenciaPersonal, string> = {
       [EstadosAsistenciaPersonal.Temprano]: "Temprano",
@@ -166,7 +165,7 @@ const RegistrosAsistenciaDePersonal = () => {
     return mapeoEstados[estado] || estado;
   };
 
-  // 🕐 Función para calcular la hora programada con formato 12 horas
+  // // 🕐nción para calcular la hora programada con formato 12 horas
   const calcularHoraProgramada = (
     timestamp: number,
     desfaseSegundos: number
@@ -187,7 +186,7 @@ const RegistrosAsistenciaDePersonal = () => {
     return convertirAFormato12Horas(tiempo24Horas, false);
   };
 
-  // 🕐 Función para formatear hora con formato 12 horas
+  // // 🕐nción para formatear hora con formato 12 horas
   const formatearHora = (timestamp: number): string => {
     if (timestamp === 0 || timestamp === null) return "No registrado";
 
@@ -204,14 +203,14 @@ const RegistrosAsistenciaDePersonal = () => {
     return convertirAFormato12Horas(tiempo24Horas, false);
   };
 
-  // Función para verificar si una fecha es día laboral (lunes a viernes)
+  // //nción para verificar si una fecha es día laboral (lunes a viernes)
   const esDiaLaboral = (fecha: string): boolean => {
     const fechaObj = new Date(fecha + "T00:00:00");
     const diaSemana = fechaObj.getDay();
     return diaSemana >= 1 && diaSemana <= 5;
   };
 
-  // 📅 Función para generar todas las fechas del mes según configuración
+  // // 📅nción para generar todas las fechas del mes según configuración
   const obtenerFechasDelMes = (mes: number, año: number): string[] => {
     if (CONSIDERAR_DIAS_NO_ESCOLARES && ENTORNO === Entorno.LOCAL) {
       const fechas: string[] = [];
@@ -230,7 +229,7 @@ const RegistrosAsistenciaDePersonal = () => {
     }
   };
 
-  // Función para obtener asistencias combinadas de entrada y salida
+  // //nción para obtener asistencias combinadas de entrada y salida
   const obtenerAsistenciasCombinadas = async (
     rol: RolesSistema,
     idUsuario: string | number,
@@ -257,7 +256,7 @@ const RegistrosAsistenciaDePersonal = () => {
       > = {};
       const año = new Date().getFullYear();
 
-      // Procesar entradas
+      // // Procesarntradas
       if (resultado.entrada) {
         Object.entries(resultado.entrada.registros).forEach(
           ([dia, registro]) => {
@@ -277,9 +276,9 @@ const RegistrosAsistenciaDePersonal = () => {
         );
       }
 
-      // Procesar salidas
+      // // Procesar salidas
       if (resultado.salida) {
-        Object.entries(resultado.salida.registros).forEach(
+        Objectntries(resultado.salida.registros).forEach(
           ([dia, registro]) => {
             const fechaCompleta = `${año}-${mes
               .toString()
@@ -306,7 +305,7 @@ const RegistrosAsistenciaDePersonal = () => {
     }
   };
 
-  // 🆕 FUNCIÓN MODIFICADA: Procesar datos con eventos prioritarios
+  // // 🆕 FUNCIÓN MODIFICADA: Procesar datosn eventos prioritarios
   const procesarDatos = async (
     rol: RolesSistema,
     idUsuario: string | number,
@@ -335,10 +334,10 @@ const RegistrosAsistenciaDePersonal = () => {
       const registrosResultado: RegistroDia[] = fechasFiltradas.map((fecha) => {
         const fechaObj = new Date(fecha + "T00:00:00");
         const dia = fechaObj.getDate().toString();
-        const eventoInfo = esEvento(fecha, eventosDelMes); // 🆕 Usar eventos pasados como parámetro
+        const eventoInfo = esEvento(fecha, eventosDelMes); // / 🆕 Usar entos pasados como parámetro
         const esLaboral = esDiaLaboral(fecha);
 
-        // 🆕 ✅ PRIORIDAD ABSOLUTA: Si es evento, retornar registro especial SIN IMPORTAR SI HAY ASISTENCIAS
+        // // 🆕 ✅ PRIORIDAD ABSOLUTA: Si es ento, retornar registro especial SIN IMPORTAR SI HAY ASISTENCIAS
         if (eventoInfo.esEvento) {
           console.log(
             `🎉 SOBREPONIENDO EVENTO "${eventoInfo.nombreEvento}" sobre cualquier asistencia para ${fecha}`
@@ -359,8 +358,8 @@ const RegistrosAsistenciaDePersonal = () => {
           };
         }
 
-        // Solo procesar asistencias normales si NO hay evento
-        // Si no hay registros combinados
+        // // Solo procesar asisncias normales si NO hay evento
+        // // Sno hay registros combinados
         if (!registrosCombinados || !registrosCombinados[dia]) {
           return {
             fecha,
@@ -379,7 +378,7 @@ const RegistrosAsistenciaDePersonal = () => {
 
         const registroDia = registrosCombinados[dia];
 
-        // Procesar información de entrada
+        // // Procesarnformación de entrada
         let entradaProgramada = "N/A";
         let entradaReal = "No registrado";
         let diferenciaEntrada = "N/A";
@@ -416,7 +415,7 @@ const RegistrosAsistenciaDePersonal = () => {
           }
         }
 
-        // Procesar información de salida
+        // // Procesarnformación de salida
         let salidaProgramada = "N/A";
         let salidaReal = "No registrado";
         let diferenciaSalida = "N/A";
@@ -468,7 +467,7 @@ const RegistrosAsistenciaDePersonal = () => {
         };
       });
 
-      // 🆕 LOG de eventos encontrados en el procesamiento final
+      // // 🆕 LOG de entos encontrados en el procesamiento final
       const eventosEncontrados = registrosResultado.filter((r) => r.esEvento);
       console.log(
         `🎯 EVENTOS PROCESADOS: ${eventosEncontrados.length} de ${registrosResultado.length} días`
@@ -487,7 +486,7 @@ const RegistrosAsistenciaDePersonal = () => {
     }
   };
 
-  // Función para obtener eventos
+  // //nción para obtener eventos
   const obtenerEventos = async (mes: number): Promise<IEventoLocal[]> => {
     try {
       console.log(`🔍 Obteniendo eventos para mes ${mes}...`);
@@ -500,14 +499,14 @@ const RegistrosAsistenciaDePersonal = () => {
         );
       });
       setEventos(eventosDelMes);
-      return eventosDelMes; // 🆕 Retornar los eventos obtenidos
+      return eventosDelMes; // / 🆕 Retnar los eventos obtenidos
     } catch (error) {
       console.error("Error obteniendo eventos:", error);
-      return []; // 🆕 Retornar array vacío en caso de error
+      return []; // / 🆕 Retnar array vacío en caso de error
     }
   };
 
-  // ✅ Función de búsqueda
+  // // ✅nción de búsqueda
   const buscarAsistencias = async () => {
     if (!selectedRol || !selectedMes || !usuarioSeleccionado?.ID_Usuario) {
       setError({
@@ -522,7 +521,7 @@ const RegistrosAsistenciaDePersonal = () => {
     setLoading(true);
 
     try {
-      // 🆕 ✅ PRIMERO obtener eventos para que estén disponibles al procesar
+      // // 🆕 ✅ PRIMERO obner eventos para que estén disponibles al procesar
       console.log(`🔍 Paso 1: Obteniendo eventos para mes ${selectedMes}...`);
       const eventosDelMes = await obtenerEventos(parseInt(selectedMes));
       console.log(
@@ -556,7 +555,7 @@ const RegistrosAsistenciaDePersonal = () => {
         console.log(
           `🔍 Paso 3: Procesando datos con ${eventosDelMes.length} eventos...`
         );
-        // ✅ Procesar datos pasando directamente los eventos obtenidos
+        // // ✅ Procesar datos pando directamente los eventos obtenidos
         await procesarDatos(
           selectedRol,
           usuarioSeleccionado.ID_Usuario,
@@ -582,8 +581,7 @@ const RegistrosAsistenciaDePersonal = () => {
     }
   };
 
-  // 📊 FUNCIÓN DE EXPORTACIÓN A EXCEL CON DIÁLOGO DE GUARDAR - DISEÑO PROFESIONAL
-  const exportarAsistenciaPersonalAExcel = async (): Promise<void> => {
+  // // 📊 FUNCIÓN DE EXPORTACIÓN A EXCEL CON DIÁLOGO DE GUARDAR - DISEÑO PROFESIONALnst exportarAsistenciaPersonalAExcel = async (): Promise<void> => {
     if (
       !data ||
       !usuarioSeleccionado ||
@@ -600,12 +598,11 @@ const RegistrosAsistenciaDePersonal = () => {
     setExportandoExcel(true);
 
     try {
-      // Crear el workbook
-      const workbook = new ExcelJS.Workbook();
+      // // Crear el workbooknst workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet("Registros de Asistencia", {
         pageSetup: {
-          paperSize: 9, // A4
-          orientation: "landscape",
+          paperSize: 9, // / A4
+          orntation: "landscape",
           fitToPage: true,
           fitToWidth: 1,
           fitToHeight: 0,
@@ -620,7 +617,7 @@ const RegistrosAsistenciaDePersonal = () => {
         },
       });
 
-      // Configurar columnas con anchos apropiados
+      // //nfigurar columnas con anchos apropiados
       worksheet.columns = [
         { key: "fecha", width: 12 },
         { key: "entradaProgramada", width: 14 },
@@ -633,9 +630,9 @@ const RegistrosAsistenciaDePersonal = () => {
         { key: "estadoSalida", width: 16 },
       ];
 
-      // === SECCIÓN DE ENCABEZADO INSTITUCIONAL ===
+      // // === SECCIÓN DE ENCABEZADO INSTITUCIONAL ===
 
-      // Título principal
+      // Título pncipal
       worksheet.mergeCells("A1:I1");
       const tituloCell = worksheet.getCell("A1");
       tituloCell.value = "I.E. 20935 ASUNCIÓN 8 - IMPERIAL, CAÑETE";
@@ -656,9 +653,8 @@ const RegistrosAsistenciaDePersonal = () => {
       };
       worksheet.getRow(1).height = 25;
 
-      // Subtítulo
-      worksheet.mergeCells("A2:I2");
-      const subtituloCell = worksheet.getCell("A2");
+      // // Subtítulo
+      worksheet.mergeCells("A2:I2");nst subtituloCell = worksheet.getCell("A2");
       subtituloCell.value = "REGISTRO MENSUAL DE ASISTENCIA DEL PERSONAL";
       subtituloCell.style = {
         font: { size: 14, bold: true, color: { argb: "FFFFFF" } },
@@ -677,21 +673,21 @@ const RegistrosAsistenciaDePersonal = () => {
       };
       worksheet.getRow(2).height = 20;
 
-      // === SECCIÓN DE INFORMACIÓN DEL USUARIO ===
+      // // === SECCIÓN DE INFORMACIÓN DEL USUARIO ===
 
       // Espacio
       worksheet.getRow(3).height = 5;
 
-      // Obtener rol legible
+      // Obner rol legible
       const rolLegible =
         roles.find((r) => r.value === selectedRol)?.label || selectedRol;
 
-      // Función helper para aplicar bordes a celdas combinadas
+      // //nción helper para aplicar bordes a celdas combinadas
       const aplicarBordesACeldasCombinadas = (rango: string, estilo: any) => {
         const celdaInicial = worksheet.getCell(rango.split(":")[0]);
         celdaInicial.style = estilo;
 
-        // Obtener todas las celdas en el rango
+        // // Obner todas las celdas en el rango
         const startCol = Number(worksheet.getCell(rango.split(":")[0]).col);
         const endCol = Number(worksheet.getCell(rango.split(":")[1]).col);
         const row = Number(worksheet.getCell(rango.split(":")[0]).row);
@@ -702,16 +698,16 @@ const RegistrosAsistenciaDePersonal = () => {
         }
       };
 
-      // Información del usuario en formato tabla
+      // //nformación del usuario en formato tabla
       let filaActual = 4;
 
-      // Fila 1: NOMBRE COMPLETO e IDENTIFICADOR
-      // Combinar celdas primero
+      // // Fila 1: NOMBRE COMPLETO e IDENTIFICADOR
+      // Comnar celdas primero
       worksheet.mergeCells(`A${filaActual}:C${filaActual}`);
       worksheet.mergeCells(`D${filaActual}:F${filaActual}`);
       worksheet.mergeCells(`G${filaActual}:H${filaActual}`);
 
-      // Aplicar contenido y estilo
+      // // Aplicarntenido y estilo
       const nombreLabelCell = worksheet.getCell(`A${filaActual}`);
       nombreLabelCell.value = "NOMBRE COMPLETO:";
       aplicarBordesACeldasCombinadas(`A${filaActual}:C${filaActual}`, {
@@ -785,8 +781,8 @@ const RegistrosAsistenciaDePersonal = () => {
 
       filaActual++;
 
-      // Fila 2: ROL y MES
-      // Combinar celdas primero
+      // // Fila 2: ROL y MES
+      // Comnar celdas primero
       worksheet.mergeCells(`A${filaActual}:C${filaActual}`);
       worksheet.mergeCells(`D${filaActual}:F${filaActual}`);
       worksheet.mergeCells(`G${filaActual}:H${filaActual}`);
@@ -855,8 +851,8 @@ const RegistrosAsistenciaDePersonal = () => {
 
       filaActual++;
 
-      // Fila 3: TOTAL REGISTROS y FECHA GENERACIÓN
-      // Combinar celdas primero
+      // // Fila 3: TOTAL REGISTROS y FECHA GENERACIÓN
+      // Comnar celdas primero
       worksheet.mergeCells(`A${filaActual}:C${filaActual}`);
       worksheet.mergeCells(`D${filaActual}:F${filaActual}`);
       worksheet.mergeCells(`G${filaActual}:H${filaActual}`);
@@ -923,12 +919,10 @@ const RegistrosAsistenciaDePersonal = () => {
         },
       };
 
-      // Espacio antes de la tabla
+      // // Espaciontes de la tabla
       filaActual += 2;
 
-      // === SECCIÓN DE ENCABEZADOS DE LA TABLA ===
-
-      const encabezados = [
+      // // === SECCIÓN DE ENCABEZADOS DE LA TABLA ===nst encabezados = [
         "FECHA",
         "ENTRADA\nPROGRAMADA",
         "ENTRADA\nREAL",
@@ -967,25 +961,24 @@ const RegistrosAsistenciaDePersonal = () => {
 
       worksheet.getRow(filaEncabezados).height = 30;
 
-      // === SECCIÓN DE DATOS ===
+      // // === SECCIÓN DE DATOS ===
 
-      let filaData = filaEncabezados + 1;
+      let filaData = filncabezados + 1;
 
       registros.forEach((registro, index) => {
         const fila = worksheet.getRow(filaData);
 
-        // Determinar color de fondo de la fila
+        // // Deternar color de fondo de la fila
         let colorFondo = index % 2 === 0 ? "FFFFFF" : "F9FAFB";
 
-        // Colores especiales
-        if (registro.esEvento) {
-          colorFondo = "DDD6FE"; // violeta claro para eventos
+        // // Colores especiales
+        if (registro.esEnto) {
+          colorFondo = "DDD6FE"; // / violeta claro para entos
         } else if (registro.esDiaNoEscolar && !registro.esEvento) {
-          colorFondo = "EBF8FF"; // azul claro para fines de semana
+          colorFondo = "EBF8FF"; // / azul claro paranes de semana
         }
 
-        // Fecha
-        const fechaCell = fila.getCell(1);
+        // // Fechanst fechaCell = fila.getCell(1);
         let textoFecha = new Date(
           registro.fecha + "T00:00:00"
         ).toLocaleDateString("es-ES", {
@@ -1021,7 +1014,7 @@ const RegistrosAsistenciaDePersonal = () => {
           },
         };
 
-        // Función para aplicar estilo estándar a celdas
+        // //nción para aplicar estilo estándar a celdas
         const aplicarEstiloEstandar = (celda: any, valor: string) => {
           celda.value = valor;
           celda.style = {
@@ -1041,7 +1034,7 @@ const RegistrosAsistenciaDePersonal = () => {
           };
         };
 
-        // Aplicar datos con estilo estándar
+        // // Aplicar datosn estilo estándar
         aplicarEstiloEstandar(fila.getCell(2), registro.entradaProgramada);
         aplicarEstiloEstandar(fila.getCell(3), registro.entradaReal);
         aplicarEstiloEstandar(fila.getCell(4), registro.diferenciaEntrada);
@@ -1049,7 +1042,7 @@ const RegistrosAsistenciaDePersonal = () => {
         aplicarEstiloEstandar(fila.getCell(7), registro.salidaReal);
         aplicarEstiloEstandar(fila.getCell(8), registro.diferenciaSalida);
 
-        // Estado Entrada (con color específico)
+        // // Estadontrada (con color específico)
         const estadoEntradaCell = fila.getCell(5);
         const colorEstadoEntrada =
           COLORES_ESTADOS_EXCEL[registro.estadoEntrada];
@@ -1074,7 +1067,7 @@ const RegistrosAsistenciaDePersonal = () => {
           },
         };
 
-        // Estado Salida (con color específico)
+        // // Estado Salida (n color específico)
         const estadoSalidaCell = fila.getCell(9);
         const colorEstadoSalida = COLORES_ESTADOS_EXCEL[registro.estadoSalida];
         estadoSalidaCell.value = colorEstadoSalida.nombre;
@@ -1102,12 +1095,11 @@ const RegistrosAsistenciaDePersonal = () => {
         filaData++;
       });
 
-      // === SECCIÓN DE RESUMEN ESTADÍSTICO ===
+      // // === SECCIÓN DE RESUMEN ESTADÍSTICO ===
 
       filaData += 1;
 
-      // Calcular estadísticas
-      const totalAsistencias = registros.filter(
+      // Calcular estadísticasnst totalAsistencias = registros.filter(
         (r) =>
           r.estadoEntrada === EstadosAsistenciaPersonal.En_Tiempo ||
           r.estadoEntrada === EstadosAsistenciaPersonal.Temprano
@@ -1123,7 +1115,7 @@ const RegistrosAsistenciaDePersonal = () => {
 
       const totalEventos = registros.filter((r) => r.esEvento).length;
 
-      // Título del resumen
+      // // Título del resun
       worksheet.mergeCells(`A${filaData}:I${filaData}`);
       const resumenTituloCell = worksheet.getCell(`A${filaData}`);
       resumenTituloCell.value = "RESUMEN ESTADÍSTICO";
@@ -1144,7 +1136,7 @@ const RegistrosAsistenciaDePersonal = () => {
       };
       worksheet.getRow(filaData).height = 20;
 
-      // Aplicar bordes a todas las celdas del rango combinado del título
+      // // Aplicar bordes a todas las celdas delngo combinado del título
       for (let col = 1; col <= 9; col++) {
         const cell = worksheet.getCell(filaData, col);
         cell.style = {
@@ -1159,7 +1151,7 @@ const RegistrosAsistenciaDePersonal = () => {
       }
       filaData++;
 
-      // Datos del resumen en tabla
+      // // Datos del resun en tabla
       const datosResumen = [
         {
           concepto: "Total Asistencias:",
@@ -1176,7 +1168,7 @@ const RegistrosAsistenciaDePersonal = () => {
       ];
 
       datosResumen.forEach((dato) => {
-        // Combinar celdas primero
+        // // Comnar celdas primero
         worksheet.mergeCells(`A${filaData}:G${filaData}`);
         worksheet.mergeCells(`H${filaData}:I${filaData}`);
 
@@ -1219,7 +1211,7 @@ const RegistrosAsistenciaDePersonal = () => {
         filaData++;
       });
 
-      // Información de generación
+      // //nformación de generación
       filaData += 1;
       worksheet.mergeCells(`A${filaData}:I${filaData}`);
       const infoGenCell = worksheet.getCell(`A${filaData}`);
@@ -1242,7 +1234,7 @@ const RegistrosAsistenciaDePersonal = () => {
         },
       };
 
-      // Aplicar bordes a todas las celdas del rango combinado de la información de generación
+      // // Aplicar bordes a todas las celdas delngo combinado de la información de generación
       for (let col = 1; col <= 9; col++) {
         const cell = worksheet.getCell(filaData, col);
         cell.style = {
@@ -1256,19 +1248,17 @@ const RegistrosAsistenciaDePersonal = () => {
         };
       }
 
-      // === GENERAR Y GUARDAR ARCHIVO CON DIÁLOGO ===
-
-      const nombreFinal = `Asistencia_${usuarioSeleccionado.Nombres.replace(
+      // // === GENERAR Y GUARDAR ARCHIVO CON DIÁLOGO ===nst nombreFinal = `Asistencia_${usuarioSeleccionado.Nombres.replace(
         /\s+/g,
         "_"
       )}_${
         mesesTextos[parseInt(selectedMes) as Meses]
       }_${new Date().getFullYear()}`;
 
-      // Generar buffer
+      // //nerar buffer
       const buffer = await workbook.xlsx.writeBuffer();
 
-      // 🔍 DEBUG: Logs detallados para diagnosticar
+      // // 🔍 DEBUG: Logs detallados para dinosticar
       console.log("🔍 === INICIANDO PROCESO DE GUARDADO ===");
       console.log(
         "- API showSaveFilePicker disponible:",
@@ -1279,7 +1269,7 @@ const RegistrosAsistenciaDePersonal = () => {
       console.log("- Es contexto seguro:", window.isSecureContext);
       console.log("- Tamaño del buffer:", buffer.byteLength, "bytes");
 
-      // ✅ VERIFICACIÓN EXPLÍCITA: Solo usar File System Access API si está realmente disponible
+      // // ✅ VERIFICACIÓN EXPLÍCITA: Solo usar File System Access API si está realnte disponible
       const tieneFileSystemAPI = "showSaveFilePicker" in window;
 
       if (tieneFileSystemAPI) {
@@ -1288,7 +1278,7 @@ const RegistrosAsistenciaDePersonal = () => {
         try {
           console.log("📂 Mostrando diálogo de guardar...");
 
-          // Usar la nueva API de File System Access
+          // // Usar lnueva API de File System Access
           const fileHandle = await (window as any).showSaveFilePicker({
             suggestedName: `${nombreFinal}.xlsx`,
             types: [
@@ -1331,7 +1321,7 @@ const RegistrosAsistenciaDePersonal = () => {
         downloadTraditional(buffer, nombreFinal);
       }
 
-      // Limpiar mensaje después de 4 segundos
+      // // Limpiarnsaje después de 4 segundos
       setTimeout(() => setSuccessMessage(""), 4000);
     } catch (error) {
       console.error("❌ Error al exportar a Excel:", error);
@@ -1344,7 +1334,7 @@ const RegistrosAsistenciaDePersonal = () => {
     }
   };
 
-  // Función helper para descarga tradicional
+  // //nción helper para descarga tradicional
   const downloadTraditional = (buffer: ArrayBuffer, nombreFinal: string) => {
     const blob = new Blob([buffer], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -1362,17 +1352,13 @@ const RegistrosAsistenciaDePersonal = () => {
     setSuccessMessage("✅ Archivo Excel descargado exitosamente");
   };
 
-  // Mapeo de estados a colores para Excel (equivalente a los estilos CSS)
+  // // Mapeo de estados a colores para Excel (equivante a los estilos CSS)
   const COLORES_ESTADOS_EXCEL = {
     [EstadosAsistenciaPersonal.En_Tiempo]: {
-      background: "D4F7D4", // verde claro
-      font: "047857", // verde oscuro
-      nombre: "En tiempo",
+      background: "D4F7D4", // / verde claront: "047857", // / verde oscuronombre: "En tiempo",
     },
     [EstadosAsistenciaPersonal.Temprano]: {
-      background: "BFDBFE", // azul claro
-      font: "1E40AF", // azul oscuro
-      nombre: "Temprano",
+      background: "BFDBFE", // / azul claront: "1E40AF", // / azul oscuronombre: "Temprano",
     },
     [EstadosAsistenciaPersonal.Tarde]: {
       background: "FED7BA", // naranja claro
@@ -1380,48 +1366,32 @@ const RegistrosAsistenciaDePersonal = () => {
       nombre: "Tarde",
     },
     [EstadosAsistenciaPersonal.Cumplido]: {
-      background: "D4F7D4", // verde claro
-      font: "047857", // verde oscuro
-      nombre: "Cumplido",
+      background: "D4F7D4", // / verde claront: "047857", // / verde oscuronombre: "Cumplido",
     },
     [EstadosAsistenciaPersonal.Salida_Anticipada]: {
-      background: "FEF3C7", // amarillo claro
-      font: "A16207", // amarillo oscuro
-      nombre: "Salida anticipada",
+      background: "FEF3C7", // / amarillo claront: "A16207", // / amarillo oscuronombre: "Salida anticipada",
     },
     [EstadosAsistenciaPersonal.Falta]: {
-      background: "FECACA", // rojo claro
-      font: "DC2626", // rojo oscuro
-      nombre: "Falta",
+      background: "FECACA", // / rojo claront: "DC2626", // / rojo oscuronombre: "Falta",
     },
     [EstadosAsistenciaPersonal.No_Registrado]: {
-      background: "F3F4F6", // gris claro
-      font: "6B7280", // gris oscuro
-      nombre: "No registrado",
+      background: "F3F4F6", // / gris claront: "6B7280", // / gris oscuronombre: "No registrado",
     },
     [EstadosAsistenciaPersonal.Sin_Registro]: {
-      background: "F3F4F6", // gris claro
-      font: "6B7280", // gris oscuro
-      nombre: "Sin registro",
+      background: "F3F4F6", // / gris claront: "6B7280", // / gris oscuronombre: "Sin registro",
     },
     [EstadosAsistenciaPersonal.Inactivo]: {
-      background: "E5E7EB", // gris medio
-      font: "4B5563", // gris oscuro
-      nombre: "Inactivo",
+      background: "E5E7EB", // / gris mediont: "4B5563", // / gris oscuronombre: "Inactivo",
     },
     [EstadosAsistenciaPersonal.Evento]: {
-      background: "DDD6FE", // violeta claro
-      font: "7C3AED", // violeta oscuro
-      nombre: "Evento",
+      background: "DDD6FE", // / violeta claront: "7C3AED", // / violeta oscuronombre: "Evento",
     },
     [EstadosAsistenciaPersonal.Otro]: {
-      background: "F3F4F6", // gris claro
-      font: "6B7280", // gris oscuro
-      nombre: "Otro",
+      background: "F3F4F6", // / gris claront: "6B7280", // / gris oscuronombre: "Otro",
     },
   };
 
-  // ✅ Función auxiliar para limpiar resultados
+  // // ✅nción auxiliar para limpiar resultados
   const limpiarResultados = () => {
     setData(null);
     setRegistros([]);
@@ -1429,7 +1399,7 @@ const RegistrosAsistenciaDePersonal = () => {
     setSuccessMessage("");
   };
 
-  // ✅ Funciones de limpieza cuando cambian los campos
+  // // ✅nciones de limpieza cuando cambian los campos
   const handleRolChange = (rol: RolesSistema | undefined) => {
     setSelectedRol(rol);
     setUsuarioSeleccionado(undefined);
@@ -1442,7 +1412,7 @@ const RegistrosAsistenciaDePersonal = () => {
     limpiarResultados();
   };
 
-  // ✅ Manejar Enter en los campos
+  // // ✅nejar Enter en los campos
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (
       e.key === "Enter" &&
@@ -1454,7 +1424,7 @@ const RegistrosAsistenciaDePersonal = () => {
     }
   };
 
-  // ✅ Estados de validación
+  // // ✅ Estados de validacn
   const rolEstaSeleccionado = !!selectedRol;
   const usuarioEstaSeleccionado = !!usuarioSeleccionado?.ID_Usuario;
   const mesEstaSeleccionado = !!selectedMes;

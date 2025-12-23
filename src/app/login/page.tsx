@@ -17,23 +17,22 @@ const SeleccionRoles = () => {
   const router = useTransitionRouter();
 
   useEffect(() => {
-    // Obtener los parámetros de la URL
+    // // Obner los parámetros de la URL
     const logoutType = searchParams.get("LOGOUT_TYPE");
     const errorDetailsParam = searchParams.get("ERROR_DETAILS");
 
-    // Si hay un tipo de logout, procesarlo
+    // // Si hayn tipo de logout, procesarlo
     if (logoutType) {
       console.log("Tipo de logout:", logoutType);
 
-      // Si hay detalles del error, decodificarlos y mostrarlos
+      // // Si hay detalles del error, decodificarlos y mostrarlos
       if (errorDetailsParam) {
-        try {
-          const errorDetails = JSON.parse(
+        try {nst errorDetails = JSON.parse(
             decodeURIComponent(errorDetailsParam)
           ) as ErrorDetailsForLogout;
           console.log("Detalles del error:", errorDetails);
 
-          // Loguear información detallada para debug
+          // // Loguearnformación detallada para debug
           console.log(`
             Error en: ${errorDetails.origen || "Desconocido"}
             Mensaje: ${errorDetails.mensaje || "No disponible"}
@@ -44,7 +43,7 @@ const SeleccionRoles = () => {
             Contexto: ${errorDetails.contexto || "No disponible"}
           `);
 
-          // TODO: Aquí se podría implementar la lógica para enviar estos datos a la BD
+          // // TODO: Aquí se podría implentar la lógica para enviar estos datos a la BD
         } catch (error) {
           console.error("Error al decodificar los detalles del error:", error);
         }

@@ -1,6 +1,6 @@
 import { SuccessResponseAPIBase } from "../../../types";
 
-// Importar o definir interfaces para la respuesta
+// // Importar o denir interfaces para la respuesta
 export interface CambiarContraseñaRequestBody {
   contraseñaActual: string;
   nuevaContraseña: string;

@@ -110,7 +110,7 @@ const MisDatosDeAuxiliar = ({
 
         setMisDatosAuxiliarSaved(misDatosAuxiliarData);
 
-        //Actualizando Cache
+        // // Actualindo Cache
 
         await userStorage.saveUserData({
           Apellidos: misDatosAuxiliarData.Apellidos,
@@ -122,7 +122,7 @@ const MisDatosDeAuxiliar = ({
 
         setIsSomethingLoading(false);
 
-        //Actualizando Cookies por lo bajo
+        // // Actualindo Cookies por lo bajo
         if (
           googleDriveFotoIdCookieValue !==
             misDatosAuxiliarData.Google_Drive_Foto_ID ||
@@ -142,7 +142,7 @@ const MisDatosDeAuxiliar = ({
           });
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        // // esnt-disable-next-line @typescript-eslint/no-unused-vars
       } catch (e) {
         if (error) {
           setError({
@@ -193,7 +193,7 @@ const MisDatosDeAuxiliar = ({
 
       setMisDatosAuxiliarSaved(misDatosAuxiliarModificados);
 
-      //Actualizando Cache
+      // // Actualindo Cache
       await userStorage.saveUserData({
         Apellidos: misDatosAuxiliarModificados.Apellidos,
         Genero: misDatosAuxiliarModificados.Genero as Genero,
@@ -212,7 +212,7 @@ const MisDatosDeAuxiliar = ({
 
       setIsSomethingLoading(false);
       setModoEdicion(false);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      // // esnt-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {
       if (error) {
         setError({
@@ -252,7 +252,7 @@ const MisDatosDeAuxiliar = ({
           }}
           initialSource={
             misDatosAuxiliarSaved.Google_Drive_Foto_ID &&
-            `https://drive.google.com/thumbnail?id=${misDatosAuxiliarSaved.Google_Drive_Foto_ID}`
+            `https:// drive.google.com/thumbnail?id=${misDatosAuxiliarSaved.Google_Drive_Foto_ID}`
           }
           eliminateModal={() => {
             setCambiarFotoModal(false);
@@ -294,8 +294,8 @@ const MisDatosDeAuxiliar = ({
                 )
               }
               onClick={() => {
-                //SI se esta cancelando el modo edicion entonces se volvera al
-                // estado en el que se encuentran los datos guardados en la base de datos
+                // // SI se estancelando el modo edicion entonces se volvera al
+                // // estadon el que se encuentran los datos guardados en la base de datos
                 if (modoEdicion)
                   setMisDatosAuxiliarModificados(
                     misDatosAuxiliarSaved

@@ -2,12 +2,9 @@ import { ValidationErrorTypes } from "../../../../interfaces/shared/errors";
 import { ValidationResult } from "./types";
 
 /**
- * Valida un número de celular peruano
- * @param value - Valor a validar
- * @param required - Indica si el campo es obligatorio
- * @returns Resultado de la validación
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+* Valida un número de celular peruano @param value - Valor a validar @param required - Indica si el campo es obligatorio @returns Resultado de la validación
+*/
+// // esnt-disable-next-line @typescript-eslint/no-explicit-any
 export function validatePhone(value: any, required: boolean): ValidationResult {
   if ((value === undefined || value === null) && required) {
     return {
@@ -29,7 +26,7 @@ export function validatePhone(value: any, required: boolean): ValidationResult {
     };
   }
 
-  // Validar formato de celular peruano (9 dígitos comenzando con 9)
+  // // Validar formato de celular perno (9 dígitos comenzando con 9)
   const phoneRegex = /^9\d{8}$/;
   if (!phoneRegex.test(value)) {
     return {

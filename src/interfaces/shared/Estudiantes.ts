@@ -7,11 +7,11 @@ export interface EstudianteConAula extends EstudianteBasico {
 }
 
 
-// --------------------------------------------------------
-// |               EstudianteDelResponsable               |
-// --------------------------------------------------------
+// // --------------------------------------------------------
+// |               EstudnteDelResponsable               |
+// / --------------------------------------------------------
 
-export interface EstudianteDelResponsable extends T_Estudiantes {
+exportnterface EstudianteDelResponsable extends T_Estudiantes {
   Tipo_Relacion: string;
 }
 

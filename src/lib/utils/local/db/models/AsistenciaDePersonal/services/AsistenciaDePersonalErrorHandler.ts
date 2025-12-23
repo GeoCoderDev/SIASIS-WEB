@@ -16,13 +16,8 @@ import AllErrorTypes, {
 } from "@/interfaces/shared/errors";
 
 /**
- * 🎯 RESPONSABILIDAD: Manejo centralizado de errores
- * - Clasificar tipos de errores
- * - Decidir estrategias de recuperación
- * - Manejar logout cuando sea necesario
- * - Proporcionar mensajes de error útiles
- * - Registrar errores para debugging
- */
+* 🎯 RESPONSABILIDAD: Manejo centralizado de errores - Clasificar tipos de errores - Decidir estrategias de recuperación - Manejar logout cuando sea necesario - Proporcionar mensajes de error útiles - Registrar errores para debugging
+*/
 export class AsistenciaDePersonalErrorHandler {
   private setIsSomethingLoading?: (isLoading: boolean) => void;
   private setError?: (error: ErrorResponseAPIBase | null) => void;
@@ -39,8 +34,8 @@ export class AsistenciaDePersonalErrorHandler {
   }
 
   /**
-   * Maneja los errores según su tipo y realiza logout si es necesario
-   */
+* Maneja los errores según su tipo y realiza logout si es necesario
+*/
   public handleError(
     error: unknown,
     operacion: string,
@@ -74,8 +69,8 @@ export class AsistenciaDePersonalErrorHandler {
   }
 
   /**
-   * Maneja errores de operaciones con IndexedDB adaptado al patrón actual
-   */
+* Maneja errores de operaciones con IndexedDB adaptado al patrón actual
+*/
   public handleIndexedDBError(error: unknown, operacion: string): void {
     console.error(`Error en operación IndexedDB (${operacion}):`, error);
 
@@ -108,24 +103,24 @@ export class AsistenciaDePersonalErrorHandler {
   }
 
   /**
-   * Establece un mensaje de éxito usando el patrón actual
-   */
+* Establece un mensaje de éxito usando el patrón actual
+*/
   public handleSuccess(message: string): void {
     const successResponse: MessageProperty = { message };
     this.setSuccessMessage?.(successResponse);
   }
 
   /**
-   * Maneja errores específicos de API
-   */
+* Maneja errores específicos de API
+*/
   public handleAPIError(error: any, operacion: string): void {
     console.error(`Error en operación API (${operacion}):`, error);
 
     let errorType: AllErrorTypes = SystemErrorTypes.UNKNOWN_ERROR;
     let message = `Error al ${operacion}`;
 
-    // Errores HTTP específicos
-    if (error?.response?.status === 404) {
+    // // Errores HTTP específicos
+    if (error?.resnse?.status === 404) {
       errorType = DataErrorTypes.NO_DATA_AVAILABLE;
       message = `No se encontraron datos para ${operacion}`;
     } else if (error?.response?.status === 401) {
@@ -155,8 +150,8 @@ export class AsistenciaDePersonalErrorHandler {
   }
 
   /**
-   * Maneja errores de cache
-   */
+* Maneja errores de cache
+*/
   public handleCacheError(error: unknown, operacion: string): void {
     console.error(`Error en operación de cache (${operacion}):`, error);
 
@@ -183,8 +178,8 @@ export class AsistenciaDePersonalErrorHandler {
   }
 
   /**
-   * Maneja errores de sincronización
-   */
+* Maneja errores de sincronización
+*/
   public handleSyncError(error: unknown, operacion: string): void {
     console.error(`Error en sincronización (${operacion}):`, error);
 
@@ -214,11 +209,11 @@ export class AsistenciaDePersonalErrorHandler {
   }
 
   /**
-   * Determina si un error requiere logout
-   */
+* Determina si un error requiere logout
+*/
   public shouldLogout(error: unknown): boolean {
     if (error instanceof Error) {
-      // Errores críticos que requieren logout
+      // // Errores críticos que requien logout
       const criticalErrors = [
         "QuotaExceededError",
         "SecurityError",
@@ -228,7 +223,7 @@ export class AsistenciaDePersonalErrorHandler {
       return criticalErrors.includes(error.name);
     }
 
-    // Errores de API que requieren logout
+    // // Errores de API que requien logout
     if (error && typeof error === "object") {
       const apiError = error as any;
       if (
@@ -243,8 +238,8 @@ export class AsistenciaDePersonalErrorHandler {
   }
 
   /**
-   * Obtiene el tipo de logout apropiado para el error
-   */
+* Obtiene el tipo de logout apropiado para el error
+*/
   public getLogoutType(error: unknown): LogoutTypes {
     if (error instanceof Error) {
       if (error.name === "QuotaExceededError" || error.name === "AbortError") {
@@ -269,8 +264,8 @@ export class AsistenciaDePersonalErrorHandler {
   }
 
   /**
-   * Registra un error para debugging sin mostrar al usuario
-   */
+* Registra un error para debugging sin mostrar al usuario
+*/
   public logError(
     error: unknown,
     context: string,
@@ -285,8 +280,8 @@ export class AsistenciaDePersonalErrorHandler {
   }
 
   /**
-   * Crea un mensaje de error amigable para el usuario
-   */
+* Crea un mensaje de error amigable para el usuario
+*/
   public createUserFriendlyMessage(error: unknown, operacion: string): string {
     if (error instanceof Error) {
       switch (error.name) {
@@ -307,8 +302,8 @@ export class AsistenciaDePersonalErrorHandler {
   }
 
   /**
-   * Maneja errores con estrategia de recuperación
-   */
+* Maneja errores con estrategia de recuperación
+*/
   public handleErrorWithRecovery(
     error: unknown,
     operacion: string,
@@ -322,16 +317,15 @@ export class AsistenciaDePersonalErrorHandler {
       errorType: SystemErrorTypes.UNKNOWN_ERROR,
     });
 
-    // Ejecutar estrategia de recuperación si se proporciona
+    // // Ejecutar estrategia de recuperacn si se proporciona
     if (recoveryStrategy) {
       recoveryStrategy().catch((recoveryError) => {
         console.error("Error en estrategia de recuperación:", recoveryError);
       });
     }
 
-    // Decidir si hacer logout
-    if (this.shouldLogout(error)) {
-      const logoutType = this.getLogoutType(error);
+    // // Decidir si hacer logout
+    if (this.shouldLogout(error)) {nst logoutType = this.getLogoutType(error);
       const errorDetails: ErrorDetailsForLogout = {
         origen: `AsistenciaPersonalErrorHandler.${operacion}`,
         mensaje: error instanceof Error ? error.message : String(error),
@@ -345,8 +339,8 @@ export class AsistenciaDePersonalErrorHandler {
   }
 
   /**
-   * Maneja errores de validación
-   */
+* Maneja errores de validación
+*/
   public handleValidationError(errores: string[], operacion: string): void {
     const message = `Errores de validación al ${operacion}: ${errores.join(
       ", "
@@ -359,22 +353,22 @@ export class AsistenciaDePersonalErrorHandler {
     });
   }
 
-  // ✅ CORREGIDO - AsistenciaDePersonalErrorHandler.ts
+  // // ✅ CORREGIDO - AsisnciaDePersonalErrorHandler.ts
   public clearErrors(): void {
     this.setError?.(null);
-    // ❌ NO terminar loading aquí
-    // this.setIsSomethingLoading?.(false);
+    // // ❌ NO ternar loading aquí
+    // // this.setIsSometngLoading?.(false);
   }
 
-  // ✅ NUEVO método separado si necesitas limpiar loading
+  // // ✅ NUEVO método separado snecesitas limpiar loading
   public clearErrorsAndLoading(): void {
     this.setError?.(null);
     this.setIsSomethingLoading?.(false);
   }
 
   /**
-   * Establece estado de loading
-   */
+* Establece estado de loading
+*/
   public setLoading(isLoading: boolean): void {
     this.setIsSomethingLoading?.(isLoading);
   }

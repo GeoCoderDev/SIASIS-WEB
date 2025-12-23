@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// For Next.js v13 and above, use the TextDecoder API
+// // For Next.js v13nd above, use the TextDecoder API
 async function readStreamToString(stream: ReadableStream) {
   const decoder = new TextDecoder();
   let result = "";

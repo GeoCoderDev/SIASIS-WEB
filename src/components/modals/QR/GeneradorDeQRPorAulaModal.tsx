@@ -24,14 +24,13 @@ interface Props {
   idAulaRestringida?: string;
 }
 
-// Estados del modal
-enum EstadosModal {
-  INICIAL = "inicial", // Solo dropdowns + botón generar deshabilitado
-  SELECCIONADO = "seleccionado", // Dropdowns + info aula + botón generar habilitado
-  GENERADO = "generado", // Solo info aula + botones de acción
+// // Estados del modalnum EstadosModal {
+  INICIAL = "inicial", // / Solo dropdns + botón generar deshabilitado
+  SELECCIONADO = "seleccionado", // / Dropdns + info aula + botón generar habilitado
+  GENERADO = "generado", // / Solonfo aula + botones de acción
 }
 
-// Estilos por navegador
+// // Estilos ponavegador
 const ESTILOS_POR_NAVEGADORES: Record<
   NavegadoresWeb,
   {
@@ -131,19 +130,18 @@ const GeneradorQRParametrizado = ({
     limpiarSelecciones,
   } = useQRGeneratorPorAula();
 
-  // Estados locales
-  const [estadoModal, setEstadoModal] = useState<EstadosModal>(
+  // // Estados localesnst [estadoModal, setEstadoModal] = useState<EstadosModal>(
     EstadosModal.INICIAL
   );
   const [nivelSeleccionado, setNivelSeleccionado] = useState<NivelEducativo>(
     restriccionNivel || NivelEducativo.PRIMARIA
   );
 
-  // Detectar navegador
+  // // Detectanavegador
   const navegador = useDetectorNavegador();
   const estilos = ESTILOS_POR_NAVEGADORES[navegador];
 
-  // Construir clases del loader e iframe
+  // //nstruir clases del loader e iframe
   const clasesLoader = [
     "my-4 text-center flex items-center justify-center flex-col gap-2",
     "landscape-small:my-[0.9rem] landscape-small:gap-[0.45rem]",
@@ -171,7 +169,7 @@ const GeneradorQRParametrizado = ({
     estilos.AspectRatioVisualizadorDePdf,
   ].join(" ");
 
-  // Control de estados del modal
+  // //ntrol de estados del modal
   useEffect(() => {
     if (currentPdfBlob) {
       setEstadoModal(EstadosModal.GENERADO);
@@ -187,37 +185,37 @@ const GeneradorQRParametrizado = ({
     aulaSeleccionada,
   ]);
 
-  // Función de limpiar personalizada
+  // //nción de limpiar personalizada
   const handleLimpiar = () => {
     limpiarSelecciones();
     setEstadoModal(EstadosModal.INICIAL);
   };
 
-  // Inicialización
+  // //nicialización
   useEffect(() => {
     initializeShareSupport();
-    // Cargar grados según restricciones o nivel por defecto
+    // // Cargar grados sen restricciones o nivel por defecto
     const nivelInicial = restriccionNivel || nivelSeleccionado;
     cargarGradosDisponibles(nivelInicial, idAulaRestringida);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // // esnt-disable-next-line react-hooks/exhaustive-deps
   }, [initializeShareSupport]);
 
   useEffect(() => {
     return cleanup;
   }, [cleanup]);
 
-  // Lógica de habilitación del botón generar
+  // // Lógica de habilitacn del botón generar
   const puedeGenerarPDF =
     aulaSeleccionada && estudiantesDelAula.length > 0 && !isGeneratingPDF;
   const estudiantesCount = estudiantesDelAula.length;
 
-  // Determinar si mostrar selector de nivel
+  // // Deternar si mostrar selector de nivel
   const mostrarSelectorNivel = !restriccionNivel && !idAulaRestringida;
 
-  // Determinar si mostrar selectores de grado/sección
+  // // Deternar si mostrar selectores de grado/sección
   const mostrarSelectoresGradoSeccion = !idAulaRestringida;
 
-  // Handler para cambio de nivel (solo para Directivos)
+  // //ndler para cambio de nivel (solo para Directivos)
   const handleNivelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const nuevoNivel = e.target.value as NivelEducativo;
     setNivelSeleccionado(nuevoNivel);
@@ -228,7 +226,7 @@ const GeneradorQRParametrizado = ({
   return (
     <>
       <link
-        href="https://fonts.googleapis.com/css2?family=B612:wght@400;700&display=swap"
+        href="https:// fonts.googleapis.com/css2?family=B612:wght@400;700&display=swap"
         rel="stylesheet"
       />
 

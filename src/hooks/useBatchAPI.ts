@@ -1,189 +1,190 @@
 // import { ObjetoConStringYNumber } from "@/interfaces/CustomObjects";
-// import { MethodHTTP } from "@/interfaces/MethodsHTTP";
-// import { useCallback, useEffect, useState } from "react";
+// / import { MethodHTTP } from "@nterfaces/MethodsHTTP";
+// / import { useCallback, useEffect, useState } from "react";
 // import useAPI from "./useAPI";
-// import { ErrorAPI } from "@/interfaces/API";
+// import { ErrorAPI } from "@nterfaces/API";
 
-// const waitTimeRedirectionMS = 2300;
+// //nst waitTimeRedirectionMS = 2300;
 
-// /**
-//  * Las referencias deben ir en el mismo
-//  * orden de los parametros de consulta
-//  * @param endpoint
-//  * @param limit
-//  * @param startFrom
-//  * @param queryParams
-//  * @param searchParamsRef
-//  * @param method
-//  * @param body
-//  * @returns
-//  */
-// const useBatchAPI = <T>(
-//   endpoint: string,
-//   limit: number,
-//   startFrom: number = 0,
-//   queryParams: ObjetoConStringYNumber | null = null,
-//   searchParamsRef: React.MutableRefObject<
-//     HTMLInputElement | HTMLSelectElement | undefined
-//   >[],
-//   method: MethodHTTP = "GET",
-//   body: string | null = null,
-//   keyResults?: keyof T,
-//   otherData?: (keyof T)[]
+// // /**
+* // * Las refencias deben ir en el mismo
+* // / * orn de los parametros de consulta
+* // / * @paramndpoint
+* // / * @param limit
+* // * @param startFrom
+* // * @param queryParams
+* // * @param searchParamsRef
+* // * @param method
+* // * @param body
+* // * @retns
+* // /
+*/
+//nst useBatchAPI = <T>(
+// /ndpoint: string,
+// / limitnumber,
+// / startFromnumber = 0,
+// / queryParams: ObjetonStringYNumber | null = null,
+// / searchParamsRef: React.MutableRefObject<
+// HTMnputElement | HTMLSelectElement | undefined
+// / >[],
+// method: MethodHTTP = "GET",
+// body: stng | null = null,
+// / keyResults?: keyof T,
+// otherData?: (keyof T)[]
 // ) => {
-//   const { fetchAPI, fetchCancelables } = useAPI();
-//   const [results, setResults] = useState<Array<T>>([]);
-//   const [start, setStart] = useState(startFrom);
-//   const [count, setCount] = useState(0);
-//   const [isLoading, setIsLoading] = useState(true);
-//   const [allResultsGetted, setAllResultsGetted] = useState(false);
-//   const [shouldFetch, setShouldFetch] = useState(true);
-//   const [error, setError] = useState<ErrorAPI | null>(null);
-//   const [otherProperties, setOtherProperties] = useState<any>({});
+//nst { fetchAPI, fetchCancelables } = useAPI();
+// /nst [results, setResults] = useState<Array<T>>([]);
+// /nst [start, setStart] = useState(startFrom);
+// /nst [count, setCount] = useState(0);
+// /nst [isLoading, setIsLoading] = useState(true);
+// /nst [allResultsGetted, setAllResultsGetted] = useState(false);
+// /nst [shouldFetch, setShouldFetch] = useState(true);
+// /nst [error, setError] = useState<ErrorAPI | null>(null);
+// /nst [otherProperties, setOtherProperties] = useState<any>({});
 
-//   //Definicion de la funcion fetchNextResults
-//   const fetchNextResults = useCallback(async () => {
+// // //Denicion de la funcion fetchNextResults
+// /nst fetchNextResults = useCallback(async () => {
 
-//     if (!shouldFetch) return;
+// // if (!shouldFetch) retn;
 
-//     if ((fetchAPI === undefined || start >= count) && count !== 0) return;
+// // if ((fetchAPI ===ndefined || start >= count) && count !== 0) return;
 
-//     try {
-//       const fetchCancelable = fetchAPI(
-//         endpoint,
-//         method,
-//         { ...queryParams, startFrom: start, limit },
-//         body
-//       );
+// // try {
+//nst fetchCancelable = fetchAPI(
+// /ndpoint,
+// / method,
+// { ...queryParams, startFrom: start, limit },
+// body
+// );
 
-//       if (fetchCancelable === undefined) return;
+// if (fetchncelable === undefined) return;
 
-//       setIsLoading(true);
+// // setIsLoang(true);
 
-//       while (fetchCancelables.length > 0) {
-//         const oldFetch = fetchCancelables.shift();
-//         oldFetch?.cancel();
-//       }
+// // while (fetchncelables.length > 0) {
+// /nst oldFetch = fetchCancelables.shift();
+// / oldFetch?.ncel();
+// / }
 
-//       const res = await fetchCancelable.fetch();
+//nst res = await fetchCancelable.fetch();
 
-//       let equalsQueryParams = true;
-//       let indice = -1;
+// // let equalsQueryParams = true;
+// letndice = -1;
 
-//       for (const [key, value] of Object.entries(fetchCancelable.queryParams)) {
-//         indice++;
-//         if (searchParamsRef?.[indice]?.current === undefined) continue;
-//         if (searchParamsRef[indice].current?.value !== value) {
-//           // console.log("%cdiferente", "font-size: 2rem");
-//           equalsQueryParams = false;
-//           break;
-//         }
-//       }
+// // for (nst [key, value] of Object.entries(fetchCancelable.queryParams)) {
+// /ndice++;
+// / if (searchParamsRef?.ndice]?.current === undefined) continue;
+// / if (searchParamsRefndice].current?.value !== value) {
+// / //nsole.log("%cdiferente", "font-size: 2rem");
+// / equalsQueryParams = false;
+// break;
+// }
+// }
 
-//       if (!equalsQueryParams) return;
+// if (!equalsQueryParams) retn;
 
-//       const respObj:
-//         | {
-//             results: Array<T>;
-//             count?: number;
-//             message?: string;
-//           }
-//         | any = await res.json();
+// //nst respObj:
+// / | {
+// results: Array<T>;
+// cnt?: number;
+// / message?: stng;
+// / }
+// |ny = await res.json();
 
-//       if (otherData) {
-//         setOtherProperties(() => {
-//           let props: any = {};
+// // if (otherData) {
+// setOtherProperties(() => {
+// let props:ny = {};
 
-//           for (const [key, value] of Object.entries(respObj as Object)) {
-//             if (otherData.includes(key as keyof T)) {
-//               props[key] = value;
-//             }
-//           }
-//           return props;
-//         });
-//       }
+// // for (nst [key, value] of Object.entries(respObj as Object)) {
+// / if (otherDatancludes(key as keyof T)) {
+// / props[key] = value;
+// }
+// }
+// retn props;
+// / });
+// }
 
-//       const { results: nextResults, count: countResults, message } = respObj;
+//nst { results: nextResults, count: countResults, message } = respObj;
 
-//       if (res.status === 401) {
-//         setError(() => ({
-//           message: message ?? "Tu sesion ha expirado o no estas autorizado",
-//         }));
-//         setTimeout(() => {
-//           window.location.href = "/";
-//         }, waitTimeRedirectionMS);
-//         return setIsLoading(false);
-//       }
+// // if (res.status === 401) {
+// setError(() => ({
+// message: message ?? "Tu sesn ha expirado o no estas autorizado",
+// / }));
+// setTimeout(() => {
+//ndow.location.href = "/";
+// / }, waitTimeRedirectnMS);
+// / retn setIsLoading(false);
+// / }
 
-//       if (countResults !== undefined) setCount(() => countResults);
+// if (cntResults !== undefined) setCount(() => countResults);
 
-//       const resultsDef = keyResults
-//         ? respObj[keyResults] ?? nextResults
-//         : nextResults;
+// //nst resultsDef = keyResults
+// / ? respObj[keyResults] ?nextResults
+// /nextResults;
 
-//       if (!resultsDef) {
-//         setResults(() => []);
-//       } else {
-//         if (start === 0) {
-//           setResults(() => resultsDef);
-//         } else {
-//           setResults(
-//             (prevResults) => [...prevResults, ...resultsDef] as Array<T>
-//           );
-//         }
-//       }
+// // if (!resultsDef) {
+// setResults(() => []);
+// } else {
+// if (start === 0) {
+// setResults(() => resultsDef);
+// } else {
+// setResults(
+// (prevResults) => [...prevResults, ...resultsDef] as Array<T>
+// );
+// }
+// }
 
-//       setStart((prev) => prev + limit);
-//       setAllResultsGetted(start + limit >= (countResults ?? count));
-//       setIsLoading(false);
-//     } catch (error: any) {
-//       const pattern = /signal is aborted without reason/;
-//       if (error.stack && pattern.test(error.stack)) return;
-//       setError(() => ({ message: "La red es inestable" }));
-//       setIsLoading(false);
-//     }
-//   }, [
-//     fetchAPI,
-//     body,
-//     endpoint,
-//     start,
-//     limit,
-//     method,
-//     queryParams,
-//     count,
-//     shouldFetch,
-//   ]);
+// setStart((prev) => prev + limit);
+// setAllResultsGetted(start + limit >= (cntResults ?? count));
+// / setIsLoang(false);
+// / } catch (error:ny) {
+// /nst pattern = /signal is aborted without reason/;
+// / if (error.stack && pattn.test(error.stack)) return;
+// / setError(() => ({ message: "La red esnestable" }));
+// / setIsLoang(false);
+// / }
+// }, [
+// fetchAPI,
+// body,
+//ndpoint,
+// / start,
+// limit,
+// method,
+// queryParams,
+// cnt,
+// / shouldFetch,
+// ]);
 
-//   useEffect(() => {
-//     setStart(() => startFrom);
-//   }, [endpoint, limit, startFrom, queryParams, method, body]);
+// useEffect(() => {
+// setStart(() => startFrom);
+// },ndpoint, limit, startFrom, queryParams, method, body]);
 
-//   // Reset the state when the query params change
-//   useEffect(() => {
-//     if (start >= count && count !== 0) return setAllResultsGetted(true);
-//     if (start !== startFrom) return;
-//     setIsLoading(true);
-//     setAllResultsGetted(false);
-//     setError(null);
-//     setResults([]);
-//     setStart(() => startFrom);
-//     fetchNextResults();
-//   }, [fetchNextResults, startFrom, start, queryParams]);
+// // // Reset the state wn the query params change
+// / useEffect(() => {
+// if (start >= cnt && count !== 0) return setAllResultsGetted(true);
+// / if (start !== startFrom) retn;
+// / setIsLoang(true);
+// / setAllResultsGetted(false);
+// setErronull);
+// / setResults([]);
+// setStart(() => startFrom);
+// fetchNextResults();
+// }, [fetchNextResults, startFrom, start, queryParams]);
 
-//   useEffect(() => {
-//     setShouldFetch(false);
-//     setTimeout(() => setShouldFetch(true), 1000);
-//   }, [queryParams]);
+// useEffect(() => {
+// setShouldFetch(false);
+// setTimeout(() => setShouldFetch(true), 1000);
+// }, [queryParams]);
 
-//   return {
-//     fetchNextResults,
-//     results,
-//     isLoading,
-//     allResultsGetted,
-//     error,
-//     setResults,
-//     otherProperties,
-//   };
+// retn {
+// / fetchNextResults,
+// results,
+// isLoang,
+// / allResultsGetted,
+// error,
+// setResults,
+// otherProperties,
+// };
 // };
 
-// export default useBatchAPI;
+// export default useBatchAPI

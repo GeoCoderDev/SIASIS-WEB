@@ -52,7 +52,7 @@ interface RegistroEstudiantesSecundariaPorQRProps {
 const RegistroEstudiantesSecundariaPorQR: React.FC<
   RegistroEstudiantesSecundariaPorQRProps
 > = ({ handlerAuxiliar, fechaHoraActual }) => {
-  // Estados principales
+  // // Estados pncipales
   const [camarasDisponibles, setCamarasDisponibles] = useState<CamaraInfo[]>(
     []
   );
@@ -61,7 +61,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
   );
   const [escaneando, setEscaneando] = useState(false);
 
-  // Estados separados para estudiante y errores
+  // // Estados separados para estudnte y errores
   const [estudianteEscaneado, setEstudianteEscaneado] =
     useState<EstudianteConAula | null>(null);
   const [errorQR, setErrorQR] = useState<ErrorQR | null>(null);
@@ -74,11 +74,11 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     useState<boolean>(false);
   const [cargandoCamaras, setCargandoCamaras] = useState<boolean>(false);
 
-  // Referencias
+  // // Refencias
   const componenteMontadoRef = useRef(true);
   const timeoutRefs = useRef<NodeJS.Timeout[]>([]);
 
-  // Cleanup al desmontar
+  // // Clnup al desmontar
   useEffect(() => {
     return () => {
       componenteMontadoRef.current = false;
@@ -86,7 +86,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     };
   }, []);
 
-  // Función para determinar el modo de registro actual
+  // //nción para determinar el modo de registro actual
   const determinarModoRegistro = (): ModoRegistro => {
     if (
       !CONTROL_ASISTENCIA_DE_SALIDA_SECUNDARIA ||
@@ -99,7 +99,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     const horarioSecundaria = handlerAuxiliar.getHorarioEscolarSecundaria();
     const horaActual = new Date(fechaHoraActual.fechaHora);
 
-    // Calcular la hora límite (1 hora antes de la salida oficial)
+    // // Calcular la hora límite (1 horantes de la salida oficial)
     const horaLimite = new Date(
       alterarUTCaZonaPeruana(String(horarioSecundaria.Fin))
     );
@@ -111,7 +111,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     return horaActual < horaLimite ? ModoRegistro.Entrada : ModoRegistro.Salida;
   };
 
-  // Función principal simplificada para obtener cámaras
+  // //nción principal simplificada para obtener cámaras
   const inicializarSistemaCamaras = useCallback(async () => {
     if (cargandoCamaras) return;
 
@@ -120,12 +120,12 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     setSistemaInicializado(false);
 
     try {
-      // Verificar soporte del navegador
+      // // Verificar soporte denavegador
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error("Su navegador no soporta acceso a la cámara");
       }
 
-      // Solicitar permisos si no los tenemos
+      // // Solicitar permisos sno los tenemos
       let needsPermission = true;
       try {
         const devices = await navigator.mediaDevices.enumerateDevices();
@@ -156,7 +156,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
         }
       }
 
-      // Obtener dispositivos después de tener permisos
+      // // Obner dispositivos después de tener permisos
       const devices = await navigator.mediaDevices.enumerateDevices();
       const cameras = devices.filter((d) => d.kind === "videoinput");
 
@@ -164,7 +164,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
         throw new Error("No se encontraron cámaras en este dispositivo.");
       }
 
-      // Formatear cámaras encontradas
+      // // Formatear cámarasncontradas
       const camarasFormateadas: CamaraInfo[] = cameras.map((cam, i) => {
         let label = cam.label || `Cámara ${i + 1}`;
         let tipo: CamaraInfo["tipo"] = "desconocida";
@@ -202,10 +202,10 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
         };
       });
 
-      // Actualizar estados
-      setCamarasDisponibles(camarasFormateadas);
+      // // Actualizar estados
+      setCamarasDisnibles(camarasFormateadas);
 
-      // Auto-seleccionar la mejor cámara
+      // // Auto-seleccnar la mejor cámara
       const camaraPreferida =
         camarasFormateadas.find((c) => c.tipo === "trasera") ||
         camarasFormateadas[0];
@@ -220,7 +220,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
 
       setErrorEscaneo(mensajeError);
 
-      // En desarrollo, agregar cámaras de prueba
+      // //n desarrollo, agregar cámaras de prueba
       if (process.env.NODE_ENV === "development") {
         const camarasPrueba: CamaraInfo[] = [
           {
@@ -243,7 +243,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     }
   }, [cargandoCamaras]);
 
-  // Función para manejar el resultado del QR
+  // //nción para manejar el resultado del QR
   const handleQRResult = useCallback(
     async (detectedCodes: IDetectedBarcode[]) => {
       if (!detectedCodes || detectedCodes.length === 0) {
@@ -253,12 +253,12 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
       const ultimoQR = detectedCodes.at(-1);
       const studentData = decodificarCadenaQREstudiante(ultimoQR!.rawValue);
 
-      // Verificar si hubo error en la decodificación
+      // // Verificar si hubo errorn la decodificación
       if (!studentData.exito || studentData.error) {
         vibrator.vibrate(VIBRATIONS.LONG);
         const speaker = Speaker.getInstance();
 
-        // Guardar error de decodificación
+        // // Guardar error de decodificacn
         setErrorQR({
           mensaje: studentData.error!,
           tipo: "decodificacion",
@@ -270,14 +270,14 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
         return;
       }
 
-      // Si llegamos aquí, la decodificación fue exitosa
+      // // Si llegamos aquí, la decodificacn fue exitosa
       vibrator.vibrate(VIBRATIONS.SHORT);
 
       const speaker = Speaker.getInstance();
       const estudiantesIDB = new BaseEstudiantesIDB();
       const aulasIDB = new BaseAulasIDB();
 
-      // Buscar el estudiante en la base de datos local
+      // // Buscar el estudnte en la base de datos local
       const estudianteEncontrado =
         (await estudiantesIDB.getEstudiantePorId(
           studentData.identificadorEstudiante!
@@ -289,7 +289,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
       if (!estudianteEncontrado) {
         vibrator.vibrate(VIBRATIONS.MEDIUM);
 
-        // Guardar error de estudiante no encontrado
+        // // Guardar error de estudnte no encontrado
         setErrorQR({
           mensaje: "El estudiante no se encuentra en la lista de hoy",
           tipo: "estudiante_no_encontrado",
@@ -302,7 +302,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
         return;
       }
 
-      // Todo exitoso - guardar estudiante válido
+      // // Todo exitoso - guardar estudnte válido
       const periodoDelDia = determinarPeriodoDia(
         fechaHoraActual.fechaHora || new Date().toISOString()
       );
@@ -325,14 +325,14 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     [fechaHoraActual]
   );
 
-  // Función para manejar errores del scanner
+  // //nción para manejar errores del scanner
   const handleQRError = useCallback((error: any) => {
     if (error && !error.message?.includes("No QR code found")) {
       console.warn("Scanner error:", error.message);
     }
   }, []);
 
-  // Función para marcar asistencia - CON CONTROL DE HORARIO
+  // //nción para marcar asistencia - CON CONTROL DE HORARIO
   const marcarAsistencia = (estudiante: EstudianteConAula) => {
     if (!handlerAuxiliar || !fechaHoraActual.fechaHora) {
       console.error(
@@ -354,7 +354,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     let desfaseSegundos: number;
 
     if (CONTROL_ASISTENCIA_DE_SALIDA_SECUNDARIA) {
-      // Lógica original con entrada/salida
+      // // Lógica orinal con entrada/salida
       const horaLimite = new Date(horaSalidaOficial);
       horaLimite.setHours(
         horaLimite.getHours() -
@@ -374,15 +374,14 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
         );
       }
     } else {
-      // Solo entrada, siempre calcular desfase con hora de entrada
+      // // Solontrada, siempre calcular desfase con hora de entrada
       modoRegistro = ModoRegistro.Entrada;
       desfaseSegundos = Math.floor(
         (horaActual.getTime() - horaEntradaOficial.getTime()) / 1000
       );
     }
 
-    // Debug para verificar cálculos
-    console.log("🕒 DEBUG CÁLCULO DE ASISTENCIA:");
+    // // Debug para verificar cálculosnsole.log("🕒 DEBUG CÁLCULO DE ASISTENCIA:");
     console.log(
       "Control horario entrada/salida:",
       CONTROL_ASISTENCIA_DE_SALIDA_SECUNDARIA
@@ -409,27 +408,27 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     nuevosRegistrados.add(estudiante.Id_Estudiante);
     setEstudiantesRegistrados(nuevosRegistrados);
 
-    // Limpiar estados y continuar
+    // // Limpiar estados yntinuar
     setEstudianteEscaneado(null);
     setErrorQR(null);
     setEscaneando(true);
   };
 
-  // Función para reiniciar escáner después de error
+  // //nción para reiniciar escáner después de error
   const reiniciarEscaner = () => {
     setEstudianteEscaneado(null);
     setErrorQR(null);
     setEscaneando(true);
   };
 
-  // Función para cancelar escáner
+  // //nción para cancelar escáner
   const cancelarEscaner = () => {
     setEstudianteEscaneado(null);
     setErrorQR(null);
     setEscaneando(false);
   };
 
-  // Función para cambiar cámara
+  // //nción para cambiar cámara
   const cambiarCamara = (deviceId: string) => {
     setCamaraSeleccionada(deviceId);
     setErrorEscaneo("");
@@ -445,14 +444,14 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     }
   };
 
-  // Función para alternar escáner
+  // //nción para alternar escáner
   const toggleScanner = () => {
     const nuevoEstado = !escaneando;
     setEscaneando(nuevoEstado);
     setErrorEscaneo("");
   };
 
-  // Funciones auxiliares para UI
+  // //nciones auxiliares para UI
   const obtenerEmojiCamara = (tipo: CamaraInfo["tipo"]) => {
     switch (tipo) {
       case "frontal":
@@ -479,7 +478,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     }
   };
 
-  // Función para obtener texto y estilo del botón según el modo
+  // //nción para obtener texto y estilo del botón según el modo
   const obtenerConfiguracionBoton = () => {
     if (!CONTROL_ASISTENCIA_DE_SALIDA_SECUNDARIA) {
       return {
@@ -502,7 +501,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     }
   };
 
-  // Componente para mostrar errores de QR
+  // // Comnente para mostrar errores de QR
   const ErrorQRDisplay = ({ error }: { error: ErrorQR }) => (
     <div className="w-full max-w-xs bg-red-50 border-2 border-red-200 p-3 rounded-lg shadow-lg">
       <div className="text-center mb-3">
@@ -534,7 +533,7 @@ const RegistroEstudiantesSecundariaPorQR: React.FC<
     </div>
   );
 
-  // Componente para mostrar estudiante válido
+  // // Comnente para mostrar estudiante válido
   const EstudianteDisplay = ({
     estudiante,
   }: {

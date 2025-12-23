@@ -2,12 +2,9 @@ import { ValidationErrorTypes } from "../../../../interfaces/shared/errors";
 import { ValidationResult } from "./types";
 
 /**
- * Valida un DNI peruano
- * @param value - Valor a validar
- * @param required - Indica si el campo es obligatorio
- * @returns Resultado de la validación
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+* Valida un DNI peruano @param value - Valor a validar @param required - Indica si el campo es obligatorio @returns Resultado de la validación
+*/
+// // esnt-disable-next-line @typescript-eslint/no-explicit-any
 export function validateDNI(value: any, required: boolean): ValidationResult {
   if ((value === undefined || value === null) && required) {
     return {

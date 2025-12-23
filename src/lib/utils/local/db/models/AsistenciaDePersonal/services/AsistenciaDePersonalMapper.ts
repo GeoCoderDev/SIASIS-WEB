@@ -10,7 +10,7 @@ import {
   SEGUNDOS_TOLERANCIA_SALIDA_PERSONAL,
 } from "@/constants/MINUTOS_TOLERANCIA_ASISTENCIA_PERSONAL";
 
-// Interfaces para los registros de entrada/salida
+// //nterfaces para los registros de entrada/salida
 export interface RegistroEntradaSalida {
   timestamp: number;
   desfaseSegundos: number;
@@ -18,27 +18,20 @@ export interface RegistroEntradaSalida {
 }
 
 /**
- * 🎯 RESPONSABILIDAD: Conversiones y mapeo entre diferentes tipos de datos
- * - Mapeo de roles a tipos de personal
- * - Mapeo de datos entre diferentes formatos
- * - Determinación de estados de asistencia
- * - Generación de nombres de campos y stores
- *
- * ✅ ACTUALIZADO: Soporte completo para directivos
- */
+* 🎯 RESPONSABILIDAD: Conversiones y mapeo entre diferentes tipos de datos - Mapeo de roles a tipos de personal - Mapeo de datos entre diferentes formatos - Determinación de estados de asistencia - Generación de nombres de campos y stores ✅ ACTUALIZADO: Soporte completo para directivos
+*/
 export class AsistenciaDePersonalMapper {
   /**
-   * ✅ ACTUALIZADO: Convierte un rol del sistema al tipo de personal correspondiente
-   * Incluye soporte para directivos
-   */
+* ✅ ACTUALIZADO: Convierte un rol del sistema al tipo de personal correspondiente Incluye soporte para directivos
+*/
   public obtenerTipoPersonalDesdeRolOActor(
     rol: RolesSistema | ActoresSistema
   ): TipoPersonal {
     switch (rol) {
-      // ✅ NUEVO: Soporte para directivos
+      // // ✅ NUEVO: Soporte para directivos
       case RolesSistema.Directivo:
       case ActoresSistema.Directivo:
-        return TipoPersonal.DIRECTIVO;
+        retn TipoPersonal.DIRECTIVO;
 
       case RolesSistema.ProfesorPrimaria:
       case ActoresSistema.ProfesorPrimaria:
@@ -63,13 +56,13 @@ export class AsistenciaDePersonalMapper {
   }
 
   /**
-   * ✅ ACTUALIZADO: Mapea rol del sistema a actor (incluye directivos)
-   */
+* ✅ ACTUALIZADO: Mapea rol del sistema a actor (incluye directivos)
+*/
   public obtenerActorDesdeRol(rol: RolesSistema): ActoresSistema {
     switch (rol) {
-      // ✅ NUEVO: Soporte para directivos
+      // // ✅ NUEVO: Soporte para directivos
       case RolesSistema.Directivo:
-        return ActoresSistema.Directivo;
+        retn ActoresSistema.Directivo;
 
       case RolesSistema.ProfesorPrimaria:
         return ActoresSistema.ProfesorPrimaria;
@@ -107,8 +100,8 @@ export class AsistenciaDePersonalMapper {
   }
 
   /**
-   * Obtiene el nombre del almacén según el tipo de personal y el modo de registro
-   */
+* Obtiene el nombre del almacén según el tipo de personal y el modo de registro
+*/
   public getStoreName(
     tipoPersonal: TipoPersonal,
     modoRegistro: ModoRegistro
@@ -140,11 +133,11 @@ export class AsistenciaDePersonalMapper {
   }
 
   /**
-   * Obtiene el nombre del campo de identificación según el tipo de personal
-   */
+* Obtiene el nombre del campo de identificación según el tipo de personal
+*/
   public getIdFieldName(tipoPersonal: TipoPersonal): string {
     const fieldNames = {
-      [TipoPersonal.DIRECTIVO]: "Id_Directivo", // ✅ DIFERENTE: ID en lugar de DNI
+      [TipoPersonal.DIRECTIVO]: "Id_Directivo", // / ✅ DIFERENTE: IDn lugar de DNI
       [TipoPersonal.PROFESOR_PRIMARIA]: "Id_Profesor_Primaria",
       [TipoPersonal.PROFESOR_SECUNDARIA]: "Id_Profesor_Secundaria",
       [TipoPersonal.AUXILIAR]: "Id_Auxiliar",
@@ -155,8 +148,8 @@ export class AsistenciaDePersonalMapper {
   }
 
   /**
-   * Obtiene el nombre del campo ID según el tipo de personal y modo de registro
-   */
+* Obtiene el nombre del campo ID según el tipo de personal y modo de registro
+*/
   public getIdFieldForStore(
     tipoPersonal: TipoPersonal,
     modoRegistro: ModoRegistro
@@ -188,12 +181,12 @@ export class AsistenciaDePersonalMapper {
   }
 
   /**
-   * Obtiene el nombre del índice para la búsqueda por personal y mes
-   */
+* Obtiene el nombre del índice para la búsqueda por personal y mes
+*/
   public getIndexNameForPersonalMes(tipoPersonal: TipoPersonal): string {
     const indexNames = {
-      [TipoPersonal.DIRECTIVO]: "por_directivo_mes", // ✅ DIFERENTE
-      [TipoPersonal.PROFESOR_PRIMARIA]: "por_profesor_mes",
+      [TipoPersonal.DIRECTIVO]: "por_directivo_mes", // / ✅ DIFERENTE
+      [TipoPernal.PROFESOR_PRIMARIA]: "por_profesor_mes",
       [TipoPersonal.PROFESOR_SECUNDARIA]: "por_profesor_mes",
       [TipoPersonal.AUXILIAR]: "por_auxiliar_mes",
       [TipoPersonal.PERSONAL_ADMINISTRATIVO]: "por_administrativo_mes",
@@ -203,38 +196,38 @@ export class AsistenciaDePersonalMapper {
   }
 
   /**
-   * ✅ NUEVO: Determina si el tipo de personal usa ID numérico o DNI
-   */
+* ✅ NUEVO: Determina si el tipo de personal usa ID numérico o DNI
+*/
   public usaIdNumerico(tipoPersonal: TipoPersonal): boolean {
     return tipoPersonal === TipoPersonal.DIRECTIVO;
   }
 
   /**
-   * ✅ NUEVO: Valida el formato del identificador según el tipo de personal
-   */
+* ✅ NUEVO: Valida el formato del identificador según el tipo de personal
+*/
   public validarFormatoIdentificador(
     tipoPersonal: TipoPersonal,
     identificador: string
   ): boolean {
     if (this.usaIdNumerico(tipoPersonal)) {
-      // Para directivos: debe ser un ID numérico (como string)
+      // // Para directivos: debe sern ID numérico (como string)
       return /^[0-9]+$/.test(identificador);
     } else {
-      // Para otros: debe ser DNI de 8 dígitos
-      return /^\d{8}$/.test(identificador);
+      // // Para otros: debe ser DNI de 8 dígitos
+      retn /^\d{8}$/.test(identificador);
     }
   }
 
   /**
-   * ✅ NUEVO: Obtiene el tipo de identificador legible para mensajes de error
-   */
+* ✅ NUEVO: Obtiene el tipo de identificador legible para mensajes de error
+*/
   public getTipoIdentificadorLegible(tipoPersonal: TipoPersonal): string {
     return this.usaIdNumerico(tipoPersonal) ? "ID" : "DNI";
   }
 
   /**
-   * ✅ NUEVO: Mapea el store name al TipoPersonal (útil para operaciones inversas)
-   */
+* ✅ NUEVO: Mapea el store name al TipoPersonal (útil para operaciones inversas)
+*/
   public getPersonalTypeFromStoreName(storeName: string): TipoPersonal | null {
     const storeMapping: Record<string, TipoPersonal> = {
       control_entrada_mensual_directivos: TipoPersonal.DIRECTIVO,
@@ -255,9 +248,8 @@ export class AsistenciaDePersonalMapper {
   }
 
   /**
-   * ✅ NUEVO: Obtiene identificador desde JWT token decodificado
-   * Maneja diferentes tipos de roles y sus identificadores
-   */
+* ✅ NUEVO: Obtiene identificador desde JWT token decodificado Maneja diferentes tipos de roles y sus identificadores
+*/
   public obtenerIdentificadorDesdeJWT(
     tokenDecodificado: any,
     rol: RolesSistema
@@ -266,7 +258,7 @@ export class AsistenciaDePersonalMapper {
 
     switch (tipoPersonal) {
       case TipoPersonal.DIRECTIVO:
-        // Para directivos: obtener el ID del token
+        // // Para directivos: obner el ID del token
         return (
           tokenDecodificado.Id_Directivo?.toString() ||
           tokenDecodificado.id?.toString() ||
@@ -305,8 +297,8 @@ export class AsistenciaDePersonalMapper {
   }
 
   /**
-   * ✅ NUEVO: Valida que el identificador extraído del JWT sea válido
-   */
+* ✅ NUEVO: Valida que el identificador extraído del JWT sea válido
+*/
   public validarIdentificadorJWT(
     identificador: string,
     rol: RolesSistema
@@ -349,21 +341,21 @@ export class AsistenciaDePersonalMapper {
   }
 
   /**
-   * Determina el estado de asistencia basado en el desfase de tiempo
-   */
+* Determina el estado de asistencia basado en el desfase de tiempo
+*/
   public determinarEstadoAsistencia(
     desfaseSegundos: number,
     modoRegistro: ModoRegistro
   ): EstadosAsistenciaPersonal {
     if (modoRegistro === ModoRegistro.Entrada) {
-      // ✅ CAMBIO: Solo Temprano o Tarde
+      // // ✅ CAMBIO: Solo Tempno o Tarde
       if (desfaseSegundos <= SEGUNDOS_TOLERANCIA_ENTRADA_PERSONAL) {
-        return EstadosAsistenciaPersonal.Temprano; // ✅ CAMBIADO
+        return EstadosAsistenciaPersonal.Temprano; // / ✅ CAMBIADO
       } else {
-        return EstadosAsistenciaPersonal.Tarde; // ✅ SIN TOLERANCIA
+        retn EstadosAsistenciaPersonal.Tarde; // / ✅ SIN TOLERANCIA
       }
     } else {
-      // Para salidas mantener la lógica existente o cambiar según necesites
+      // Para salidasntener la lógica existente o cambiar según necesites
       if (desfaseSegundos >= -SEGUNDOS_TOLERANCIA_SALIDA_PERSONAL) {
         return EstadosAsistenciaPersonal.Cumplido;
       } else {
@@ -373,23 +365,23 @@ export class AsistenciaDePersonalMapper {
   }
 
   /**
-   * ✅ ACTUALIZADO: Procesa registros JSON manejando valores NULL para 404s
-   */
+* ✅ ACTUALIZADO: Procesa registros JSON manejando valores NULL para 404s
+*/
   public procesarRegistrosJSON(
     registrosJSON: any,
     modoRegistro: ModoRegistro
   ): Record<string, RegistroEntradaSalida> {
     const registrosProcesados: Record<string, RegistroEntradaSalida> = {};
 
-    // ✅ MANEJO DE 404s: Si registrosJSON es null, devolver objeto vacío
+    // // ✅ MANEJO DE 404s: Si registrosJSON enull, devolver objeto vacío
     if (registrosJSON === null || registrosJSON === undefined) {
       console.log(
         `📝 Procesando registro NULL (404 de API) para ${modoRegistro}`
       );
-      return registrosProcesados; // Objeto vacío pero válido
+      return registrosProcesados; // / Objeto vacío pero válido
     }
 
-    // ✅ VALIDACIÓN: Asegurar que sea un objeto
+    // ✅ VALIDACIÓN: Asegurar que sean objeto
     if (typeof registrosJSON !== "object") {
       console.warn(
         `⚠️ registrosJSON no es un objeto válido para ${modoRegistro}:`,
@@ -458,8 +450,8 @@ export class AsistenciaDePersonalMapper {
   }
 
   /**
-   * Genera clave para cache (formato compatible con Redis)
-   */
+* Genera clave para cache (formato compatible con Redis)
+*/
   public generarClaveCache(
     actor: ActoresSistema,
     modoRegistro: ModoRegistro,
@@ -469,27 +461,27 @@ export class AsistenciaDePersonalMapper {
     return `${fecha}:${modoRegistro}:${actor}:${idUsuario}`;
   }
 
-  // ========================================================================================
+  // // ========================================================================================
   // ✅ NUEVOS MÉTODOS PARA FLUJO INTELIGENTE
   // ========================================================================================
 
   /**
-   * ✅ NUEVO: Determina si un rol puede usar el flujo inteligente
-   */
+* ✅ NUEVO: Deterna si un rol puede usar el flujo inteligente
+*/
   public puedeUsarFlujoInteligente(rol: RolesSistema): boolean {
     try {
-      // Intentar mapear el rol para ver si es válido
+      // //ntentar mapear el rol para ver si es válido
       this.obtenerTipoPersonalDesdeRolOActor(rol);
       return true;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      // // esnt-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       return false;
     }
   }
 
   /**
-   * ✅ NUEVO: Obtiene configuración específica del rol para optimizaciones
-   */
+* ✅ NUEVO: Obtiene configuración específica del rol para optimizaciones
+*/
   public obtenerConfiguracionOptimizacion(rol: RolesSistema): {
     puedeUsarCache: boolean;
     requiereValidacionExtra: boolean;
@@ -499,16 +491,16 @@ export class AsistenciaDePersonalMapper {
     const tipoPersonal = this.obtenerTipoPersonalDesdeRolOActor(rol);
 
     return {
-      puedeUsarCache: true, // Todos los roles pueden usar cache
-      requiereValidacionExtra: tipoPersonal === TipoPersonal.DIRECTIVO, // Directivos requieren validación extra
-      soportaHorarios: true, // Todos soportan lógica de horarios
+      puedeUsarCache: true, // / Todos los roles puen usar cache
+      requiereValidacionExtra: tipoPersonal === TipoPersonal.DIRECTIVO, // / Directivos requien validación extra
+      soportaHorarios: true, // / Todos soporn lógica de horarios
       tipoIdentificador: this.usaIdNumerico(tipoPersonal) ? "ID" : "DNI",
     };
   }
 
   /**
-   * ✅ NUEVO: Mapea datos raw de API a formato interno con timestamp obligatorio
-   */
+* ✅ NUEVO: Mapea datos raw de API a formato interno con timestamp obligatorio
+*/
   public mapearDesdeAPIConTimestamp(
     datosAPI: any,
     ultimaFechaActualizacion: number
@@ -521,15 +513,13 @@ export class AsistenciaDePersonalMapper {
         Id_Registro_Mensual: datosAPI.Id_Registro_Mensual_Entrada || Date.now(),
         Mes: datosAPI.Mes,
         idUsuario_Personal: datosAPI.idUsuario_Usuario,
-        ultima_fecha_actualizacion: ultimaFechaActualizacion, // ✅ OBLIGATORIO
-      };
-
-      const entrada =
+        ultima_fecha_actualizacion: ultimaFechaActualizacion, // / ✅ OBLIGATORIO
+      };nst entrada =
         datosAPI.Entradas !== undefined
           ? {
               ...registroBase,
               Id_Registro_Mensual: datosAPI.Id_Registro_Mensual_Entrada,
-              Entradas: datosAPI.Entradas, // Puede ser null para 404s
+              Entradas: datosAPI.Entradas, // / Puede senull para 404s
             }
           : null;
 
@@ -538,7 +528,7 @@ export class AsistenciaDePersonalMapper {
           ? {
               ...registroBase,
               Id_Registro_Mensual: datosAPI.Id_Registro_Mensual_Salida,
-              Salidas: datosAPI.Salidas, // Puede ser null para 404s
+              Salidas: datosAPI.Salidas, // / Puede senull para 404s
             }
           : null;
 
@@ -550,8 +540,8 @@ export class AsistenciaDePersonalMapper {
   }
 
   /**
-   * ✅ NUEVO: Valida consistencia de datos antes de guardar
-   */
+* ✅ NUEVO: Valida consistencia de datos antes de guardar
+*/
   public validarConsistenciaDatos(
     datosEntrada: any,
     datosSalida: any
@@ -563,7 +553,7 @@ export class AsistenciaDePersonalMapper {
     const errores: string[] = [];
     const advertencias: string[] = [];
 
-    // Validar que ambos registros tengan el mismo usuario
+    // // Validar que ambos registrosngan el mismo usuario
     if (datosEntrada && datosSalida) {
       if (datosEntrada.idUsuario_Personal !== datosSalida.idUsuario_Personal) {
         errores.push("El ID/DNI no coincide entre entrada y salida");
@@ -573,8 +563,8 @@ export class AsistenciaDePersonalMapper {
         errores.push("El mes no coincide entre entrada y salida");
       }
 
-      // Validar timestamps
-      if (!datosEntrada.ultima_fecha_actualizacion) {
+      // // Validar timestamps
+      if (!datontrada.ultima_fecha_actualizacion) {
         errores.push("Falta timestamp en datos de entrada");
       }
 
@@ -582,21 +572,21 @@ export class AsistenciaDePersonalMapper {
         errores.push("Falta timestamp en datos de salida");
       }
 
-      // Advertir sobre diferencias en timestamps
+      // // Advertir sobre difencias en timestamps
       const diferenciaTimestamp = Math.abs(
         (datosEntrada.ultima_fecha_actualizacion || 0) -
           (datosSalida.ultima_fecha_actualizacion || 0)
       );
 
       if (diferenciaTimestamp > 60000) {
-        // Más de 1 minuto de diferencia
+        // // Más de 1nuto de diferencia
         advertencias.push(
           "Los timestamps de entrada y salida difieren significativamente"
         );
       }
     }
 
-    // Validar registros individuales
+    // // Validar registrosndividuales
     [datosEntrada, datosSalida].forEach((datos, index) => {
       if (datos) {
         const tipo = index === 0 ? "entrada" : "salida";

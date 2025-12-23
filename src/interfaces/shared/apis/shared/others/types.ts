@@ -7,9 +7,9 @@ import {
   T_Responsables,
 } from "@prisma/client";
 
-// USUARIOS SIN CONTRASEÑA ==============================================================
+// // USUARIOS SIN CONTRASEÑA ==============================================================
 
-export type DirectivoSinContraseña = Omit<T_Directivos, "Contraseña">;
+export type DirectivonContraseña = Omit<T_Directivos, "Contraseña">;
 
 export type ProfesorPrimariaSinContraseña = Omit<
   T_Profesores_Primaria,
@@ -30,8 +30,8 @@ export type PersonalAdministrativoSinContraseña = Omit<
   "Contraseña"
 > ;
 
-// =========================================================================================
+// // =========================================================================================
 
 
-// Cambios Adicionales en alguno tipos de algunos atributos
+// Cambios Adicnales en alguno tipos de algunos atributos
 

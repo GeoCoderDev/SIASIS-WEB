@@ -26,7 +26,7 @@ export interface ELIMINE_LA_ASISTENCIA_DE_ESTE_PERSONAL_PAYLOAD
   Sala_Toma_Asistencia_de_Personal: SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935;
 }
 
-//interface para evitar rebote contra si mismo
+// //nterface para evitar rebote contra si mismo
 export interface EmisorBroadcastDeSala {
   Mi_Socket_Id: string;
 }

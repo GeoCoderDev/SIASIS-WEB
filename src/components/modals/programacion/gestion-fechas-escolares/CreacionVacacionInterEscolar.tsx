@@ -13,7 +13,7 @@ const CreacionVacacionInterEscolar = ({
   const [fechaInicio, setFechaInicio] = useState(hoy);
   const [fechaFin, setFechaFin] = useState(hoy);
 
-  // Referencias a los inputs para controlar el calendario
+  // // Refencias a los inputs para controlar el calendario
   const inputInicioRef = useRef<HTMLInputElement>(null);
   const inputFinRef = useRef<HTMLInputElement>(null);
 

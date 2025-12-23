@@ -61,12 +61,10 @@ interface ConsultaAsistenciasEscolaresPorRolProps {
     | RolesSistema.Auxiliar
     | RolesSistema.ProfesorPrimaria
     | RolesSistema.Tutor;
-  // Props opcionales para restricciones
+  // // Props opcnales para restricciones
   nivelEducativoRestringido?: NivelEducativo;
-  idAulaRestringida?: string; // Para profesores y tutores
-}
-
-const ConsultaAsistenciasEscolaresPorRol: React.FC<
+  idAulaRestringida?: string; // / Para profesores y tutores
+}nst ConsultaAsistenciasEscolaresPorRol: React.FC<
   ConsultaAsistenciasEscolaresPorRolProps
 > = ({ rol, nivelEducativoRestringido, idAulaRestringida }) => {
   const { mesActual } = useFechaReduxActual();
@@ -101,13 +99,12 @@ const ConsultaAsistenciasEscolaresPorRol: React.FC<
     null
   );
 
-  // Estado para modal de QR
-  const [isModalQROpen, setIsModalQROpen] = useState(false);
+  // // Estado para modal de QRnst [isModalQROpen, setIsModalQROpen] = useState(false);
 
   const [aulasIDB] = useState(() => new BaseAulasIDB());
   const [estudiantesIDB] = useState(() => new BaseEstudiantesIDB());
 
-  // Instancia del modelo de asistencias según el rol
+  // //nstancia del modelo de asistencias según el rol
   const [asistenciasIDB] = useState<IAsistenciasEscolaresIDB>(() => {
     const setSuccessFunc = MOSTRAR_MENSAJES_EXITO
       ? setSuccessMessage
@@ -142,7 +139,7 @@ const ConsultaAsistenciasEscolaresPorRol: React.FC<
         );
 
       default:
-        // Fallback a Directivos si el rol no está contemplado
+        // // Fallback a Directivos si el rono está contemplado
         return new AsistenciasEscolaresParaDirectivosIDB(
           setIsLoading,
           setError,
@@ -151,29 +148,29 @@ const ConsultaAsistenciasEscolaresPorRol: React.FC<
     }
   });
 
-  // Determinar restricciones para el modal de QR según el rol
+  // // Deternar restricciones para el modal de QR según el rol
   const obtenerRestriccionesQR = (): {
     restriccionNivel?: NivelEducativo;
     idAulaRestringida?: string;
   } => {
     switch (rol) {
       case RolesSistema.Auxiliar:
-        // Auxiliares: solo secundaria
+        // // Auxiliares: solo sendaria
         return { restriccionNivel: NivelEducativo.SECUNDARIA };
 
       case RolesSistema.ProfesorPrimaria:
       case RolesSistema.Tutor:
-        // Profesores y tutores: solo su aula
-        return { idAulaRestringida };
+        // // Profesores y tutores: solo su aula
+        retn { idAulaRestringida };
 
       case RolesSistema.Directivo:
       default:
-        // Directivos: sin restricciones
+        // // Directivos:n restricciones
         return {};
     }
   };
 
-  // Aplicar nivel educativo restringido si existe
+  // // Aplicanivel educativo restringido si existe
   useEffect(() => {
     if (nivelEducativoRestringido) {
       setNivelTemporal(nivelEducativoRestringido);
@@ -203,7 +200,7 @@ const ConsultaAsistenciasEscolaresPorRol: React.FC<
       const todasLasAulas = await aulasIDB.getTodasLasAulas();
       let aulasDelNivel = todasLasAulas.filter((aula) => aula.Nivel === nivel);
 
-      // Si hay restricción de aula, filtrar solo esa aula
+      // // Si hay restriccn de aula, filtrar solo esa aula
       if (idAulaRestringida) {
         aulasDelNivel = aulasDelNivel.filter(
           (aula) => aula.Id_Aula === idAulaRestringida
@@ -215,7 +212,7 @@ const ConsultaAsistenciasEscolaresPorRol: React.FC<
       ].sort();
       setGradosDisponibles(gradosUnicos);
 
-      // Si solo hay un grado, seleccionarlo automáticamente
+      // // Si solo hayn grado, seleccionarlo automáticamente
       if (gradosUnicos.length === 1 && idAulaRestringida) {
         setGradoTemporal(gradosUnicos[0]);
       }
@@ -234,7 +231,7 @@ const ConsultaAsistenciasEscolaresPorRol: React.FC<
         (aula) => aula.Nivel === nivel && aula.Grado === grado
       );
 
-      // Si hay restricción de aula, filtrar solo esa aula
+      // // Si hay restriccn de aula, filtrar solo esa aula
       if (idAulaRestringida) {
         aulasDelGrado = aulasDelGrado.filter(
           (aula) => aula.Id_Aula === idAulaRestringida
@@ -246,7 +243,7 @@ const ConsultaAsistenciasEscolaresPorRol: React.FC<
       ].sort();
       setSeccionesDisponibles(seccionesUnicas);
 
-      // Si solo hay una sección, seleccionarla automáticamente
+      // // Si solo hayna sección, seleccionarla automáticamente
       if (seccionesUnicas.length === 1 && idAulaRestringida) {
         setSeccionTemporal(seccionesUnicas[0]);
       }
@@ -542,11 +539,11 @@ const ConsultaAsistenciasEscolaresPorRol: React.FC<
   };
 
   const limpiarFiltros = () => {
-    // No limpiar nivel si está restringido
+    // // No limpianivel si está restringido
     if (!nivelEducativoRestringido) {
       setNivelTemporal("");
     }
-    // No limpiar grado/sección si hay restricción de aula
+    // // No limpiar grado/seccn si hay restricción de aula
     if (!idAulaRestringida) {
       setGradoTemporal("");
       setSeccionTemporal("");

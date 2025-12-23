@@ -9,7 +9,7 @@ import {
   T_Personal_Administrativo,
   T_Profesores_Primaria,
   T_Profesores_Secundaria,
-  // T_Responsables,
+  // // T_Resnsables,
 } from "@prisma/client";
 import { ErrorResponseAPIBase, SuccessResponseAPIBase } from "../../types";
 import { Genero } from "../../../Genero";
@@ -21,20 +21,20 @@ import {
   ProfesorSecundariaSinContraseña,
 } from "../../shared/others/types";
 
-// -----------------------------------------
-//                METODO GET
+// // -----------------------------------------
+// METODO GET
 // -----------------------------------------
 
 /**
- * Datos de Directivo
- */
-export type MisDatosDirectivo = DirectivoSinContraseña & {
-  Genero: Genero;
-};
-
-/**
- * Datos de Profesor Primaria con aula opcional
- */
+* Datos de Directivo
+* /
+* export type MisDatosDirectivo = DirectivonContraseña & {
+*   Genero: Genero;
+* };
+*
+* /**
+*  Datos de Profesor Primaria con aula opcional
+*/
 export type MisDatosProfesorPrimaria = ProfesorPrimariaSinContraseña & {
   Genero: Genero;
   Aula: Omit<
@@ -44,30 +44,30 @@ export type MisDatosProfesorPrimaria = ProfesorPrimariaSinContraseña & {
 };
 
 /**
- * Datos de Auxiliar
- */
+* Datos de Auxiliar
+*/
 export type MisDatosAuxiliar = AuxiliarSinContraseña & {
   Genero: Genero;
 };
 
 /**
- * Datos de Profesor Secundaria
- */
+* Datos de Profesor Secundaria
+*/
 export type MisDatosProfesorSecundaria = ProfesorSecundariaSinContraseña & {
   Genero: Genero;
 };
 
 /**
- * Datos de Tutor (Profesor secundaria con aula)
- */
+* Datos de Tutor (Profesor secundaria con aula)
+*/
 export type MisDatosTutor = ProfesorSecundariaSinContraseña & {
   Genero: Genero;
   Aula: Omit<T_Aulas, "Id_Profesor_Primaria" | "Id_Profesor_Secundaria">;
 };
 
 /**
- * Datos de Personal Administrativo
- */
+* Datos de Personal Administrativo
+*/
 export type MisDatosPersonalAdministrativo =
   PersonalAdministrativoSinContraseña & { Genero: Genero };
 
@@ -85,12 +85,12 @@ export interface MisDatosSuccessResponseAPI01 extends SuccessResponseAPIBase {
 
 export type MisDatosErrorResponseAPI01 = ErrorResponseAPIBase;
 
-// -----------------------------------------
-//                METODO PUT
+// // -----------------------------------------
+// METODO PUT
 // -----------------------------------------
 
 export type ActualizarMisDatosDirectivoRequestBody = Partial<
-  Pick<T_Directivos, "Identificador_Nacional" | "Nombres" | "Apellidos" | "Genero" | "Celular">
+  Pick<T_Directivos, "Intificador_Nacional" | "Nombres" | "Apellidos" | "Genero" | "Celular">
 > & { Genero: Genero };
 
 export type ActualizarMisDatosProfesorPrimariaRequestBody = Partial<
@@ -121,10 +121,10 @@ export type ActualizarMisDatoUsuarioRequestBodyAPI01 =
   | ActualizarMisDatosTutorRequestBody
   | ActualizarMisDatosPersonalAdministrativoRequestBody;
 
-// Interfaz para la respuesta exitosa
+// //nterfaz para la respuesta exitosa
 export interface ActualizarUsuarioSuccessResponseAPI01
   extends SuccessResponseAPIBase {
   success: true;
   message: string;
-  data: ActualizarMisDatoUsuarioRequestBodyAPI01; // Los datos que se actualizaron
+  data: ActualizarMisDatoUsuarioRequestBodyAPI01; // / Los datos que se actualizan
 }

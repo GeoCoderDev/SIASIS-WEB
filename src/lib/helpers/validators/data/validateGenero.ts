@@ -2,12 +2,9 @@ import { ValidationErrorTypes } from "../../../../interfaces/shared/errors";
 import { ValidationResult } from "./types";
 
 /**
- * Valida el género (M o F)
- * @param value - Valor a validar
- * @param required - Indica si el campo es obligatorio
- * @returns Resultado de la validación
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+* Valida el género (M o F) @param value - Valor a validar @param required - Indica si el campo es obligatorio @returns Resultado de la validación
+*/
+// // esnt-disable-next-line @typescript-eslint/no-explicit-any
 export function validateGender(
   value: any,
   required: boolean

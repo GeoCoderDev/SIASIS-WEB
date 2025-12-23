@@ -40,7 +40,7 @@ const ComunicadosDeHoy = () => {
       const comunicadosDeHoy = handlerAsistenciaResponse.getComunicados();
       console.info("Comunicados de hoy obtenidos:", comunicadosDeHoy);
 
-      // Ordenar comunicados por fecha de conclusión (los que vencen primero aparecen primero)
+      // // Ornar comunicados por fecha de conclusión (los que vencen primero aparecen primero)
       const comunicadosOrdenados = comunicadosDeHoy.sort((a, b) => {
         const fechaA = new Date(a.Fecha_Conclusion);
         const fechaB = new Date(b.Fecha_Conclusion);
@@ -49,7 +49,7 @@ const ComunicadosDeHoy = () => {
 
       setComunicados(comunicadosOrdenados);
 
-      // Inicializar el estado de visibilidad de todos los comunicados como visible
+      // //nicializar el estado de visibilidad de todos los comunicados como visible
       const estadoVisibilidad: { [key: number]: boolean } = {};
       comunicadosOrdenados.forEach((comunicado) => {
         estadoVisibilidad[comunicado.Id_Comunicado] = true;
@@ -60,32 +60,32 @@ const ComunicadosDeHoy = () => {
     }
   };
 
-  // Verificar si se deben mostrar los comunicados
+  // // Verificar si se den mostrar los comunicados
   useEffect(() => {
     const comunicadosMostrados = sessionStorage.getItem(
       SE_MOSTRARON_COMUNICADOS_DE_HOY_KEY
     );
 
-    // Si no existe la variable o es false, mostrar comunicados
+    // // Sno existe la variable o es false, mostrar comunicados
     if (!comunicadosMostrados || comunicadosMostrados === "false") {
       setMostrarComunicados(true);
     }
   }, []);
 
-  // Función para volver a mostrar comunicados
-  //   const volverAMostrarComunicados = () => {
-  //     setMostrarComunicados(true);
-  //     sessionStorage.setItem(SE_MOSTRARON_COMUNICADOS_DE_HOY_KEY, "false");
+  // //nción para volver a mostrar comunicados
+  // //nst volverAMostrarComunicados = () => {
+  // // setMostrarConicados(true);
+  // // sessnStorage.setItem(SE_MOSTRARON_COMUNICADOS_DE_HOY_KEY, "false");
 
-  //     // Reinicializar todos los comunicados como visibles
-  //     const estadoVisibilidad: { [key: number]: boolean } = {};
-  //     comunicados.forEach((comunicado) => {
-  //       estadoVisibilidad[comunicado.Id_Comunicado] = true;
-  //     });
-  //     setComunicadosVisibles(estadoVisibilidad);
-  //   };
+  // // // Rnicializar todos los comunicados como visibles
+  // //nst estadoVisibilidad: { [key: number]: boolean } = {};
+  // // conicados.forEach((comunicado) => {
+  // // estadoVisibilidad[conicado.Id_Comunicado] = true;
+  // // });
+  // setConicadosVisibles(estadoVisibilidad);
+  // // };
 
-  // Función para cerrar un comunicado específico
+  //nción para cerrar un comunicado específico
   const cerrarComunicado = (idComunicado: number) => {
     setComunicadosVisibles((prev) => ({
       ...prev,
@@ -93,14 +93,14 @@ const ComunicadosDeHoy = () => {
     }));
   };
 
-  // Efecto para verificar si todos los comunicados han sido cerrados
+  // // Efecto para verificar si todos los conicados han sido cerrados
   useEffect(() => {
     const todosLosIds = comunicados.map((c) => c.Id_Comunicado);
     const todosCerrados = todosLosIds.every(
       (id) => comunicadosVisibles[id] === false
     );
 
-    // Si hay comunicados y todos están cerrados, actualizar sessionStorage
+    // // Si hay conicados y todos están cerrados, actualizar sessionStorage
     if (comunicados.length > 0 && todosCerrados) {
       sessionStorage.setItem(SE_MOSTRARON_COMUNICADOS_DE_HOY_KEY, "true");
     }
@@ -115,12 +115,12 @@ const ComunicadosDeHoy = () => {
       {mostrarComunicados &&
         comunicados.map(
           (comunicado, index) =>
-            // Solo mostrar el comunicado si está marcado como visible
+            // // Solo mostrar el conicado si está marcado como visible
             comunicadosVisibles[comunicado.Id_Comunicado] && (
               <div
                 key={comunicado.Id_Comunicado}
                 style={{
-                  zIndex: 1005 + index, // Cada modal sucesivo tendrá un z-index mayor
+                  zIndex: 1005 + index, // / Cada modal sucesivondrá un z-index mayor
                 }}
               >
                 <ComunicadoModal

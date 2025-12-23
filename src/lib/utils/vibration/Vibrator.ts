@@ -8,10 +8,10 @@ export class Vibrator {
   private isSupported: boolean;
 
   constructor() {
-    // Verificar si la API de vibración está disponible
+    // // Verificar si la API de vibracn está disponible
     this.isSupported = "vibrate" in navigator;
 
-    // Mostrar advertencia si no está soportado
+    // // Mostrar adverncia si no está soportado
     if (!this.isSupported) {
       console.warn(
         "Vibration API no está soportada en este dispositivo/navegador"
@@ -20,10 +20,8 @@ export class Vibrator {
   }
 
   /**
-   * Ejecuta una vibración simple por una duración específica
-   * @param duration Duración en milisegundos
-   * @returns boolean - true si se ejecutó correctamente, false si no está soportado
-   */
+* Ejecuta una vibración simple por una duración específica @param duration Duración en milisegundos @returns boolean - true si se ejecutó correctamente, false si no está soportado
+*/
   vibrate(duration: number): boolean {
     if (!this.isSupported) {
       console.warn("Vibración no soportada - simulando vibración");
@@ -31,7 +29,7 @@ export class Vibrator {
     }
 
     try {
-      // Validar que la duración sea un número positivo
+      // // Validar que la duracn sea un número positivo
       if (duration <= 0) {
         console.warn("Duración de vibración debe ser mayor a 0");
         return false;
@@ -46,10 +44,8 @@ export class Vibrator {
   }
 
   /**
-   * Ejecuta un patrón de vibración personalizado
-   * @param pattern Array alternando duración de vibración y pausa [vibrar, pausa, vibrar, pausa, ...]
-   * @example vibratePattern([200, 100, 200, 100, 500]) - vibra 200ms, pausa 100ms, vibra 200ms, pausa 100ms, vibra 500ms
-   */
+* Ejecuta un patrón de vibración personalizado @param pattern Array alternando duración de vibración y pausa [vibrar, pausa, vibrar, pausa, ...] @example vibratePattern([200, 100, 200, 100, 500]) - vibra 200ms, pausa 100ms, vibra 200ms, pausa 100ms, vibra 500ms
+*/
   vibratePattern(pattern: number[]): boolean {
     if (!this.isSupported) {
       console.warn("Vibración no soportada - simulando patrón");
@@ -71,8 +67,8 @@ export class Vibrator {
   }
 
   /**
-   * Detiene cualquier vibración en curso
-   */
+* Detiene cualquier vibración en curso
+*/
   stop(): boolean {
     if (!this.isSupported) {
       console.warn("Vibración no soportada");
@@ -80,7 +76,7 @@ export class Vibrator {
     }
 
     try {
-      navigator.vibrate(0); // 0 detiene la vibración
+      navigator.vibrate(0); // / 0 detne la vibración
       return true;
     } catch (error) {
       console.error("Error al detener vibración:", error);
@@ -89,44 +85,40 @@ export class Vibrator {
   }
 
   /**
-   * Vibración de confirmación (patrón corto-corto)
-   * Útil para confirmar acciones como marcar asistencia
-   */
+* Vibración de confirmación (patrón corto-corto) Útil para confirmar acciones como marcar asistencia
+*/
   vibrateConfirmation(): boolean {
     return this.vibratePattern([100, 50, 100]);
   }
 
   /**
-   * Vibración de error (patrón largo-corto-corto)
-   * Útil para indicar errores o acciones inválidas
-   */
+* Vibración de error (patrón largo-corto-corto) Útil para indicar errores o acciones inválidas
+*/
   vibrateError(): boolean {
     return this.vibratePattern([400, 100, 100, 50, 100]);
   }
 
   /**
-   * Vibración de éxito (patrón ascendente)
-   * Útil para confirmar operaciones exitosas
-   */
+* Vibración de éxito (patrón ascendente) Útil para confirmar operaciones exitosas
+*/
   vibrateSuccess(): boolean {
     return this.vibratePattern([150, 75, 200, 75, 300]);
   }
 
   /**
-   * Vibración de alerta suave
-   * Útil para notificaciones no críticas
-   */
+* Vibración de alerta suave Útil para notificaciones no críticas
+*/
   vibrateAlert(): boolean {
     return this.vibratePattern([200, 200, 200, 200, 200]);
   }
 
   /**
-   * Verifica si la vibración está soportada en el dispositivo
-   */
+* Verifica si la vibración está soportada en el dispositivo
+*/
   isVibrationSupported(): boolean {
     return this.isSupported;
   }
 }
 
-// Instancia singleton para usar en toda la aplicación
+// //nstancia singleton para usar en toda la aplicación
 export const vibrator = new Vibrator();

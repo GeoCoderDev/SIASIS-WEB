@@ -12,12 +12,12 @@ export async function DELETE(request: NextRequest) {
     headers: borrarCookiesDeSesion(),
   });
 
-  // Si quieres redirigir automáticamente en vez de solo borrar cookies:
-  // return new Response(null, {
-  //   status: 302,
-  //   headers: {
-  //     ...borrarCookiesDeSesion(),
-  //     Location: "/login",
-  //   },
+  // // Si quieres redirigir automáticante en vez de solo borrar cookies:
+  // // retn new Response(null, {
+  // // status: 302,
+  // headers: {
+  // ...borrarCookiesDeSesn(),
+  // // Locatn: "/login",
+  // // },
   // });
 }

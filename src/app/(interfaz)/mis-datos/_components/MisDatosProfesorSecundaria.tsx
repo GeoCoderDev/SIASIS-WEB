@@ -114,7 +114,7 @@ const MisDatosDeProfesorDeSecundaria = ({
 
         setMisDatosProfesorSecundariaSaved(misDatosProfesorSecundariaData);
 
-        //Actualizando Cache
+        // // Actualindo Cache
 
         await userStorage.saveUserData({
           Apellidos: misDatosProfesorSecundariaData.Apellidos,
@@ -125,7 +125,7 @@ const MisDatosDeProfesorDeSecundaria = ({
 
         setIsSomethingLoading(false);
 
-        //Actualizando Cookies por lo bajo
+        // // Actualindo Cookies por lo bajo
         if (
           googleDriveFotoIdCookieValue !==
             misDatosProfesorSecundariaData.Google_Drive_Foto_ID ||
@@ -144,7 +144,7 @@ const MisDatosDeProfesorDeSecundaria = ({
           });
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        // // esnt-disable-next-line @typescript-eslint/no-unused-vars
       } catch (e) {
         if (error) {
           setError({
@@ -191,7 +191,7 @@ const MisDatosDeProfesorDeSecundaria = ({
 
       setMisDatosProfesorSecundariaSaved(misDatosProfesorSecundariaModificados);
 
-      //Actualizando Cache
+      // // Actualindo Cache
       await userStorage.saveUserData({
         Apellidos: misDatosProfesorSecundariaModificados.Apellidos,
         Genero: misDatosProfesorSecundariaModificados.Genero as Genero,
@@ -209,7 +209,7 @@ const MisDatosDeProfesorDeSecundaria = ({
 
       setIsSomethingLoading(false);
       setModoEdicion(false);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      // // esnt-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {
       if (error) {
         setError({
@@ -249,7 +249,7 @@ const MisDatosDeProfesorDeSecundaria = ({
           }}
           initialSource={
             misDatosProfesorSecundariaSaved.Google_Drive_Foto_ID &&
-            `https://drive.google.com/thumbnail?id=${misDatosProfesorSecundariaSaved.Google_Drive_Foto_ID}`
+            `https:// drive.google.com/thumbnail?id=${misDatosProfesorSecundariaSaved.Google_Drive_Foto_ID}`
           }
           eliminateModal={() => {
             setCambiarFotoModal(false);
@@ -291,8 +291,8 @@ const MisDatosDeProfesorDeSecundaria = ({
                 )
               }
               onClick={() => {
-                //SI se esta cancelando el modo edicion entonces se volvera al
-                // estado en el que se encuentran los datos guardados en la base de datos
+                // // SI se estancelando el modo edicion entonces se volvera al
+                // // estadon el que se encuentran los datos guardados en la base de datos
                 if (modoEdicion)
                   setMisDatosProfesorSecundariaModificados(misDatosProfesorSecundariaSaved);
                 setModoEdicion(!modoEdicion);

@@ -1,22 +1,22 @@
 // =========================================
 // RUTA: /api/login
-// =========================================
+// / =========================================
 
-import { Genero } from "../../../Genero";
+import {nero } from "../../../Genero";
 import { RolesSistema } from "../../../RolesSistema";
 import { ApiResponseBase } from "../../types";
 
 /**
- * Body para la petición de login
- */
+* Body para la petición de login
+*/
 export interface LoginBody {
   Nombre_Usuario: string;
   Contraseña: string;
 }
 
 /**
- * Datos retornados en login exitoso
- */
+* Datos retornados en login exitoso
+*/
 export interface SuccessLoginData {
   Nombres: string;
   Apellidos: string;

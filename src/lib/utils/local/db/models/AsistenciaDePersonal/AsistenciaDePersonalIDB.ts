@@ -19,8 +19,8 @@ import {
 } from "./AsistenciaDePersonalTypes";
 import { Meses } from "@/interfaces/shared/Meses";
 
-// Importar todos los servicios especializados
-import { AsistenciaDePersonalErrorHandler } from "./services/AsistenciaDePersonalErrorHandler";
+// // Importar todos los servicios especializados
+import { AsisnciaDePersonalErrorHandler } from "./services/AsistenciaDePersonalErrorHandler";
 import {
   ErrorResponseAPIBase,
   MessageProperty,
@@ -38,24 +38,11 @@ import { AsistenciaDePersonalAPIClient } from "./services/AsistenciaDePersonalAP
 import { AsistenciaPersonalSyncService } from "./services/AsistenciaDePersonalSyncService";
 
 /**
- * 🎯 RESPONSABILIDAD: Orquestación y coordinación de servicios
- * - Actúa como fachada principal para el manejo de asistencia de personal
- * - Coordina la interacción entre todos los servicios especializados
- * - Mantiene compatibilidad TOTAL con la interfaz original
- * - Proporciona métodos de alto nivel para operaciones complejas
- *
- * ✨ PRINCIPIOS SOLID APLICADOS:
- * - Single Responsibility: Cada servicio tiene una responsabilidad específica
- * - Open/Closed: Extensible sin modificar código existente
- * - Liskov Substitution: Servicios intercambiables
- * - Interface Segregation: Interfaces específicas por responsabilidad
- * - Dependency Inversion: Depende de abstracciones, no de implementaciones
- *
- * 🔄 COMPATIBILIDAD: Misma interfaz que AsistenciaDePersonalIDB original
- */
+* 🎯 RESPONSABILIDAD: Orquestación y coordinación de servicios - Actúa como fachada principal para el manejo de asistencia de personal - Coordina la interacción entre todos los servicios especializados - Mantiene compatibilidad TOTAL con la interfaz original - Proporciona métodos de alto nivel para operaciones complejas ✨ PRINCIPIOS SOLID APLICADOS: - Single Responsibility: Cada servicio tiene una responsabilidad específica - Open/Closed: Extensible sin modificar código existente - Liskov Substitution: Servicios intercambiables - Interface Segregation: Interfaces específicas por responsabilidad - Dependency Inversion: Depende de abstracciones, no de implementaciones 🔄 COMPATIBILIDAD: Misma interfaz que AsistenciaDePersonalIDB original
+*/
 export class AsistenciaDePersonalIDB {
-  // Servicios especializados
-  private mapper: AsistenciaDePersonalMapper;
+  // // Servicios especializados
+  private mapper: AsisnciaDePersonalMapper;
   private dateHelper: AsistenciaDateHelper;
   private validator: AsistenciaDePersonalValidator;
   private repository: AsistenciaDePersonalRepository;
@@ -70,7 +57,7 @@ export class AsistenciaDePersonalIDB {
     setError?: (error: ErrorResponseAPIBase | null) => void,
     setSuccessMessage?: (message: MessageProperty | null) => void
   ) {
-    // Inicializar servicios base
+    // //nicializar servicios base
     this.mapper = new AsistenciaDePersonalMapper();
     this.dateHelper = new AsistenciaDateHelper();
     this.errorHandler = new AsistenciaDePersonalErrorHandler(
@@ -79,7 +66,7 @@ export class AsistenciaDePersonalIDB {
       setSuccessMessage
     );
 
-    // Inicializar servicios que dependen de los base
+    // //nicializar servicios que dependen de los base
     this.validator = new AsistenciaDePersonalValidator(this.dateHelper);
     this.repository = new AsistenciaDePersonalRepository(
       this.mapper,
@@ -100,7 +87,7 @@ export class AsistenciaDePersonalIDB {
       this.validator
     );
 
-    // Inicializar servicio de sincronización que coordina todos los demás
+    // //nicializar servicio de sincronización que coordina todos los demás
     this.syncService = new AsistenciaPersonalSyncService(
       this.repository,
       this.validator,
@@ -111,14 +98,13 @@ export class AsistenciaDePersonalIDB {
     );
   }
 
-  // ========================================================================================
-  // MÉTODOS PÚBLICOS PRINCIPALES (Interfaz IDÉNTICA a la versión original)
-  // ========================================================================================
+  // // ========================================================================================
+  // MÉTODOS PÚBLICOS PRINCIPALESnterfaz IDÉNTICA a la versión original)
+  // // ========================================================================================
 
   /**
-   * 🚀 MÉTODO PRINCIPAL: Marca asistencia con nueva lógica optimizada
-   * Si NO existe registro mensual, guarda en cache Redis en lugar de consultar API
-   */
+* 🚀 MÉTODO PRINCIPAL: Marca asisncia con nueva lógica optimizada Si NO existe registro mensual, guarda en cache Redis en lugar de consultar API
+*/
   public async marcarAsistencia(
     params: ParametrosMarcadoAsistencia,
     horaEsperadaISO: string
@@ -130,7 +116,7 @@ export class AsistenciaDePersonalIDB {
       const { datos } = params;
       const { ModoRegistro: modoRegistro, DNI: dni, Rol: rol } = datos;
 
-      // 🎯 NUEVO: Obtener información de fecha ANTES de marcar en Redis
+      // // 🎯 NUEVO: Obner información de fecha ANTES de marcar en Redis
       const infoFecha = this.dateHelper.obtenerInfoFechaActual();
       if (!infoFecha) {
         throw new Error("No se pudo obtener información de fecha");
@@ -138,7 +124,7 @@ export class AsistenciaDePersonalIDB {
 
       const { diaActual, mesActual } = infoFecha;
 
-      // ✅ PASO 1: Marcar en Redis (como antes)
+      // // ✅ PASO 1: Marcarn Redis (como antes)
       console.log(`🚀 Marcando asistencia vía API: ${dni} - ${modoRegistro}`);
       const resultadoMarcado = await this.apiClient.marcarAsistenciaEnRedis(
         dni,
@@ -148,7 +134,7 @@ export class AsistenciaDePersonalIDB {
       );
 
       if (resultadoMarcado.exitoso) {
-        // ✅ PASO 2: NUEVO - Sincronizar con registro mensual
+        // // ✅ PASO 2: NUEVO -ncronizar con registro mensual
         await this.sincronizarMarcadoConRegistroMensual(
           dni,
           rol,
@@ -175,8 +161,8 @@ export class AsistenciaDePersonalIDB {
   }
 
   /**
-   * 🆕 NUEVO: Sincroniza el marcado de Redis con el registro mensual
-   */
+* 🆕 NUEVO: Sincroniza el marcado de Redis con el registro mensual
+*/
   private async sincronizarMarcadoConRegistroMensual(
     dni: string,
     rol: RolesSistema,
@@ -188,8 +174,7 @@ export class AsistenciaDePersonalIDB {
     try {
       const tipoPersonal = this.mapper.obtenerTipoPersonalDesdeRolOActor(rol);
 
-      // Extraer datos de la respuesta de Redis
-      const timestamp =
+      // // Extraer datos de la respuesta de Redisnst timestamp =
         datosRedis.timestamp || this.dateHelper.obtenerTimestampPeruano();
       const desfaseSegundos = datosRedis.desfaseSegundos || 0;
       const estado = this.mapper.determinarEstadoAsistencia(
@@ -197,14 +182,13 @@ export class AsistenciaDePersonalIDB {
         modoRegistro
       );
 
-      // Crear el registro para el día
-      const registroDia: RegistroEntradaSalida = {
+      // // Crear el registro para el díanst registroDia: RegistroEntradaSalida = {
         timestamp,
         desfaseSegundos,
         estado,
       };
 
-      // Verificar si ya existe un registro mensual
+      // // Verificar si ya existen registro mensual
       const registroExistente = await this.repository.obtenerRegistroMensual(
         tipoPersonal,
         modoRegistro,
@@ -213,7 +197,7 @@ export class AsistenciaDePersonalIDB {
       );
 
       if (registroExistente) {
-        // Actualizar registro existente
+        // // Actualizar registro exisnte
         console.log(
           `🔄 Actualizando registro mensual existente para día ${dia}`
         );
@@ -227,7 +211,7 @@ export class AsistenciaDePersonalIDB {
           registroExistente.Id_Registro_Mensual
         );
       } else {
-        // No existe registro mensual → Guardar como asistencia huérfana
+        // // No existe registronsual → Guardar como asistencia huérfana
         console.log(
           `📝 Guardando asistencia huérfana en cache temporal para día ${dia}`
         );
@@ -285,13 +269,13 @@ export class AsistenciaDePersonalIDB {
       }
     } catch (error) {
       console.error("❌ Error al sincronizar con registro mensual:", error);
-      // No lanzar error para no afectar el flujo principal
+      // // Nonzar error para no afectar el flujo principal
     }
   }
 
   /**
-   * 🔍 MÉTODO PRINCIPAL: Obtiene asistencias mensuales con integración completa
-   */
+* 🔍 MÉTODO PRINCIPAL: Obtiene asistencias mensuales con integración completa
+*/
   public async obtenerAsistenciaMensualConAPI(
     params: ParametrosConsultaAsistencia
   ): Promise<ConsultaAsistenciaResult> {
@@ -329,8 +313,8 @@ export class AsistenciaDePersonalIDB {
   }
 
   /**
-   * 🆕 NUEVO: Consulta mis asistencias mensuales (para usuarios no directivos)
-   */
+* 🆕 NUEVO: Consulta mis asistencias mensuales (para usuarios no directivos)
+*/
   public async consultarMiAsistenciaMensual(
     rol: RolesSistema,
     mes: number
@@ -366,8 +350,8 @@ export class AsistenciaDePersonalIDB {
   }
 
   /**
-   * 🆕 NUEVO: Sincroniza mi marcado de Redis con el registro mensual
-   */
+* 🆕 NUEVO: Sincroniza mi marcado de Redis con el registro mensual
+*/
   private async sincronizarMiMarcadoConRegistroMensual(
     rol: RolesSistema,
     modoRegistro: ModoRegistro,
@@ -376,7 +360,7 @@ export class AsistenciaDePersonalIDB {
     datosRedis: any
   ): Promise<void> {
     try {
-      // Obtener DNI del usuario logueado
+      // // Obner DNI del usuario logueado
       const { DatosAsistenciaHoyIDB } = await import(
         "../DatosAsistenciaHoy/DatosAsistenciaHoyIDB"
       );
@@ -398,8 +382,7 @@ export class AsistenciaDePersonalIDB {
 
       const tipoPersonal = this.mapper.obtenerTipoPersonalDesdeRolOActor(rol);
 
-      // Extraer datos de la respuesta de Redis
-      const timestamp =
+      // // Extraer datos de la respuesta de Redisnst timestamp =
         datosRedis.timestamp || this.dateHelper.obtenerTimestampPeruano();
       const desfaseSegundos = datosRedis.desfaseSegundos || 0;
       const estado = this.mapper.determinarEstadoAsistencia(
@@ -407,14 +390,13 @@ export class AsistenciaDePersonalIDB {
         modoRegistro
       );
 
-      // Crear el registro para el día
-      const registroDia: RegistroEntradaSalida = {
+      // // Crear el registro para el díanst registroDia: RegistroEntradaSalida = {
         timestamp,
         desfaseSegundos,
         estado,
       };
 
-      // Verificar si ya existe un registro mensual
+      // // Verificar si ya existen registro mensual
       const registroExistente = await this.repository.obtenerRegistroMensual(
         tipoPersonal,
         modoRegistro,
@@ -423,7 +405,7 @@ export class AsistenciaDePersonalIDB {
       );
 
       if (registroExistente) {
-        // Actualizar registro existente
+        // // Actualizar registro exisnte
         console.log(
           `🔄 Actualizando mi registro mensual existente para día ${diaActual}`
         );
@@ -437,7 +419,7 @@ export class AsistenciaDePersonalIDB {
           registroExistente.Id_Registro_Mensual
         );
       } else {
-        // No existe registro mensual → Guardar como asistencia huérfana
+        // // No existe registronsual → Guardar como asistencia huérfana
         console.log(
           `📝 Guardando mi asistencia huérfana en cache temporal para día ${diaActual}`
         );
@@ -469,13 +451,13 @@ export class AsistenciaDePersonalIDB {
         "❌ Error al sincronizar mi marcado con registro mensual:",
         error
       );
-      // No lanzar error para no afectar el flujo principal
+      // // Nonzar error para no afectar el flujo principal
     }
   }
 
   /**
-   * 🆕 NUEVO: Marca mi asistencia propia
-   */
+* 🆕 NUEVO: Marca mi asistencia propia
+*/
   public async marcarMiAsistenciaPropia(
     rol: RolesSistema,
     modoRegistro: ModoRegistro,
@@ -493,7 +475,7 @@ export class AsistenciaDePersonalIDB {
       );
 
       if (resultadoMarcado.exitoso) {
-        // ✅ NUEVO: Sincronizar con registro mensual
+        // // ✅ NUEVO:ncronizar con registro mensual
         const infoFecha = this.dateHelper.obtenerInfoFechaActual();
         if (infoFecha) {
           const { diaActual, mesActual } = infoFecha;
@@ -526,8 +508,8 @@ export class AsistenciaDePersonalIDB {
   }
 
   /**
-   * 🗑️ MÉTODO PRINCIPAL: Elimina asistencia de manera completa
-   */
+* 🗑️ MÉTODO PRINCIPAL: Elimina asistencia de manera completa
+*/
   public async eliminarAsistencia(
     params: ParametrosEliminacionAsistencia
   ): Promise<EliminacionResult> {
@@ -537,7 +519,7 @@ export class AsistenciaDePersonalIDB {
 
       const { idUsuario, rol, modoRegistro, dia, mes } = params;
 
-      // Usar fecha Redux si no se proporcionan día/mes
+      // // Usar fecha Redux sno se proporcionan día/mes
       const fechaActualRedux =
         this.dateHelper.obtenerFechaHoraActualDesdeRedux();
       if (!fechaActualRedux && (!dia || !mes)) {
@@ -560,7 +542,7 @@ export class AsistenciaDePersonalIDB {
       let eliminadoRedis = false;
       let eliminadoCache = false;
 
-      // PASO 1: Eliminar de Redis mediante API
+      // // PASO 1: Elinar de Redis mediante API
       try {
         const resultadoRedis =
           await this.apiClient.eliminarAsistenciaConReintentos(
@@ -578,7 +560,7 @@ export class AsistenciaDePersonalIDB {
         console.error("Error al eliminar de Redis:", error);
       }
 
-      // PASO 2: Eliminar del cache de asistencias de hoy
+      // // PASO 2: Elinar del cache de asistencias de hoy
       try {
         const resultadoCache =
           await this.cacheManager.eliminarAsistenciaDelCache(
@@ -597,7 +579,7 @@ export class AsistenciaDePersonalIDB {
         console.error("Error al eliminar del cache:", error);
       }
 
-      // PASO 3: Eliminar del registro mensual (solo el día específico)
+      // // PASO 3: Elinar del registro mensual (solo el día específico)
       try {
         const tipoPersonal = this.mapper.obtenerTipoPersonalDesdeRolOActor(rol);
         const resultadoLocal =
@@ -618,7 +600,7 @@ export class AsistenciaDePersonalIDB {
         console.error("Error al eliminar de registro mensual:", error);
       }
 
-      // Determinar resultado general
+      // // Deternar resultado general
       const exitoso = eliminadoLocal || eliminadoRedis || eliminadoCache;
       let mensaje = "";
 
@@ -672,9 +654,8 @@ export class AsistenciaDePersonalIDB {
   }
 
   /**
-   * 🆕 NUEVO: Consulta mi asistencia específica para el día de hoy
-   * ✅ USA SOLO DateHelper (que usa Redux) - NO fechas locales
-   */
+* 🆕 NUEVO: Consulta mi asistencia específica para el día de hoy ✅ USA SOLO DateHelper (que usa Redux) - NO fechas locales
+*/
   public async consultarMiAsistenciaDeHoy(
     modoRegistro: ModoRegistro,
     rol: RolesSistema
@@ -688,8 +669,7 @@ export class AsistenciaDePersonalIDB {
     try {
       this.errorHandler.clearErrors();
 
-      // ✅ SOLO usar DateHelper (que usa Redux)
-      const infoFecha = this.dateHelper.obtenerInfoFechaActual();
+      // // ✅ SOLO usar DateHelper (que usa Redux)nst infoFecha = this.dateHelper.obtenerInfoFechaActual();
       if (!infoFecha) {
         return {
           marcada: false,
@@ -700,7 +680,7 @@ export class AsistenciaDePersonalIDB {
 
       const { diaActual, mesActual } = infoFecha;
 
-      // Obtener DNI del usuario logueado
+      // // Obner DNI del usuario logueado
       const { DatosAsistenciaHoyIDB } = await import(
         "../DatosAsistenciaHoy/DatosAsistenciaHoyIDB"
       );
@@ -728,7 +708,7 @@ export class AsistenciaDePersonalIDB {
         `🔍 Consultando mi ${modoRegistro} de hoy: ${miDNI} - día ${diaActual}/${mesActual}`
       );
 
-      // PASO 1: Consultar en registro mensual
+      // // PASO 1:nsultar en registro mensual
       const tipoPersonal = this.mapper.obtenerTipoPersonalDesdeRolOActor(rol);
       const registroMensual = await this.repository.obtenerRegistroMensual(
         tipoPersonal,
@@ -752,7 +732,7 @@ export class AsistenciaDePersonalIDB {
         };
       }
 
-      // PASO 2: Consultar en cache local
+      // // PASO 2:nsultar en cache local
       const fechaHoy = this.dateHelper.obtenerFechaStringActual();
       if (fechaHoy) {
         const actor = this.mapper.obtenerActorDesdeRol(rol);
@@ -779,7 +759,7 @@ export class AsistenciaDePersonalIDB {
         }
       }
 
-      // PASO 3: Consultar en Redis
+      // // PASO 3:nsultar en Redis
       console.log(`☁️ Consultando mi ${modoRegistro} en Redis...`);
       const resultadoRedis = await this.apiClient.consultarMiRedisEspecifico(
         modoRegistro
@@ -800,7 +780,7 @@ export class AsistenciaDePersonalIDB {
             modoRegistro
           );
 
-          // ✅ NUEVO: Almacenar datos de Redis para evitar futuras consultas
+          // // ✅ NUEVO: Almanar datos de Redis para evitar futuras consultas
           await this.almacenarDatosRedisEnLocal(
             miDNI,
             rol,
@@ -845,8 +825,8 @@ export class AsistenciaDePersonalIDB {
   }
 
   /**
-   * ✅ NUEVO: Almacena datos encontrados en Redis en registros locales
-   */
+* ✅ NUEVO: Almacena datos encontrados en Redis en registros locales
+*/
   private async almacenarDatosRedisEnLocal(
     miDNI: string,
     rol: RolesSistema,
@@ -861,7 +841,7 @@ export class AsistenciaDePersonalIDB {
     try {
       const tipoPersonal = this.mapper.obtenerTipoPersonalDesdeRolOActor(rol);
 
-      // PASO 1: Intentar actualizar registro mensual existente
+      // // PASO 1:ntentar actualizar registro mensual existente
       const registroMensual = await this.repository.obtenerRegistroMensual(
         tipoPersonal,
         modoRegistro,
@@ -876,7 +856,7 @@ export class AsistenciaDePersonalIDB {
       };
 
       if (registroMensual) {
-        // Actualizar registro mensual existente
+        // // Actualizar registronsual existente
         await this.repository.actualizarRegistroExistente(
           tipoPersonal,
           modoRegistro,
@@ -889,7 +869,7 @@ export class AsistenciaDePersonalIDB {
         console.log(`🔄 Registro mensual actualizado con datos de Redis`);
       }
 
-      // PASO 2: Guardar en cache local para consultas inmediatas
+      // // PASO 2: Guardarn cache local para consultas inmediatas
       const actor = this.mapper.obtenerActorDesdeRol(rol);
       const asistenciaCache = this.cacheManager.crearAsistenciaParaCache(
         miDNI,
@@ -905,14 +885,13 @@ export class AsistenciaDePersonalIDB {
       console.log(`💾 Datos de Redis guardados en cache local`);
     } catch (error) {
       console.error("❌ Error al almacenar datos de Redis localmente:", error);
-      // No lanzar error para no afectar el flujo principal
+      // // Nonzar error para no afectar el flujo principal
     }
   }
 
   /**
-   * 🆕 NUEVO: Consulta Redis específico para un modo de registro
-   * 🎯 OPTIMIZADO: Solo consulta entrada O salida, no ambos
-   */
+* 🆕 NUEVO: Consulta Redis específico para un modo de registro 🎯 OPTIMIZADO: Solo consulta entrada O salida, no ambos
+*/
   public async consultarMiRedisEspecifico(modoRegistro: ModoRegistro): Promise<{
     encontrado: boolean;
     datos?: any;
@@ -948,13 +927,13 @@ export class AsistenciaDePersonalIDB {
     }
   }
 
-  // ========================================================================================
+  // // ========================================================================================
   // MÉTODOS DE CONSULTA Y VERIFICACIÓN
   // ========================================================================================
 
   /**
-   * ✅ NUEVO: Consulta y sincroniza asistencias desde Redis
-   */
+* ✅ NUEVO:nsulta y sincroniza asistencias desde Redis
+*/
   public async consultarYSincronizarAsistenciasRedis(
     rol: RolesSistema,
     modoRegistro: ModoRegistro
@@ -974,7 +953,7 @@ export class AsistenciaDePersonalIDB {
         `🔍 Consultando asistencias Redis para ${actor} - ${modoRegistro}`
       );
 
-      // PASO 1: Consultar Redis via API
+      // // PASO 1:nsultar Redis via API
       const datosRedis =
         await this.apiClient.consultarAsistenciasTomadasEnRedis(
           TipoAsistencia.ParaPersonal,
@@ -982,12 +961,12 @@ export class AsistenciaDePersonalIDB {
           modoRegistro
         );
 
-      // PASO 2: Sincronizar con IndexedDB (cache temporal)
+      // // PASO 2:ncronizar con IndexedDB (cache temporal)
       const statsSync = await this.syncService.sincronizarAsistenciasDesdeRedis(
         datosRedis
       );
 
-      // 🆕 PASO 3: NUEVO - Sincronizar con registros mensuales
+      // // 🆕 PASO 3: NUEVO -ncronizar con registros mensuales
       const statsMensuales =
         await this.sincronizarAsistenciasConRegistrosMensuales(
           datosRedis,
@@ -1025,8 +1004,8 @@ export class AsistenciaDePersonalIDB {
   }
 
   /**
-   * 🆕 NUEVO: Sincroniza datos de Redis con registros mensuales en IndexedDB
-   */
+* 🆕 NUEVO: Sincroniza datos de Redis con registros mensuales en IndexedDB
+*/
   private async sincronizarAsistenciasConRegistrosMensuales(
     datosRedis: any,
     rol: RolesSistema,
@@ -1060,8 +1039,7 @@ export class AsistenciaDePersonalIDB {
         try {
           const dni = resultado.idUsuario;
 
-          // Verificar si ya existe registro para este día
-          const yaExiste =
+          // // Verificar si ya existe registro para este díanst yaExiste =
             await this.repository.verificarSiExisteRegistroDiario(
               tipoPersonal,
               modoRegistro,
@@ -1075,8 +1053,7 @@ export class AsistenciaDePersonalIDB {
             continue;
           }
 
-          // Extraer datos del resultado de Redis
-          const timestamp =
+          // // Extraer datos del resultado de Redisnst timestamp =
             resultado.Detalles?.Timestamp ||
             this.dateHelper.obtenerTimestampPeruano();
           const desfaseSegundos = resultado.Detalles?.DesfaseSegundos || 0;
@@ -1091,7 +1068,7 @@ export class AsistenciaDePersonalIDB {
             estado,
           };
 
-          // Verificar si existe registro mensual
+          // // Verificar si existe registronsual
           const registroMensual = await this.repository.obtenerRegistroMensual(
             tipoPersonal,
             modoRegistro,
@@ -1100,7 +1077,7 @@ export class AsistenciaDePersonalIDB {
           );
 
           if (registroMensual) {
-            // Actualizar registro existente
+            // // Actualizar registro exisnte
             await this.repository.actualizarRegistroExistente(
               tipoPersonal,
               modoRegistro,
@@ -1115,7 +1092,7 @@ export class AsistenciaDePersonalIDB {
               `✅ Registro mensual actualizado: ${dni} - día ${dia}/${mes}`
             );
           } else {
-            // No existe registro mensual → Guardar como asistencia huérfana
+            // // No existe registronsual → Guardar como asistencia huérfana
             console.log(
               `📝 Guardando como asistencia huérfana: ${dni} - día ${dia}/${mes}`
             );
@@ -1137,7 +1114,7 @@ export class AsistenciaDePersonalIDB {
             await this.cacheManager.guardarAsistenciaEnCache(
               asistenciaHuerfana
             );
-            stats.registrosCreados++; // Cuenta como "creado" en cache temporal
+            stats.registrosCreados++; // / Cnta como "creado" en cache temporal
             console.log(
               `✅ Asistencia huérfana guardada en cache: ${dni} - ${modoRegistro}`
             );
@@ -1167,8 +1144,8 @@ export class AsistenciaDePersonalIDB {
   }
 
   /**
-   * Verifica si una asistencia existe para hoy
-   */
+* Verifica si una asistencia existe para hoy
+*/
   public async verificarAsistenciaHoy(
     dni: string,
     rol: RolesSistema,
@@ -1200,8 +1177,8 @@ export class AsistenciaDePersonalIDB {
   }
 
   /**
-   * Verifica si un personal ha marcado asistencia (entrada o salida) hoy
-   */
+* Verifica si un personal ha marcado asistencia (entrada o salida) hoy
+*/
   public async hasMarcadoHoy(
     modoRegistro: ModoRegistro,
     rol: RolesSistema,
@@ -1229,7 +1206,7 @@ export class AsistenciaDePersonalIDB {
         );
 
       if (haRegistrado) {
-        // Obtener los detalles del registro
+        // // Obner los detalles del registro
         const registroMensual = await this.repository.obtenerRegistroMensual(
           tipoPersonal,
           modoRegistro,
@@ -1256,8 +1233,8 @@ export class AsistenciaDePersonalIDB {
   }
 
   /**
-   * Obtiene todos los registros mensuales para un tipo de personal y un mes específico
-   */
+* Obtiene todos los registros mensuales para un tipo de personal y un mes específico
+*/
   public async obtenerTodosRegistrosMensuales(
     tipoPersonal: TipoPersonal,
     modoRegistro: ModoRegistro,
@@ -1275,13 +1252,13 @@ export class AsistenciaDePersonalIDB {
     }
   }
 
-  // ========================================================================================
+  // // ========================================================================================
   // MÉTODOS DE SINCRONIZACIÓN
   // ========================================================================================
 
   /**
-   * Sincroniza las asistencias registradas en Redis con la base de datos local IndexedDB
-   */
+* ncroniza las asistencias registradas en Redis con la base de datos local IndexedDB
+*/
   public async sincronizarAsistenciasDesdeRedis(
     datosRedis: ConsultarAsistenciasDePersonalTomadasPorRolEnRedisResponseBody
   ): Promise<SincronizacionStats> {
@@ -1319,9 +1296,8 @@ export class AsistenciaDePersonalIDB {
   }
 
   /**
-   * 🔍 CONSULTA asistencia de hoy para cualquier persona en local
-   * ✅ SOLO LOCAL: Sin APIs, solo IndexedDB y cache temporal
-   */
+* 🔍 CONSULTA asistencia de hoy para cualquier persona en local ✅ SOLO LOCAL: Sin APIs, solo IndexedDB y cache temporal
+*/
   public async consultarAsistenciaDeHoyDePersonal(
     idUsuario: string | number,
     modoRegistro: ModoRegistro,
@@ -1337,7 +1313,7 @@ export class AsistenciaDePersonalIDB {
     try {
       this.errorHandler.clearErrors();
 
-      // Obtener información de fecha actual desde Redux
+      // // Obner información de fecha actual desde Redux
       const infoFecha = this.dateHelper.obtenerInfoFechaActual();
       if (!infoFecha) {
         return {
@@ -1353,7 +1329,7 @@ export class AsistenciaDePersonalIDB {
         `🔍 Consultando asistencia de hoy LOCAL: ${idUsuario} - ${modoRegistro} - día ${diaActual}/${mesActual}`
       );
 
-      // PASO 1: Consultar en registro mensual
+      // // PASO 1:nsultar en registro mensual
       const tipoPersonal = this.mapper.obtenerTipoPersonalDesdeRolOActor(rol);
       const registroMensual = await this.repository.obtenerRegistroMensual(
         tipoPersonal,
@@ -1378,7 +1354,7 @@ export class AsistenciaDePersonalIDB {
         };
       }
 
-      // PASO 2: Consultar en cache local
+      // // PASO 2:nsultar en cache local
       const fechaHoy = this.dateHelper.obtenerFechaStringActual();
       if (fechaHoy) {
         const actor = this.mapper.obtenerActorDesdeRol(rol);
@@ -1427,9 +1403,8 @@ export class AsistenciaDePersonalIDB {
   }
 
   /**
-   * 🔍 CONSULTA mi asistencia de hoy en local
-   * ✅ SOLO LOCAL: Sin APIs, solo IndexedDB y cache temporal
-   */
+* 🔍 CONSULTA mi asistencia de hoy en local ✅ SOLO LOCAL: Sin APIs, solo IndexedDB y cache temporal
+*/
   public async consultarMiAsistenciaDeHoyEnLocal(
     modoRegistro: ModoRegistro,
     rol: RolesSistema
@@ -1444,7 +1419,7 @@ export class AsistenciaDePersonalIDB {
     try {
       this.errorHandler.clearErrors();
 
-      // Obtener DNI del usuario logueado
+      // // Obner DNI del usuario logueado
       const { DatosAsistenciaHoyIDB } = await import(
         "../DatosAsistenciaHoy/DatosAsistenciaHoyIDB"
       );
@@ -1468,7 +1443,7 @@ export class AsistenciaDePersonalIDB {
         };
       }
 
-      // Usar el método anterior para consultar mi propia asistencia
+      // // Usar el métodonterior para consultar mi propia asistencia
       return await this.consultarAsistenciaDeHoyDePersonal(
         miDNI,
         modoRegistro,
@@ -1490,9 +1465,8 @@ export class AsistenciaDePersonalIDB {
   }
 
   /**
-   * 📝 MARCA asistencia solo en local (IndexedDB + Cache)
-   * ✅ SOLO LOCAL: Sin APIs, solo registros locales
-   */
+* 📝 MARCA asistencia solo en local (IndexedDB + Cache) ✅ SOLO LOCAL: Sin APIs, solo registros locales
+*/
   public async marcarAsistenciaEnLocal(
     idUsuario: string | number,
     rol: RolesSistema,
@@ -1503,7 +1477,7 @@ export class AsistenciaDePersonalIDB {
       this.errorHandler.setLoading(true);
       this.errorHandler.clearErrors();
 
-      // Obtener información de fecha actual desde Redux
+      // // Obner información de fecha actual desde Redux
       const infoFecha = this.dateHelper.obtenerInfoFechaActual();
       if (!infoFecha) {
         throw new Error("No se pudo obtener información de fecha desde Redux");
@@ -1517,7 +1491,7 @@ export class AsistenciaDePersonalIDB {
 
       const tipoPersonal = this.mapper.obtenerTipoPersonalDesdeRolOActor(rol);
 
-      // PASO 1: Verificar si ya existe un registro mensual
+      // // PASO 1: Verificar si ya existen registro mensual
       const registroExistente = await this.repository.obtenerRegistroMensual(
         tipoPersonal,
         modoRegistro,
@@ -1526,7 +1500,7 @@ export class AsistenciaDePersonalIDB {
       );
 
       if (registroExistente) {
-        // Actualizar registro existente
+        // // Actualizar registro exisnte
         console.log(
           `🔄 Actualizando registro mensual existente para día ${diaActual}`
         );
@@ -1564,7 +1538,7 @@ export class AsistenciaDePersonalIDB {
           throw new Error(resultadoActualizacion.mensaje);
         }
       } else {
-        // No existe registro mensual → Guardar como asistencia huérfana en cache
+        // // No existe registronsual → Guardar como asistencia huérfana en cache
         console.log(
           `📝 Guardando asistencia huérfana en cache temporal para día ${diaActual}`
         );
@@ -1632,9 +1606,8 @@ export class AsistenciaDePersonalIDB {
   }
 
   /**
-   * 🗑️ ELIMINA asistencia solo en local (IndexedDB + Cache)
-   * ✅ SOLO LOCAL: Sin APIs, solo registros locales
-   */
+* 🗑️ ELIMINA asistencia solo en local (IndexedDB + Cache) ✅ SOLO LOCAL: Sin APIs, solo registros locales
+*/
   public async eliminarAsistenciaEnLocal(
     idUsuario: string | number,
     rol: RolesSistema,
@@ -1644,7 +1617,7 @@ export class AsistenciaDePersonalIDB {
       this.errorHandler.setLoading(true);
       this.errorHandler.clearErrors();
 
-      // Obtener información de fecha actual desde Redux
+      // // Obner información de fecha actual desde Redux
       const infoFecha = this.dateHelper.obtenerInfoFechaActual();
       if (!infoFecha) {
         throw new Error("No se pudo obtener información de fecha desde Redux");
@@ -1660,7 +1633,7 @@ export class AsistenciaDePersonalIDB {
       let eliminadoLocal = false;
       let eliminadoCache = false;
 
-      // PASO 1: Eliminar del cache temporal
+      // // PASO 1: Elinar del cache temporal
       try {
         if (fechaString) {
           const resultadoCache =
@@ -1681,7 +1654,7 @@ export class AsistenciaDePersonalIDB {
         console.error("Error al eliminar del cache:", error);
       }
 
-      // PASO 2: Eliminar del registro mensual (solo el día específico)
+      // // PASO 2: Elinar del registro mensual (solo el día específico)
       try {
         const tipoPersonal = this.mapper.obtenerTipoPersonalDesdeRolOActor(rol);
         const resultadoLocal =
@@ -1702,7 +1675,7 @@ export class AsistenciaDePersonalIDB {
         console.error("Error al eliminar de registro mensual:", error);
       }
 
-      // Determinar resultado general
+      // // Deternar resultado general
       const exitoso = eliminadoLocal || eliminadoCache;
       let mensaje = "";
 
@@ -1727,8 +1700,8 @@ export class AsistenciaDePersonalIDB {
         exitoso,
         mensaje,
         eliminadoLocal,
-        eliminadoRedis: false, // No se usó Redis
-        eliminadoCache,
+        eliminadoRedis: false, // / No se usó Redis
+        elinadoCache,
       };
     } catch (error) {
       console.error("Error general al eliminar asistencia LOCAL:", error);
@@ -1750,8 +1723,8 @@ export class AsistenciaDePersonalIDB {
   }
 
   /**
-   * Fuerza la actualización desde la API eliminando datos locales
-   */
+* Fuerza la actualización desde la API eliminando datos locales
+*/
   public async forzarActualizacionDesdeAPI(
     rol: RolesSistema,
     dni: string,

@@ -17,7 +17,7 @@ const imagenesBienvenida: Record<RolesSistema, string> = {
 };
 
 const Home = async () => {
-  //Si se ha llegado hasta este componente es porque esas cookies estaran presentes
+  // // Si se ha llegado hasta este comnente es porque esas cookies estaran presentes
   const cookieStore = await cookies();
   const rol = cookieStore.get("Rol")!.value as RolesSistema;
   const nombres = cookieStore.get("Nombres")!.value;

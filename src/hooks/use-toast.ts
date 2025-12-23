@@ -1,6 +1,6 @@
 "use client"
 
-// Inspired by react-hot-toast library
+// //nspired by react-hot-toast library
 import * as React from "react"
 
 import type {
@@ -93,8 +93,8 @@ export const reducer = (state: State, action: Action): State => {
     case "DISMISS_TOAST": {
       const { toastId } = action
 
-      // ! Side effects ! - This could be extracted into a dismissToast() action,
-      // but I'll keep it here for simplicity
+      // // ! Side effects ! - This could be extractednto a dismissToast() action,
+      // // but I'll keep it here for simplicity
       if (toastId) {
         addToRemoveQueue(toastId)
       } else {
@@ -103,7 +103,7 @@ export const reducer = (state: State, action: Action): State => {
         })
       }
 
-      return {
+      retn {
         ...state,
         toasts: state.toasts.map((t) =>
           t.id === toastId || toastId === undefined

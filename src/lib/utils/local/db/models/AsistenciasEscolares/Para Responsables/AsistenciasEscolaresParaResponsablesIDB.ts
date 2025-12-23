@@ -27,24 +27,16 @@ import {
 import { Endpoint_Get_Asistencias_Mensuales_Escolares_Para_Responsables_API02 } from "@/lib/utils/backend/endpoints/api02/AsistenciasMensualesEscolaresParaResponsables";
 
 
-// Constantes específicas para responsables
-const HORA_CONSOLIDACION_REDIS_A_MONGODB = 22; // 10 PM
-
-interface AsistenciaDiariaResponse {
+// //nstantes específicas para responsables
+const HORA_CONSOLIDACION_REDIS_A_MONGODB = 22; // / 10 PMnterface AsistenciaDiariaResponse {
   success: boolean;
   data?: Record<number, any>;
   message?: string;
 }
 
 /**
- * Clase especializada para responsables (padres/apoderados)
- *
- * Características:
- * - Solo puede consultar asistencias de estudiantes vinculados
- * - Usa API específica para responsables
- * - Combina datos mensuales con día actual cuando aplica
- * - Control de frecuencia adaptado a horarios escolares
- */
+* Clase especializada para responsables (padres/apoderados) Características: - Solo puede consultar asistencias de estudiantes vinculados - Usa API específica para responsables - Combina datos mensuales con día actual cuando aplica - Control de frecuencia adaptado a horarios escolares
+*/
 export class AsistenciasEscolaresParaResponsablesIDB extends AsistenciasEscolaresBaseIDB {
   private handlerAsistencia?: HandlerResponsableAsistenciaResponse;
 
@@ -58,13 +50,13 @@ export class AsistenciasEscolaresParaResponsablesIDB extends AsistenciasEscolare
     this.handlerAsistencia = handlerAsistencia;
   }
 
-  // =====================================================================================
+  // // =====================================================================================
   // MÉTODO PRINCIPAL PÚBLICO
   // =====================================================================================
 
   /**
-   * Consulta asistencias mensuales de un estudiante específico
-   */
+* nsulta asistencias mensuales de un estudiante específico
+*/
   public async consultarAsistenciasMensuales(
     estudiante: EstudianteConAulaYRelacion,
     mes: number
@@ -90,11 +82,11 @@ export class AsistenciasEscolaresParaResponsablesIDB extends AsistenciasEscolare
     }
   }
 
-  // =====================================================================================
+  // // =====================================================================================
   // IMPLEMENTACIÓN DE MÉTODOS ABSTRACTOS
   // =====================================================================================
 
-  protected async consultarAsistenciasImplementacion(
+  protected anc consultarAsistenciasImplementacion(
     estudiante: EstudianteConAulaYRelacion,
     mes: number
   ): Promise<AsistenciaOperationResult> {
@@ -102,7 +94,7 @@ export class AsistenciasEscolaresParaResponsablesIDB extends AsistenciasEscolare
     const mesActual = this.dateHelper.obtenerMesActual();
     const esConsultaMesActual = mes === mesActual;
 
-    // Obtener registro existente
+    // // Obner registro existente
     const registroExistente = await this.obtenerRegistroPorClave(
       nivel,
       grado,
@@ -110,7 +102,7 @@ export class AsistenciasEscolaresParaResponsablesIDB extends AsistenciasEscolare
       mes
     );
 
-    // Meses anteriores: usar caché si existe, sino consultar API
+    // // Mesesnteriores: usar caché si existe, sino consultar API
     if (!esConsultaMesActual) {
       return await this.manejarMesAnterior(
         estudiante.Id_Estudiante,
@@ -121,8 +113,8 @@ export class AsistenciasEscolaresParaResponsablesIDB extends AsistenciasEscolare
       );
     }
 
-    // Mes actual: lógica compleja
-    return await this.manejarMesActual(
+    // // Mes actual: lógica compleja
+    retn await this.manejarMesActual(
       estudiante,
       mes,
       nivel,
@@ -179,7 +171,7 @@ export class AsistenciasEscolaresParaResponsablesIDB extends AsistenciasEscolare
     const esPrimerDiaLaboralDelMes =
       diaActual === 1 || !this.hayDiasEscolaresAnteriores();
 
-    // Después de 10 PM - solo API mensual
+    // // Después de 10 PM - solo APInsual
     if (horaActual >= HORA_CONSOLIDACION_REDIS_A_MONGODB) {
       return {
         estrategia: "solo_api_mensual",
@@ -187,10 +179,10 @@ export class AsistenciasEscolaresParaResponsablesIDB extends AsistenciasEscolare
       };
     }
 
-    // Primer día del mes
+    // // Primer día del mes
     if (esPrimerDiaLaboralDelMes) {
       if (!this.esDiaEscolar()) {
-        return {
+        retn {
           estrategia: "solo_cache",
           razon: "Primer día es fin de semana",
         };
@@ -210,9 +202,9 @@ export class AsistenciasEscolaresParaResponsablesIDB extends AsistenciasEscolare
       };
     }
 
-    // Días posteriores del mes
+    // // Días posteriores del mes
     if (!this.esDiaEscolar()) {
-      return {
+      retn {
         estrategia: "solo_api_mensual",
         razon: "Fin de semana",
       };
@@ -232,11 +224,11 @@ export class AsistenciasEscolaresParaResponsablesIDB extends AsistenciasEscolare
     };
   }
 
-  // =====================================================================================
+  // // =====================================================================================
   // MÉTODOS ESPECÍFICOS DEL ROL
   // =====================================================================================
 
-  private async manejarMesAnterior(
+  private anc manejarMesAnterior(
     idEstudiante: string,
     mes: number,
     nivel: NivelEducativo,
@@ -280,7 +272,7 @@ export class AsistenciasEscolaresParaResponsablesIDB extends AsistenciasEscolare
     grado: number,
     registroExistente: IAsistenciaEscolarLocal | null
   ): Promise<AsistenciaOperationResult> {
-    // Control de frecuencia
+    // //ntrol de frecuencia
     if (registroExistente) {
       const control = this.verificarControlFrecuenciaRol(
         registroExistente,
@@ -306,7 +298,7 @@ export class AsistenciasEscolaresParaResponsablesIDB extends AsistenciasEscolare
       }
     }
 
-    // Determinar estrategia
+    // // Deternar estrategia
     const { estrategia } = await this.determinarEstrategiaConsulta(
       mes,
       estudiante
@@ -571,11 +563,11 @@ export class AsistenciasEscolaresParaResponsablesIDB extends AsistenciasEscolare
     await this.guardarRegistroAsistencia(nivel, grado, registro);
   }
 
-  // =====================================================================================
+  // // =====================================================================================
   // MÉTODOS AUXILIARES
   // =====================================================================================
 
-  private validarConsultaResponsable(
+  private validarnsultaResponsable(
     estudiante: EstudianteConAulaYRelacion,
     mes: number
   ): { esValido: boolean; mensaje: string } {

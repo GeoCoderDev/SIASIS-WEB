@@ -16,7 +16,7 @@ import {
   MessageProperty,
 } from "@/interfaces/shared/apis/types";
 
-// Resultado específico para responsables
+// // Resultado específico para resnsables
 export interface ConsultaProfesorResponsableResult
   extends ProfesorOperationResult {
   origen?: "cache" | "api";
@@ -24,9 +24,8 @@ export interface ConsultaProfesorResponsableResult
 }
 
 /**
- * Clase especializada para el manejo de profesores para responsables
- * Implementa consulta específica con datos básicos y celular
- */
+* Clase especializada para el manejo de profesores para responsables Implementa consulta específica con datos básicos y celular
+*/
 export class ProfesoresParaResponsablesIDB extends ProfesoresBaseIDB {
   constructor(
     setIsSomethingLoading?: (isLoading: boolean) => void,
@@ -37,8 +36,8 @@ export class ProfesoresParaResponsablesIDB extends ProfesoresBaseIDB {
   }
 
   /**
-   * MÉTODO SIMPLE: Consulta datos básicos de un profesor con sync automático
-   */
+* MÉTODO SIMPLE: Consulta datos básicos de un profesor con sync automático
+*/
   public async consultarDatosBasicosDeProfesor(
     idProfesor: string,
     nivel: NivelEducativo
@@ -48,20 +47,20 @@ export class ProfesoresParaResponsablesIDB extends ProfesoresBaseIDB {
     this.setSuccessMessage?.(null);
 
     try {
-      // SIMPLE: Solo verificar si necesita sync y consultar
+      // // SIMPLE: Solo verificar snecesita sync y consultar
       const necesitaSync = await this.necesitaSincronizacion(nivel);
       const profesorExistente = await this.obtenerProfesorPorId(
         idProfesor,
         nivel
       );
 
-      // Si no existe o necesita sync, consultar API
+      // // Sno existe o necesita sync, consultar API
       if (!profesorExistente || necesitaSync) {
         return await this.consultarProfesorDesdeAPI(idProfesor, nivel);
       }
 
-      // Usar datos del caché
-      this.handleSuccess(
+      // // Usar datos del caché
+      this.ndleSuccess(
         `Datos del profesor ${profesorExistente.Nombres} ${profesorExistente.Apellidos} obtenidos desde registros locales`
       );
 
@@ -84,8 +83,8 @@ export class ProfesoresParaResponsablesIDB extends ProfesoresBaseIDB {
   }
 
   /**
-   * Consulta el profesor desde la API y actualiza el cache - VERSIÓN CORREGIDA
-   */
+* Consulta el profesor desde la API y actualiza el cache - VERSIÓN CORREGIDA
+*/
   private async consultarProfesorDesdeAPI(
     idProfesor: string,
     nivel: NivelEducativo
@@ -98,8 +97,7 @@ export class ProfesoresParaResponsablesIDB extends ProfesoresBaseIDB {
           }
         );
 
-      // Procesar y guardar la respuesta
-      const profesorActualizado = await this.procesarRespuestaAPI(
+      // // Procesar y guardar la respuestanst profesorActualizado = await this.procesarRespuestaAPI(
         response,
         nivel
       );
@@ -112,8 +110,8 @@ export class ProfesoresParaResponsablesIDB extends ProfesoresBaseIDB {
         return {
           success: true,
           message: "Datos del profesor obtenidos exitosamente",
-          data: profesorActualizado.data, // AHORA profesorActualizado.data CONTIENE EL OBJETO COMPLETO
-          origen: "api",
+          data: profesorActualizado.data, // / AHORA profesorActualizado.data CONTIENE EL OBJETO COMPLETO
+          orin: "api",
         };
       }
 
@@ -131,18 +129,17 @@ export class ProfesoresParaResponsablesIDB extends ProfesoresBaseIDB {
     }
   }
   /**
-   * Procesa la respuesta de la API y actualiza IndexedDB
-   */
+* Procesa la respuesta de la API y actualiza IndexedDB
+*/
   private async procesarRespuestaAPI(
     response: ProfesorConAulaSuccessResponse,
     nivel: NivelEducativo
   ): Promise<ProfesorOperationResult> {
-    // Mapear los datos de la respuesta al formato local
-    const profesorLocal: Omit<
+    // // Mapear los datos de la respuesta al formato localnst profesorLocal: Omit<
       IProfesorBaseLocal,
       "ultima_fecha_actualizacion"
     > = {
-      // Asignar ID según el nivel
+      // // Asnar ID según el nivel
       ...(nivel === NivelEducativo.PRIMARIA
         ? { Id_Profesor_Primaria: (response.data as any).Id_Profesor_Primaria }
         : {

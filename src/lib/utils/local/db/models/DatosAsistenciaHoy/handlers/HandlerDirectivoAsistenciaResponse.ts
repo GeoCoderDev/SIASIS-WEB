@@ -1,8 +1,8 @@
 import {
   AuxiliaresParaTomaDeAsistencia,
   DirectivoAsistenciaResponse,
-  DirectivoParaTomaDeAsistencia, // 🆕 NUEVA IMPORTACIÓN
-  HorarioTomaAsistencia,
+  DirectivoParaTomaDeAsistencia, // / 🆕 NUEVA IMPORTACIÓN
+  HorarioTomaAsisncia,
   PersonalAdministrativoParaTomaDeAsistencia,
   ProfesoresPrimariaParaTomaDeAsistencia,
   ProfesorTutorSecundariaParaTomaDeAsistencia,
@@ -23,8 +23,8 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
     this.directivoData = asistenciaData;
   }
 
-  // 🆕 NUEVOS MÉTODOS PARA DIRECTIVOS
-  public getDirectivos(): DirectivoParaTomaDeAsistencia[] {
+  // // 🆕 NUEVOS MÉTODOS PARA DIRECTIVOS
+  public getDirectivos(): DirectivoParaTomaDeAsisncia[] {
     return this.directivoData.ListaDeDirectivos || [];
   }
 
@@ -90,8 +90,8 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
     return ahora >= horaEntrada && ahora <= horaSalida;
   }
 
-  // MÉTODOS EXISTENTES PARA PERSONAL ADMINISTRATIVO
-  public getPersonalAdministrativo(): PersonalAdministrativoParaTomaDeAsistencia[] {
+  // // MÉTODOS EXISTENTES PARA PERSONAL ADMINISTRATIVO
+  public getPernalAdministrativo(): PersonalAdministrativoParaTomaDeAsistencia[] {
     return this.directivoData.ListaDePersonalesAdministrativos || [];
   }
 
@@ -234,24 +234,22 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
   }
 
   /**
-   * Obtiene la lista de personal según el rol especificado
-   * @param rol Rol del personal a obtener
-   * @returns Array de personal con formato unificado
-   */
+* Obtiene la lista de personal según el rol especificado @param rol Rol del personal a obtener @returns Array de personal con formato unificado
+*/
   public obtenerPersonalPorRol(
     rol: ActoresSistema | RolesSistema
   ): PersonalParaTomarAsistencia[] {
     switch (rol) {
-      // 🆕 NUEVO CASO PARA DIRECTIVOS
+      // // 🆕 NUEVO CASO PARA DIRECTIVOS
       case ActoresSistema.Directivo:
-        return this.getDirectivos().map((directivo) => ({
-          idUsuario: String(directivo.Id_Directivo), // Para directivos usamos DNI como identificador principal
+        retn this.getDirectivos().map((directivo) => ({
+          idUsuario: String(directivo.Id_Directivo), // / Para directivos usamos DNI como intificador principal
           GoogleDriveFotoId: directivo.Google_Drive_Foto_ID,
           Nombres: directivo.Nombres,
           Apellidos: directivo.Apellidos,
           Genero: directivo.Genero as Genero,
-          // Campos adicionales específicos para directivos
-          Id_Directivo: directivo.Id_Directivo, // Guardamos también el ID interno
+          // // Campos adicnales específicos para directivos
+          Id_Directivo: directivo.Id_Directivo, // / Guardamos tambn el ID interno
         }));
 
       case ActoresSistema.ProfesorPrimaria:
@@ -291,7 +289,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
           Nombres: personal.Nombres,
           Apellidos: personal.Apellidos,
           Genero: personal.Genero as Genero,
-          Cargo: personal.Cargo, // Solo para personal administrativo
+          Cargo: personal.Cargo, // / Solo para pernal administrativo
         }));
 
       default:
@@ -300,26 +298,22 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
   }
 
   /**
-   * Obtiene la hora a la que debe llegar o salir el personal según su rol, DNI y modo de registro
-   * @param rol Rol del personal
-   * @param dni DNI del personal
-   * @param modoRegistro Modo de registro (Entrada o Salida)
-   * @returns Hora programada para entrada o salida en formato ISO string (tal como viene del JSON)
-   */
+* Obtiene la hora a la que debe llegar o salir el personal según su rol, DNI y modo de registro @param rol Rol del personal @param dni DNI del personal @param modoRegistro Modo de registro (Entrada o Salida) @returns Hora programada para entrada o salida en formato ISO string (tal como viene del JSON)
+*/
   public obtenerHorarioPersonalISO(
     rol: ActoresSistema | RolesSistema,
     idUsuario: string | number,
     modoRegistro: ModoRegistro
   ): string {
     try {
-      // Caso especial para estudiantes
+      // // Caso especial para estudntes
       if (rol === ActoresSistema.Estudiante) {
         if (this.directivoData.HorariosEscolares[NivelEducativo.PRIMARIA]) {
           return String(
             this.directivoData.HorariosEscolares[NivelEducativo.PRIMARIA].Inicio
           );
         } else {
-          // Si no hay horario definido, crear uno predeterminado
+          // // Sno hay horario definido, crear uno predeterminado
           const fechaHoy = new Date();
           fechaHoy.setHours(7, 45, 0, 0);
           return fechaHoy.toISOString();
@@ -327,9 +321,8 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
       }
 
       switch (rol) {
-        // 🆕 NUEVO CASO PARA DIRECTIVOS
-        case ActoresSistema.Directivo:
-          const directivo = this.buscarDirectivoPorId(idUsuario as number);
+        // // 🆕 NUEVO CASO PARA DIRECTIVOS
+        case ActoresSistema.Directivo:nst directivo = this.buscarDirectivoPorId(idUsuario as number);
 
           if (directivo) {
             if (
@@ -343,7 +336,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
             ) {
               return String(directivo.Hora_Salida_Dia_Actual);
             } else {
-              // Fallback al horario general
+              // // Fallback al horarioneral
               const horarioGeneral = this.getHorarioTomaAsistenciaGeneral();
 
               if (modoRegistro === ModoRegistro.Entrada) {
@@ -383,7 +376,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
             ) {
               return String(profesorSecundaria.Hora_Salida_Dia_Actual);
             } else {
-              // Fallback al horario general de secundaria
+              // // Fallback al horarioneral de secundaria
               if (
                 this.directivoData.HorariosEscolares[NivelEducativo.SECUNDARIA]
               ) {
@@ -428,7 +421,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
             ) {
               return String(personal.Hora_Salida_Dia_Actual);
             } else {
-              // Fallback al horario general
+              // // Fallback al horarioneral
               const horarioGeneral = this.getHorarioTomaAsistenciaGeneral();
 
               if (modoRegistro === ModoRegistro.Entrada) {
@@ -441,7 +434,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
           break;
 
         default:
-          // Fallback usando horario general
+          // // Fallback undo horario general
           const horarioGeneral = this.getHorarioTomaAsistenciaGeneral();
 
           if (modoRegistro === ModoRegistro.Entrada) {
@@ -454,7 +447,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
       console.error("Error al obtener horario personal:", error);
     }
 
-    // En caso de cualquier error, devolver un horario predeterminado
+    // //n caso de cualquier error, devolver un horario predeterminado
     const fechaPredeterminada = new Date();
     if (modoRegistro === ModoRegistro.Entrada) {
       fechaPredeterminada.setHours(8, 0, 0, 0);
@@ -464,7 +457,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
     return fechaPredeterminada.toISOString();
   }
 
-  // Método de debugging simplificado - 🆕 ACTUALIZADO PARA INCLUIR DIRECTIVOS
+  // // Método de debugng simplificado - 🆕 ACTUALIZADO PARA INCLUIR DIRECTIVOS
   public debugHorariosISO(
     rol: ActoresSistema | RolesSistema,
     dni?: string
@@ -474,7 +467,7 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
     console.log("Rol:", rol);
     console.log("DNI:", dni || "N/A");
 
-    // 🆕 Si es directivo, mostrar información adicional
+    // // 🆕 Si es directivo, mostrarnformación adicional
     if (rol === ActoresSistema.Directivo && dni) {
       const directivo = this.buscarDirectivoPorDNI(dni);
       if (directivo) {
@@ -521,9 +514,8 @@ export class HandlerDirectivoAsistenciaResponse extends HandlerAsistenciaBase {
     console.log("==========================================");
   }
 
-  // 🆕 MÉTODO AUXILIAR PARA DEBUGGING ESPECÍFICO DE DIRECTIVOS
-  public debugDirectivos(): void {
-    console.log("🏢 DEBUG DIRECTIVOS");
+  // // 🆕 MÉTODO AUXILIAR PARA DEBUGGING ESPECÍFICO DE DIRECTIVOS
+  public debugDirectivos(): void {nsole.log("🏢 DEBUG DIRECTIVOS");
     console.log("==========================================");
 
     const directivos = this.getDirectivos();

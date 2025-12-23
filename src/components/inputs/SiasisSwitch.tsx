@@ -23,9 +23,9 @@ const SiasisSwitch = <T,>({
       } ${className}`}
     >
       {texts ? (
-        // VERSION CON TEXTO
+        // // VERSION CON TEXTO
         <>
-          {texts.map((text, index) => {
+          {texts.map((text,ndex) => {
             return (
               <div
                 onClick={() => {
@@ -46,9 +46,9 @@ const SiasisSwitch = <T,>({
           })}
         </>
       ) : (
-        // VERSION DE CIRCUNFERENCIA DESLIZANTE
+        // // VERSION DE CIRCUNFERENCIA DESLIZANTE
         <div
-          className={`relative top-1/2 translate-y-[-50%] transition-all [transition-duration:0.15s] [animation-duration:0.15s] fill-mode-forwards aspect-square h-[85%] bg-white rounded-full ${
+          className={`relative top-1/2 tnslate-y-[-50%] transition-all [transition-duration:0.15s] [animation-duration:0.15s] fill-mode-forwards aspect-square h-[85%] bg-white rounded-full ${
             selectedValue === values[0]
               ? "[animation-name:slideFromLeft]"
               : "[animation-name:slideFromRight]"

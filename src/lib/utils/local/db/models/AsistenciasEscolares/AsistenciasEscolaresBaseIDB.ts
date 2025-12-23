@@ -17,19 +17,19 @@ import {
   GradosSecundaria,
 } from "@/constants/GRADOS_POR_NIVEL_EDUCATIVO";
 
-// =====================================================================================
+// // =====================================================================================
 // TIPOS Y CONSTANTES COMPARTIDAS
 // =====================================================================================
 
-export type AsistenciasPorDia = {
+export type AsisnciasPorDia = {
   [dia: number]: AsistenciaEscolarDeUnDia | null;
 };
 
 export interface IAsistenciaEscolarLocal {
   Id_Estudiante: string;
   Mes: number;
-  Asistencias_Mensuales: string; // JSON string
-  ultima_fecha_actualizacion: number; // Timestamp numérico
+  Asistencias_Mensuales: string; // / JSON stng
+  ultima_fecha_actualizacion: number; // / Timestamnumérico
 }
 
 export interface AsistenciaOperationResult {
@@ -42,7 +42,7 @@ export interface AsistenciaOperationResult {
   ultimaActualizacion?: number;
 }
 
-// Mapeo de nivel y grado a tabla
+// // Mapeo dnivel y grado a tabla
 const MAPEO_TABLA_ASISTENCIAS: Record<string, TablasLocal> = {
   "P-1": TablasLocal.Tabla_Asistencia_Primaria_1,
   "P-2": TablasLocal.Tabla_Asistencia_Primaria_2,
@@ -57,22 +57,13 @@ const MAPEO_TABLA_ASISTENCIAS: Record<string, TablasLocal> = {
   "S-5": TablasLocal.Tabla_Asistencia_Secundaria_5,
 };
 
-// =====================================================================================
+// // =====================================================================================
 // CLASE ABSTRACTA BASE
 // =====================================================================================
 
 /**
- * Clase abstracta base para el manejo de asistencias escolares
- * Proporciona funcionalidad común para todos los roles del sistema
- *
- * Roles que pueden heredar:
- * - Directivos (acceso completo a todas las aulas)
- * - Profesores de Primaria (solo su aula asignada)
- * - Tutores de Secundaria (solo su aula asignada)
- * - Auxiliares (todas las aulas de secundaria)
- * - Responsables (solo estudiantes vinculados)
- * - Cualquier rol futuro
- */
+* Clase abstracta base para elnejo de asistencias escolares Proporciona funcionalidad común para todos los roles del sistema Roles que pueden heredar: - Directivos (acceso completo a todas las aulas) - Profesores de Primaria (solo su aula asignada) - Tutores de Secundaria (solo su aula asignada) - Auxiliares (todas las aulas de secundaria) - Responsables (solo estudiantes vinculados) - Cualquier rol futuro
+*/
 export abstract class AsistenciasEscolaresBaseIDB {
   protected dateHelper: AsistenciaDateHelper;
 
@@ -84,28 +75,28 @@ export abstract class AsistenciasEscolaresBaseIDB {
     this.dateHelper = new AsistenciaDateHelper();
   }
 
-  // =====================================================================================
-  // MÉTODOS ABSTRACTOS (deben ser implementados por cada rol)
-  // =====================================================================================
+  // // =====================================================================================
+  // MÉTODOS ABSTRACTOS (den ser implementados por cada rol)
+  // // =====================================================================================
 
   /**
-   * Método principal de consulta - cada rol implementa su lógica específica
-   */
+* Método pncipal de consulta - cada rol implementa su lógica específica
+*/
   protected abstract consultarAsistenciasImplementacion(
     ...args: any[]
   ): Promise<AsistenciaOperationResult>;
 
   /**
-   * Verifica control de frecuencia según las reglas del rol
-   */
+* Verifica control de frecuencia según las reglas del rol
+*/
   protected abstract verificarControlFrecuenciaRol(
     registro: IAsistenciaEscolarLocal,
     ...args: any[]
   ): { puedeConsultar: boolean; minutosEspera: number };
 
   /**
-   * Determina la estrategia de consulta según el rol y contexto
-   */
+* Determina la estrategia de consulta según el rol y contexto
+*/
   protected abstract determinarEstrategiaConsulta(
     mes: number,
     ...args: any[]
@@ -118,11 +109,11 @@ export abstract class AsistenciasEscolaresBaseIDB {
     razon: string;
   }>;
 
-  // =====================================================================================
+  // // =====================================================================================
   // MÉTODOS DE MAPEO Y VALIDACIÓN (compartidos)
   // =====================================================================================
 
-  protected obtenerNombreTabla(
+  protected obnerNombreTabla(
     nivel: NivelEducativo,
     grado: number
   ): TablasLocal {
@@ -167,8 +158,8 @@ export abstract class AsistenciasEscolaresBaseIDB {
   }
 
   /**
-   * Obtiene información básica de un estudiante (su aula)
-   */
+* Obtiene información básica de un estudiante (su aula)
+*/
   protected async obtenerInfoEstudiante(
     idEstudiante: string
   ): Promise<{ nivel: NivelEducativo; grado: number; idAula: string } | null> {
@@ -186,7 +177,7 @@ export abstract class AsistenciasEscolaresBaseIDB {
 
       if (!estudiante || !estudiante.Id_Aula) return null;
 
-      // Obtener información del aula
+      // // Obner información del aula
       const { BaseAulasIDB } = await import(
         "@/lib/utils/local/db/models/Aulas/AulasBase"
       );
@@ -207,11 +198,11 @@ export abstract class AsistenciasEscolaresBaseIDB {
     }
   }
 
-  // =====================================================================================
+  // // =====================================================================================
   // OPERACIONES CON INDEXEDDB (compartidas)
   // =====================================================================================
 
-  protected async obtenerRegistroPorClave(
+  protected anc obtenerRegistroPorClave(
     nivel: NivelEducativo,
     grado: number,
     idEstudiante: string,
@@ -311,11 +302,11 @@ export abstract class AsistenciasEscolaresBaseIDB {
     }
   }
 
-  // =====================================================================================
+  // // =====================================================================================
   // UTILIDADES DE PARSEO (compartidas)
   // =====================================================================================
 
-  protected parsearAsistenciasMensuales(
+  protected parsearAsisnciasMensuales(
     asistenciasJson: string
   ): AsistenciasPorDia {
     try {
@@ -337,11 +328,11 @@ export abstract class AsistenciasEscolaresBaseIDB {
     }
   }
 
-  // =====================================================================================
+  // // =====================================================================================
   // MANEJO DE ERRORES Y MENSAJES (compartido)
   // =====================================================================================
 
-  protected crearResultadoError(mensaje: string): AsistenciaOperationResult {
+  protected crearResultadoError(nsaje: string): AsistenciaOperationResult {
     this.setError?.({ success: false, message: mensaje });
     return { success: false, message: mensaje };
   }
@@ -378,11 +369,11 @@ export abstract class AsistenciasEscolaresBaseIDB {
     });
   }
 
-  // =====================================================================================
+  // // =====================================================================================
   // UTILIDADES GENERALES (compartidas)
   // =====================================================================================
 
-  protected obtenerNombreMes(mes: number): string {
+  protected obnerNombreMes(mes: number): string {
     const nombres = [
       "",
       "enero",
@@ -422,11 +413,11 @@ export abstract class AsistenciasEscolaresBaseIDB {
     return dias[dia] || "Desconocido";
   }
 
-  // =====================================================================================
+  // // =====================================================================================
   // MÉTODOS HELPER PARA CONSULTAS (compartidos)
   // =====================================================================================
 
-  protected async obtenerDatosDesdeCache(
+  protected anc obtenerDatosDesdeCache(
     nivel: NivelEducativo,
     grado: number,
     idEstudiante: string,

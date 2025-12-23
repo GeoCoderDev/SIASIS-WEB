@@ -6,7 +6,7 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    // Usa la misma variable de entorno que tenías en el schema: `multi`
+    // Use the same environment variable that you had in the schema: `multi`
     url: env("RDP02_INS1_DATABASE_URL"),
   },
 });

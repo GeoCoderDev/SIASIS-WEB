@@ -7,8 +7,8 @@ export interface MessageProperty {
 }
 
 /**
- * Base para todas las respuestas de la API
- */
+* Base para todas las respuestas de la API
+*/
 export interface ApiResponseBase extends MessageProperty {
   success: boolean;
 }

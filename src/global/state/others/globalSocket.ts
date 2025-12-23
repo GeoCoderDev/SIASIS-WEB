@@ -1,7 +1,7 @@
 import { ReduxPayload } from "@/global/state/ReducersPayload";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-// Definir una interfaz para el estado del socket
+// // Denir una interfaz para el estado del socket
 interface SocketState {
   socket: SocketIOClient.Socket | null;
   isConnected: boolean;

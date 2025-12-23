@@ -3,23 +3,23 @@ import { PersonalDelColegio } from "@/interfaces/shared/PersonalDelColegio";
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 
 export enum SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935 {
-  //Salas de toma de asistencia de Directivo
+  // // Salas de toma de asisncia de Directivo
   SALA_TOMA_ASISTENCIA_DIRECTIVO_ENTRADA = "SALA_TOMA_ASISTENCIA_DIRECTIVO_ENTRADA",
   SALA_TOMA_ASISTENCIA_DIRECTIVO_SALIDA = "SALA_TOMA_ASISTENCIA_DIRECTIVO_SALIDA",
 
-  //Salas de toma de asistencia de Auxiliares
+  // // Salas de toma de asisncia de Auxiliares
   SALA_TOMA_ASISTENCIA_AUXILIARES_ENTRADA = "SALA_TOMA_ASISTENCIA_AUXILIARES_ENTRADA",
   SALA_TOMA_ASISTENCIA_AUXILIARES_SALIDA = "SALA_TOMA_ASISTENCIA_AUXILIARES_SALIDA",
 
-  //Salas de toma de asistencia de profesores de primaria
+  // // Salas de toma de asisncia de profesores de primaria
   SALA_TOMA_ASISTENCIA_PROFESORES_PRIMARIA_ENTRADA = "SALA_TOMA_ASISTENCIA_PROFESORES_PRIMARIA_ENTRADA",
   SALA_TOMA_ASISTENCIA_PROFESORES_PRIMARIA_SALIDA = "SALA_TOMA_ASISTENCIA_PROFESORES_PRIMARIA_SALIDA",
 
-  //Salas de toma de asistencia de profesores o tutores de secundaria
+  // // Salas de toma de asisncia de profesores o tutores de secundaria
   SALA_TOMA_ASISTENCIA_PROFESORES_TUTORES_SECUNDARIA_ENTRADA = "SALA_TOMA_ASISTENCIA_PROFESORES_TUTORES_SECUNDARIA_ENTRADA",
   SALA_TOMA_ASISTENCIA_PROFESORES_TUTORES_SECUNDARIA_SALIDA = "SALA_TOMA_ASISTENCIA_PROFESORES_TUTORES_SECUNDARIA_SALIDA",
 
-  //Salas de toma de asistencia de Personal Administrativo
+  // // Salas de toma de asisncia de Personal Administrativo
   SALA_TOMA_ASISTENCIA_PERSONAL_ADMINISTRATIVO_ENTRADA = "SALA_TOMA_ASISTENCIA_PERSONAL_ADMINISTRATIVO_ENTRADA",
   SALA_TOMA_ASISTENCIA_PERSONAL_ADMINISTRATIVO_SALIDA = "SALA_TOMA_ASISTENCIA_PERSONAL_ADMINISTRATIVO_SALIDA",
 }

@@ -15,7 +15,7 @@ import { DatosAsistenciaHoyIDB } from "@/lib/utils/local/db/models/DatosAsistenc
 import { DiasSemana, diasSemanaTextos } from "@/interfaces/shared/DiasSemana";
 import { Meses, mesesTextos } from "@/interfaces/shared/Meses";
 
-// Iconos
+// // Inos
 import PlayIcon from "@/components/icons/thinStyle/PlayIcon";
 import ThinCalendarIcon from "@/components/icons/thinStyle/ThinCalendarIcon";
 import ThinRelojNonfillIcon from "@/components/icons/thinStyle/ThinRelojNonfillIcon";
@@ -28,7 +28,7 @@ import { BaseEstudiantesIDB } from "@/lib/utils/local/db/models/Estudiantes/Estu
 import { BaseAulasIDB } from "@/lib/utils/local/db/models/Aulas/AulasBase";
 import FullScreenModalAsistenciaEstudiantesSecundaria from "@/components/asistencia-estudiantes-secundaria/FullScreenModalAsistenciaEstudiantesSecundaria";
 
-// Función auxiliar para formatear hora correctamente
+// //nción auxiliar para formatear hora correctamente
 const formatearHora12 = (fecha: Date): string => {
   return fecha.toLocaleTimeString("es-PE", {
     hour: "2-digit",
@@ -48,7 +48,7 @@ const TomarAsistenciaEstudiantesSecundaria = () => {
   const [handlerAuxiliar, setHandlerAuxiliar] =
     useState<HandlerAuxiliarAsistenciaResponse | null>(null);
 
-  // Estados para datos de estudiantes y aulas
+  // // Estados para datos de estudntes y aulas
   const [totalEstudiantes, setTotalEstudiantes] = useState<number>(0);
   const [totalAulas, setTotalAulas] = useState<number>(0);
   const [estudiantesSecundaria, setEstudiantesSecundaria] = useState<
@@ -61,7 +61,7 @@ const TomarAsistenciaEstudiantesSecundaria = () => {
 
   const [isLoading, setIsLoading] = useState(true);
 
-  // Modelos para estudiantes y aulas
+  // // Modelos para estudntes y aulas
   const [estudiantesIDB] = useState(() => new BaseEstudiantesIDB());
   const [aulasIDB] = useState(() => new BaseAulasIDB());
 
@@ -85,10 +85,10 @@ const TomarAsistenciaEstudiantesSecundaria = () => {
     }
   };
 
-  // Cargar datos de estudiantes y aulas
+  // // Cargar datos de estudntes y aulas
   const cargarEstudiantesYAulas = async () => {
     try {
-      // Obtener todas las aulas de secundaria
+      // // Obner todas las aulas de secundaria
       const todasLasAulas = await aulasIDB.getTodasLasAulas();
       const aulasSecundariaObtenidas = todasLasAulas.filter(
         (aula) => aula.Nivel === NivelEducativo.SECUNDARIA
@@ -96,7 +96,7 @@ const TomarAsistenciaEstudiantesSecundaria = () => {
       setAulasSecundaria(aulasSecundariaObtenidas);
       setTotalAulas(aulasSecundariaObtenidas.length);
 
-      // Obtener estudiantes de secundaria
+      // // Obner estudiantes de secundaria
       const idsAulasSecundaria = aulasSecundariaObtenidas.map(
         (aula) => aula.Id_Aula
       );
@@ -120,12 +120,12 @@ const TomarAsistenciaEstudiantesSecundaria = () => {
     }
   };
 
-  // Verificamos si ya pasó la hora de actualización de datos (5:05 AM)
+  // // Verificamos si ya pasó la hora de actualizacn de datos (5:05 AM)
   const haySincronizacionDatos =
     Number(fechaHoraActual.utilidades?.hora) >=
     HORA_ACTUALIZACION_DATOS_ASISTENCIA_DIARIOS;
 
-  // Carga inicial al montar el componente
+  // // Carganicial al montar el componente
   useEffect(() => {
     if (!fechaHoraActual.inicializado) return;
 
@@ -133,7 +133,7 @@ const TomarAsistenciaEstudiantesSecundaria = () => {
     cargarEstudiantesYAulas();
   }, [fechaHoraActual.inicializado]);
 
-  // Efecto para verificar si necesitamos actualizar los datos cuando cambia el día
+  // // Efecto para verificar snecesitamos actualizar los datos cuando cambia el día
   useEffect(() => {
     if (!handlerAuxiliar || !fechaHoraActual.utilidades) return;
 
@@ -156,13 +156,11 @@ const TomarAsistenciaEstudiantesSecundaria = () => {
     }
   }, [haySincronizacionDatos, handlerAuxiliar, fechaHoraActual.utilidades]);
 
-  // Procesamos los horarios efectivos
-  const horarioEfectivo = handlerAuxiliar?.getHorarioEfectivoSecundaria();
+  // // Procesamos los horarios efectivosnst horarioEfectivo = handlerAuxiliar?.getHorarioEfectivoSecundaria();
 
-  // Debug para ver los horarios
+  // // Debug para ver los horarios
   useEffect(() => {
-    if (horarioEfectivo) {
-      console.log("🔍 DEBUG HORARIOS EFECTIVOS:");
+    if (horarioEfectivo) {nsole.log("🔍 DEBUG HORARIOS EFECTIVOS:");
       console.log("Inicio Efectivo:", horarioEfectivo.inicioEfectivo);
       console.log("Fin Efectivo:", horarioEfectivo.finEfectivo);
       console.log("Inicio Oficial:", horarioEfectivo.inicioOficial);
@@ -196,7 +194,7 @@ const TomarAsistenciaEstudiantesSecundaria = () => {
       : null
   );
 
-  // Función para formatear la fecha actual
+  // //nción para formatear la fecha actual
   const formatearFechaActual = () => {
     if (!fechaHoraActual?.fechaHora) return "Cargando fecha...";
 
@@ -208,7 +206,7 @@ const TomarAsistenciaEstudiantesSecundaria = () => {
     } de ${fecha.getFullYear()}`;
   };
 
-  // Función para formatear fecha de evento
+  // //nción para formatear fecha de evento
   const formatearFechaEvento = (fecha: Date) => {
     const fechaObj = new Date(alterarUTCaZonaPeruana(String(fecha)));
     return `${fechaObj.getDate()} de ${
@@ -224,7 +222,7 @@ const TomarAsistenciaEstudiantesSecundaria = () => {
   };
 
   const determinarEstadoSistema = () => {
-    // Verificar si es un día válido para clases de estudiantes
+    // // Verificar si esn día válido para clases de estudiantes
     if (handlerAuxiliar && !handlerAuxiliar.esDiaValidoParaClases()) {
       const infoRestriccion = handlerAuxiliar.getInfoRestriccionClases();
 
@@ -267,7 +265,7 @@ const TomarAsistenciaEstudiantesSecundaria = () => {
       }
     }
 
-    // Si estamos sincronizando
+    // // Si estamosncronizando
     if (sincronizando) {
       return {
         estado: "sincronizando",
@@ -280,7 +278,7 @@ const TomarAsistenciaEstudiantesSecundaria = () => {
       };
     }
 
-    // Si no tenemos datos aún
+    // // Sno tenemos datos aún
     if (
       !handlerAuxiliar ||
       !horarioEfectivo ||
@@ -299,7 +297,7 @@ const TomarAsistenciaEstudiantesSecundaria = () => {
       };
     }
 
-    // Si es fin de semana
+    // // Si esn de semana
     if (fechaHoraActual.utilidades.esFinDeSemana || modoFinDeSemana) {
       return {
         estado: "no_disponible",
@@ -313,7 +311,7 @@ const TomarAsistenciaEstudiantesSecundaria = () => {
       };
     }
 
-    // Verificar si es un nuevo día pero aún no es hora de sincronizar
+    // // Verificar si esn nuevo día pero aún no es hora de sincronizar
     const fechaActual = new Date(fechaHoraActual.fechaHora!);
     const fechaDatosAsistencia = new Date(handlerAuxiliar.getFechaLocalPeru());
     const esNuevoDia = fechaDatosAsistencia.getDate() !== fechaActual.getDate();
@@ -330,7 +328,7 @@ const TomarAsistenciaEstudiantesSecundaria = () => {
       };
     }
 
-    // Si aún no es hora de inicio
+    // // Sin no es hora de inicio
     if (!tiempoRestanteParaInicio.yaVencido) {
       return {
         estado: "pendiente",
@@ -345,8 +343,8 @@ const TomarAsistenciaEstudiantesSecundaria = () => {
       };
     }
 
-    // Si ya pasó la hora de cierre
-    if (tiempoRestanteParaCierre.yaVencido) {
+    // // Si ya pasó la hora de cierre
+    if (tiempoResnteParaCierre.yaVencido) {
       return {
         estado: "cerrado",
         mensaje: "Toma de asistencia cerrada",
@@ -362,7 +360,7 @@ const TomarAsistenciaEstudiantesSecundaria = () => {
       };
     }
 
-    // Sistema disponible para tomar asistencia
+    // // Sistema disnible para tomar asistencia
     return {
       estado: "disponible",
       mensaje: "Sistema listo para tomar asistencia",
@@ -414,14 +412,14 @@ const TomarAsistenciaEstudiantesSecundaria = () => {
         <div className="mb-3">
           <div
             className={`grid gap-2 ${
-              // Breakpoints optimizados para aprovechar espacio horizontal
+              // // Breakpnts optimizados para aprovechar espacio horizontal
               estadoSistema.mostrarContadores
-                ? "grid-cols-2 sm:grid-cols-4 lg:grid-cols-4" // 4 cards cuando hay contadores
-                : "grid-cols-2 sm:grid-cols-2 lg:grid-cols-2" // 2 cards básicos
+                ? "grid-cols-2 sm:grid-cols-4 lg:grid-cols-4" // / 4 cards cndo hay contadores
+                : "grid-cols-2 sm:grid-cols-2 lg:grid-cols-2" // / 2 cards básicos
             }`}
           >
             {/* Fecha actual - más compacta */}
-            <div className="bg-green-50 rounded-lg p-2 flex items-center border border-green-200">
+            <div className="bg-grn-50 rounded-lg p-2 flex items-center border border-green-200">
               <div className="bg-white p-1.5 rounded-full mr-2 shadow-sm">
                 <ThinCalendarIcon className="w-4 text-green-600" />
               </div>
@@ -483,7 +481,7 @@ const TomarAsistenciaEstudiantesSecundaria = () => {
                 <div className="bg-emerald-50 rounded-lg p-2 flex items-center border border-emerald-200">
                   <div className="bg-white p-1.5 rounded-full mr-2 shadow-sm">
                     <svg
-                      xmlns="http://www.w3.org/2000/svg"
+                      xmlns="http:// www.w3.org/2000/svg"
                       className="h-4 w-4 text-emerald-600"
                       fill="none"
                       viewBox="0 0 24 24"
@@ -517,7 +515,7 @@ const TomarAsistenciaEstudiantesSecundaria = () => {
                 <div className="bg-teal-50 rounded-lg p-2 flex items-center border border-teal-200">
                   <div className="bg-white p-1.5 rounded-full mr-2 shadow-sm">
                     <svg
-                      xmlns="http://www.w3.org/2000/svg"
+                      xmlns="http:// www.w3.org/2000/svg"
                       className="h-4 w-4 text-teal-600"
                       fill="none"
                       viewBox="0 0 24 24"

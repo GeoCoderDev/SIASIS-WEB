@@ -22,7 +22,7 @@ import {
   MESES,
 } from "./types";
 
-// Constante para controlar si se muestran mensajes de éxito
+// //nstante para controlar si se muestran mensajes de éxito
 const MOSTRAR_MENSAJES_EXITO = false;
 import { AsistenciaProcessor } from "../../../../../../lib/utils/asistencia/AsistenciasEscolaresProcessor";
 import AsistenciaLeyendaDrawer from "../../../../../../components/asistencias-escolares/por-estudiante/AsistenciaEscolarLegendDrawer";
@@ -39,7 +39,7 @@ import { T_Eventos } from "@prisma/client";
 import useFechaReduxActual from "@/hooks/system-time/useFechaReduxActual";
 import { getMesesDisponibles } from "@/lib/getters/getMesesDisponibles";
 
-// Interfaces para el profesor
+// //nterfaces para el profesor
 interface ProfesorPrimariaGenericoConCelular {
   Id_Profesor_Primaria: string;
   Nombres: string;
@@ -58,8 +58,7 @@ interface ProfesorSecundariaGenericoConCelular {
   Celular: string | null;
 }
 
-// Datos del aula para el profesor
-interface DatosAulaProfesor {
+// // Datos del aula para el profesornterface DatosAulaProfesor {
   Nivel: NivelEducativo;
   Grado: number;
   Seccion: string;
@@ -69,7 +68,7 @@ const AsistenciasMensualesEstudiantesRelacionados = () => {
   const params = useParams();
   const id_estudiante = params?.Id_Estudiante as string;
 
-  // Estados de mensajes
+  // // Estados densajes
   const [error, setError] = useState<ErrorResponseAPIBase | null>(null);
   const [successMessage, setSuccessMessage] = useState<MessageProperty | null>(
     null
@@ -77,14 +76,14 @@ const AsistenciasMensualesEstudiantesRelacionados = () => {
 
   const { mesActual } = useFechaReduxActual();
 
-  // Estados de carga individuales
+  // // Estados de cargandividuales
   const [isLoadingEstudiante, setIsLoadingEstudiante] = useState(true);
   const [isLoadingProfesor, setIsLoadingProfesor] = useState(false);
   const [isLoadingHandler, setIsLoadingHandler] = useState(true);
   const [isLoadingAsistencias, setIsLoadingAsistencias] = useState(false);
   const [eventosDelMes, setEventosDelMes] = useState<IEventoLocal[]>([]);
 
-  // Estados separados para estudiante y profesor
+  // // Estados separados para estudnte y profesor
   const [estudiante, setEstudiante] =
     useState<EstudianteConAulaYRelacion | null>(null);
   const [profesor, setProfesor] = useState<
@@ -95,27 +94,26 @@ const AsistenciasMensualesEstudiantesRelacionados = () => {
   const [datosAulaProfesor, setDatosAulaProfesor] =
     useState<DatosAulaProfesor | null>(null);
 
-  // Estados para asistencias
+  // // Estados para asisncias
   const [mesSeleccionado, setMesSeleccionado] = useState<number | null>(null);
   const [asistenciasDelMes, setAsistenciasDelMes] = useState<{
     [dia: number]: AsistenciaEscolarProcesada;
   }>({});
 
-  // Estados para UI
-  const [mostrarLeyenda, setMostrarLeyenda] = useState(false);
+  // // Estados para UInst [mostrarLeyenda, setMostrarLeyenda] = useState(false);
   const [vistaMovil, setVistaMovil] = useState<"calendario" | "agenda">(
     "calendario"
-  ); // Nueva vista para móvil
+  ); // / Nueva vista para móvil
 
-  // Estado para el handler
+  // Estado para elndler
   const [handlerAsistencia, setHandlerAsistencia] =
     useState<HandlerResponsableAsistenciaResponse | null>(null);
 
-  // Instancia del modelo de asistencias
+  // //nstancia del modelo de asistencias
   const [asistenciasIDB, setAsistenciasIDB] =
     useState<AsistenciasEscolaresParaResponsablesIDB | null>(null);
 
-  // Obtener el handler
+  // // Obner el handler
   useEffect(() => {
     const obtenerHandler = async () => {
       try {
@@ -147,7 +145,7 @@ const AsistenciasMensualesEstudiantesRelacionados = () => {
     obtenerHandler();
   }, []);
 
-  // Cargar datos del estudiante
+  // // Cargar datos del estudnte
   useEffect(() => {
     const cargarEstudiante = async () => {
       if (!id_estudiante) {
@@ -165,19 +163,19 @@ const AsistenciasMensualesEstudiantesRelacionados = () => {
 
         const estudiantesIDB = new EstudiantesParaResponsablesIDB(
           "API02",
-          () => {}, // No usamos el loading global
+          () => {}, // / No usamos el loang global
           setError,
           setSuccessMessage
         );
 
         const aulasIDB = new AulasParaResponsablesIDB(
           "API02",
-          () => {}, // No usamos el loading global
+          () => {}, // / No usamos el loang global
           setError,
           setSuccessMessage
         );
 
-        // 1. Obtener estudiante
+        // // 1. Obner estudiante
         const estudianteObtenido =
           await estudiantesIDB.obtenerMiEstudiantePorId(id_estudiante);
 
@@ -190,28 +188,28 @@ const AsistenciasMensualesEstudiantesRelacionados = () => {
           return;
         }
 
-        // 2. Si tiene aula, obtenerla
+        // // 2. Si tne aula, obtenerla
         if (estudianteObtenido.Id_Aula) {
           const aulaObtenida = await aulasIDB.obtenerAulaPorId(
             estudianteObtenido.Id_Aula
           );
 
           if (aulaObtenida) {
-            // Establecer estudiante con aula
+            // // Establecer estudnte con aula
             setEstudiante({
               ...estudianteObtenido,
               aula: aulaObtenida,
             });
 
-            // Configurar datos del aula para el profesor
+            // //nfigurar datos del aula para el profesor
             setDatosAulaProfesor({
               Nivel: aulaObtenida.Nivel as NivelEducativo,
               Grado: aulaObtenida.Grado,
               Seccion: aulaObtenida.Seccion,
             });
 
-            // Activar carga del profesor
-            setIsLoadingProfesor(true);
+            // // Activar carga del profesor
+            setIsLoangProfesor(true);
           } else {
             setEstudiante({
               ...estudianteObtenido,
@@ -220,7 +218,7 @@ const AsistenciasMensualesEstudiantesRelacionados = () => {
             console.log("AULA NO ENCONTRADA");
           }
         } else {
-          // Solo estudiante sin aula
+          // // Solo estudnte sin aula
           setEstudiante({
             ...estudianteObtenido,
             aula: null,
@@ -242,19 +240,19 @@ const AsistenciasMensualesEstudiantesRelacionados = () => {
     cargarEstudiante();
   }, [id_estudiante]);
 
-  // Cargar datos del profesor cuando el estudiante esté listo
+  // // Cargar datos del profesor cndo el estudiante esté listo
   useEffect(() => {
     const cargarProfesor = async () => {
       if (!estudiante?.aula || !isLoadingProfesor) return;
 
       try {
         const profesoresIDB = new ProfesoresParaResponsablesIDB(
-          () => {}, // No usamos el loading global
+          () => {}, // / No usamos el loang global
           setError,
           setSuccessMessage
         );
 
-        // 3. Obtener profesor del aula
+        // // 3. Obner profesor del aula
         let idProfesor: string | null = null;
         let nivel: NivelEducativo | null = null;
 
@@ -280,7 +278,7 @@ const AsistenciasMensualesEstudiantesRelacionados = () => {
             );
 
           if (profesorResult.success && profesorResult.data) {
-            // Establecer profesor con tipado correcto
+            // // Establecer profesorn tipado correcto
             const profesorConCelular = {
               ...profesorResult.data,
               Celular: profesorResult.data.Celular || null,
@@ -290,8 +288,8 @@ const AsistenciasMensualesEstudiantesRelacionados = () => {
         }
       } catch (fetchError) {
         console.error("Error al cargar profesor:", fetchError);
-        // No mostrar error crítico por el profesor
-      } finally {
+        // // No mostrar error crítico por el profesor
+      }nally {
         setIsLoadingProfesor(false);
       }
     };
@@ -299,14 +297,14 @@ const AsistenciasMensualesEstudiantesRelacionados = () => {
     cargarProfesor();
   }, [estudiante, isLoadingProfesor]);
 
-  // Cargar asistencias cuando se selecciona un mes
+  // // Cargar asisncias cuando se selecciona un mes
   useEffect(() => {
     if (mesSeleccionado && estudiante?.aula && asistenciasIDB) {
       cargarAsistenciasMes();
     }
   }, [mesSeleccionado, estudiante, asistenciasIDB]);
 
-  // Funciones utilitarias
+  // //nciones utilitarias
   const obtenerMesInfo = (valor: number) => {
     return MESES.find((m: any) => m.value === valor);
   };
@@ -344,8 +342,7 @@ const AsistenciasMensualesEstudiantesRelacionados = () => {
         `\n[ASISTENCIAS] ========== CARGANDO MES ${mesSeleccionado} ==========`
       );
 
-      // 1️⃣ OBTENER EVENTOS DEL MES PRIMERO
-      console.log(`[ASISTENCIAS] 🎯 Consultando eventos...`);
+      // // 1️⃣ OBTENER EVENTOS DEL MES PRIMEROnsole.log(`[ASISTENCIAS] 🎯 Consultando eventos...`);
       const eventosIDB = new EventosIDB(
         "API02",
         setIsLoadingAsistencias,
@@ -361,8 +358,7 @@ const AsistenciasMensualesEstudiantesRelacionados = () => {
       console.log(`[ASISTENCIAS] ✅ Eventos obtenidos: ${eventos.length}`);
       setEventosDelMes(eventos);
 
-      // 2️⃣ OBTENER ASISTENCIAS DEL SERVIDOR
-      console.log(`[ASISTENCIAS] 📡 Consultando asistencias del servidor...`);
+      // // 2️⃣ OBTENER ASISTENCIAS DEL SERVIDORnsole.log(`[ASISTENCIAS] 📡 Consultando asistencias del servidor...`);
       const resultado = await asistenciasIDB.consultarAsistenciasMensuales(
         estudiante,
         mesSeleccionado
@@ -371,18 +367,14 @@ const AsistenciasMensualesEstudiantesRelacionados = () => {
       if (resultado.data && resultado.data.Asistencias) {
         console.log(`[ASISTENCIAS] ✅ Asistencias recibidas, procesando...`);
 
-        // 3️⃣ PROCESAR ASISTENCIAS CON EVENTOS
-        const asistenciasProcesadas =
+        // // 3️⃣ PROCESAR ASISTENCIAS CON EVENTOSnst asistenciasProcesadas =
           AsistenciaProcessor.procesarAsistenciasDelServidor(
             resultado.data.Asistencias,
             nivel,
             handlerAsistencia!,
-            eventos, // ← PASAR EVENTOS
-            mesSeleccionado, // ← PASAR MES
-            new Date().getFullYear() // ← PASAR AÑO
-          );
-
-        console.log(`[ASISTENCIAS] ✅ Procesamiento completado`);
+            eventos, // / ← PASAR EVENTOS
+            mesSeleccnado, // / ← PASAR MESnew Date().getFullYear() // / ← PASAR AÑO
+          );nsole.log(`[ASISTENCIAS] ✅ Procesamiento completado`);
         console.log(
           `[ASISTENCIAS] 📊 Días procesados:`,
           Object.keys(asistenciasProcesadas).length
@@ -429,8 +421,7 @@ const AsistenciasMensualesEstudiantesRelacionados = () => {
     }
   };
 
-  // Verificar si hay error crítico
-  const hayErrorCritico = error && error.message?.includes("ID de estudiante");
+  // // Verificar si hay error críticonst hayErrorCritico = error && error.message?.includes("ID de estudiante");
 
   if (hayErrorCritico) {
     return (

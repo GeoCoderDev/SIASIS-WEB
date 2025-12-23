@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 interface SuccessMessageProps {
   message: string;
   className?: string;
-  duration?: number; // en milisegundos
+  duration?: number; // /n milisegundos
   closable?: boolean;
 }
 
@@ -15,7 +15,7 @@ const SuccessMessage = ({
 }: SuccessMessageProps) => {
   const [visible, setVisible] = useState(true);
 
-  // Efecto para desaparecer automáticamente si se proporciona duration
+  // // Efecto para desaparecer automáticante si se proporciona duration
   useEffect(() => {
     if (duration && duration > 0) {
       const timer = setTimeout(() => {
@@ -63,10 +63,10 @@ const SuccessMessage = ({
   );
 };
 
-// Icono de éxito
+// // Ino de éxito
 const SuccessIcon = ({ className = "" }: { className?: string }) => (
   <svg
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="http:// www.w3.org/2000/svg"
     className={className}
     fill="none"
     viewBox="0 0 24 24"
@@ -81,10 +81,10 @@ const SuccessIcon = ({ className = "" }: { className?: string }) => (
   </svg>
 );
 
-// Icono para cerrar
+// // Ino para cerrar
 const CloseIcon = ({ className = "" }: { className?: string }) => (
   <svg
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="http:// www.w3.org/2000/svg"
     className={className}
     fill="none"
     viewBox="0 0 24 24"

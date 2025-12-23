@@ -14,24 +14,24 @@ import { AsistenciaDateHelper } from "../utils/AsistenciaDateHelper";
 import IndexedDBConnection from "../../IndexedDBConnection";
 import UltimaModificacionTablasIDB from "../UltimaModificacionTablasIDB";
 
-// Interfaz base para profesores (campos mínimos accesibles por todos los roles)
+// //nterfaz base para profesores (campos mínimos accesibles por todos los roles)
 export interface IProfesorBaseLocal {
-  // Campos específicos por nivel
-  Id_Profesor_Primaria?: string; // Solo para primaria
-  Id_Profesor_Secundaria?: string; // Solo para secundaria
+  // // Campos específicos ponivel
+  Id_Profesor_Primaria?: string; // / Solo para primaria
+  Id_Profesor_Sendaria?: string; // / Solo para sendaria
 
-  // Campos comunes
+  // // Campos cones
   Nombres: string;
   Apellidos: string;
   Genero: string;
   Google_Drive_Foto_ID?: string | null;
   Celular: string;
 
-  // Campo de sincronización
+  // // Campo dencronización
   ultima_fecha_actualizacion: number;
 }
 
-// Filtros para consultas
+// // Filtros paransultas
 export interface IProfesorFilter {
   idProfesor?: string;
   nivel?: NivelEducativo;
@@ -39,7 +39,7 @@ export interface IProfesorFilter {
   apellidos?: string;
 }
 
-// Resultado de operaciones
+// // Resultado de operacnes
 export interface ProfesorOperationResult {
   success: boolean;
   message: string;
@@ -47,22 +47,21 @@ export interface ProfesorOperationResult {
   count?: number;
 }
 
-// Mapeo de nivel a tabla local
+// // Mapeo dnivel a tabla local
 const MAPEO_TABLA_PROFESORES: Record<NivelEducativo, TablasLocal> = {
   [NivelEducativo.PRIMARIA]: TablasLocal.Tabla_Profesores_Primaria,
   [NivelEducativo.SECUNDARIA]: TablasLocal.Tabla_Profesores_Secundaria,
 };
 
-// Mapeo de nivel a tabla remota (para sincronización)
+// // Mapeo dnivel a tabla remota (para sincronización)
 const MAPEO_TABLA_REMOTA_PROFESORES: Record<NivelEducativo, TablasRemoto> = {
   [NivelEducativo.PRIMARIA]: TablasRemoto.Tabla_Profesores_Primaria,
   [NivelEducativo.SECUNDARIA]: TablasRemoto.Tabla_Profesores_Secundaria,
 };
 
 /**
- * Clase base para el manejo de profesores en IndexedDB
- * Maneja tanto profesores de primaria como de secundaria
- */
+* Clase base para el manejo de profesores en IndexedDB Maneja tanto profesores de primaria como de secundaria
+*/
 export class ProfesoresBaseIDB {
   protected dateHelper: AsistenciaDateHelper;
 
@@ -75,13 +74,13 @@ export class ProfesoresBaseIDB {
     this.dateHelper = new AsistenciaDateHelper();
   }
 
-  // =====================================================================================
+  // // =====================================================================================
   // MÉTODOS DE MAPEO Y UTILIDADES
   // =====================================================================================
 
   /**
-   * Obtiene el nombre de la tabla correspondiente según el nivel
-   */
+* Obtne el nombre de la tabla correspondiente según el nivel
+*/
   protected obtenerNombreTabla(nivel: NivelEducativo): TablasLocal {
     const tabla = MAPEO_TABLA_PROFESORES[nivel];
     if (!tabla) {
@@ -91,8 +90,8 @@ export class ProfesoresBaseIDB {
   }
 
   /**
-   * Obtiene el nombre de la tabla remota para sincronización
-   */
+* Obtiene el nombre de la tabla remota para sincronización
+*/
   protected obtenerTablaRemota(nivel: NivelEducativo): TablasRemoto {
     const tabla = MAPEO_TABLA_REMOTA_PROFESORES[nivel];
     if (!tabla) {
@@ -102,32 +101,32 @@ export class ProfesoresBaseIDB {
   }
 
   /**
-   * Genera la clave según el nivel del profesor
-   */
+* Genera la clave según el nivel del profesor
+*/
   protected generarClaveProfesor(
     idProfesor: string,
     nivel: NivelEducativo
   ): string {
-    // La clave es simplemente el ID del profesor, pero se almacena en la tabla correspondiente al nivel
+    // // La clave es simplente el ID del profesor, pero se almacena en la tabla correspondiente al nivel
     return idProfesor;
   }
 
   /**
-   * Obtiene el campo ID correspondiente según el nivel
-   */
+* Obtiene el campo ID correspondiente según el nivel
+*/
   protected obtenerCampoId(nivel: NivelEducativo): string {
     return nivel === NivelEducativo.PRIMARIA
       ? "Id_Profesor_Primaria"
       : "Id_Profesor_Secundaria";
   }
 
-  // =====================================================================================
+  // // =====================================================================================
   // MÉTODOS DE SINCRONIZACIÓN
   // =====================================================================================
 
   /**
-   * Verifica si necesita sincronización comparando con la última modificación remota
-   */
+* Verifica snecesita sincronización comparando con la última modificación remota
+*/
   protected async necesitaSincronizacion(
     nivel: NivelEducativo
   ): Promise<boolean> {
@@ -141,16 +140,15 @@ export class ProfesoresBaseIDB {
       );
 
       if (!ultimaModificacion) {
-        return false; // Si no hay registro de modificación, no sincronizar
+        return false; // / Sno hay registro de modificación, no sincronizar
       }
 
-      // Verificar si hay registros locales
-      const registrosLocales = await this.obtenerTodosLosProfesores(nivel);
+      // // Verificar si hay registros localesnst registrosLocales = await this.obtenerTodosLosProfesores(nivel);
       if (registrosLocales.length === 0) {
-        return true; // No hay datos locales, necesita sincronización inicial
+        return true; // / No hay datos localesnecesita sincronización inicial
       }
 
-      // Buscar el registro con la última actualización local
+      // // Buscar el registron la última actualización local
       const ultimaActualizacionLocal = Math.max(
         ...registrosLocales.map((r) => r.ultima_fecha_actualizacion)
       );
@@ -162,17 +160,17 @@ export class ProfesoresBaseIDB {
       return ultimaActualizacionLocal < fechaModificacionRemota;
     } catch (error) {
       console.error("Error al verificar sincronización:", error);
-      return true; // En caso de error, mejor sincronizar
+      return true; // /n caso de error, mejor sincronizar
     }
   }
 
-  // =====================================================================================
+  // // =====================================================================================
   // MÉTODOS CRUD BÁSICOS
   // =====================================================================================
 
   /**
-   * Obtiene un profesor específico por ID y nivel
-   */
+* Obtne un profesor específico por ID y nivel
+*/
   public async obtenerProfesorPorId(
     idProfesor: string,
     nivel: NivelEducativo
@@ -200,8 +198,8 @@ export class ProfesoresBaseIDB {
   }
 
   /**
-   * Obtiene todos los profesores de un nivel específico
-   */
+* Obtiene todos los profesores de un nivel específico
+*/
   public async obtenerTodosLosProfesores(
     nivel: NivelEducativo
   ): Promise<IProfesorBaseLocal[]> {
@@ -230,8 +228,8 @@ export class ProfesoresBaseIDB {
   }
 
   /**
-   * Guarda o actualiza un profesor - VERSIÓN CORREGIDA
-   */
+* Guarda o actualiza un profesor - VERSIÓN CORREGIDA
+*/
   public async guardarProfesor(
     profesor: Omit<IProfesorBaseLocal, "ultima_fecha_actualizacion">,
     nivel: NivelEducativo
@@ -243,8 +241,7 @@ export class ProfesoresBaseIDB {
         "readwrite"
       );
 
-      // Agregar timestamp actual
-      const profesorCompleto: IProfesorBaseLocal = {
+      // // Agregar timestamp actualnst profesorCompleto: IProfesorBaseLocal = {
         ...profesor,
         ultima_fecha_actualizacion: this.dateHelper.obtenerTimestampPeruano(),
       };
@@ -256,11 +253,11 @@ export class ProfesoresBaseIDB {
           resolve({
             success: true,
             message: "Profesor guardado exitosamente",
-            data: profesorCompleto, // DEVOLVER EL OBJETO COMPLETO, NO SOLO EL ID
+            data: profesorCompleto, // / DEVOLVER EL OBJETO COMPLETO, NO SOLO EL ID
           });
         };
 
-        request.onerror = () => {
+        requestnerror = () => {
           reject(request.error);
         };
       });
@@ -276,8 +273,8 @@ export class ProfesoresBaseIDB {
   }
 
   /**
-   * Elimina un profesor
-   */
+* Elimina un profesor
+*/
   public async eliminarProfesor(
     idProfesor: string,
     nivel: NivelEducativo
@@ -316,27 +313,27 @@ export class ProfesoresBaseIDB {
   }
 
   /**
-   * Busca profesores con filtros
-   */
+* Busca profesores con filtros
+*/
   public async buscarProfesoresConFiltros(
     filtros: IProfesorFilter
   ): Promise<IProfesorBaseLocal[]> {
     try {
       const resultados: IProfesorBaseLocal[] = [];
 
-      // Determinar qué niveles consultar
+      // // Deternar qué niveles consultar
       const nivelesAConsultar = filtros.nivel
         ? [filtros.nivel]
         : [NivelEducativo.PRIMARIA, NivelEducativo.SECUNDARIA];
 
-      // Ejecutar búsquedas en paralelo
+      // // Ejecutar búsquedasn paralelo
       const promesasBusqueda = nivelesAConsultar.map(async (nivel) => {
         return this.buscarEnNivelEspecifico(nivel, filtros);
       });
 
       const resultadosPorNivel = await Promise.all(promesasBusqueda);
 
-      // Combinar resultados
+      // // Comnar resultados
       resultadosPorNivel.forEach((profesores) => {
         resultados.push(...profesores);
       });
@@ -349,8 +346,8 @@ export class ProfesoresBaseIDB {
   }
 
   /**
-   * Busca profesores en un nivel específico aplicando filtros
-   */
+* Busca profesores en un nivel específico aplicando filtros
+*/
   private async buscarEnNivelEspecifico(
     nivel: NivelEducativo,
     filtros: IProfesorFilter
@@ -362,12 +359,11 @@ export class ProfesoresBaseIDB {
       const profesores: IProfesorBaseLocal[] = [];
       let request: IDBRequest;
 
-      // Si hay ID específico, usar get directo
-      if (filtros.idProfesor) {
-        const clave = this.generarClaveProfesor(filtros.idProfesor, nivel);
+      // // Si hay ID específico, usar get directo
+      if (filtros.idProfesor) {nst clave = this.generarClaveProfesor(filtros.idProfesor, nivel);
         request = store.openCursor(IDBKeyRange.only(clave));
       } else {
-        // Scan completo para otros filtros
+        // // Sn completo para otros filtros
         request = store.openCursor();
       }
 
@@ -378,7 +374,7 @@ export class ProfesoresBaseIDB {
         if (cursor) {
           const profesor = cursor.value as IProfesorBaseLocal;
 
-          // Aplicar filtros adicionales
+          // // Aplicar filtros adicnales
           if (this.aplicarFiltrosProfesor(profesor, filtros)) {
             profesores.push(profesor);
           }
@@ -396,13 +392,13 @@ export class ProfesoresBaseIDB {
   }
 
   /**
-   * Aplica filtros adicionales a un profesor
-   */
+* Aplica filtros adicionales a un profesor
+*/
   private aplicarFiltrosProfesor(
     profesor: IProfesorBaseLocal,
     filtros: IProfesorFilter
   ): boolean {
-    // Filtro por nombres (búsqueda parcial, case insensitive)
+    // // Filtro ponombres (búsqueda parcial, case insensitive)
     if (filtros.nombres) {
       const nombresBusqueda = filtros.nombres.toLowerCase();
       const nombresProfesor = profesor.Nombres.toLowerCase();
@@ -411,7 +407,7 @@ export class ProfesoresBaseIDB {
       }
     }
 
-    // Filtro por apellidos (búsqueda parcial, case insensitive)
+    // // Filtro por apellidos (búsqueda parcial, casensensitive)
     if (filtros.apellidos) {
       const apellidosBusqueda = filtros.apellidos.toLowerCase();
       const apellidosProfesor = profesor.Apellidos.toLowerCase();
@@ -424,8 +420,8 @@ export class ProfesoresBaseIDB {
   }
 
   /**
-   * Actualiza múltiples profesores desde datos del servidor
-   */
+* Actualiza múltiples profesores desde datos del servidor
+*/
   protected async actualizarProfesoresDesdeServidor(
     nivel: NivelEducativo,
     profesoresServidor: Omit<IProfesorBaseLocal, "ultima_fecha_actualizacion">[]
@@ -470,7 +466,7 @@ export class ProfesoresBaseIDB {
           }
         }
 
-        // Pausa entre lotes
+        // // Pausantre lotes
         await new Promise((resolve) => setTimeout(resolve, 10));
       }
     } catch (error) {
@@ -481,21 +477,21 @@ export class ProfesoresBaseIDB {
     return resultado;
   }
 
-  // =====================================================================================
+  // // =====================================================================================
   // MÉTODOS DE UTILIDAD Y MANEJO DE ERRORES
   // =====================================================================================
 
   /**
-   * Establece un mensaje de éxito
-   */
+* Establecen mensaje de éxito
+*/
   protected handleSuccess(message: string, data?: any): void {
     const successResponse: MessageProperty = { message };
     this.setSuccessMessage?.(successResponse);
   }
 
   /**
-   * Maneja los errores de operaciones con IndexedDB
-   */
+* Maneja los errores de operaciones con IndexedDB
+*/
   protected handleIndexedDBError(error: unknown, operacion: string): void {
     console.error(`Error en operación IndexedDB (${operacion}):`, error);
 
@@ -532,8 +528,8 @@ export class ProfesoresBaseIDB {
   }
 
   /**
-   * Obtiene estadísticas básicas por nivel
-   */
+* Obtiene estadísticas básicas por nivel
+*/
   public async obtenerEstadisticasNivel(nivel: NivelEducativo): Promise<{
     totalProfesores: number;
     ultimaActualizacion: number | null;

@@ -29,29 +29,17 @@ import { Endpoint_Get_Asistencias_Mensuales_De_Personal_API01 } from "@/lib/util
 import { PersonalDelColegio } from "@/interfaces/shared/PersonalDelColegio";
 
 /**
- * 🎯 RESPONSABILIDAD: Llamadas a APIs externas
- * - Consultar APIs de asistencia
- * - Eliminar asistencias via API
- * - Manejar respuestas de API
- * - Transformar datos entre formatos
- * - Sincronizar eliminaciones con registros locales
- *
- * ✅ CORREGIDO:
- * - Timestamp automático tras eliminaciones
- * - Toda lógica temporal delegada a DateHelper (SRP)
- * - Sincronización completa entre APIs y registros locales
- */
+* 🎯 RESPONSABILIDAD: Llamadas a APIs externas - Consultar APIs de asistencia - Eliminar asistencias via API - Manejar respuestas de API - Transformar datos entre formatos - Sincronizar eliminaciones con registros locales ✅ CORREGIDO: - Timestamp automático tras eliminaciones - Toda lógica temporal delegada a DateHelper (SRP) - Sincronización completa entre APIs y registros locales
+*/
 export class AsistenciaDePersonalAPIClient {
   private siasisAPI: SiasisAPIS;
   private mapper: AsistenciaDePersonalMapper;
-  private dateHelper: AsistenciaDateHelper; // ✅ NUEVO: Dependencia de DateHelper
-  private repository: AsistenciaDePersonalRepository; // ✅ NUEVO: Para actualizar registros locales
-
-  constructor(
+  private dateHelper: AsistenciaDateHelper; // / ✅ NUEVO: Dendencia de DateHelper
+  private repository: AsistenciaDePersonalRepository; // / ✅ NUEVO: Para actualizar registros localesnstructor(
     siasisAPI: SiasisAPIS,
     mapper: AsistenciaDePersonalMapper,
-    dateHelper: AsistenciaDateHelper, // ✅ NUEVO
-    repository: AsistenciaDePersonalRepository // ✅ NUEVO
+    dateHelper: AsistenciaDateHelper, // / ✅ NUEVO
+    repository: AsisnciaDePersonalRepository // / ✅ NUEVO
   ) {
     this.siasisAPI = siasisAPI;
     this.mapper = mapper;
@@ -60,9 +48,8 @@ export class AsistenciaDePersonalAPIClient {
   }
 
   /**
-   * Consulta la API para obtener asistencias mensuales
-   * ✅ SIN CAMBIOS: No maneja timestamps directamente
-   */
+* nsulta la API para obtener asistencias mensuales ✅ SIN CAMBIOS: No maneja timestamps directamente
+*/
   public async consultarAsistenciasMensuales(
     rol: RolesSistema | ActoresSistema,
     idUsuario: string | number,
@@ -94,9 +81,8 @@ export class AsistenciaDePersonalAPIClient {
   }
 
   /**
-   * ✅ NUEVO: Consulta Redis específicamente para una persona
-   * 🎯 PROPÓSITO: Obtener asistencia específica de una persona desde Redis
-   */
+* ✅ NUEVO: Consulta Redis específicamente para una persona 🎯 PROPÓSITO: Obtener asistencia específica de una persona desde Redis
+*/
   public async consultarRedisEspecifico(
     rol: RolesSistema,
     idUsuario: string | number,
@@ -107,7 +93,7 @@ export class AsistenciaDePersonalAPIClient {
     mensaje: string;
   }> {
     try {
-      // Construir URL para consulta específica
+      // //nstruir URL para consulta específica
       const params = new URLSearchParams({
         ModoRegistro: modoRegistro,
         TipoAsistencia: TipoAsistencia.ParaPersonal,
@@ -117,7 +103,7 @@ export class AsistenciaDePersonalAPIClient {
       params.append("Actor", actor);
       params.append("idUsuario", String(idUsuario));
 
-      // Si ES consulta propia, no agregar Actor para que la API detecte consulta propia
+      // // Si ESnsulta propia, no agregar Actor para que la API detecte consulta propia
 
       const url = `/api/asistencia-hoy/consultar-asistencias-personal-tomadas?${params.toString()}`;
 
@@ -135,8 +121,7 @@ export class AsistenciaDePersonalAPIClient {
 
       const data = await response.json();
 
-      // Verificar si hay resultados
-      const tieneResultados =
+      // // Verificar si hay resultadosnst tieneResultados =
         data.Resultados &&
         (Array.isArray(data.Resultados)
           ? data.Resultados.length > 0
@@ -172,8 +157,8 @@ export class AsistenciaDePersonalAPIClient {
   }
 
   /**
-   * ✅ NUEVO: Consulta Redis para ambos modos (entrada y salida) de una persona
-   */
+* ✅ NUEVO: Consulta Redis para ambos modos (entrada y salida) de una persona
+*/
   public async consultarRedisCompletoPorPersona(
     rol: RolesSistema,
     idUsuario: string | number,
@@ -193,7 +178,7 @@ export class AsistenciaDePersonalAPIClient {
         )})`
       );
 
-      // Consultar entrada
+      // //nsultar entrada
       const resultadoEntrada = await this.consultarRedisEspecifico(
         rol,
         idUsuario,
@@ -205,7 +190,7 @@ export class AsistenciaDePersonalAPIClient {
         mensaje: "Salidas no solicitadas",
       };
 
-      // Consultar salida solo si se requiere
+      // //nsultar salida solo si se requiere
       if (incluirSalidas) {
         resultadoSalida = await this.consultarRedisEspecifico(
           rol,
@@ -242,8 +227,8 @@ export class AsistenciaDePersonalAPIClient {
   }
 
   /**
-   * ✅ NUEVO: Marca asistencia en Redis mediante API
-   */
+* ✅ NUEVO: Marca asistencia en Redis mediante API
+*/
   public async marcarAsistenciaEnRedis(
     id: string,
     rol: RolesSistema,
@@ -306,8 +291,8 @@ export class AsistenciaDePersonalAPIClient {
   }
 
   /**
-   * ✅ NUEVO: Consulta asistencias tomadas en Redis
-   */
+* ✅ NUEVO: Consulta asistencias tomadas en Redis
+*/
   public async consultarAsistenciasTomadasEnRedis(
     tipoAsistencia: TipoAsistencia,
     actor: ActoresSistema,
@@ -335,8 +320,8 @@ export class AsistenciaDePersonalAPIClient {
   }
 
   /**
-   * ✅ NUEVO: Consulta mis asistencias mensuales (para usuarios no directivos)
-   */
+* ✅ NUEVO: Consulta mis asistencias mensuales (para usuarios no directivos)
+*/
   public async consultarMisAsistenciasMensuales(
     mes: number
   ): Promise<AsistenciaCompletaMensualDePersonal | null> {
@@ -395,8 +380,8 @@ export class AsistenciaDePersonalAPIClient {
   }
 
   /**
-   * ✅ NUEVO: Consulta Redis para asistencia propia (sin Actor ni idUsuario)
-   */
+* ✅ NUEVO: Consulta Redis para asistencia propia (sin Actor ni idUsuario)
+*/
   public async consultarMiRedisEspecifico(modoRegistro: ModoRegistro): Promise<{
     encontrado: boolean;
     datos?: any;
@@ -458,8 +443,8 @@ export class AsistenciaDePersonalAPIClient {
   }
 
   /**
-   * ✅ NUEVO: Marca mi asistencia propia en Redis
-   */
+* ✅ NUEVO: Marca mi asistencia propia en Redis
+*/
   public async marcarMiAsistenciaPropia(
     modoRegistro: ModoRegistro,
     horaEsperadaISO: string
@@ -516,20 +501,19 @@ export class AsistenciaDePersonalAPIClient {
   }
 
   /**
-   * Elimina asistencia de Redis mediante API
-   * ✅ CORREGIDO: Actualiza registros locales y timestamps tras eliminación
-   */
+* Elimina asistencia de Redis mediante API ✅ CORREGIDO: Actualiza registros locales y timestamps tras eliminación
+*/
   public async eliminarAsistenciaRedis(
     idUsuario: string | number,
     rol: RolesSistema,
     modoRegistro: ModoRegistro
   ): Promise<OperationResult> {
     try {
-      // Mapear RolesSistema a ActoresSistema
+      // // Mapear RolesSistema a ActoresSistema
       let actor: ActoresSistema;
       try {
-        actor = this.mapper.obtenerActorDesdeRol(rol);
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        actor = this.mapper.obnerActorDesdeRol(rol);
+        // // esnt-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
         return {
           exitoso: false,
@@ -537,7 +521,7 @@ export class AsistenciaDePersonalAPIClient {
         };
       }
 
-      // ✅ NUEVO: Obtener información temporal antes de la eliminación
+      // // ✅ NUEVO: Obner información temporal antes de la eliminación
       const infoFechaActual = this.dateHelper.obtenerInfoFechaActual();
       if (!infoFechaActual) {
         return {
@@ -549,7 +533,7 @@ export class AsistenciaDePersonalAPIClient {
       const { diaActual, mesActual } = infoFechaActual;
       const timestampEliminacion = this.dateHelper.obtenerTimestampPeruano();
 
-      // Crear el request body para la API de eliminación
+      // // Crear el request body para la API de elinación
       const requestBody: EliminarAsistenciaRequestBody = {
         Id_Usuario: String(idUsuario),
         Actor: actor,
@@ -564,7 +548,7 @@ export class AsistenciaDePersonalAPIClient {
         requestBody
       );
 
-      // Hacer la petición a la API de eliminación
+      // // Hacer la peticn a la API de eliminación
       const response = await fetch("/api/asistencia-hoy/descartar", {
         method: "DELETE",
         headers: {
@@ -596,7 +580,7 @@ export class AsistenciaDePersonalAPIClient {
       if (responseData.success) {
         console.log(`✅ Eliminación Redis exitosa:`, responseData.data);
 
-        // ✅ NUEVO: Sincronizar eliminación con registros locales
+        // // ✅ NUEVO:ncronizar eliminación con registros locales
         const sincronizacionLocal =
           await this.sincronizarEliminacionConRegistrosLocales(
             idUsuario,
@@ -647,9 +631,8 @@ export class AsistenciaDePersonalAPIClient {
   }
 
   /**
-   * ✅ NUEVO: Sincroniza la eliminación de Redis con los registros locales
-   * Elimina el día específico del registro mensual y actualiza timestamp
-   */
+* ✅ NUEVO: Sincroniza la eliminación de Redis con los registros locales Elimina el día específico del registro mensual y actualiza timestamp
+*/
   private async sincronizarEliminacionConRegistrosLocales(
     idUsuario: string | number,
     rol: RolesSistema,
@@ -665,7 +648,7 @@ export class AsistenciaDePersonalAPIClient {
         `🔄 Sincronizando eliminación local: ${idUsuario} - ${modoRegistro} - día ${dia} del mes ${mes}`
       );
 
-      // Eliminar el día específico del registro mensual local
+      // // Elinar el día específico del registro mensual local
       const resultadoEliminacion =
         await this.repository.eliminarDiaDeRegistroMensual(
           tipoPersonal,
@@ -710,9 +693,8 @@ export class AsistenciaDePersonalAPIClient {
   }
 
   /**
-   * Reintenta una operación con backoff exponencial
-   * ✅ CORREGIDO: Usar DateHelper para delays y logging temporal
-   */
+* Reintenta una operación con backoff exponencial ✅ CORREGIDO: Usar DateHelper para delays y logging temporal
+*/
   public async reintentar<T>(
     operacion: () => Promise<T>,
     maxIntentos: number = 3,
@@ -743,7 +725,7 @@ export class AsistenciaDePersonalAPIClient {
           const delay = delayInicial * Math.pow(2, intento - 1);
           console.log(`⏱️ Esperando ${delay}ms antes del siguiente intento...`);
 
-          // ✅ CORREGIDO: Usar Promise nativo pero con logging mejorado
+          // // ✅ CORREGIDO: Usar Promisnativo pero con logging mejorado
           await new Promise((resolve) => setTimeout(resolve, delay));
         }
       }
@@ -753,9 +735,8 @@ export class AsistenciaDePersonalAPIClient {
   }
 
   /**
-   * Obtiene asistencias con reintentos automáticos
-   * ✅ SIN CAMBIOS: Ya delegaba correctamente
-   */
+* Obtiene asistencias con reintentos automáticos ✅ SIN CAMBIOS: Ya delegaba correctamente
+*/
   public async consultarAsistenciasConReintentos(
     rol: RolesSistema | ActoresSistema,
     idUsuario: string | number,
@@ -777,9 +758,8 @@ export class AsistenciaDePersonalAPIClient {
   }
 
   /**
-   * Elimina asistencia con reintentos automáticos
-   * ✅ NUEVO: Ahora incluye sincronización automática
-   */
+* Elimina asistencia con reintentos automáticos ✅ NUEVO: Ahora incluye sincronización automática
+*/
   public async eliminarAsistenciaConReintentos(
     idUsuario: string | number,
     rol: RolesSistema,
@@ -822,9 +802,8 @@ export class AsistenciaDePersonalAPIClient {
   }
 
   /**
-   * ✅ NUEVO: Elimina asistencia y fuerza actualización de registros locales
-   * Método completo que garantiza consistencia entre Redis y registros locales
-   */
+* ✅ NUEVO: Elimina asistencia y fuerza actualización de registros locales Método completo que garantiza consistencia entre Redis y registros locales
+*/
   public async eliminarAsistenciaCompleta(
     idUsuario: string,
     rol: RolesSistema,
@@ -833,7 +812,7 @@ export class AsistenciaDePersonalAPIClient {
     mes?: number
   ): Promise<OperationResult> {
     try {
-      // Obtener fecha actual si no se proporciona
+      // // Obner fecha actual si no se proporciona
       const infoFecha = this.dateHelper.obtenerInfoFechaActual();
       if (!infoFecha) {
         return {
@@ -851,7 +830,7 @@ export class AsistenciaDePersonalAPIClient {
         `🗑️ Eliminación completa iniciada para ${idUsuario} - día ${diaFinal}/${mesFinal} - ${modoRegistro} con timestamp ${timestampOperacion}`
       );
 
-      // PASO 1: Eliminar de Redis (que ya incluye sincronización local)
+      // // PASO 1: Elinar de Redis (que ya incluye sincronización local)
       const resultadoEliminacion = await this.eliminarAsistenciaConReintentos(
         idUsuario,
         rol,
@@ -871,7 +850,7 @@ export class AsistenciaDePersonalAPIClient {
           },
         };
       } else {
-        // Si falla Redis, intentar al menos limpiar registro local
+        // // Si falla Redis,ntentar al menos limpiar registro local
         console.log(
           `⚠️ Eliminación de Redis falló, intentando limpiar registro local...`
         );
@@ -911,9 +890,8 @@ export class AsistenciaDePersonalAPIClient {
   }
 
   /**
-   * Valida respuesta de la API
-   * ✅ SIN CAMBIOS: No maneja timestamps
-   */
+* Valida respuesta de la API ✅ SIN CAMBIOS: No maneja timestamps
+*/
   public validarRespuestaAPI(response: any): {
     valida: boolean;
     errores: string[];
@@ -948,9 +926,8 @@ export class AsistenciaDePersonalAPIClient {
   }
 
   /**
-   * Transforma datos de API al formato interno
-   * ✅ SIN CAMBIOS: No maneja timestamps directamente
-   */
+* Transforma datos de API al formato interno ✅ SIN CAMBIOS: No maneja timestamps directamente
+*/
   public transformarDatosAPI(datosAPI: AsistenciaCompletaMensualDePersonal): {
     entrada: Record<string, any>;
     salida: Record<string, any>;

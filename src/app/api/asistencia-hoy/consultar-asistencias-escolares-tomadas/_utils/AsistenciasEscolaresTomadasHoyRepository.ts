@@ -35,23 +35,18 @@ import {
 } from "@/constants/INTERVALOS_ASISTENCIAS_ESCOLARES";
 import { GrupoInstaciasDeRedisPorTipoAsistencia } from "../../marcar/route";
 
-// =====================================
+// // =====================================
 // CONSTANTES DE CONFIGURACIÓN
 // =====================================
 
 /**
- * Activar/desactivar actualización específica por sección en GitHub Actions
- * false = Solo actualiza por grado (comportamiento actual)
- * true = Actualiza específicamente por sección
- */
+* Activar/desactivar actualizacn específica por sección en GitHub Actions false = Solo actualiza por grado (comportamiento actual) true = Actualiza específicamente por sección
+*/
 export const USAR_ACTUALIZACION_POR_SECCION = false;
 
 /**
- * Probabilidad de fallback a Redis por rol (0-100%)
- * 0 = Nunca usar fallback
- * 100 = Siempre usar fallback
- * 50 = 50% de probabilidad de usar fallback
- */
+* Probabilidad de fallback a Redis por rol (0-100%) 0 = Nunca usar fallback 100 = Siempre usar fallback 50 = 50% de probabilidad de usar fallback
+*/
 export const PROBABILIDAD_FALLBACK_POR_ROL: Record<RolesSistema, number> = {
   [RolesSistema.Directivo]: 80,
   [RolesSistema.ProfesorPrimaria]: 60,
@@ -63,71 +58,68 @@ export const PROBABILIDAD_FALLBACK_POR_ROL: Record<RolesSistema, number> = {
 };
 
 /**
- * A partir de cuántas horas antes de la salida se debe consultar asistencias de salida
- */
+* A partir de cuántas horas antes de la salida se debe consultar asistencias de salida
+*/
 export const HORAS_ANTES_SALIDA_PARA_CONSULTA: Record<NivelEducativo, number> =
   {
     [NivelEducativo.PRIMARIA]:
-      HORAS_ANTES_SALIDA_CAMBIO_MODO_PARA_ESTUDIANTES_DE_SECUNDARIA, // 1 hora antes de la salida
+      HORAS_ANTES_SALIDA_CAMBIO_MODO_PARA_ESTUDIANTES_DE_SECUNDARIA, // / 1 horantes de la salida
     [NivelEducativo.SECUNDARIA]:
-      HORAS_ANTES_SALIDA_CAMBIO_MODO_PARA_ESTUDIANTES_DE_PRIMARIA, // 1 hora antes de la salida
+      HORAS_ANTES_SALIDA_CAMBIO_MODO_PARA_ESTUDIANTES_DE_PRIMARIA, // / 1 horantes de la salida
   };
 
 /**
- * Configuración de ventanas de tiempo para usar Google Drive
- * [Nivel][Modo]["HorasAntes" | "HorasDespues"]
- */
+* Configuración de ventanas de tiempo para usar Google Drive [Nivel][Modo]["HorasAntes" | "HorasDespues"]
+*/
 export const VENTANAS_TIEMPO_GOOGLE_DRIVE = {
   [NivelEducativo.PRIMARIA]: {
     [ModoRegistro.Entrada]: {
-      HorasAntes: 1, // 1 hora antes de la hora de entrada
-      HorasDespues: 2, // 2 horas después de la hora de entrada
+      HorasAntes: 1, // / 1 horantes de la hora de entrada
+      HorasDespues: 2, // / 2 horas después de la hora dentrada
     },
     [ModoRegistro.Salida]: {
-      HorasAntes: 1, // 1 hora antes de la hora de salida
-      HorasDespues: 2, // 2 horas después de la hora de salida
+      HorasAntes: 1, // / 1 horantes de la hora de salida
+      HorasDespues: 2, // / 2 horas después de la hora de salida
     },
   },
   [NivelEducativo.SECUNDARIA]: {
-    [ModoRegistro.Entrada]: {
-      HorasAntes: 1, // 1 hora antes de la hora de entrada
-      HorasDespues: 2, // 2 horas después de la hora de entrada
+    [ModoRegistrontrada]: {
+      HorasAntes: 1, // / 1 horantes de la hora de entrada
+      HorasDespues: 2, // / 2 horas después de la hora dentrada
     },
     [ModoRegistro.Salida]: {
-      HorasAntes: 1, // 1 hora antes de la hora de salida
-      HorasDespues: 2, // 2 horas después de la hora de salida
+      HorasAntes: 1, // / 1 horantes de la hora de salida
+      HorasDespues: 2, // / 2 horas después de la hora de salida
     },
   },
-} as const;
+} asnst;
 
 /**
- * Configuración de roles que pueden usar el mecanismo de Google Drive
- */
+* Configuración de roles que pueden usar el mecanismo de Google Drive
+*/
 export const ROLES_CON_GOOGLE_DRIVE: Record<RolesSistema, boolean> = {
   [RolesSistema.Directivo]: true,
   [RolesSistema.ProfesorPrimaria]: true,
   [RolesSistema.Auxiliar]: true,
-  [RolesSistema.ProfesorSecundaria]: false, // No tienen acceso a estudiantes
+  [RolesSistema.ProfesorSecundaria]: false, // / No tnen acceso a estudiantes
   [RolesSistema.Tutor]: true,
   [RolesSistema.Responsable]: true,
-  [RolesSistema.PersonalAdministrativo]: false, // No tienen acceso al endpoint
+  [RolesSistema.PersonalAdministrativo]: false, // / No tnen acceso al endpoint
 };
 
 /**
- * Variables de entorno para GitHub Actions
- */
+* Variables de entorno para GitHub Actions
+*/
 export const GITHUB_CONFIG = {
   TOKEN: process.env.TGSH01_GITHUB_STATIC_PERSONAL_ACCESS_TOKEN,
   REPOSITORY_OWNER: process.env.TGSH01_GITHUB_WEBHOOK_REPOSITORY_OWNER_USERNAME,
   REPOSITORY_NAME: process.env.TGSH01_GITHUB_WEBHOOK_REPOSITORY_NAME,
 } as const;
 
-// =====================================
+// // =====================================
 // INTERFACES
-// =====================================
-
-interface AsistenciasEscolaresArchivo {
-  // Nueva estructura: Seccion -> Id_Estudiante -> Asistencia
+// =====================================nterface AsistenciasEscolaresArchivo {
+  // // Nueva estructura: Seccn -> Id_Estudiante -> Asistencia
   AsistenciasEscolaresDeHoy: Record<
     string,
     Record<
@@ -149,13 +141,13 @@ interface ResultadoConsulta {
   mensaje: string;
 }
 
-// =====================================
-// UTILIDADES DE FECHA SIN new Date()
-// =====================================
+// // =====================================
+// UTILIDADES DE FECHA SInew Date()
+// / =====================================
 
 /**
- * Crea un objeto Date a partir de un string ISO pero usando la referencia de tiempo de Perú
- */
+* Crean objeto Date a partir de un string ISO pero usando la referencia de tiempo de Perú
+*/
 async function crearFechaDesdeString(fechaString: string): Promise<Date> {
   const fechaPeruActual = await obtenerFechaHoraActualPeru();
   const fechaParseada = Date.parse(fechaString);
@@ -171,8 +163,8 @@ async function crearFechaDesdeString(fechaString: string): Promise<Date> {
 }
 
 /**
- * Calcula diferencia en milisegundos entre dos fechas usando referencia de Perú
- */
+* Calcula diferencia en milisegundos entre dos fechas usando referencia de Perú
+*/
 async function calcularDiferenciaMillis(
   fechaString: string,
   fechaReferencia?: Date
@@ -190,8 +182,8 @@ async function calcularDiferenciaMillis(
 }
 
 /**
- * Crea fecha con offset en horas desde la fecha actual de Perú
- */
+* Crea fecha con offset en horas desde la fecha actual de Perú
+*/
 async function crearFechaConOffset(offsetHoras: number): Promise<Date> {
   const fechaPeruActual = await obtenerFechaHoraActualPeru();
   const timestampConOffset =
@@ -200,15 +192,11 @@ async function crearFechaConOffset(offsetHoras: number): Promise<Date> {
 }
 
 /**
- * Determina si se debe usar fallback a Redis basado en probabilidad por rol
- * @param rol Rol del usuario que solicita
- * @returns true si debe usar fallback, false si no
- */
+* Determina si se debe usar fallback a Redis basado en probabilidad por rol @param rol Rol del usuario que solicita @returns true si debe usar fallback, false si no
+*/
 function debeUsarFallbackPorProbabilidad(rol: RolesSistema): boolean {
   const probabilidad = PROBABILIDAD_FALLBACK_POR_ROL[rol];
-  const numeroAleatorio = Math.floor(Math.random() * 100) + 1; // 1-100
-
-  const usarFallback = numeroAleatorio <= probabilidad;
+  const numeroAleatorio = Math.floor(Math.random() * 100) + 1; // / 1-100nst usarFallback = numeroAleatorio <= probabilidad;
 
   console.log(`[FallbackProbabilidad] 🎲 Rol: ${rol}`);
   console.log(
@@ -221,30 +209,30 @@ function debeUsarFallbackPorProbabilidad(rol: RolesSistema): boolean {
 }
 
 /**
- * Obtiene el intervalo de actualización según el nivel educativo
- */
+* Obtiene el intervalo de actualización según el nivel educativo
+*/
 function obtenerIntervaloActualizacion(nivel: NivelEducativo): number {
   return nivel === NivelEducativo.PRIMARIA
     ? INTERVALO_ACTUALIZACION_LISTAS_ESTUDIANTES_HORAS_PICO_EN_MINUTOS_PRIMARIA
     : INTERVALO_ACTUALIZACION_LISTAS_ESTUDIANTES_HORAS_PICO_EN_MINUTOS_SECUNDARIA;
 }
 
-// =====================================
+// // =====================================
 // CACHE SIMPLIFICADO BASADO EN FECHA DE ARCHIVO CON NUEVA ESTRUCTURA
 // =====================================
 
-class CacheListasAsistencia {
+class CacheListasAsisncia {
   private static cache = new Map<
     string,
     {
       datos: AsistenciasEscolaresArchivo;
-      fechaActualizacionArchivo: number; // Timestamp de Fecha_Actualizacion del archivo
+      fechaActualizacionArchivo: number; // / Timestamp de Fecha_Actualizacn del archivo
     }
   >();
 
   /**
-   * Obtiene los metadatos del archivo desde Google Drive sin descargarlo completamente
-   */
+* Obtiene los metadatos del archivo desde Google Drive sin descargarlo completamente
+*/
   private static async obtenerFechaArchivoGoogleDrive(
     googleDriveId: string
   ): Promise<number | null> {
@@ -253,10 +241,10 @@ class CacheListasAsistencia {
         `[CacheListasAsistencia] 🔍 Obteniendo fecha de archivo: ${googleDriveId}`
       );
 
-      // Intentar obtener solo el header del archivo para verificar su fecha de modificación
-      const url = `https://drive.google.com/uc?export=download&id=${googleDriveId}`;
+      // //ntentar obtener solo el header del archivo para verificar su fecha de modificación
+      const url = `https:// drive.google.com/uc?export=download&id=${googleDriveId}`;
 
-      // Realizar una petición HEAD para obtener headers sin descargar el contenido
+      // // Realizarna petición HEAD para obtener headers sin descargar el contenido
       const response = await fetch(url, { method: "HEAD" });
 
       if (response.ok) {
@@ -272,22 +260,22 @@ class CacheListasAsistencia {
         }
       }
 
-      // Si el método HEAD no funciona, hacer una petición con Range para obtener solo el inicio del archivo
+      // // Si el método HEAno funciona, hacer una petición con Range para obtener solo el inicio del archivo
       console.log(
         `[CacheListasAsistencia] ⚠️ HEAD no disponible, intentando con Range...`
       );
 
       const rangeResponse = await fetch(url, {
         headers: {
-          Range: "bytes=0-1023", // Solo los primeros 1024 bytes
+          Range: "bytes=0-1023", // / Solo los primeros 1024 bytes
         },
       });
 
-      if (rangeResponse.ok || rangeResponse.status === 206) {
-        // 206 = Partial Content
+      if (ngeResponse.ok || rangeResponse.status === 206) {
+        // // 206 = Partialntent
         const contenidoParcial = await rangeResponse.text();
 
-        // Buscar la fecha de actualización en el JSON parcial
+        // // Buscar la fecha de actualizacn en el JSON parcial
         const match = contenidoParcial.match(
           /"Fecha_Actualizacion"\s*:\s*"([^"]+)"/
         );
@@ -314,8 +302,8 @@ class CacheListasAsistencia {
   }
 
   /**
-   * Verifica si los datos están actualizados internamente
-   */
+* Verifica si los datos están actualizados internamente
+*/
   private static async estaActualizadaInternamente(
     datos: AsistenciasEscolaresArchivo,
     nivel: NivelEducativo
@@ -337,9 +325,8 @@ class CacheListasAsistencia {
   }
 
   /**
-   * Verifica si los datos específicos solicitados están disponibles en el cache
-   * Actualizado para trabajar con la nueva estructura por sección
-   */
+* Verifica si los datos específicos solicitados están disponibles en el cache Actualizado para trabajar con la nueva estructura por sección
+*/
   private static verificarDisponibilidadDatos(
     datos: AsistenciasEscolaresArchivo,
     idEstudiante: string,
@@ -347,7 +334,7 @@ class CacheListasAsistencia {
     necesitaEntrada: boolean,
     necesitaSalida: boolean
   ): { disponible: boolean; razon: string } {
-    // Verificar si existe la sección
+    // // Verificar si existe la seccn
     const datosSeccion = datos.AsistenciasEscolaresDeHoy[seccion];
     if (!datosSeccion) {
       return {
@@ -356,7 +343,7 @@ class CacheListasAsistencia {
       };
     }
 
-    // Verificar si existe el estudiante en esa sección
+    // // Verificar si existe el estudnte en esa sección
     const asistenciaEstudiante = datosSeccion[idEstudiante];
     if (!asistenciaEstudiante) {
       return {
@@ -365,7 +352,7 @@ class CacheListasAsistencia {
       };
     }
 
-    // Verificar disponibilidad según lo que se necesita
+    // // Verificar disnibilidad según lo que se necesita
     const tieneEntrada = !!asistenciaEstudiante.E;
     const tieneSalida = !!asistenciaEstudiante.S;
 
@@ -390,9 +377,8 @@ class CacheListasAsistencia {
   }
 
   /**
-   * Verifica disponibilidad para consulta por aula
-   * Compara con el total de estudiantes esperados
-   */
+* Verifica disponibilidad para consulta por aula Compara con el total de estudiantes esperados
+*/
   private static verificarDisponibilidadAula(
     datos: AsistenciasEscolaresArchivo,
     seccion: string,
@@ -400,7 +386,7 @@ class CacheListasAsistencia {
     necesitaEntrada: boolean,
     necesitaSalida: boolean
   ): { disponible: boolean; razon: string } {
-    // Verificar si existe la sección
+    // // Verificar si existe la seccn
     const datosSeccion = datos.AsistenciasEscolaresDeHoy[seccion];
     if (!datosSeccion) {
       return {
@@ -412,7 +398,7 @@ class CacheListasAsistencia {
     const estudiantesEncontrados = Object.keys(datosSeccion);
     const cantidadEncontrados = estudiantesEncontrados.length;
 
-    // Verificar si tenemos el número esperado de estudiantes
+    // // Verificar sinemos el número esperado de estudiantes
     if (cantidadEncontrados < totalEstudiantesEsperados) {
       return {
         disponible: false,
@@ -420,7 +406,7 @@ class CacheListasAsistencia {
       };
     }
 
-    // Verificar disponibilidad de datos según lo que se necesita
+    // // Verificar disnibilidad de datos según lo que se necesita
     let estudiantesConEntrada = 0;
     let estudiantesConSalida = 0;
 
@@ -429,8 +415,8 @@ class CacheListasAsistencia {
       if (asistencia.S) estudiantesConSalida++;
     }
 
-    // Para consultas de aula, verificar que al menos algunos estudiantes tengan los datos necesarios
-    const porcentajeMinimo = 0.8; // 80% de los estudiantes deben tener los datos
+    // // Paransultas de aula, verificar que al menos algunos estudiantes tengan los datos necesarios
+    const porcentajeMinimo = 0.8; // / 80% de los estudntes deben tener los datos
     const minimoRequerido = Math.ceil(cantidadEncontrados * porcentajeMinimo);
 
     if (necesitaEntrada && estudiantesConEntrada < minimoRequerido) {
@@ -454,10 +440,8 @@ class CacheListasAsistencia {
   }
 
   /**
-   * Verifica si el cache necesita actualizarse considerando disponibilidad de datos específicos
-   * OPTIMIZADO: Solo hace fetch a Google Drive si realmente es necesario
-   * ACTUALIZADO: Trabajar con nueva estructura por sección
-   */
+* Verifica si el cache necesita actualizarse considerando disponibilidad de datos específicos OPTIMIZADO: Solo hace fetch a Google Drive si realmente es necesario ACTUALIZADO: Trabajar con nueva estructura por sección
+*/
   private static async necesitaActualizacion(
     clave: string,
     googleDriveId: string,
@@ -483,7 +467,7 @@ class CacheListasAsistencia {
       `[CacheListasAsistencia] 🔍 Verificando necesidad de actualización para: ${clave}`
     );
 
-    // 1. PRIMERA PRIORIDAD: Si hay consulta específica de estudiante, verificar disponibilidad ANTES de hacer fetch
+    // // 1. PRIMERA PRIORIDAD: Si haynsulta específica de estudiante, verificar disponibilidad ANTES de hacer fetch
     if (consultaEspecifica) {
       const { disponible, razon: razonDisponibilidad } =
         this.verificarDisponibilidadDatos(
@@ -498,7 +482,7 @@ class CacheListasAsistencia {
         `[CacheListasAsistencia] 📊 Disponibilidad datos estudiante: ${razonDisponibilidad}`
       );
 
-      // Si los datos específicos están disponibles, no actualizar - NO HACER FETCH
+      // // Si los datos específicos esn disponibles, no actualizar - NO HACER FETCH
       if (disponible) {
         console.log(
           `[CacheListasAsistencia] ✅ DATOS ESTUDIANTE DISPONIBLES - No actualizar, evitando fetch`
@@ -514,7 +498,7 @@ class CacheListasAsistencia {
       );
     }
 
-    // 2. SEGUNDA PRIORIDAD: Si hay consulta de aula, verificar disponibilidad ANTES de hacer fetch
+    // // 2. SEGUNDA PRIORIDAD: Si haynsulta de aula, verificar disponibilidad ANTES de hacer fetch
     if (consultaAula) {
       const { disponible, razon: razonDisponibilidad } =
         this.verificarDisponibilidadAula(
@@ -529,7 +513,7 @@ class CacheListasAsistencia {
         `[CacheListasAsistencia] 📊 Disponibilidad datos aula: ${razonDisponibilidad}`
       );
 
-      // Para consultas de aula, SIEMPRE actualizar si está vencido (como solicitó el usuario)
+      // // Paransultas de aula, SIEMPRE actualizar si está vencido (como solicitó el usuario)
       const datosActualizados = await this.estaActualizadaInternamente(
         entrada.datos,
         nivel
@@ -541,7 +525,7 @@ class CacheListasAsistencia {
           `[CacheListasAsistencia] ⚠️ CONSULTA AULA + DATOS VENCIDOS - Actualizar obligatoriamente`
         );
 
-        // Hacer fetch para verificar si hay versión más nueva
+        // // Hacer fetch para verificar si hay versn más nueva
         const fechaArchivoActual = await this.obtenerFechaArchivoGoogleDrive(
           googleDriveId
         );
@@ -567,7 +551,7 @@ class CacheListasAsistencia {
         };
       }
 
-      // Si los datos están actualizados y suficientes, no actualizar
+      // // Si los datos esn actualizados y suficientes, no actualizar
       if (disponible) {
         console.log(
           `[CacheListasAsistencia] ✅ DATOS AULA SUFICIENTES Y ACTUALIZADOS - No actualizar`
@@ -578,7 +562,7 @@ class CacheListasAsistencia {
         };
       }
 
-      // Si faltan datos pero están actualizados, actualizar
+      // // Si faln datos pero están actualizados, actualizar
       console.log(
         `[CacheListasAsistencia] ❌ DATOS AULA INSUFICIENTES - Actualizar`
       );
@@ -588,14 +572,14 @@ class CacheListasAsistencia {
       };
     }
 
-    // 3. Verificar si los datos internos están desactualizados (sin fetch)
+    // // 3. Verificar si los datosnternos están desactualizados (sin fetch)
     const datosActualizados = await this.estaActualizadaInternamente(
       entrada.datos,
       nivel
     );
     const datosInternosDesactualizados = !datosActualizados.estaActualizada;
 
-    // 4. SOLO si los datos internos están desactualizados Y faltan datos específicos, hacer fetch a Google Drive
+    // // 4. SOLO si los datosnternos están desactualizados Y faltan datos específicos, hacer fetch a Google Drive
     if (consultaEspecifica && datosInternosDesactualizados) {
       console.log(
         `[CacheListasAsistencia] 🌐 Datos internos desactualizados y faltan datos específicos - Haciendo fetch a Google Drive`
@@ -626,7 +610,7 @@ class CacheListasAsistencia {
       };
     }
 
-    // 5. Para consultas específicas con datos internos actualizados, no actualizar
+    // // 5. Paransultas específicas con datos internos actualizados, no actualizar
     if (consultaEspecifica && !datosInternosDesactualizados) {
       return {
         necesitaActualizacion: true,
@@ -634,7 +618,7 @@ class CacheListasAsistencia {
       };
     }
 
-    // 6. Sin consulta específica, aplicar lógica tradicional (hacer fetch)
+    // // 6.n consulta específica, aplicar lógica tradicional (hacer fetch)
     console.log(
       `[CacheListasAsistencia] 🌐 Sin consulta específica - Verificación tradicional con fetch`
     );
@@ -671,10 +655,8 @@ class CacheListasAsistencia {
   }
 
   /**
-   * Obtiene datos del cache, verificando automáticamente si hay versiones más nuevas
-   * OPTIMIZACIÓN: Prioriza disponibilidad de datos sobre actualización
-   * ACTUALIZADO: Soporte para nueva estructura por sección y consultas de aula
-   */
+* Obtiene datos del cache, verificando automáticamente si hay versiones más nuevas OPTIMIZACIÓN: Prioriza disponibilidad de datos sobre actualización ACTUALIZADO: Soporte para nueva estructura por sección y consultas de aula
+*/
   static async obtener(
     clave: string,
     nivel: NivelEducativo,
@@ -705,7 +687,7 @@ class CacheListasAsistencia {
       `[CacheListasAsistencia] 📅 Fecha archivo en cache: ${entrada.datos.Fecha_Actualizacion}`
     );
 
-    // Si hay consulta específica, imprimir lo que se busca
+    // // Si haynsulta específica, imprimir lo que se busca
     if (consultaEspecifica) {
       console.log(
         `[CacheListasAsistencia] 🎯 Consulta específica: estudiante=${consultaEspecifica.idEstudiante}, sección=${consultaEspecifica.seccion}, entrada=${consultaEspecifica.necesitaEntrada}, salida=${consultaEspecifica.necesitaSalida}`
@@ -718,7 +700,7 @@ class CacheListasAsistencia {
       );
     }
 
-    // Si no se proporciona googleDriveId, solo verificar datos internos
+    // // Sno se proporciona googleDriveId, solo verificar datos internos
     if (!googleDriveId) {
       const datosActualizados = await this.estaActualizadaInternamente(
         entrada.datos,
@@ -739,7 +721,7 @@ class CacheListasAsistencia {
       return entrada.datos;
     }
 
-    // Verificación completa con optimización de disponibilidad de datos
+    // // Verificacn completa con optimización de disponibilidad de datos
     const { necesitaActualizacion, razon } = await this.necesitaActualizacion(
       clave,
       googleDriveId,
@@ -796,14 +778,14 @@ class CacheListasAsistencia {
     const stats: Record<string, any> = {};
 
     for (const [clave, entrada] of this.cache.entries()) {
-      // Para estadísticas, usar PRIMARIA como default ya que no tenemos el nivel en la clave
+      // // Para estadísticas, usar PRIMARIA como default ya quno tenemos el nivel en la clave
       const nivelDefault = NivelEducativo.PRIMARIA;
       const datosInternos = await this.estaActualizadaInternamente(
         entrada.datos,
         nivelDefault
       );
 
-      // Contar total de estudiantes en todas las secciones
+      // //ntar total de estudiantes en todas las secciones
       let totalEstudiantes = 0;
       for (const seccion of Object.values(
         entrada.datos.AsistenciasEscolaresDeHoy || {}
@@ -825,16 +807,16 @@ class CacheListasAsistencia {
   }
 }
 
-// =====================================
+// // =====================================
 // REPOSITORIO PRINCIPAL ACTUALIZADO
 // =====================================
 
-export class AsistenciasEscolaresHoyRepository {
+export class AsisnciasEscolaresHoyRepository {
   private logPrefix = "[AsistenciasRepo]";
 
   /**
-   * Obtiene la fecha actual en formato YYYY-MM-DD
-   */
+* Obtiene la fecha actual en formato YYYY-MM-DD
+*/
   async obtenerFechaActual(): Promise<string> {
     const fecha = await obtenerFechaActualPeru();
     console.log(`${this.logPrefix} 📅 Fecha actual obtenida: ${fecha}`);
@@ -842,14 +824,14 @@ export class AsistenciasEscolaresHoyRepository {
   }
 
   /**
-   * Verifica si debe consultar asistencias de salida
-   */
+* Verifica si debe consultar asistencias de salida
+*/
   private async debeConsultarSalidas(nivel: NivelEducativo): Promise<boolean> {
     console.log(
       `${this.logPrefix} 🚪 Verificando si debe consultar salidas para ${nivel}`
     );
 
-    // Verificar constantes de control
+    // // Verificarnstantes de control
     const controlarSalidas =
       nivel === NivelEducativo.PRIMARIA
         ? CONTROL_ASISTENCIA_DE_SALIDA_PRIMARIA
@@ -867,7 +849,7 @@ export class AsistenciasEscolaresHoyRepository {
     }
 
     try {
-      // Obtener horarios del sistema
+      // // Obner horarios del sistema
       const { datos: datosAsistencia } = await obtenerDatosAsistenciaHoy();
 
       const ahora = await obtenerFechaHoraActualPeru();
@@ -880,7 +862,7 @@ export class AsistenciasEscolaresHoyRepository {
         `${this.logPrefix} 🕐 Hora actual (Perú): ${ahora.toISOString()}`
       );
 
-      // Obtener hora de salida según el nivel y crear timestamp
+      // // Obner hora de salida según el nivel y crear timestamp
       let horaSalidaString: string;
 
       if (nivel === NivelEducativo.PRIMARIA) {
@@ -893,7 +875,7 @@ export class AsistenciasEscolaresHoyRepository {
         horaSalidaString = String(horarioSecundaria.Fin);
       }
 
-      // Calcular límite usando timestamps
+      // // Calcular límite undo timestamps
       const horaSalidaTimestamp = Date.parse(horaSalidaString);
       const limiteTiempoTimestamp =
         horaSalidaTimestamp - horasAntes * 60 * 60 * 1000;
@@ -923,8 +905,8 @@ export class AsistenciasEscolaresHoyRepository {
   }
 
   /**
-   * Verifica si estamos en la ventana de tiempo para usar Google Drive
-   */
+* Verifica si estamos en la ventana de tiempo para usar Google Drive
+*/
   private async estaEnVentanaTiempo(
     nivel: NivelEducativo,
     modo: ModoRegistro
@@ -934,7 +916,7 @@ export class AsistenciasEscolaresHoyRepository {
         `${this.logPrefix} 🕐 Verificando ventana de tiempo para ${nivel} - ${modo}`
       );
 
-      // Obtener horarios del sistema
+      // // Obner horarios del sistema
       const { datos: datosAsistencia } = await obtenerDatosAsistenciaHoy();
       console.log(`${this.logPrefix} ✅ Datos de asistencia obtenidos`);
 
@@ -948,7 +930,7 @@ export class AsistenciasEscolaresHoyRepository {
         `${this.logPrefix} 🕐 Hora actual (Perú): ${ahora.toISOString()}`
       );
 
-      // Obtener hora objetivo según el nivel y modo
+      // // Obner hora objetivo según el nivel y modo
       let horaObjetivoString: string;
 
       if (nivel === NivelEducativo.PRIMARIA) {
@@ -967,7 +949,7 @@ export class AsistenciasEscolaresHoyRepository {
             : String(horarioSecundaria.Fin);
       }
 
-      // Calcular ventana de tiempo usando timestamps
+      // // Calcularntana de tiempo usando timestamps
       const horaObjetivoTimestamp = Date.parse(horaObjetivoString);
       const inicioVentanaTimestamp =
         horaObjetivoTimestamp - ventana.HorasAntes * 60 * 60 * 1000;
@@ -1007,8 +989,8 @@ export class AsistenciasEscolaresHoyRepository {
   }
 
   /**
-   * Verifica si debe usar el mecanismo de Google Drive
-   */
+* Verifica si debe usar el mecanismo de Google Drive
+*/
   private async debeUsarGoogleDrive(
     rol: RolesSistema,
     nivel: NivelEducativo,
@@ -1018,8 +1000,7 @@ export class AsistenciasEscolaresHoyRepository {
       `${this.logPrefix} 🔍 Verificando si debe usar Google Drive para rol: ${rol}`
     );
 
-    // Verificar si el rol puede usar Google Drive
-    const rolPermitido = ROLES_CON_GOOGLE_DRIVE[rol];
+    // // Verificar si el rol puede usar Google Drivenst rolPermitido = ROLES_CON_GOOGLE_DRIVE[rol];
     console.log(`${this.logPrefix} 👤 ¿Rol ${rol} permitido?: ${rolPermitido}`);
 
     if (!rolPermitido) {
@@ -1029,7 +1010,7 @@ export class AsistenciasEscolaresHoyRepository {
       return false;
     }
 
-    // Verificar ventana de tiempo
+    // // Verificarntana de tiempo
     const enVentana = await this.estaEnVentanaTiempo(nivel, modo);
     console.log(`${this.logPrefix} 🕐 ¿En ventana de tiempo?: ${enVentana}`);
 
@@ -1042,9 +1023,8 @@ export class AsistenciasEscolaresHoyRepository {
   }
 
   /**
-   * Construye el resultado para un estudiante individual
-   * ACTUALIZADO: Trabajar con nueva estructura por sección
-   */
+* Construye el resultado para un estudiante individual ACTUALIZADO: Trabajar con nueva estructura por sección
+*/
   private async construirResultadoEstudiante(
     idEstudiante: string,
     seccion: string,
@@ -1060,7 +1040,7 @@ export class AsistenciasEscolaresHoyRepository {
 
     const asistencia: AsistenciaEscolarDeUnDia = {} as AsistenciaEscolarDeUnDia;
 
-    // Siempre incluir entrada si existe
+    // // Siemprencluir entrada si existe
     if (asistenciaData.E) {
       console.log(
         `${this.logPrefix} ✅ Entrada encontrada para ${idEstudiante}: ${asistenciaData.E.DesfaseSegundos}s`
@@ -1073,7 +1053,7 @@ export class AsistenciasEscolaresHoyRepository {
       asistencia[ModoRegistro.Entrada] = null;
     }
 
-    // Incluir salida solo si debe consultarla y existe
+    // //ncluir salida solo si debe consultarla y existe
     const debeConsultar = await this.debeConsultarSalidas(nivel);
     if (debeConsultar && asistenciaData.S) {
       console.log(
@@ -1104,8 +1084,8 @@ export class AsistenciasEscolaresHoyRepository {
   }
 
   /**
-   * Verifica si una lista está actualizada
-   */
+* Verifica si una lista está actualizada
+*/
   private async estaActualizada(
     datos: AsistenciasEscolaresArchivo,
     nivel: NivelEducativo
@@ -1144,8 +1124,8 @@ export class AsistenciasEscolaresHoyRepository {
   }
 
   /**
-   * Verifica si un job está en ejecución
-   */
+* Verifica si un job está en ejecución
+*/
   private async estaJobEnEjecucion(
     nivel: NivelEducativo,
     grado: number,
@@ -1204,9 +1184,8 @@ export class AsistenciasEscolaresHoyRepository {
   }
 
   /**
-   * Gatilla la actualización de una lista específica via GitHub Actions
-   * ACTUALIZADO: Soporte para actualización por sección
-   */
+* Gatilla la actualización de una lista específica via GitHub Actions ACTUALIZADO: Soporte para actualización por sección
+*/
   private async gatillarActualizacionLista(
     nivel: NivelEducativo,
     grado: number,
@@ -1219,7 +1198,7 @@ export class AsistenciasEscolaresHoyRepository {
         }`
       );
 
-      // Verificar configuración de GitHub
+      // // Verificarnfiguración de GitHub
       console.log(
         `${this.logPrefix} 🔑 GitHub Token existe: ${!!GITHUB_CONFIG.TOKEN}`
       );
@@ -1238,7 +1217,7 @@ export class AsistenciasEscolaresHoyRepository {
         throw new Error("Configuración de repositorio de GitHub incompleta");
       }
 
-      const url = `https://api.github.com/repos/${GITHUB_CONFIG.REPOSITORY_OWNER}/${GITHUB_CONFIG.REPOSITORY_NAME}/dispatches`;
+      const url = `https:// api.github.com/repos/${GITHUB_CONFIG.REPOSITORY_OWNER}/${GITHUB_CONFIG.REPOSITORY_NAME}/dispatches`;
       console.log(`${this.logPrefix} 🌐 URL GitHub Actions: ${url}`);
 
       const payload = {
@@ -1300,8 +1279,8 @@ export class AsistenciasEscolaresHoyRepository {
   }
 
   /**
-   * Obtiene una lista de asistencias desde Google Drive
-   */
+* Obtiene una lista de asistencias desde Google Drive
+*/
   private async obtenerListaDesdeGoogleDrive(
     nivel: NivelEducativo,
     grado: number,
@@ -1312,7 +1291,7 @@ export class AsistenciasEscolaresHoyRepository {
         `${this.logPrefix} 📥 Obteniendo lista desde Google Drive: ${nivel} grado ${grado}`
       );
 
-      // Obtener instancia de Redis según el tipo de asistencia
+      // // Obner instancia de Redis según el tipo de asistencia
       const redisInstance = redisClient(
         GrupoInstaciasDeRedisPorTipoAsistencia[tipoAsistencia]
       );
@@ -1323,7 +1302,7 @@ export class AsistenciasEscolaresHoyRepository {
         `${this.logPrefix} 🔗 Cliente Redis obtenido para: ${tipoAsistencia}`
       );
 
-      // Obtener IDs de Google Drive
+      // // Obner IDs de Google Drive
       const idsString = await redisInstance.get(
         NOMBRE_CLAVE_GOOGLE_DRIVE_IDs_LISTAS_ASISTENCIAS_ESCOLARES_HOY
       );
@@ -1357,8 +1336,7 @@ export class AsistenciasEscolaresHoyRepository {
         );
       }
 
-      // Descargar archivo desde Google Drive
-      const url = `https://drive.google.com/uc?export=download&id=${googleDriveId}`;
+      // // Descargar archivo desde Google Drivenst url = `https:// drive.google.com/uc?export=download&id=${googleDriveId}`;
       console.log(`${this.logPrefix} 🌐 URL Google Drive: ${url}`);
 
       const response = await fetch(url);
@@ -1377,7 +1355,7 @@ export class AsistenciasEscolaresHoyRepository {
         `${this.logPrefix} 📄 Datos obtenidos - Fecha actualización: ${datos.Fecha_Actualizacion}`
       );
 
-      // Contar estudiantes en nueva estructura por sección
+      // //ntar estudiantes en nueva estructura por sección
       let totalEstudiantes = 0;
       for (const seccion of Object.values(
         datos.AsistenciasEscolaresDeHoy || {}
@@ -1404,9 +1382,8 @@ export class AsistenciasEscolaresHoyRepository {
   }
 
   /**
-   * Consulta la asistencia de un estudiante específico por su ID
-   * ACTUALIZADO: Nueva estructura por sección y sistema de probabilidad de fallback
-   */
+* Consulta la asistencia de un estudiante específico por su ID ACTUALIZADO: Nueva estructura por sección y sistema de probabilidad de fallback
+*/
   async consultarPorIdEstudiante(
     idEstudiante: string,
     tipoAsistencia: TipoAsistencia,
@@ -1423,7 +1400,7 @@ export class AsistenciasEscolaresHoyRepository {
         `${this.logPrefix} 📋 Parámetros: rol=${rol}, nivel=${nivel}, grado=${grado}, sección=${seccion}`
       );
 
-      // Si no se proporciona rol o seccion, usar Redis directamente
+      // // Sno se proporciona rol o seccion, usar Redis directamente
       if (!rol || !nivel || !grado || !seccion) {
         console.log(
           `${this.logPrefix} 🔄 Usando Redis directamente (faltan parámetros para Google Drive)`
@@ -1437,7 +1414,7 @@ export class AsistenciasEscolaresHoyRepository {
         );
       }
 
-      // Determinar si debe usar Google Drive
+      // // Deternar si debe usar Google Drive
       const usarGoogleDrive = await this.debeUsarGoogleDrive(
         rol,
         nivel,
@@ -1460,11 +1437,10 @@ export class AsistenciasEscolaresHoyRepository {
         );
       }
 
-      // Usar Google Drive
-      console.log(`${this.logPrefix} ☁️ USANDO GOOGLE DRIVE para consulta`);
+      // // Usar Google Drivensole.log(`${this.logPrefix} ☁️ USANDO GOOGLE DRIVE para consulta`);
       const cacheKey = `${nivel}_${grado}`;
 
-      // Obtener el Google Drive ID para verificación de fecha
+      // // Obner el Google Drive ID para verificación de fecha
       const redisInstance = redisClient(
         GrupoInstaciasDeRedisPorTipoAsistencia[tipoAsistencia]
       );
@@ -1483,11 +1459,9 @@ export class AsistenciasEscolaresHoyRepository {
         googleDriveId = ids[nivel]?.[grado];
       }
 
-      // Determinar qué datos específicos necesitamos para aplicar la optimización
-      const necesitaEntrada = true; // Siempre necesitamos entrada
-      const necesitaSalida = await this.debeConsultarSalidas(nivel); // Solo si está habilitada y es la hora
-
-      console.log(
+      // // Deternar qué datos específicos necesitamos para aplicar la optimización
+      const necesitaEntrada = true; // / Siemprnecesitamos entrada
+      const necesitaSalida = await this.debeConsultarSalidas(nivel); // / Solo si está habilitada y es la horansole.log(
         `${this.logPrefix} 🎯 Datos requeridos: entrada=${necesitaEntrada}, salida=${necesitaSalida}`
       );
 
@@ -1498,14 +1472,13 @@ export class AsistenciasEscolaresHoyRepository {
         necesitaSalida,
       };
 
-      // Mostrar estadísticas del cache
-      const statsCache = await CacheListasAsistencia.obtenerEstadisticas();
+      // // Mostrar estadísticas del cachenst statsCache = await CacheListasAsistencia.obtenerEstadisticas();
       console.log(
         `${this.logPrefix} 📊 Estado actual del cache:`,
         JSON.stringify(statsCache, null, 2)
       );
 
-      // Obtener datos del cache (con verificación automática optimizada por disponibilidad)
+      // // Obner datos del cache (con verificación automática optimizada por disponibilidad)
       let datosLista = await CacheListasAsistencia.obtener(
         cacheKey,
         nivel,
@@ -1518,7 +1491,7 @@ export class AsistenciasEscolaresHoyRepository {
           `${this.logPrefix} 💾 Cache invalidado o vacío (datos específicos no disponibles)`
         );
 
-        // Verificar si hay job en ejecución
+        // // Verificar si hay jobn ejecución
         const jobEnEjecucion = await this.estaJobEnEjecucion(
           nivel,
           grado,
@@ -1528,8 +1501,7 @@ export class AsistenciasEscolaresHoyRepository {
         if (jobEnEjecucion) {
           console.log(`${this.logPrefix} 🔄 Job en ejecución detectado`);
 
-          // Aplicar probabilidad de fallback
-          const usarFallback = debeUsarFallbackPorProbabilidad(rol);
+          // // Aplicar probabilidad de fallbacknst usarFallback = debeUsarFallbackPorProbabilidad(rol);
           if (usarFallback) {
             console.log(
               `${this.logPrefix} 🎲 Probabilidad permite fallback a Redis`
@@ -1571,13 +1543,13 @@ export class AsistenciasEscolaresHoyRepository {
               `${this.logPrefix} 🚀 Gatillando actualización de lista...`
             );
 
-            // Gatillar actualización pero continuar con los datos actuales
+            // // Gatillar actualizacn pero continuar con los datos actuales
             await this.gatillarActualizacionLista(nivel, grado, seccion);
             console.log(
               `${this.logPrefix} ✅ Actualización gatillada exitosamente`
             );
 
-            // CONTINUAR CON LOS DATOS ACTUALES DE GOOGLE DRIVE (no hacer fallback a Redis)
+            // // CONTINUAR CON LOS DATOS ACTUALES DE GOOGLE DRIVEno hacer fallback a Redis)
             console.log(
               `${this.logPrefix} 📋 Continuando con datos actuales de Google Drive`
             );
@@ -1593,8 +1565,7 @@ export class AsistenciasEscolaresHoyRepository {
             error
           );
 
-          // Aplicar probabilidad de fallback
-          const usarFallback = debeUsarFallbackPorProbabilidad(rol);
+          // // Aplicar probabilidad de fallbacknst usarFallback = debeUsarFallbackPorProbabilidad(rol);
           if (usarFallback) {
             console.log(
               `${this.logPrefix} 🎲 Probabilidad permite fallback a Redis tras error`
@@ -1622,15 +1593,14 @@ export class AsistenciasEscolaresHoyRepository {
         );
       }
 
-      // Buscar estudiante en los datos de Google Drive con nueva estructura
+      // // Buscar estudnte en los datos de Google Drive con nueva estructura
       const datosSeccion = datosLista.AsistenciasEscolaresDeHoy[seccion];
       if (!datosSeccion) {
         console.log(
           `${this.logPrefix} ❌ Sección ${seccion} no encontrada en Google Drive`
         );
 
-        // Aplicar probabilidad de fallback
-        const usarFallback = debeUsarFallbackPorProbabilidad(rol);
+        // // Aplicar probabilidad de fallbacknst usarFallback = debeUsarFallbackPorProbabilidad(rol);
         if (usarFallback) {
           console.log(
             `${this.logPrefix} 🎲 Probabilidad permite fallback a Redis por sección faltante`
@@ -1665,8 +1635,7 @@ export class AsistenciasEscolaresHoyRepository {
           `${this.logPrefix} ❌ Estudiante ${idEstudiante} no encontrado en sección ${seccion}`
         );
 
-        // Aplicar probabilidad de fallback
-        const usarFallback = debeUsarFallbackPorProbabilidad(rol);
+        // // Aplicar probabilidad de fallbacknst usarFallback = debeUsarFallbackPorProbabilidad(rol);
         if (usarFallback) {
           console.log(
             `${this.logPrefix} 🎲 Probabilidad permite fallback a Redis por estudiante faltante`
@@ -1689,7 +1658,7 @@ export class AsistenciasEscolaresHoyRepository {
         }
       }
 
-      // Construir resultado
+      // //nstruir resultado
       const resultado = await this.construirResultadoEstudiante(
         idEstudiante,
         seccion,
@@ -1716,9 +1685,8 @@ export class AsistenciasEscolaresHoyRepository {
   }
 
   /**
-   * Consulta las asistencias de todos los estudiantes de un aula específica
-   * ACTUALIZADO: Nueva estructura por sección y parámetro totalEstudiantes obligatorio
-   */
+* Consulta las asistencias de todos los estudiantes de un aula específica ACTUALIZADO: Nueva estructura por sección y parámetro totalEstudiantes obligatorio
+*/
   async consultarPorAula(
     tipoAsistencia: TipoAsistencia,
     nivel: NivelEducativo,
@@ -1735,7 +1703,7 @@ export class AsistenciasEscolaresHoyRepository {
         `${this.logPrefix} 📋 Parámetros: rol=${rol}, tipo=${tipoAsistencia}`
       );
 
-      // Si no se proporciona rol, usar Redis directamente
+      // // Sno se proporciona rol, usar Redis directamente
       if (!rol) {
         console.log(
           `${this.logPrefix} 🔄 Usando Redis directamente (sin rol proporcionado)`
@@ -1748,7 +1716,7 @@ export class AsistenciasEscolaresHoyRepository {
         );
       }
 
-      // Determinar si debe usar Google Drive
+      // // Deternar si debe usar Google Drive
       const usarGoogleDrive = await this.debeUsarGoogleDrive(
         rol,
         nivel,
@@ -1770,13 +1738,12 @@ export class AsistenciasEscolaresHoyRepository {
         );
       }
 
-      // Usar Google Drive
-      console.log(
+      // // Usar Google Drivensole.log(
         `${this.logPrefix} ☁️ USANDO GOOGLE DRIVE para consulta de aula`
       );
       const cacheKey = `${nivel}_${grado}`;
 
-      // Obtener el Google Drive ID para verificación de fecha
+      // // Obner el Google Drive ID para verificación de fecha
       const redisInstance = redisClient(
         GrupoInstaciasDeRedisPorTipoAsistencia[tipoAsistencia]
       );
@@ -1795,7 +1762,7 @@ export class AsistenciasEscolaresHoyRepository {
         googleDriveId = ids[nivel]?.[grado];
       }
 
-      // Determinar qué datos necesitamos para la consulta de aula
+      // // Deternar qué datos necesitamos para la consulta de aula
       const necesitaEntrada = true;
       const necesitaSalida = await this.debeConsultarSalidas(nivel);
 
@@ -1823,7 +1790,7 @@ export class AsistenciasEscolaresHoyRepository {
           `${this.logPrefix} 💾 No hay datos en cache para aula ${cacheKey} o son insuficientes`
         );
 
-        // Verificar si hay job en ejecución
+        // // Verificar si hay jobn ejecución
         const jobEnEjecucion = await this.estaJobEnEjecucion(
           nivel,
           grado,
@@ -1833,8 +1800,7 @@ export class AsistenciasEscolaresHoyRepository {
         if (jobEnEjecucion) {
           console.log(`${this.logPrefix} 🔄 Job en ejecución para aula`);
 
-          // Aplicar probabilidad de fallback
-          const usarFallback = debeUsarFallbackPorProbabilidad(rol);
+          // // Aplicar probabilidad de fallbacknst usarFallback = debeUsarFallbackPorProbabilidad(rol);
           if (usarFallback) {
             console.log(
               `${this.logPrefix} 🎲 Probabilidad permite fallback a Redis para aula`
@@ -1884,8 +1850,7 @@ export class AsistenciasEscolaresHoyRepository {
             error
           );
 
-          // Aplicar probabilidad de fallback
-          const usarFallback = debeUsarFallbackPorProbabilidad(rol);
+          // // Aplicar probabilidad de fallbacknst usarFallback = debeUsarFallbackPorProbabilidad(rol);
           if (usarFallback) {
             console.log(
               `${this.logPrefix} 🎲 Probabilidad permite fallback a Redis tras error en aula`
@@ -1912,15 +1877,14 @@ export class AsistenciasEscolaresHoyRepository {
         );
       }
 
-      // Procesar datos de Google Drive con nueva estructura
+      // // Procesar datos de Google Driven nueva estructura
       const datosSeccion = datosLista.AsistenciasEscolaresDeHoy[seccion];
       if (!datosSeccion) {
         console.log(
           `${this.logPrefix} ❌ Sección ${seccion} no encontrada en Google Drive`
         );
 
-        // Aplicar probabilidad de fallback
-        const usarFallback = debeUsarFallbackPorProbabilidad(rol);
+        // // Aplicar probabilidad de fallbacknst usarFallback = debeUsarFallbackPorProbabilidad(rol);
         if (usarFallback) {
           console.log(
             `${this.logPrefix} 🎲 Probabilidad permite fallback a Redis por sección faltante en aula`
@@ -1977,8 +1941,8 @@ export class AsistenciasEscolaresHoyRepository {
   }
 
   /**
-   * Consulta directamente desde Redis
-   */
+* Consulta directamente desde Redis
+*/
   private async consultarDesdeRedis(
     idEstudiante: string,
     tipoAsistencia: TipoAsistencia,
@@ -1998,7 +1962,7 @@ export class AsistenciasEscolaresHoyRepository {
       `${this.logPrefix} 🔗 Cliente Redis obtenido para: ${tipoAsistencia}`
     );
 
-    // Determinar nivel si no se proporciona
+    // // Deternar nivel si no se proporciona
     const nivelDeducido =
       nivel ||
       (tipoAsistencia === TipoAsistencia.ParaEstudiantesPrimaria
@@ -2009,7 +1973,7 @@ export class AsistenciasEscolaresHoyRepository {
       `${this.logPrefix} 📊 Nivel deducido para Redis: ${nivelDeducido}`
     );
 
-    // Consultar entrada
+    // //nsultar entrada
     let patronBusquedaEntrada: string;
     if (nivel && grado && seccion) {
       patronBusquedaEntrada = `${fechaActual}:${ModoRegistro.Entrada}:${ActoresSistema.Estudiante}:${nivel}:${grado}:${seccion}:${idEstudiante}`;
@@ -2035,13 +1999,13 @@ export class AsistenciasEscolaresHoyRepository {
       `${this.logPrefix} 📋 Claves entrada encontradas: ${clavesEntrada.length}`
     );
 
-    // Construir datos de asistencia
+    // //nstruir datos de asistencia
     const asistenciaData: {
       E?: { DesfaseSegundos: number };
       S?: { DesfaseSegundos: number };
     } = {};
 
-    // Procesar entrada
+    // // Procesarntrada
     if (clavesEntrada.length > 0) {
       const claveEntrada = clavesEntrada[0];
       console.log(
@@ -2064,7 +2028,7 @@ export class AsistenciasEscolaresHoyRepository {
       }
     }
 
-    // Consultar salida si corresponde
+    // //nsultar salida si corresponde
     const debeConsultar = await this.debeConsultarSalidas(nivelDeducido);
     if (debeConsultar) {
       console.log(`${this.logPrefix} 🚪 Debe consultar salidas, buscando...`);
@@ -2094,8 +2058,8 @@ export class AsistenciasEscolaresHoyRepository {
         `${this.logPrefix} 📋 Claves salida encontradas: ${clavesSalida.length}`
       );
 
-      // Procesar salida
-      if (clavesSalida.length > 0) {
+      // // Procesar salida
+      if (clavesSalida.ngth > 0) {
         const claveSalida = clavesSalida[0];
         console.log(
           `${this.logPrefix} 📤 Procesando clave salida: ${claveSalida}`
@@ -2118,7 +2082,7 @@ export class AsistenciasEscolaresHoyRepository {
       }
     }
 
-    // Verificar si se encontró algo
+    // // Verificar si sencontró algo
     if (!asistenciaData.E && !asistenciaData.S) {
       console.log(
         `${this.logPrefix} ❌ No se encontraron datos en Redis para ${idEstudiante}`
@@ -2129,7 +2093,7 @@ export class AsistenciasEscolaresHoyRepository {
       };
     }
 
-    // Construir resultado (necesitamos obtener sección de alguna forma o usar genérica)
+    // //nstruir resultado (necesitamos obtener sección de alguna forma o usar genérica)
     const seccionParaResultado = seccion || "DESCONOCIDA";
     const resultado = await this.construirResultadoEstudiante(
       idEstudiante,
@@ -2146,8 +2110,8 @@ export class AsistenciasEscolaresHoyRepository {
   }
 
   /**
-   * Consulta aula directamente desde Redis
-   */
+* Consulta aula directamente desde Redis
+*/
   private async consultarAulaDesdeRedis(
     tipoAsistencia: TipoAsistencia,
     nivel: NivelEducativo,
@@ -2166,7 +2130,7 @@ export class AsistenciasEscolaresHoyRepository {
       `${this.logPrefix} 🔗 Cliente Redis obtenido para: ${tipoAsistencia}`
     );
 
-    // Consultar entradas
+    // //nsultar entradas
     const patronBusquedaEntrada = `${fechaActual}:${ModoRegistro.Entrada}:${ActoresSistema.Estudiante}:${nivel}:${grado}:${seccion}:*`;
     console.log(
       `${this.logPrefix} 🔍 Patrón búsqueda entradas aula: ${patronBusquedaEntrada}`
@@ -2177,13 +2141,13 @@ export class AsistenciasEscolaresHoyRepository {
       `${this.logPrefix} 📋 Entradas encontradas para aula: ${clavesEntrada.length}`
     );
 
-    // Crear mapa de estudiantes con sus asistencias
+    // // Crear mapa de estudntes con sus asistencias
     const estudiantesMap = new Map<
       string,
       { E?: { DesfaseSegundos: number }; S?: { DesfaseSegundos: number } }
     >();
 
-    // Procesar entradas
+    // // Procesarntradas
     for (const clave of clavesEntrada) {
       const valor = await redisClientInstance.get(clave);
 
@@ -2207,7 +2171,7 @@ export class AsistenciasEscolaresHoyRepository {
       }
     }
 
-    // Consultar salidas si corresponde
+    // //nsultar salidas si corresponde
     const debeConsultar = await this.debeConsultarSalidas(nivel);
     if (debeConsultar) {
       console.log(`${this.logPrefix} 🚪 Consultando salidas para aula...`);
@@ -2222,8 +2186,8 @@ export class AsistenciasEscolaresHoyRepository {
         `${this.logPrefix} 📋 Salidas encontradas para aula: ${clavesSalida.length}`
       );
 
-      // Procesar salidas
-      for (const clave of clavesSalida) {
+      // // Procesar salidas
+      for (nst clave of clavesSalida) {
         const valor = await redisClientInstance.get(clave);
 
         if (valor && Array.isArray(valor) && valor.length >= 1) {
@@ -2247,7 +2211,7 @@ export class AsistenciasEscolaresHoyRepository {
       }
     }
 
-    // Construir resultados
+    // //nstruir resultados
     const resultados: AsistenciaDiariaEscolarResultado[] = [];
 
     for (const [idEstudiante, asistenciaData] of estudiantesMap.entries()) {

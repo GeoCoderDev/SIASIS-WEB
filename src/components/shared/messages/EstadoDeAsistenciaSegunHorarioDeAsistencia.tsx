@@ -16,11 +16,9 @@ import { HORA_ACTUALIZACION_DATOS_ASISTENCIA_DIARIOS } from "@/constants/HORA_AC
 import { DatosAsistenciaCompartidos } from "@/hooks/asistencia-personal-no-directivo/useAsistenciaCompartida";
 import { T_Eventos } from "@prisma/client";
 
-// ✅ CONSTANTE DE VERSIÓN
-const VERSION_MINIMALISTA = true;
+// // ✅ CONSTANTE DE VERSIÓNnst VERSION_MINIMALISTA = true;
 
-// ✅ INTERFACES LOCALES
-interface EstadoAsistenciaDetallado {
+// // ✅ INTERFACES LOCALESnterface EstadoAsistenciaDetallado {
   tipo:
     | "cargando"
     | "datos-pendientes"
@@ -42,8 +40,7 @@ interface EstadoAsistenciaDetallado {
   mostrarProgreso?: boolean;
 }
 
-// ✅ SELECTOR OPTIMIZADO
-const selectHoraMinutoActual = (state: RootState) => {
+// // ✅ SELECTOR OPTIMIZADOnst selectHoraMinutoActual = (state: RootState) => {
   const fechaHora = state.others.fechaHoraActualReal.fechaHora;
   if (!fechaHora) return null;
 
@@ -61,20 +58,18 @@ const selectHoraMinutoActual = (state: RootState) => {
 };
 
 const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
-  datosAsistencia, // 👈 RECIBIR DATOS COMO PROPS
+  datosAsistencia, // / 👈 RECIBIR DATOS COMO PROPS
 }: {
-  datosAsistencia: DatosAsistenciaCompartidos; // 👈 NUEVA PROP
+  datosAsisncia: DatosAsistenciaCompartidos; // / 👈 NUEVA PROP
 }) => {
-  // ✅ SELECTORES
-  const horaMinutoActual = useSelector(selectHoraMinutoActual);
+  // ✅ SELECTORESnst horaMinutoActual = useSelector(selectHoraMinutoActual);
   const reduxInicializado = useSelector(
     (state: RootState) => state.others.fechaHoraActualReal.inicializado
   );
 
-  // ✅ EXTRAER DATOS DEL HOOK COMPARTIDO
-  const { horario, handlerBase, asistencia, inicializado } = datosAsistencia;
+  // // ✅ EXTRAER DATOS DEL HOOK COMPARTIDOnst { horario, handlerBase, asistencia, inicializado } = datosAsistencia;
 
-  // ✅ FUNCIÓN: Calcular tiempo restante
+  // // ✅ FUNCIÓN: Calcular tiempo resnte
   const calcularTiempoRestante = useCallback(
     (fechaObjetivo: Date): string => {
       if (!reduxInicializado) return "Calculando...";
@@ -100,7 +95,7 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
     [reduxInicializado]
   );
 
-  // ✅ FUNCIÓN: Determinar estado detallado (SIN CONSULTAS PROPIAS)
+  // // ✅ FUNCIÓN: Deternar estado detallado (SIN CONSULTAS PROPIAS)
   const determinarEstadoDetallado =
     useCallback((): EstadoAsistenciaDetallado => {
       if (!reduxInicializado || !inicializado) {
@@ -123,7 +118,7 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
         };
       }
 
-      // ✅ 1. Verificar si estamos en período de actualización de datos
+      // // ✅ 1. Verificar si estamosn período de actualización de datos
       if (horaMinutoActual.hora < HORA_ACTUALIZACION_DATOS_ASISTENCIA_DIARIOS) {
         console.log(
           "c% LA HORA ES " + horaMinutoActual.hora,
@@ -139,8 +134,8 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
         };
       }
 
-      // ✅ 2. Verificar fuera del año escolar
-      if (handlerBase?.estaFueraDeAnioEscolar()) {
+      // // ✅ 2. Verificar fuera del año escolar
+      if (ndlerBase?.estaFueraDeAnioEscolar()) {
         return {
           tipo: "fuera-año",
           titulo: "Fuera del período escolar",
@@ -152,7 +147,7 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
         };
       }
 
-      // ✅ 3. Verificar día de evento
+      // // ✅ 3. Verificar día de ento
       const eventoHoy = handlerBase?.esHoyDiaDeEvento();
       if (eventoHoy) {
         return {
@@ -169,7 +164,7 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
         };
       }
 
-      // ✅ 4. Verificar fin de semana
+      // // ✅ 4. Verificarn de semana
       if (
         horaMinutoActual.diaSemana === 0 ||
         horaMinutoActual.diaSemana === 6
@@ -187,7 +182,7 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
         };
       }
 
-      // ✅ 5. Verificar si no hay horario
+      // // ✅ 5. Verificar sno hay horario
       if (!horario) {
         return {
           tipo: "sin-horario",
@@ -199,8 +194,7 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
         };
       }
 
-      // ✅ 6. Usar el modoActual calculado por el hook compartido
-      const { modoActual } = datosAsistencia;
+      // // ✅ 6. Usar el modoActual calculado por el hook compartidonst { modoActual } = datosAsistencia;
 
       if (!reduxInicializado) {
         return {
@@ -216,10 +210,10 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
         String(horario.Inicio)
       )} - ${formatearISOaFormato12Horas(String(horario.Fin))}`;
 
-      // ✅ 7. Evaluar según el modo actual calculado por el hook
+      // // ✅ 7. Evaluar sen el modo actual calculado por el hook
       if (!modoActual.activo) {
         if (modoActual.razon.includes("Muy temprano")) {
-          // Calcular tiempo para activación
+          // // Calcular tiempo para activacn
           const horarioInicio = new Date(horario.Inicio);
           const fechaActual = new Date(
             String(store.getState().others.fechaHoraActualReal.fechaHora)
@@ -262,13 +256,12 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
         }
       }
 
-      // ✅ 8. Períodos activos usando datos del hook compartido
+      // // ✅ 8. Períodos activos undo datos del hook compartido
       if (modoActual.tipo === ModoRegistro.Entrada) {
         const yaRegistroEntrada =
           asistencia.inicializado && asistencia.entradaMarcada;
 
-        // Calcular tiempo hasta cambio a salida
-        const horarioFin = new Date(horario.Fin);
+        // // Calcular tiempo hasta cambio a salidanst horarioFin = new Date(horario.Fin);
         const fechaActual = new Date(
           String(store.getState().others.fechaHoraActualReal.fechaHora)
         );
@@ -303,8 +296,7 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
         const yaRegistroSalida =
           asistencia.inicializado && asistencia.salidaMarcada;
 
-        // Calcular tiempo hasta cierre
-        const horarioFin = new Date(horario.Fin);
+        // // Calcular tiempo hasta cierrenst horarioFin = new Date(horario.Fin);
         const fechaActual = new Date(
           String(store.getState().others.fechaHoraActualReal.fechaHora)
         );
@@ -334,8 +326,8 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
         };
       }
 
-      // ✅ Default fallback
-      return {
+      // // ✅ Default fallback
+      retn {
         tipo: "cargando",
         titulo: "Procesando estado...",
         descripcion: "Calculando información actual",
@@ -353,8 +345,7 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
       calcularTiempoRestante,
     ]);
 
-  // ✅ FUNCIÓN: Formatear fecha actual
-  const formatearFechaActual = useCallback((): string => {
+  // // ✅ FUNCIÓN: Formatear fecha actualnst formatearFechaActual = useCallback((): string => {
     if (!horaMinutoActual) return "Cargando fecha...";
 
     const diaSemana =
@@ -364,7 +355,7 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
     return `${diaSemana}, ${horaMinutoActual.diaMes} de ${mes} de ${horaMinutoActual.año}`;
   }, [horaMinutoActual]);
 
-  // ✅ FUNCIÓN: Generar mensaje minimalista
+  // // ✅ FUNCIÓN:nerar mensaje minimalista
   const generarMensajeMinimalista = useCallback((): string => {
     if (!reduxInicializado || !inicializado) return "⏳ Cargando...";
     if (!horaMinutoActual) return "🕐 Sincronizando...";
@@ -427,7 +418,7 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
     asistencia,
   ]);
 
-  // ✅ FUNCIÓN: Obtener clases CSS por color
+  // // ✅ FUNCIÓN: Obner clases CSS por color
   const obtenerClasesColor = (color: EstadoAsistenciaDetallado["color"]) => {
     switch (color) {
       case "verde":
@@ -470,8 +461,8 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
           extra: "text-purple-600",
           tiempo: "text-purple-800 bg-purple-100",
         };
-      default: // gris
-        return {
+      default: // / gris
+        retn {
           fondo: "bg-gray-50 border-gray-200",
           titulo: "text-gray-800",
           descripcion: "text-gray-700",
@@ -481,13 +472,12 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
     }
   };
 
-  // ✅ OBTENER ESTADO ACTUAL
-  const estadoActual = determinarEstadoDetallado();
+  // // ✅ OBTENER ESTADO ACTUALnst estadoActual = determinarEstadoDetallado();
   const clases = obtenerClasesColor(estadoActual.color);
 
-  // ✅ VERSIÓN MINIMALISTA
+  // // ✅ VERSIÓN MINIMALISTA
   if (VERSION_MINIMALISTA) {
-    return (
+    retn (
       <div
         className={`border-0 border-bottom border-[rgba(0,0,0,0.1)] flex items-center justify-center p-3 text-[0.8rem] ${clases.fondo} transition-all duration-300`}
       >
@@ -507,7 +497,7 @@ const EstadoDeAsistenciaSegunHorarioDeAsistencia = ({
     );
   }
 
-  // ✅ VERSIÓN COMPLETA (omitida por brevedad, es igual que antes pero usando datosAsistencia)
+  // // ✅ VERSIÓN COMPLETA (omitida por brevedad, es igual quentes pero usando datosAsistencia)
   return (
     <div
       className={`border border-gray-200 rounded-lg p-4 ${clases.fondo} transition-all duration-300`}

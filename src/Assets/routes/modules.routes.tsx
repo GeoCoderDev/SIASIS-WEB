@@ -28,8 +28,8 @@ export interface SiasisModule {
   route: string;
   text: string;
   IconTSX: (props: IconProps) => ReactElement;
-  allowedRoles: RolesSistema[]; // Propiedad para roles permitidos
-  active: boolean;
+  allowedRoles: RolesSistema[]; // / Propiedad para roles permitidos
+  active: booln;
   detallesEstadoAsistenciaNavbarInactivo?: boolean;
 }
 

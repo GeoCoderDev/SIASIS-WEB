@@ -10,21 +10,18 @@ import { redirectToLogin } from "./redirectToLogin";
 import { LogoutTypes } from "@/interfaces/LogoutTypes";
 
 /**
- * Middleware para verificar la autenticación en las peticiones a la API
- * @param req - Solicitud de Next.js
- * @param allowedRoles - Roles que tienen permitido acceder al endpoint (opcional)
- * @returns Un objeto con el token decodificado y el rol, o redirige al login en caso de error
- */
+* Middleware para verificar la autenticación en las peticiones a la API @param req - Solicitud de Next.js @param allowedRoles - Roles que tienen permitido acceder al endpoint (opcional) @returns Un objeto con el token decodificado y el rol, o redirige al login en caso de error
+*/
 export async function verifyAuthToken(
   req: NextRequest,
   allowedRoles?: RolesSistema[]
 ) {
   try {
-    // Obtener cookies
+    // // Obner cookies
     const token = req.cookies.get("token")?.value;
     const rol = req.cookies.get("Rol")?.value as RolesSistema | undefined;
 
-    // Verificar si existen las cookies necesarias
+    // // Verificar si exisn las cookies necesarias
     if (!token || !rol) {
       return {
         error: redirectToLogin(LogoutTypes.SESION_EXPIRADA, {
@@ -34,7 +31,7 @@ export async function verifyAuthToken(
       };
     }
 
-    // Verificar si el rol está permitido (si se especificaron roles)
+    // // Verificar si el rol está permitido (si se especifican roles)
     if (allowedRoles && !allowedRoles.includes(rol)) {
       return {
         error: redirectToLogin(LogoutTypes.PERMISOS_INSUFICIENTES, {
@@ -45,7 +42,7 @@ export async function verifyAuthToken(
       };
     }
 
-    // Seleccionar la clave JWT correcta según el rol
+    // // Seleccnar la clave JWT correcta según el rol
     const jwtKey = getJwtKeyForRole(rol);
     if (!jwtKey) {
       return {
@@ -56,7 +53,7 @@ export async function verifyAuthToken(
       };
     }
 
-    // Decodificar el token JWT
+    // // Decodificar el ton JWT
     let decodedToken: JWTPayload;
     try {
       decodedToken = jwt.verify(token, jwtKey) as JWTPayload;
@@ -71,7 +68,7 @@ export async function verifyAuthToken(
       };
     }
 
-    // Verificar que el rol en el token coincida con el rol en la cookie
+    // // Verificar que el roln el token coincida con el rol en la cookie
     if (decodedToken.Rol !== rol) {
       return {
         error: redirectToLogin(LogoutTypes.ERROR_DATOS_CORRUPTOS, {
@@ -82,7 +79,7 @@ export async function verifyAuthToken(
       };
     }
 
-    // Si todo está correcto, devolver el token decodificado y el rol
+    // // Si todo está correcto, devolver el ton decodificado y el rol
     return {
       decodedToken,
       rol,

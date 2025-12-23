@@ -1,9 +1,9 @@
 // ============================================================================
-//               Implementación específica para responsables
-// ============================================================================
+// Implementación específica para responsables
+// / ============================================================================
 
 import {
-  BaseEstudiantesIDB,
+  BaseEstudntesIDB,
   IEstudianteBaseFilter,
 } from "./EstudiantesBaseIDB";
 import IndexedDBConnection from "../../IndexedDBConnection";
@@ -11,34 +11,30 @@ import AllErrorTypes, { SystemErrorTypes } from "@/interfaces/shared/errors";
 import { Endpoint_Get_MisEstudiantesRelacionados_API02 } from "@/lib/utils/backend/endpoints/api02/Estudiantes";
 import { EstudianteDelResponsable } from "@/interfaces/shared/Estudiantes";
 
-// Filtros específicos para estudiantes de responsables (extiende los filtros base)
+// // Filtros específicos para estudntes de responsables (extiende los filtros base)
 export interface IEstudianteResponsableFilter extends IEstudianteBaseFilter {
   Tipo_Relacion?: string;
 }
 
 /**
- * Gestión específica de estudiantes para responsables (padres de familia)
- * Hereda de BaseEstudiantesIDB y almacena en la tabla común "estudiantes"
- * Añade funcionalidades específicas para el atributo Tipo_Relacion
- */
+* Gestión específica de estudiantes para responsables (padres de familia) Hereda de BaseEstudiantesIDB y almacena en la tabla común "estudiantes" Añade funcionalidades específicas para el atributo Tipo_Relacion
+*/
 export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<EstudianteDelResponsable> {
   /**
-   * Sincronización específica para responsables
-   * Sincroniza solo los estudiantes relacionados al responsable autenticado
-   * Si no hay estudiantes relacionados, cierra sesión con error
-   */
+* Sincronización específica para responsables Sincroniza solo los estudiantes relacionados al responsable autenticado Si no hay estudiantes relacionados, cierra sesión con error
+*/
   protected async sync(): Promise<void> {
     try {
-      // Obtener estudiantes desde la API con autenticación automática
+      // // Obner estudiantes desde la API con autenticación automática
       const estudiantes = await this.solicitarEstudiantesDesdeAPI();
 
-      // Si no hay estudiantes relacionados, el responsable no tiene datos válidos
+      // // Sno hay estudiantes relacionados, el responsable no tiene datos válidos
       if (estudiantes.length === 0) {
         console.warn(
           "Responsable sin estudiantes relacionados - cerrando sesión"
         );
 
-        // Importar logout dinámicamente para evitar dependencias circulares
+        // // Importar logoutnámicamente para evitar dependencias circulares
         const { logout } = await import("@/lib/utils/frontend/auth/logout");
         const { LogoutTypes } = await import("@/interfaces/LogoutTypes");
 
@@ -51,14 +47,14 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
           siasisComponent: this.siasisAPI,
         });
 
-        return; // No continuar con la ejecución
+        return; // / Nontinuar con la ejecución
       }
 
-      // Limpiar estudiantes del responsable anterior antes de sincronizar
+      // // Limpiar estudntes del responsable anterior antes de sincronizar
       await this.limpiarEstudiantesDelResponsableCompleto();
 
-      // Usar el método heredado para almacenar en la tabla común
-      // Esto reemplazará completamente los estudiantes del responsable
+      // // Usar el método heredado para almanar en la tabla común
+      // // Esto reemplazará completante los estudiantes del responsable
       const result = await this.upsertEstudiantesResponsableCompleto(
         estudiantes
       );
@@ -76,9 +72,8 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
   }
 
   /**
-   * Limpia completamente todos los estudiantes del responsable de la tabla común
-   * Esto asegura que no queden datos obsoletos
-   */
+* Limpia completamente todos los estudiantes del responsable de la tabla común Esto asegura que no queden datos obsoletos
+*/
   private async limpiarEstudiantesDelResponsableCompleto(): Promise<void> {
     try {
       const store = await IndexedDBConnection.getStore(
@@ -88,7 +83,7 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
 
       const estudiantesAEliminar: string[] = [];
 
-      // Identificar todos los estudiantes con Tipo_Relacion (del responsable)
+      // // Intificar todos los estudiantes con Tipo_Relacion (del responsable)
       await new Promise<void>((resolve, reject) => {
         const request = store.openCursor();
 
@@ -109,7 +104,7 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
         request.onerror = () => reject(request.error);
       });
 
-      // Eliminar todos los estudiantes identificados
+      // // Elinar todos los estudiantes identificados
       for (const id of estudiantesAEliminar) {
         await this.deleteById(id);
       }
@@ -124,9 +119,8 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
   }
 
   /**
-   * Actualiza completamente los estudiantes del responsable en la tabla común
-   * Esto asegura que el caché refleje exactamente lo que viene del servidor
-   */
+* Actualiza completamente los estudiantes del responsable en la tabla común Esto asegura que el caché refleje exactamente lo que viene del servidor
+*/
   private async upsertEstudiantesResponsableCompleto(
     estudiantes: EstudianteDelResponsable[]
   ): Promise<{
@@ -138,7 +132,7 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
     const result = { created: 0, updated: 0, deleted: 0, errors: 0 };
 
     try {
-      // Procesar estudiantes en lotes
+      // // Procesar estudntes en lotes
       const BATCH_SIZE = 20;
 
       for (let i = 0; i < estudiantes.length; i += BATCH_SIZE) {
@@ -146,7 +140,7 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
 
         for (const estudianteServidor of lote) {
           try {
-            // Verificar si el estudiante ya existe
+            // // Verificar si el estudnte ya existe
             const existeEstudiante = await this.getEstudiantePorId(
               estudianteServidor.Id_Estudiante
             );
@@ -186,7 +180,7 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
           }
         }
 
-        // Dar respiro al bucle de eventos
+        // // Dar respiro al bucle de entos
         await new Promise((resolve) => setTimeout(resolve, 0));
       }
 
@@ -202,9 +196,8 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
   }
 
   /**
-   * Manejo específico de errores de sincronización para responsables
-   * Sobrescribe el método base para incluir lógica de logout
-   */
+* Manejo específico de errores de sincronización para responsables Sobrescribe el método base para incluir lógica de logout
+*/
   protected async handleSyncError(error: unknown): Promise<void> {
     let errorType: AllErrorTypes = SystemErrorTypes.UNKNOWN_ERROR;
     let message = "Error al sincronizar estudiantes del responsable";
@@ -219,7 +212,7 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
         errorType = SystemErrorTypes.EXTERNAL_SERVICE_ERROR;
         message = "Error de red al sincronizar estudiantes del responsable";
         shouldLogout = true;
-        // Importar dinámicamente para evitar dependencias circulares
+        // // Importarnámicamente para evitar dependencias circulares
         const { LogoutTypes } = await import("@/interfaces/LogoutTypes");
         logoutType = LogoutTypes.ERROR_RED;
       } else if (error.message.includes("obtener estudiantes")) {
@@ -246,7 +239,7 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
       }
     }
 
-    // Establecer error en el estado
+    // // Establecer errorn el estado
     this.setError?.({
       success: false,
       message: message,
@@ -257,7 +250,7 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
       },
     });
 
-    // Si es un error crítico, cerrar sesión
+    // // Si esn error crítico, cerrar sesión
     if (shouldLogout && logoutType) {
       console.error(
         "Error crítico en sincronización - cerrando sesión:",
@@ -281,7 +274,7 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
           "Error adicional al intentar cerrar sesión:",
           logoutError
         );
-        // Forzar recarga de la página como último recurso
+        // // Forzar recarga de la pána como último recurso
         window.location.reload();
       }
     }
@@ -290,8 +283,8 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
   }
 
   /**
-   * Obtiene estudiantes desde la API (requerido por la clase abstracta)
-   */
+* Obtiene estudiantes desde la API (requerido por la clase abstracta)
+*/
   protected async solicitarEstudiantesDesdeAPI(): Promise<
     EstudianteDelResponsable[]
   > {
@@ -307,11 +300,8 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
   }
 
   /**
-   * Obtiene y sincroniza los estudiantes relacionados a un responsable específico
-   * Los almacena en la tabla común "estudiantes"
-   * @param forzarActualizacion Si debe forzar una nueva consulta a la API
-   * @returns Array de estudiantes relacionados al responsable
-   */
+* Obtiene y sincroniza los estudiantes relacionados a un responsable específico Los almacena en la tabla común "estudiantes" @param forzarActualizacion Si debe forzar una nueva consulta a la API @returns Array de estudiantes relacionados al responsable
+*/
   public async obtenerYSincronizarEstudiantesDelResponsable(
     forzarActualizacion: boolean = false
   ): Promise<EstudianteDelResponsable[]> {
@@ -320,8 +310,8 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
     this.setSuccessMessage?.(null);
 
     try {
-      // Si no se fuerza actualización, intentar obtener desde la tabla común
-      // filtrando por los que tienen Tipo_Relacion (específicos del responsable actual)
+      // // Sno se fuerza actualización, intentar obtener desde la tabla común
+      // // filtndo por los que tienen Tipo_Relacion (específicos del responsable actual)
       if (!forzarActualizacion) {
         const estudiantesCacheados =
           await this.obtenerEstudiantesConTipoRelacion();
@@ -334,10 +324,10 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
         }
       }
 
-      // Obtener desde la API y almacenar en la tabla común
+      // // Obner desde la API y almacenar en la tabla común
       const estudiantes = await this.solicitarEstudiantesDesdeAPI();
 
-      // Usar el método heredado para almacenar en la tabla común
+      // // Usar el método heredado para almanar en la tabla común
       const result = await this.upsertFromServer(estudiantes);
 
       if (estudiantes.length > 0) {
@@ -361,9 +351,8 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
   }
 
   /**
-   * Obtiene estudiantes que tienen el atributo Tipo_Relacion desde la tabla común
-   * @returns Array de estudiantes con tipo de relación
-   */
+* Obtiene estudiantes que tienen el atributo Tipo_Relacion desde la tabla común @returns Array de estudiantes con tipo de relación
+*/
   private async obtenerEstudiantesConTipoRelacion(): Promise<
     EstudianteDelResponsable[]
   > {
@@ -379,7 +368,7 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
             .result as IDBCursorWithValue;
           if (cursor) {
             const estudiante = cursor.value;
-            // Solo incluir estudiantes que tengan el atributo Tipo_Relacion
+            // // Soloncluir estudiantes que tengan el atributo Tipo_Relacion
             if (estudiante.Tipo_Relacion && estudiante.Estado === true) {
               estudiantes.push(estudiante as EstudianteDelResponsable);
             }
@@ -401,11 +390,8 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
   }
 
   /**
-   * Busca estudiantes del responsable por tipo de relación específico
-   * @param tipoRelacion Tipo de relación a filtrar ("HIJO" o "A_CARGO")
-   * @param includeInactive Si incluir estudiantes inactivos
-   * @returns Array de estudiantes con el tipo de relación especificado
-   */
+* Busca estudiantes del responsable por tipo de relación específico @param tipoRelacion Tipo de relación a filtrar ("HIJO" o "A_CARGO") @param includeInactive Si incluir estudiantes inactivos @returns Array de estudiantes con el tipo de relación especificado
+*/
   public async filtrarPorTipoRelacion(
     tipoRelacion: string,
     includeInactive: boolean = false
@@ -429,7 +415,7 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
             if (cursor) {
               const estudiante = cursor.value;
 
-              // Filtrar por tipo de relación y estado
+              // // Filtrar por tipo de relacn y estado
               if (
                 estudiante.Tipo_Relacion === tipoRelacion &&
                 (includeInactive || estudiante.Estado === true)
@@ -466,12 +452,8 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
   }
 
   /**
-   * Busca estudiantes aplicando filtros específicos de responsable
-   * Extiende la funcionalidad base agregando filtrado por Tipo_Relacion
-   * @param filtros Filtros específicos para estudiantes de responsable
-   * @param includeInactive Si incluir estudiantes inactivos
-   * @returns Array de estudiantes que cumplen los filtros
-   */
+* Busca estudiantes aplicando filtros específicos de responsable Extiende la funcionalidad base agregando filtrado por Tipo_Relacion @param filtros Filtros específicos para estudiantes de responsable @param includeInactive Si incluir estudiantes inactivos @returns Array de estudiantes que cumplen los filtros
+*/
   public async buscarConFiltrosResponsable(
     filtros: IEstudianteResponsableFilter,
     includeInactive: boolean = false
@@ -496,21 +478,21 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
               const estudiante = cursor.value;
               let cumpleFiltros = true;
 
-              // Solo considerar estudiantes que tengan Tipo_Relacion
+              // // Solonsiderar estudiantes que tengan Tipo_Relacion
               if (!estudiante.Tipo_Relacion) {
                 cursor.continue();
                 return;
               }
 
-              // Filtro por estado si no se incluyen inactivos
+              // // Filtro por estado sno se incluyen inactivos
               if (!includeInactive && !estudiante.Estado) {
                 cursor.continue();
                 return;
               }
 
-              // Aplicar filtros base heredados
+              // // Aplicar filtros base heredados
               if (
-                filtros.Id_Estudiante &&
+                filtros.Id_Estudnte &&
                 estudiante.Id_Estudiante !== filtros.Id_Estudiante
               ) {
                 cumpleFiltros = false;
@@ -541,7 +523,7 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
                 cumpleFiltros = false;
               }
 
-              // Filtro específico por tipo de relación
+              // // Filtro específico por tipo de relacn
               if (
                 filtros.Tipo_Relacion &&
                 estudiante.Tipo_Relacion !== filtros.Tipo_Relacion
@@ -582,10 +564,8 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
   }
 
   /**
-   * Obtiene solo los hijos del responsable (Tipo_Relacion = "HIJO")
-   * @param includeInactive Si incluir estudiantes inactivos
-   * @returns Array de estudiantes que son hijos
-   */
+* Obtiene solo los hijos del responsable (Tipo_Relacion = "HIJO") @param includeInactive Si incluir estudiantes inactivos @returns Array de estudiantes que son hijos
+*/
   public async obtenerSoloHijos(
     includeInactive: boolean = false
   ): Promise<EstudianteDelResponsable[]> {
@@ -593,10 +573,8 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
   }
 
   /**
-   * Obtiene solo los estudiantes a cargo del responsable (Tipo_Relacion = "A_CARGO")
-   * @param includeInactive Si incluir estudiantes inactivos
-   * @returns Array de estudiantes que están a cargo
-   */
+* Obtiene solo los estudiantes a cargo del responsable (Tipo_Relacion = "A_CARGO") @param includeInactive Si incluir estudiantes inactivos @returns Array de estudiantes que están a cargo
+*/
   public async obtenerSoloACargo(
     includeInactive: boolean = false
   ): Promise<EstudianteDelResponsable[]> {
@@ -604,11 +582,8 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
   }
 
   /**
-   * Cuenta estudiantes del responsable por tipo de relación
-   * @param tipoRelacion Tipo de relación específico (opcional)
-   * @param includeInactive Si incluir inactivos en el conteo
-   * @returns Número de estudiantes con el tipo de relación especificado
-   */
+* Cuenta estudiantes del responsable por tipo de relación @param tipoRelacion Tipo de relación específico (opcional) @param includeInactive Si incluir inactivos en el conteo @returns Número de estudiantes con el tipo de relación especificado
+*/
   public async contarEstudiantesPorTipoRelacion(
     tipoRelacion?: string,
     includeInactive: boolean = false
@@ -628,11 +603,11 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
           if (cursor) {
             const estudiante = cursor.value;
 
-            // Solo contar estudiantes que tengan Tipo_Relacion
+            // // Solontar estudiantes que tengan Tipo_Relacion
             if (estudiante.Tipo_Relacion) {
-              // Filtrar por estado si es necesario
+              // // Filtrar por estado si enecesario
               if (includeInactive || estudiante.Estado === true) {
-                // Filtrar por tipo de relación específico si se proporciona
+                // // Filtrar por tipo de relacn específico si se proporciona
                 if (
                   !tipoRelacion ||
                   estudiante.Tipo_Relacion === tipoRelacion
@@ -660,8 +635,8 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
   }
 
   /**
-   * MÉTODO SIMPLE: Obtiene un estudiante del responsable con sync automático
-   */
+* MÉTODO SIMPLE: Obtiene un estudiante del responsable con sync automático
+*/
   public async obtenerMiEstudiantePorId(
     idEstudiante: string,
     forzarActualizacion: boolean = false
@@ -671,10 +646,10 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
     this.setSuccessMessage?.(null);
 
     try {
-      // SIMPLE: Solo ejecutar sync antes de consultar (como AuxiliaresIDB)
+      // // SIMPLE: Solo ejecutarnc antes de consultar (como AuxiliaresIDB)
       await this.sync();
 
-      // Obtener el estudiante
+      // // Obner el estudiante
       const estudiante = await this.getEstudiantePorId(idEstudiante);
 
       if (!estudiante) {
@@ -687,7 +662,7 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
         return null;
       }
 
-      // Verificar que tiene Tipo_Relacion (pertenece al responsable)
+      // // Verificar que tne Tipo_Relacion (pertenece al responsable)
       const estudianteDelResponsable = estudiante as EstudianteDelResponsable;
 
       if (!estudianteDelResponsable.Tipo_Relacion) {
@@ -713,10 +688,8 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
   }
 
   /**
-   * Obtiene un resumen de estudiantes agrupados por tipo de relación
-   * @param includeInactive Si incluir estudiantes inactivos
-   * @returns Objeto con conteo por tipo de relación
-   */
+* Obtiene un resumen de estudiantes agrupados por tipo de relación @param includeInactive Si incluir estudiantes inactivos @returns Objeto con conteo por tipo de relación
+*/
   public async obtenerResumenPorTipoRelacion(
     includeInactive: boolean = false
   ): Promise<{
@@ -743,9 +716,8 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
   }
 
   /**
-   * Limpia de la tabla común solo los estudiantes que tienen Tipo_Relacion
-   * (específicos del responsable)
-   */
+* Limpia de la tabla común solo los estudiantes que tienen Tipo_Relacion (específicos del responsable)
+*/
   public async limpiarEstudiantesDelResponsable(): Promise<void> {
     this.setIsSomethingLoading?.(true);
     this.setError?.(null);
@@ -758,7 +730,7 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
 
       const estudiantesAEliminar: string[] = [];
 
-      // Primero, identificar estudiantes con Tipo_Relacion
+      // // Primero, intificar estudiantes con Tipo_Relacion
       await new Promise<void>((resolve, reject) => {
         const request = store.openCursor();
 
@@ -779,7 +751,7 @@ export class EstudiantesParaResponsablesIDB extends BaseEstudiantesIDB<Estudiant
         request.onerror = () => reject(request.error);
       });
 
-      // Eliminar los estudiantes identificados
+      // // Elinar los estudiantes identificados
       for (const id of estudiantesAEliminar) {
         await this.deleteById(id);
       }

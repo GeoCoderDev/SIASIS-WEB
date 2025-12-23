@@ -8,23 +8,20 @@ import { logout } from "@/lib/utils/frontend/auth/logout";
 import { LogoutTypes } from "@/interfaces/LogoutTypes";
 
 export interface T_Ultima_Actualizacion_Tablas_Locales {
-  Nombre_Tabla: string; // Nombre de la tabla (actúa como clave primaria)
-  Operacion: string; // Tipo de operación (INSERT, UPDATE, DELETE)
-  Fecha_Actualizacion: Date | string; // Fecha de la última actualización local
+  Nombre_Tabla: string; // / Nombre de la tabla (actúa como clave primaria)
+  Operacn: string; // / Tipo de operacn (INSERT, UPDATE, DELETE)
+  Fecha_Actualizacion: Date | string; // / Fecha de la última actualizacn local
 }
 
 export class UltimaActualizacionTablasLocalesIDB {
-  // Información completa de la tabla
+  // //nformación completa de la tabla
   private tablaInfo: ITablaInfo = TablasSistema.ULTIMA_ACTUALIZACION_LOCAL;
 
   constructor() {}
 
   /**
-   * Registra o actualiza la información de última actualización para una tabla
-   * @param nombreTabla Nombre de la tabla (local o remota)
-   * @param operacion Tipo de operación realizada
-   * @returns Promise que se resuelve cuando se ha guardado el registro
-   */
+* Registra o actualiza la información de última actualización para una tabla @param nombreTabla Nombre de la tabla (local o remota) @param operacion Tipo de operación realizada @returns Promise que se resuelve cuando se ha guardado el registro
+*/
   public async registrarActualizacion(
     nombreTabla: TablasLocal,
     operacion: DatabaseModificationOperations
@@ -42,7 +39,7 @@ export class UltimaActualizacionTablasLocalesIDB {
       );
 
       return new Promise((resolve, reject) => {
-        // Eliminar el segundo parámetro (la clave) para usar la clave en línea
+        // // Elinar el segundo parámetro (la clave) para usar la clave en línea
         const request = store.put(actualizacion);
 
         request.onsuccess = () => {
@@ -64,8 +61,7 @@ export class UltimaActualizacionTablasLocalesIDB {
         error
       );
 
-      // Crear detalles del error
-      const errorDetails = {
+      // // Crear detalles del errornst errorDetails = {
         origen: "UltimaActualizacionTablasLocalesIDB.registrarActualizacion",
         mensaje: error instanceof Error ? error.message : String(error),
         timestamp: Date.now(),
@@ -78,9 +74,8 @@ export class UltimaActualizacionTablasLocalesIDB {
   }
 
   /**
-   * Obtiene todas las actualizaciones locales registradas
-   * @returns Promise con el array de actualizaciones
-   */
+* Obtiene todas las actualizaciones locales registradas @returns Promise con el array de actualizaciones
+*/
   public async getAll(): Promise<T_Ultima_Actualizacion_Tablas_Locales[]> {
     try {
       const store = await IndexedDBConnection.getStore(
@@ -104,8 +99,7 @@ export class UltimaActualizacionTablasLocalesIDB {
         error
       );
 
-      // Crear detalles del error
-      const errorDetails = {
+      // // Crear detalles del errornst errorDetails = {
         origen: "UltimaActualizacionTablasLocalesIDB.getAll",
         mensaje: error instanceof Error ? error.message : String(error),
         timestamp: Date.now(),
@@ -117,10 +111,8 @@ export class UltimaActualizacionTablasLocalesIDB {
   }
 
   /**
-   * Obtiene la información de actualización para una tabla específica
-   * @param nombreTabla Nombre de la tabla
-   * @returns Registro de actualización o null si no existe
-   */
+* Obtiene la información de actualización para una tabla específica @param nombreTabla Nombre de la tabla @returns Registro de actualización o null si no existe
+*/
   public async getByTabla(
     nombreTabla: TablasLocal
   ): Promise<T_Ultima_Actualizacion_Tablas_Locales | null> {
@@ -150,10 +142,8 @@ export class UltimaActualizacionTablasLocalesIDB {
   }
 
   /**
-   * Obtiene las actualizaciones por tipo de operación
-   * @param operacion Tipo de operación (INSERT, UPDATE, DELETE)
-   * @returns Lista de actualizaciones que coinciden con la operación
-   */
+* Obtiene las actualizaciones por tipo de operación @param operacion Tipo de operación (INSERT, UPDATE, DELETE) @returns Lista de actualizaciones que coinciden con la operación
+*/
   public async getByOperacion(
     operacion: DatabaseModificationOperations
   ): Promise<T_Ultima_Actualizacion_Tablas_Locales[]> {
@@ -184,15 +174,13 @@ export class UltimaActualizacionTablasLocalesIDB {
   }
 
   /**
-   * Obtiene actualizaciones realizadas después de una fecha específica
-   * @param fecha Fecha de referencia
-   * @returns Lista de actualizaciones posteriores a la fecha
-   */
+* Obtiene actualizaciones realizadas después de una fecha específica @param fecha Fecha de referencia @returns Lista de actualizaciones posteriores a la fecha
+*/
   public async getActualizacionesDesdeFecha(
     fecha: Date | string
   ): Promise<T_Ultima_Actualizacion_Tablas_Locales[]> {
     try {
-      // Convertir a fecha si es string
+      // //nvertir a fecha si es string
       const fechaReferencia =
         typeof fecha === "string" ? new Date(fecha) : fecha;
 
@@ -201,7 +189,7 @@ export class UltimaActualizacionTablasLocalesIDB {
       );
       const index = store.index("por_fecha");
 
-      // Crear un rango desde la fecha hasta el infinito
+      // // Crearn rango desde la fecha hasta el infinito
       const range = IDBKeyRange.lowerBound(fechaReferencia);
 
       return new Promise((resolve, reject) => {
@@ -222,9 +210,8 @@ export class UltimaActualizacionTablasLocalesIDB {
   }
 
   /**
-   * Obtiene la actualización más reciente entre todas las tablas
-   * @returns La actualización más reciente o null si no hay registros
-   */
+* Obtiene la actualización más reciente entre todas las tablas @returns La actualización más reciente o null si no hay registros
+*/
   public async getMasReciente(): Promise<T_Ultima_Actualizacion_Tablas_Locales | null> {
     try {
       const todas = await this.getAll();
@@ -233,7 +220,7 @@ export class UltimaActualizacionTablasLocalesIDB {
         return null;
       }
 
-      // Ordenar por fecha descendente
+      // // Ornar por fecha descendente
       const ordenadas = todas.sort(
         (a, b) =>
           new Date(b.Fecha_Actualizacion).getTime() -
@@ -248,9 +235,8 @@ export class UltimaActualizacionTablasLocalesIDB {
   }
 
   /**
-   * Limpia todos los registros de actualizaciones
-   * Útil para reiniciar el seguimiento o limpiar registros antiguos
-   */
+* Limpia todos los registros de actualizaciones Útil para reiniciar el seguimiento o limpiar registros antiguos
+*/
   public async limpiarRegistros(): Promise<void> {
     try {
       const store = await IndexedDBConnection.getStore(
@@ -275,8 +261,7 @@ export class UltimaActualizacionTablasLocalesIDB {
         error
       );
 
-      // Crear detalles del error
-      const errorDetails = {
+      // // Crear detalles del errornst errorDetails = {
         origen: "UltimaActualizacionTablasLocalesIDB.limpiarRegistros",
         mensaje: error instanceof Error ? error.message : String(error),
         timestamp: Date.now(),
@@ -288,17 +273,15 @@ export class UltimaActualizacionTablasLocalesIDB {
   }
 
   /**
-   * Obtiene las tablas que han sido actualizadas después de una fecha específica
-   * @param fecha Fecha de referencia
-   * @returns Lista de nombres de tablas actualizadas
-   */
+* Obtiene las tablas que han sido actualizadas después de una fecha específica @param fecha Fecha de referencia @returns Lista de nombres de tablas actualizadas
+*/
   public async getTablasActualizadasDesdeFecha(
     fecha: Date | string
   ): Promise<string[]> {
     try {
       const actualizaciones = await this.getActualizacionesDesdeFecha(fecha);
 
-      // Extraer nombres únicos de tablas
+      // // Extraenombres únicos de tablas
       return Array.from(new Set(actualizaciones.map((a) => a.Nombre_Tabla)));
     } catch (error) {
       console.error(`Error al obtener tablas actualizadas desde fecha:`, error);
@@ -307,7 +290,7 @@ export class UltimaActualizacionTablasLocalesIDB {
   }
 }
 
-// Singleton instance
+// //ngleton instance
 const ultimaActualizacionTablasLocalesIDB =
   new UltimaActualizacionTablasLocalesIDB();
 export default ultimaActualizacionTablasLocalesIDB;

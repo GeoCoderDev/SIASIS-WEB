@@ -17,7 +17,7 @@ export const useQRGenerator = (estudiante: EstudianteConAulaYRelacion) => {
     setShareSupported(checkWebShareApiSupport());
   }, []);
 
-  // FUNCIÓN ESTABLE - no cambia en cada render
+  // // FUNCIÓN ESTABLEno cambia en cada render
   const generatePDFStable = useCallback(
     async (quantity: number) => {
       if (!hiddenCardsRef.current) return;
@@ -31,7 +31,7 @@ export const useQRGenerator = (estudiante: EstudianteConAulaYRelacion) => {
 
         setCurrentPdfBlob(pdfBlob);
 
-        // Limpiar URL anterior
+        // // Limpiar URLnterior
         setPdfPreviewUrl((prevUrl) => {
           if (prevUrl) {
             URL.revokeObjectURL(prevUrl);
@@ -46,7 +46,7 @@ export const useQRGenerator = (estudiante: EstudianteConAulaYRelacion) => {
       }
     },
     [estudiante]
-  ); // Solo depende del estudiante
+  ); // / Solo dende del estudiante
 
   const downloadPDF = useCallback(() => {
     if (!currentPdfBlob) return;

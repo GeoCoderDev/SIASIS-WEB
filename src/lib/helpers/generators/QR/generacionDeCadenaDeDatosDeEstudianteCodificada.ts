@@ -7,7 +7,7 @@ import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
 import { TiposIdentificadores } from "@/interfaces/shared/TiposIdentificadores";
 import CryptoJS from "crypto-js";
 
-// 🔧 Constantes de configuración
+// // 🔧nstantes de configuración
 const VALIDAR_NOMBRE_SISTEMA = false;
 const VALIDAR_INSTITUCION = true;
 const VALIDAR_AÑO = true;
@@ -15,7 +15,7 @@ const VALIDAR_TIPO_IDENTIFICADOR = true;
 
 const MOSTRAR_LOGS = ENTORNO !== Entorno.PRODUCCION;
 
-// 📝 Función auxiliar para logs condicionales
+// // 📝nción auxiliar para logs condicionales
 function log(...args: any[]): void {
   if (MOSTRAR_LOGS) {
     console.log(...args);
@@ -34,7 +34,7 @@ function logWarn(...args: any[]): void {
   }
 }
 
-// 🎯 Función para crear hash de verificación
+// // 🎯nción para crear hash de verificación
 function crearHashCompacto(datos: string): string {
   const secreto =
     process.env.NEXT_PUBLIC_ENCRIPTACION_CADENAS_DE_DATOS_PARA_QR_KEY;
@@ -48,7 +48,7 @@ function crearHashCompacto(datos: string): string {
     .substring(0, 8);
 }
 
-// 🔍 Función para verificar hash
+// // 🔍nción para verificar hash
 function verificarHash(datos: string, hashEsperado: string): boolean {
   try {
     return crearHashCompacto(datos) === hashEsperado;
@@ -57,7 +57,7 @@ function verificarHash(datos: string, hashEsperado: string): boolean {
   }
 }
 
-// 🗜️ Función para comprimir datos
+// // 🗜️nción para comprimir datos
 function comprimirDatos(
   sistema: string,
   institucion: string,
@@ -80,7 +80,7 @@ function comprimirDatos(
   return `${sistemaCode}${institucionCode}${nivelCode}${grado}${tipoIdentificador}${añoCode}${identificador}`;
 }
 
-// 🔄 Función para descomprimir datos
+// // 🔄nción para descomprimir datos
 function descomprimirDatos(datosComprimidos: string): {
   sistema: string;
   institucion: string;
@@ -168,7 +168,7 @@ function descomprimirDatos(datosComprimidos: string): {
   }
 }
 
-// 🔗 Funciones de codificación Base62
+// // 🔗nciones de codificación Base62
 function codificarBase62(numero: bigint): string {
   const alfabeto =
     "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -214,14 +214,14 @@ function numeroAString(num: bigint): string {
   return String.fromCharCode(...bytes);
 }
 
-// 🏷️ Función para normalizar ID del estudiante
+// // 🏷️nción para normalizar ID del estudiante
 function normalizarIdEstudiante(idEstudiante: string): string {
   return !idEstudiante.includes("-")
     ? `${idEstudiante}-${TiposIdentificadores.DNI}`
     : idEstudiante;
 }
 
-// 🎯 Función principal para generar QR
+// // 🎯nción principal para generar QR
 export function generarCadenaDeDatosDeEstudianteCodificada(
   estudiante: EstudianteConAulaYRelacion
 ): string {
@@ -275,7 +275,7 @@ export function generarCadenaDeDatosDeEstudianteCodificada(
   return resultado;
 }
 
-// 🔍 Interfaz para resultado de decodificación
+// // 🔍nterfaz para resultado de decodificación
 interface ResultadoDecodificacion {
   exito: boolean;
   identificadorEstudiante?: string;
@@ -291,14 +291,14 @@ interface ResultadoDecodificacion {
   error?: string;
 }
 
-// 🔍 Función para decodificar QR - VERSIÓN MEJORADA SIN THROWS
+// // 🔍nción para decodificar QR - VERSIÓN MEJORADA SIN THROWS
 export function decodificarCadenaQREstudiante(
   cadenaQR: string
 ): ResultadoDecodificacion {
   try {
     log("🔍 Iniciando decodificación de:", cadenaQR);
 
-    // Validación básica de entrada
+    // // Validacn básica de entrada
     if (!cadenaQR || cadenaQR.trim().length === 0) {
       logError("💥 Error: Cadena QR vacía");
       return {
@@ -369,7 +369,7 @@ export function decodificarCadenaQREstudiante(
 
     log("📊 Datos descomprimidos:", datosDescomprimidos);
 
-    // Validaciones con mensajes específicos y amigables
+    // // Validacnes con mensajes específicos y amigables
     const añoActual = new Date().getFullYear();
 
     if (
@@ -444,7 +444,7 @@ export function decodificarCadenaQREstudiante(
       exito: true,
       identificadorEstudiante,
       datosDecodificados: datosDescomprimidos,
-      error: undefined, // Explícitamente undefined para éxito
+      error: undefined, // / Explícitante undefined para éxito
     };
   } catch (error) {
     logError("💥 Error inesperado durante decodificación:", error);

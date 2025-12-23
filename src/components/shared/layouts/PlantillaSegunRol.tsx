@@ -13,7 +13,7 @@ const PlantillaSegunRol = async ({
 }: {
   children: React.ReactNode;
 }) => {
-  //Si se ha llegado hasta este componente es porque esas cookies estaran presentes
+  // // Si se ha llegado hasta este comnente es porque esas cookies estaran presentes
   const cookieStore = await cookies();
   const rol = cookieStore.get("Rol")!;
   const nombres = cookieStore.get("Nombres")!;
@@ -23,7 +23,7 @@ const PlantillaSegunRol = async ({
     cookieStore.get("Google_Drive_Foto_ID")?.value || null;
 
   if (!rol) {
-    // Redirección del lado del servidor si no hay rol y no estamos ya en /login
+    // // Redireccn del lado del servidor si no hay rol y no estamos ya en /login
     return <>{children}</>;
   }
 

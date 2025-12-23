@@ -6,29 +6,26 @@ import { Genero } from "@/interfaces/shared/Genero";
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import { TablasLocal } from "@/interfaces/shared/TablasSistema";
 
-// Extendemos SuccessLoginData con la nueva propiedad
+// // Exndemos SuccessLoginData con la nueva propiedad
 export interface UserData extends SuccessLoginData {
-  ultimaSincronizacionTablas?: number; // Nueva propiedad añadida
+  ultimaSincronizacionTablas?: number; // / Nueva propiedad añadida
 }
 
 class UserStorage {
   private storeName: TablasLocal = TablasLocal.Tabla_Datos_Usuario;
 
   /**
-   * Maneja los errores según su tipo y realiza logout si es necesario
-   * @param error Error capturado
-   * @param operacion Descripción de la operación que falló
-   * @param detalles Detalles adicionales del error
-   */
+* neja los errores según su tipo y realiza logout si es necesario @param error Error capturado @param operacion Descripción de la operación que falló @param detalles Detalles adicionales del error
+*/
   private handleError(
     error: unknown,
     operacion: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // // esnt-disable-next-line @typescript-eslint/no-explicit-any
     detalles?: Record<string, any>
   ): void {
     console.error(`Error en UserStorage (${operacion}):`, error);
 
-    // Crear objeto con detalles del error
+    // // Crear objeton detalles del error
     const errorDetails: ErrorDetailsForLogout = {
       origen: `UserStorage.${operacion}`,
       mensaje: error instanceof Error ? error.message : String(error),
@@ -37,7 +34,7 @@ class UserStorage {
       siasisComponent: "CLN01",
     };
 
-    // Determinar el tipo de error
+    // // Deternar el tipo de error
     let logoutType: LogoutTypes;
 
     if (error instanceof Error) {
@@ -56,35 +53,33 @@ class UserStorage {
       logoutType = LogoutTypes.ERROR_SISTEMA;
     }
 
-    // Cerrar sesión con los detalles del error
+    // // Cerrar sesn con los detalles del error
     logout(logoutType, errorDetails);
   }
 
   /**
-   * Guarda los datos del usuario en IndexedDB, actualizando solo las propiedades proporcionadas
-   * @param userData Datos parciales del usuario a guardar
-   * @returns Promise que se resuelve cuando los datos se han guardado
-   */
+* Guarda los datos del usuario en IndexedDB, actualizando solo las propiedades proporcionadas @param userData Datos parciales del usuario a guardar @returns Promise que se resuelve cuando los datos se han guardado
+*/
   public async saveUserData(userData: Partial<UserData>): Promise<void> {
     try {
-      // Asegurarnos de que la conexión está inicializada
+      // // Asegurnos de que la conexión está inicializada
       await dbConnection.init();
 
-      // Primero, obtenemos los datos actuales (si existen)
+      // // Primero, obnemos los datos actuales (si existen)
       const currentUserData = await this.getUserData();
 
-      // Obtener el almacén de datos
+      // // Obner el almacén de datos
       const store = await dbConnection.getStore(this.storeName, "readwrite");
 
-      // Combinamos los datos actuales con los nuevos datos
-      // Si currentUserData es null, usamos un objeto vacío
+      // // Comnamos los datos actuales con los nuevos datos
+      // // Si curntUserData es null, usamos un objeto vacío
       const dataToSave = {
         ...(currentUserData || {}),
-        ...userData, // Solo se sobrescriben las propiedades incluidas en userData
+        ...userData, // / Solo se sobrescrin las propiedades incluidas en userData
         last_updated: Date.now(),
       };
 
-      // Usamos un ID fijo 'current_user' para siempre actualizar los mismos datos
+      // // Usamosn ID fijo 'current_user' para siempre actualizar los mismos datos
       return new Promise((resolve, reject) => {
         const request = store.put(dataToSave, "current_user");
 
@@ -112,15 +107,14 @@ class UserStorage {
   }
 
   /**
-   * Obtiene los datos del usuario almacenados
-   * @returns Promise que se resuelve con los datos del usuario o null si no hay datos
-   */
+* Obtiene los datos del usuario almacenados @returns Promise que se resuelve con los datos del usuario o null si no hay datos
+*/
   public async getUserData(): Promise<UserData | null> {
     try {
-      // Asegurarnos de que la conexión está inicializada
+      // // Asegurnos de que la conexión está inicializada
       await dbConnection.init();
 
-      // Obtener el almacén de datos
+      // // Obner el almacén de datos
       const store = await dbConnection.getStore(this.storeName, "readonly");
 
       return new Promise((resolve, reject) => {
@@ -147,10 +141,8 @@ class UserStorage {
   }
 
   /**
-   * Actualiza solo el token de autenticación
-   * @param token Nuevo token de autenticación
-   * @returns Promise que se resuelve cuando el token se ha actualizado
-   */
+* Actualiza solo el token de autenticación @param token Nuevo token de autenticación @returns Promise que se resuelve cuando el token se ha actualizado
+*/
   public async updateAuthToken(token: string): Promise<void> {
     try {
       const userData = await this.getUserData();
@@ -159,7 +151,7 @@ class UserStorage {
         throw new Error("No hay datos de usuario para actualizar el token");
       }
 
-      // Actualizar solo el token
+      // // Actualizar solo el ton
       await this.saveUserData({
         ...userData,
         token,
@@ -173,9 +165,8 @@ class UserStorage {
   }
 
   /**
-   * Obtiene solo el token de autenticación
-   * @returns Promise que se resuelve con el token o null si no hay token
-   */
+* Obtiene solo el token de autenticación @returns Promise que se resuelve con el token o null si no hay token
+*/
   public async getAuthToken(): Promise<string> {
     try {
       const userData = await this.getUserData();
@@ -190,9 +181,8 @@ class UserStorage {
   }
 
   /**
-   * Obtiene el rol del usuario almacenado
-   * @returns Promise que se resuelve con el rol del usuario o null si no hay datos
-   */
+* Obtiene el rol del usuario almacenado @returns Promise que se resuelve con el rol del usuario o null si no hay datos
+*/
   public async getRol(): Promise<RolesSistema> {
     try {
       const userData = await this.getUserData();
@@ -207,9 +197,8 @@ class UserStorage {
   }
 
   /**
-   * Obtiene el género del usuario almacenado
-   * @returns Promise que se resuelve con el género del usuario o null si no hay datos
-   */
+* Obtiene el género del usuario almacenado @returns Promise que se resuelve con el género del usuario o null si no hay datos
+*/
   public async getGenero(): Promise<Genero | null> {
     try {
       const userData = await this.getUserData();
@@ -221,9 +210,8 @@ class UserStorage {
   }
 
   /**
-   * Obtiene el nombre completo del usuario
-   * @returns Promise que se resuelve con el nombre completo o null si no hay datos
-   */
+* Obtiene el nombre completo del usuario @returns Promise que se resuelve con el nombre completo o null si no hay datos
+*/
   public async getNombres(): Promise<string | null> {
     try {
       const userData = await this.getUserData();
@@ -238,9 +226,8 @@ class UserStorage {
   }
 
   /**
-   * Obtiene los apellidos del usuario
-   * @returns Promise que se resuelve con los apellidos o null si no hay datos
-   */
+* Obtiene los apellidos del usuario @returns Promise que se resuelve con los apellidos o null si no hay datos
+*/
   public async getApellidos(): Promise<string | null> {
     try {
       const userData = await this.getUserData();
@@ -255,15 +242,14 @@ class UserStorage {
   }
 
   /**
-   * Obtiene el primer nombre del usuario
-   * @returns Promise que se resuelve con el primer nombre o null si no hay datos
-   */
+* Obtiene el primer nombre del usuario @returns Promise que se resuelve con el primer nombre o null si no hay datos
+*/
   public async getPrimerNombre(): Promise<string | null> {
     try {
       const nombres = await this.getNombres();
       if (!nombres) return null;
 
-      // Dividir el nombre por espacios y tomar el primer elemento
+      // // Dividir enombre por espacios y tomar el primer elemento
       const primerNombre = nombres.split(" ")[0];
 
       return primerNombre;
@@ -274,16 +260,15 @@ class UserStorage {
   }
 
   /**
-   * Obtiene el primer apellido del usuario
-   * @returns Promise que se resuelve con el primer apellido o null si no hay datos
-   */
+* Obtiene el primer apellido del usuario @returns Promise que se resuelve con el primer apellido o null si no hay datos
+*/
   public async getPrimerApellido(): Promise<string | null> {
     try {
       const apellidos = await this.getApellidos();
 
       if (!apellidos) return null;
 
-      // Dividir los apellidos por espacios y tomar el primer elemento
+      // // Dividir los apellidos por espacios y tomar el primer elento
       const primerApellido = apellidos.split(" ")[0];
       return primerApellido;
     } catch (error) {
@@ -293,9 +278,8 @@ class UserStorage {
   }
 
   /**
-   * Obtiene las iniciales del nombre y apellido del usuario
-   * @returns Promise que se resuelve con las iniciales o null si no hay datos
-   */
+* Obtiene las iniciales del nombre y apellido del usuario @returns Promise que se resuelve con las iniciales o null si no hay datos
+*/
   public async getIniciales(): Promise<string | null> {
     try {
       const primerNombre = await this.getPrimerNombre();
@@ -313,9 +297,8 @@ class UserStorage {
   }
 
   /**
-   * Obtiene el nombre completo del usuario (nombres + apellidos)
-   * @returns Promise que se resuelve con el nombre completo o null si no hay datos
-   */
+* Obtiene el nombre completo del usuario (nombres + apellidos) @returns Promise que se resuelve con el nombre completo o null si no hay datos
+*/
   public async getNombreCompleto(): Promise<string | null> {
     try {
       const nombres = await this.getNombres();
@@ -331,9 +314,8 @@ class UserStorage {
   }
 
   /**
-   * Obtiene el nombre de usuario para mostrar en la interfaz
-   * @returns Promise que se resuelve con el nombre de usuario formateado
-   */
+* Obtiene el nombre de usuario para mostrar en la interfaz @returns Promise que se resuelve con el nombre de usuario formateado
+*/
   public async getNombreCompletoCorto(): Promise<string | null> {
     try {
       const userData = await this.getUserData();
@@ -352,10 +334,8 @@ class UserStorage {
   }
 
   /**
-   * Guarda la última marca de tiempo de sincronización de las tablas
-   * @param timestamp Marca de tiempo de la sincronización
-   * @returns Promise que se resuelve cuando se ha guardado la marca de tiempo
-   */
+* Guarda la última marca de tiempo de sincronización de las tablas @param timestamp Marca de tiempo de la sincronización @returns Promise que se resuelve cuando se ha guardado la marca de tiempo
+*/
   public async guardarUltimaSincronizacion(timestamp: number): Promise<void> {
     try {
       const userData = await this.getUserData();
@@ -371,9 +351,8 @@ class UserStorage {
   }
 
   /**
-   * Obtiene la última marca de tiempo de sincronización de las tablas
-   * @returns Promise que se resuelve con la marca de tiempo o null si no hay marca de tiempo
-   */
+* Obtiene la última marca de tiempo de sincronización de las tablas @returns Promise que se resuelve con la marca de tiempo o null si no hay marca de tiempo
+*/
   public async obtenerUltimaSincronizacion(): Promise<number | null> {
     try {
       const userData = await this.getUserData();
@@ -385,15 +364,14 @@ class UserStorage {
   }
 
   /**
-   * Elimina todos los datos del usuario
-   * @returns Promise que se resuelve cuando los datos se han eliminado
-   */
+* Elimina todos los datos del usuario @returns Promise que se resuelve cuando los datos se han eliminado
+*/
   public async clearUserData(): Promise<void> {
     try {
-      // Asegurarnos de que la conexión está inicializada
+      // // Asegurnos de que la conexión está inicializada
       await dbConnection.init();
 
-      // Obtener el almacén de datos
+      // // Obner el almacén de datos
       const store = await dbConnection.getStore(this.storeName, "readwrite");
 
       return new Promise((resolve, reject) => {
@@ -414,14 +392,14 @@ class UserStorage {
         };
       });
     } catch (error) {
-      // Para este método en particular, no hacemos logout ya que probablemente
-      // ya se está en proceso de cerrar sesión
+      // // Para este métodon particular, no hacemos logout ya que probablemente
+      // // ya se están proceso de cerrar sesión
       console.error("Error al eliminar datos de usuario:", error);
       throw error;
     }
   }
 }
 
-// Exportar una instancia singleton
+// // Exportarna instancia singleton
 const userStorage = new UserStorage();
 export default userStorage;

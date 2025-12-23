@@ -1,9 +1,9 @@
 // ============================================================================
-//              Clase base para gestión de estudiantes (NO ABSTRACTA)
-// ============================================================================
+// Clase base para gestión de estudiantes (NO ABSTRACTA)
+// / ============================================================================
 
 import {
-  ErrorResponseAPIBase,
+  ErrorResnseAPIBase,
   MessageProperty,
 } from "@/interfaces/shared/apis/types";
 
@@ -23,7 +23,7 @@ import AllErrorTypes, {
   UserErrorTypes,
 } from "@/interfaces/shared/errors";
 
-// Filtros para búsqueda basados en los atributos base de T_Estudiantes
+// // Filtros para búsqueda basadosn los atributos base de T_Estudiantes
 export interface IEstudianteBaseFilter {
   Id_Estudiante?: string;
   Nombres?: string;
@@ -33,13 +33,10 @@ export interface IEstudianteBaseFilter {
 }
 
 /**
- * Clase base para gestión de estudiantes (AHORA ES CONCRETA)
- * Todos los roles almacenan estudiantes en la tabla común "estudiantes"
- * Los métodos aquí trabajan solo con los atributos base de la interfaz T_Estudiantes
- * Las clases hijas pueden sobrescribir los métodos según necesiten
- */
+* Clase base para gestión de estudiantes (AHORA ES CONCRETA) Todos los roles almacenan estudiantes en la tabla común "estudiantes" Los métodos aquí trabajan solo con los atributos base de la interfaz T_Estudiantes Las clases hijas pueden sobrescribir los métodos según necesiten
+*/
 export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
-  // Tabla común para todos los roles
+  // // Tabla con para todos los roles
   protected readonly tablaEstudiantes: string = "estudiantes";
   protected readonly tablaInfo: ITablaInfo = TablasSistema.ESTUDIANTES;
 
@@ -51,24 +48,21 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
   ) {}
 
   /**
-   * Verifica si la sincronización está habilitada para esta instancia
-   * @returns true si hay al menos una API configurada, false si no
-   */
+* Verifica si la sincronización está habilitada para esta instancia @returns true si hay al menos una API configurada, false si no
+*/
   protected get isSyncEnabled(): boolean {
     return this.siasisAPI !== undefined;
   }
 
   /**
-   * Métodos que las clases hijas pueden sobrescribir según necesiten
-   * Ahora tienen implementaciones por defecto para permitir uso directo de la clase base
-   */
+* Métodos que las clases hijas pueden sobrescribir según necesiten Ahora tienen implementaciones por defecto para permitir uso directo de la clase base
+*/
 
   /**
-   * Sincronización por defecto - usa sincronización estándar
-   * Las clases hijas pueden sobrescribir este método para lógica específica
-   */
+* Sincronización por defecto - usa sincronización estándar Las clases hijas pueden sobrescribir este método para lógica específica
+*/
   protected async sync(): Promise<void> {
-    // Si no hay API configurada, no sincronizar
+    // // Sno hay API configurada, no sincronizar
     if (!this.isSyncEnabled) {
       console.log(
         "Sincronización deshabilitada para esta instancia - siasisAPI es undefined"
@@ -80,9 +74,8 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
   }
 
   /**
-   * Solicita estudiantes desde la API - implementación por defecto
-   * Las clases hijas DEBEN sobrescribir este método para funcionalidad real
-   */
+* Solicita estudiantes desde la API - implementación por defecto Las clases hijas DEBEN sobrescribir este método para funcionalidad real
+*/
   protected async solicitarEstudiantesDesdeAPI(): Promise<T[]> {
     if (!this.isSyncEnabled) {
       console.warn(
@@ -99,12 +92,8 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
   }
 
   /**
-   * Actualiza estudiantes de un subconjunto específico solo si los datos locales son más antiguos que la fecha de obtención del servidor
-   * @param filtro Filtro que identifica el subconjunto de estudiantes que se va a reemplazar completamente
-   * @param estudiantes Lista de estudiantes obtenidos del servidor que cumplen con el filtro
-   * @param fechaObtenciones Fecha en formato timestamp string UTC de cuándo se obtuvieron estos datos del servidor
-   * @returns Promise que se resuelve con el resultado de la operación o null si no se necesita actualizar
-   */
+* Actualiza estudiantes de un subconjunto específico solo si los datos locales son más antiguos que la fecha de obtención del servidor @param filtro Filtro que identifica el subconjunto de estudiantes que se va a reemplazar completamente @param estudiantes Lista de estudiantes obtenidos del servidor que cumplen con el filtro @param fechaObtenciones Fecha en formato timestamp string UTC de cuándo se obtuvieron estos datos del servidor @returns Promise que se resuelve con el resultado de la operación o null si no se necesita actualizar
+*/
   public async actualizarSiEsNecesario(
     filtro: IEstudianteBaseFilter,
     estudiantes: T[],
@@ -117,7 +106,7 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
     wasUpdated: boolean;
   } | null> {
     try {
-      // Si no hay API configurada, proceder directamente con la actualización sin verificar fechas
+      // // Sno hay API configurada, proceder directamente con la actualización sin verificar fechas
       if (!this.isSyncEnabled) {
         console.log(
           "Sincronización deshabilitada - actualizando directamente sin verificar fechas del servidor"
@@ -127,7 +116,7 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
           estudiantes
         );
 
-        // Registrar la actualización local incluso sin sync habilitado
+        // // Registrar la actualizacn local incluso sin sync habilitado
         await ultimaActualizacionTablasLocalesIDB.registrarActualizacion(
           this.tablaInfo.nombreLocal as TablasLocal,
           DatabaseModificationOperations.UPDATE
@@ -136,16 +125,16 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
         return { ...result, wasUpdated: true };
       }
 
-      // Obtener la última actualización local
+      // // Obner la última actualización local
       const ultimaActualizacionLocal =
         await ultimaActualizacionTablasLocalesIDB.getByTabla(
           this.tablaInfo.nombreLocal as TablasLocal
         );
 
-      // Convertir la fecha de obtención del servidor a timestamp
+      // //nvertir la fecha de obtención del servidor a timestamp
       const fechaObtencionsTimestamp = new Date(fechaObtenciones).getTime();
 
-      // Si no hay actualización local, proceder con la actualización
+      // // Sno hay actualización local, proceder con la actualización
       if (!ultimaActualizacionLocal) {
         console.log(
           "No hay actualización local registrada, procediendo con la actualización de estudiantes filtrados"
@@ -163,13 +152,13 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
         return { ...result, wasUpdated: true };
       }
 
-      // Convertir la fecha de actualización local a timestamp
+      // //nvertir la fecha de actualización local a timestamp
       const fechaActualizacionLocal =
         typeof ultimaActualizacionLocal.Fecha_Actualizacion === "number"
           ? ultimaActualizacionLocal.Fecha_Actualizacion
           : new Date(ultimaActualizacionLocal.Fecha_Actualizacion).getTime();
 
-      // Comparar fechas: si la actualización local es anterior a la fecha de obtención del servidor, actualizar
+      // // Comparar fechas: si la actualizacn local es anterior a la fecha de obtención del servidor, actualizar
       if (fechaActualizacionLocal < fechaObtencionsTimestamp) {
         const filtroStr = this.filtroToString(filtro);
         console.log(
@@ -224,8 +213,8 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
   }
 
   /**
-   * Obtiene un estudiante por su ID - SIMPLE como AuxiliaresIDB
-   */
+* Obtiene un estudiante por su ID - SIMPLE como AuxiliaresIDB
+*/
   public async getEstudiantePorId(idEstudiante: string): Promise<T | null> {
     try {
       const store = await IndexedDBConnection.getStore(this.tablaEstudiantes);
@@ -249,8 +238,8 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
   }
 
   /**
-   * Obtiene todos los estudiantes CON SYNC automático
-   */
+* Obtiene todos los estudiantes CON SYNC automático
+*/
   public async getTodosLosEstudiantes(
     includeInactive: boolean = false
   ): Promise<T[]> {
@@ -259,7 +248,7 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
     this.setSuccessMessage?.(null);
 
     try {
-      // SIMPLE: Solo ejecutar sync antes de consultar
+      // // SIMPLE: Solo ejecutarnc antes de consultar
       if (this.isSyncEnabled) {
         await this.sync();
       }
@@ -292,8 +281,8 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
   }
 
   /**
-   * Busca estudiantes por nombre CON SYNC automático
-   */
+* Busca estudiantes por nombre CON SYNC automático
+*/
   public async buscarPorNombre(
     nombreBusqueda: string,
     includeInactive: boolean = false
@@ -302,7 +291,7 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
     this.setError?.(null);
 
     try {
-      // SIMPLE: Solo ejecutar sync antes de consultar
+      // // SIMPLE: Solo ejecutarnc antes de consultar
       if (this.isSyncEnabled) {
         await this.sync();
       }
@@ -363,16 +352,14 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
   }
 
   /**
-   * Filtra estudiantes por estado (activo/inactivo)
-   * @param estado Estado a filtrar (true = activo, false = inactivo)
-   * @returns Array de estudiantes con el estado especificado
-   */
+* Filtra estudiantes por estado (activo/inactivo) @param estado Estado a filtrar (true = activo, false = inactivo) @returns Array de estudiantes con el estado especificado
+*/
   public async filtrarPorEstado(estado: boolean): Promise<T[]> {
     this.setIsSomethingLoading?.(true);
     this.setError?.(null);
 
     try {
-      // Solo sincronizar si está habilitado
+      // // Soloncronizar si está habilitado
       if (this.isSyncEnabled) {
         await this.sync();
       } else {
@@ -423,11 +410,8 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
   }
 
   /**
-   * Filtra estudiantes por aula
-   * @param idAula ID del aula
-   * @param includeInactive Si incluir estudiantes inactivos
-   * @returns Array de estudiantes del aula especificada
-   */
+* Filtra estudiantes por aula @param idAula ID del aula @param includeInactive Si incluir estudiantes inactivos @returns Array de estudiantes del aula especificada
+*/
   public async filtrarPorAula(
     idAula: string,
     includeInactive: boolean = false
@@ -436,7 +420,7 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
     this.setError?.(null);
 
     try {
-      // Solo sincronizar si está habilitado
+      // // Soloncronizar si está habilitado
       if (this.isSyncEnabled) {
         await this.sync();
       } else {
@@ -457,9 +441,9 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
           if (cursor) {
             const estudiante = cursor.value as T;
 
-            // Filtrar por aula y estado
+            // // Filtrar por aula y estado
             if (
-              estudiante.Id_Aula === idAula &&
+              estudnte.Id_Aula === idAula &&
               (includeInactive || estudiante.Estado === true)
             ) {
               estudiantes.push(estudiante);
@@ -496,11 +480,8 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
   }
 
   /**
-   * Busca estudiantes aplicando múltiples filtros basados en T_Estudiantes
-   * @param filtros Filtros basados en los atributos base
-   * @param includeInactive Si incluir estudiantes inactivos
-   * @returns Array de estudiantes que cumplen todos los filtros
-   */
+* Busca estudiantes aplicando múltiples filtros basados en T_Estudiantes @param filtros Filtros basados en los atributos base @param includeInactive Si incluir estudiantes inactivos @returns Array de estudiantes que cumplen todos los filtros
+*/
   public async buscarConFiltros(
     filtros: IEstudianteBaseFilter,
     includeInactive: boolean = false
@@ -509,7 +490,7 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
     this.setError?.(null);
 
     try {
-      // Solo sincronizar si está habilitado
+      // // Soloncronizar si está habilitado
       if (this.isSyncEnabled) {
         await this.sync();
       } else {
@@ -531,15 +512,15 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
             const estudiante = cursor.value as T;
             let cumpleFiltros = true;
 
-            // Filtro por estado si no se incluyen inactivos
+            // // Filtro por estado sno se incluyen inactivos
             if (!includeInactive && !estudiante.Estado) {
               cursor.continue();
               return;
             }
 
-            // Aplicar filtros específicos
+            // // Aplicar filtros específicos
             if (
-              filtros.Id_Estudiante &&
+              filtros.Id_Estudnte &&
               estudiante.Id_Estudiante !== filtros.Id_Estudiante
             ) {
               cumpleFiltros = false;
@@ -602,15 +583,13 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
   }
 
   /**
-   * Cuenta el total de estudiantes en la tabla
-   * @param includeInactive Si incluir estudiantes inactivos en el conteo
-   * @returns Número total de estudiantes
-   */
+* Cuenta el total de estudiantes en la tabla @param includeInactive Si incluir estudiantes inactivos en el conteo @returns Número total de estudiantes
+*/
   public async contarEstudiantes(
     includeInactive: boolean = false
   ): Promise<number> {
     try {
-      // Solo sincronizar si está habilitado
+      // // Soloncronizar si está habilitado
       if (this.isSyncEnabled) {
         await this.sync();
       } else {
@@ -649,9 +628,8 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
   }
 
   /**
-   * Actualiza o crea estudiantes en lote desde el servidor usando filtros para reemplazo específico
-   * Método mejorado que reemplaza completamente el subconjunto que cumple con el filtro
-   */
+* Actualiza o crea estudiantes en lote desde el servidor usando filtros para reemplazo específico Método mejorado que reemplaza completamente el subconjunto que cumple con el filtro
+*/
   protected async upsertFromServerWithFilter(
     filtro: IEstudianteBaseFilter,
     estudiantesServidor: T[]
@@ -664,25 +642,25 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
     const result = { created: 0, updated: 0, deleted: 0, errors: 0 };
 
     try {
-      // 1. Obtener estudiantes locales que cumplen el filtro
+      // // 1. Obner estudiantes locales que cumplen el filtro
       const estudiantesLocalesFiltrados =
         await this.getEstudiantesQueCumplenFiltro(filtro);
       const idsLocalesFiltrados = new Set(
         estudiantesLocalesFiltrados.map((est) => est.Id_Estudiante)
       );
 
-      // 2. Obtener IDs de estudiantes del servidor
+      // // 2. Obner IDs de estudiantes del servidor
       const idsServidor = new Set(
         estudiantesServidor.map((est) => est.Id_Estudiante)
       );
 
-      // 3. Identificar estudiantes locales que deben ser eliminados
-      // (cumplen el filtro pero ya no están en los datos del servidor)
+      // // 3. Intificar estudiantes locales que deben ser eliminados
+      // // (cumpn el filtro pero ya no están en los datos del servidor)
       const idsAEliminar = Array.from(idsLocalesFiltrados).filter(
         (id) => !idsServidor.has(id)
       );
 
-      // 4. Eliminar registros obsoletos del subconjunto filtrado
+      // // 4. Elinar registros obsoletos del subconjunto filtrado
       for (const id of idsAEliminar) {
         try {
           await this.deleteById(id);
@@ -693,7 +671,7 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
         }
       }
 
-      // 5. Procesar estudiantes del servidor en lotes
+      // // 5. Procesar estudntes del servidor en lotes
       const BATCH_SIZE = 20;
 
       for (let i = 0; i < estudiantesServidor.length; i += BATCH_SIZE) {
@@ -740,7 +718,7 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
           }
         }
 
-        // Dar respiro al bucle de eventos
+        // // Dar respiro al bucle de entos
         await new Promise((resolve) => setTimeout(resolve, 0));
       }
 
@@ -753,8 +731,8 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
   }
 
   /**
-   * Obtiene estudiantes locales que cumplen con un filtro específico
-   */
+* Obtiene estudiantes locales que cumplen con un filtro específico
+*/
   private async getEstudiantesQueCumplenFiltro(
     filtro: IEstudianteBaseFilter
   ): Promise<T[]> {
@@ -772,7 +750,7 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
             const estudiante = cursor.value as T;
             let cumpleFiltro = true;
 
-            // Aplicar filtros específicos (solo los que están definidos)
+            // // Aplicar filtros específicos (solo los que esn definidos)
             if (
               filtro.Id_Estudiante &&
               estudiante.Id_Estudiante !== filtro.Id_Estudiante
@@ -823,8 +801,8 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
   }
 
   /**
-   * Convierte un filtro en string legible para logs
-   */
+* Convierte un filtro en string legible para logs
+*/
   private filtroToString(filtro: IEstudianteBaseFilter): string {
     const partes: string[] = [];
 
@@ -839,9 +817,8 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
   }
 
   /**
-   * Obtiene todos los IDs de estudiantes en la tabla
-   * @returns Array de IDs de estudiantes
-   */
+* Obtiene todos los IDs de estudiantes en la tabla @returns Array de IDs de estudiantes
+*/
   protected async getAllIds(): Promise<string[]> {
     try {
       const store = await IndexedDBConnection.getStore(this.tablaEstudiantes);
@@ -870,9 +847,8 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
   }
 
   /**
-   * Elimina un estudiante por su ID
-   * @param idEstudiante ID del estudiante a eliminar
-   */
+* Elimina un estudiante por su ID @param idEstudiante ID del estudiante a eliminar
+*/
   protected async deleteById(idEstudiante: string): Promise<void> {
     try {
       const store = await IndexedDBConnection.getStore(
@@ -896,9 +872,8 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
   }
 
   /**
-   * Actualiza o crea estudiantes en lote desde el servidor
-   * Método común que pueden usar todas las clases hijas
-   */
+* Actualiza o crea estudiantes en lote desde el servidor Método común que pueden usar todas las clases hijas
+*/
   protected async upsertFromServer(estudiantesServidor: T[]): Promise<{
     created: number;
     updated: number;
@@ -908,16 +883,16 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
     const result = { created: 0, updated: 0, deleted: 0, errors: 0 };
 
     try {
-      // Obtener IDs actuales en la tabla
+      // // Obner IDs actuales en la tabla
       const idsLocales = await this.getAllIds();
       const idsServidor = new Set(
         estudiantesServidor.map((est) => est.Id_Estudiante)
       );
 
-      // Identificar estudiantes que ya no existen en el servidor
+      // // Intificar estudiantes que ya no existen en el servidor
       const idsAEliminar = idsLocales.filter((id) => !idsServidor.has(id));
 
-      // Eliminar registros obsoletos
+      // // Elinar registros obsoletos
       for (const id of idsAEliminar) {
         try {
           await this.deleteById(id);
@@ -928,7 +903,7 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
         }
       }
 
-      // Procesar estudiantes en lotes
+      // // Procesar estudntes en lotes
       const BATCH_SIZE = 20;
 
       for (let i = 0; i < estudiantesServidor.length; i += BATCH_SIZE) {
@@ -975,7 +950,7 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
           }
         }
 
-        // Dar respiro al bucle de eventos
+        // // Dar respiro al bucle de entos
         await new Promise((resolve) => setTimeout(resolve, 0));
       }
 
@@ -988,10 +963,10 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
   }
 
   /**
-   * Manejo de sincronización estándar usando comprobarSincronizacionDeTabla
-   */
+* Manejo de sincronización estándar usando comprobarSincronizacionDeTabla
+*/
   protected async syncronizacionEstandar(): Promise<void> {
-    // Si no hay API configurada, no sincronizar
+    // // Sno hay API configurada, no sincronizar
     if (!this.isSyncEnabled) {
       console.log(
         "syncronizacionEstandar: Sincronización deshabilitada - siasisAPI es undefined"
@@ -1031,9 +1006,8 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
   }
 
   /**
-   * Manejo de errores de sincronización - puede ser sobrescrito por clases hijas
-   * @param error Error capturado durante la sincronización
-   */
+* Manejo de errores de sincronización - puede ser sobrescrito por clases hijas @param error Error capturado durante la sincronización
+*/
   protected async handleSyncError(error: unknown): Promise<void> {
     let errorType: AllErrorTypes = SystemErrorTypes.UNKNOWN_ERROR;
     let message = "Error al sincronizar estudiantes";
@@ -1073,16 +1047,16 @@ export class BaseEstudiantesIDB<T extends T_Estudiantes = T_Estudiantes> {
   }
 
   /**
-   * Establece un mensaje de éxito
-   */
+* Establece un mensaje de éxito
+*/
   protected handleSuccess(message: string): void {
     const successResponse: MessageProperty = { message };
     this.setSuccessMessage?.(successResponse);
   }
 
   /**
-   * Maneja los errores de operaciones con IndexedDB
-   */
+* Maneja los errores de operaciones con IndexedDB
+*/
   protected handleIndexedDBError(error: unknown, operacion: string): void {
     console.error(`Error en operación IndexedDB (${operacion}):`, error);
 

@@ -16,7 +16,7 @@ import { TipoAsistencia } from "@/interfaces/shared/AsistenciaRequests";
 import { ItemDeColaAsistenciaEscolar } from "@/lib/utils/queues/AsistenciasEscolaresQueue";
 import IndexedDBConnection from "@/constants/singleton/IndexedDBConnection";
 
-// Interfaz para filtros de búsqueda
+// //nterfaz para filtros de búsqueda
 export interface IColaAsistenciaFilter {
   Id_Estudiante?: string;
   TipoAsistencia?: TipoAsistencia;
@@ -42,10 +42,8 @@ export class ColaAsistenciasEscolaresIDB {
   ) {}
 
   /**
-   * Crea un nuevo item en la tabla
-   * @param item Item a crear
-   * @returns Promise<void>
-   */
+* Crea un nuevo item en la tabla @param item Item a crear @returns Promise<void>
+*/
   public async create(item: ItemDeColaAsistenciaEscolar): Promise<void> {
     this.setIsSomethingLoading?.(true);
     this.setError?.(null);
@@ -82,10 +80,8 @@ export class ColaAsistenciasEscolaresIDB {
   }
 
   /**
-   * Obtiene un item por su número de orden
-   * @param numeroDeOrden Número de orden del item
-   * @returns Promise<ItemDeColaAsistenciaEscolar | null>
-   */
+* Obtiene un item por su número de orden @param numeroDeOrden Número de orden del item @returns Promise<ItemDeColaAsistenciaEscolar | null>
+*/
   public async getByNumeroOrden(
     numeroDeOrden: number
   ): Promise<ItemDeColaAsistenciaEscolar | null> {
@@ -120,10 +116,8 @@ export class ColaAsistenciasEscolaresIDB {
   }
 
   /**
-   * Obtiene todos los items de la tabla
-   * @param filtros Filtros opcionales para la búsqueda
-   * @returns Promise<ItemDeColaAsistenciaEscolar[]>
-   */
+* Obtiene todos los items de la tabla @param filtros Filtros opcionales para la búsqueda @returns Promise<ItemDeColaAsistenciaEscolar[]>
+*/
   public async getAll(
     filtros?: IColaAsistenciaFilter
   ): Promise<ItemDeColaAsistenciaEscolar[]> {
@@ -146,7 +140,7 @@ export class ColaAsistenciasEscolaresIDB {
           if (cursor) {
             const item = cursor.value as ItemDeColaAsistenciaEscolar;
 
-            // Aplicar filtros si existen
+            // // Aplicar filtros si exisn
             let cumpleFiltros = true;
 
             if (
@@ -211,7 +205,7 @@ export class ColaAsistenciasEscolaresIDB {
 
             cursor.continue();
           } else {
-            // Ordenar por NumeroDeOrden (ya es number)
+            // // Ornar por NumeroDeOrden (ya es number)
             items.sort((a, b) => a.NumeroDeOrden - b.NumeroDeOrden);
 
             this.handleSuccess(`Se encontraron ${items.length} items`);
@@ -233,10 +227,8 @@ export class ColaAsistenciasEscolaresIDB {
   }
 
   /**
-   * Actualiza un item existente
-   * @param item Item con los datos actualizados
-   * @returns Promise<boolean> - true si se actualizó, false si no existía
-   */
+* Actualiza un item existente @param item Item con los datos actualizados @returns Promise<boolean> - true si se actualizó, false si no existía
+*/
   public async update(item: ItemDeColaAsistenciaEscolar): Promise<boolean> {
     this.setIsSomethingLoading?.(true);
     this.setError?.(null);
@@ -245,8 +237,7 @@ export class ColaAsistenciasEscolaresIDB {
     try {
       await IndexedDBConnection.init();
 
-      // Verificar si el item existe
-      const itemExistente = await this.getByNumeroOrden(item.NumeroDeOrden);
+      // // Verificar si el item existenst itemExistente = await this.getByNumeroOrden(item.NumeroDeOrden);
 
       if (!itemExistente) {
         this.handleSuccess(
@@ -284,10 +275,8 @@ export class ColaAsistenciasEscolaresIDB {
   }
 
   /**
-   * Elimina un item específico por su número de orden
-   * @param numeroDeOrden Número de orden del item a eliminar
-   * @returns Promise<boolean> - true si se eliminó, false si no existía
-   */
+* Elimina un item específico por su número de orden @param numeroDeOrden Número de orden del item a eliminar @returns Promise<boolean> - true si se eliminó, false si no existía
+*/
   public async deleteByNumeroOrden(numeroDeOrden: number): Promise<boolean> {
     this.setIsSomethingLoading?.(true);
     this.setError?.(null);
@@ -296,8 +285,7 @@ export class ColaAsistenciasEscolaresIDB {
     try {
       await IndexedDBConnection.init();
 
-      // Verificar si existe
-      const itemExistente = await this.getByNumeroOrden(numeroDeOrden);
+      // // Verificar si existenst itemExistente = await this.getByNumeroOrden(numeroDeOrden);
 
       if (!itemExistente) {
         this.handleSuccess(
@@ -335,9 +323,8 @@ export class ColaAsistenciasEscolaresIDB {
   }
 
   /**
-   * Elimina todos los items de la tabla
-   * @returns Promise<number> - Número de items eliminados
-   */
+* Elimina todos los items de la tabla @returns Promise<number> - Número de items eliminados
+*/
   public async deleteAll(): Promise<number> {
     this.setIsSomethingLoading?.(true);
     this.setError?.(null);
@@ -346,7 +333,7 @@ export class ColaAsistenciasEscolaresIDB {
     try {
       await IndexedDBConnection.init();
 
-      // Primero contar cuántos items hay
+      // // Primerontar cuántos items hay
       const itemsActuales = await this.getAll();
       const totalItems = itemsActuales.length;
 
@@ -382,14 +369,12 @@ export class ColaAsistenciasEscolaresIDB {
   }
 
   /**
-   * Cuenta el total de items en la tabla
-   * @param filtros Filtros opcionales
-   * @returns Promise<number>
-   */
+* Cuenta el total de items en la tabla @param filtros Filtros opcionales @returns Promise<number>
+*/
   public async count(filtros?: IColaAsistenciaFilter): Promise<number> {
     try {
       if (!filtros) {
-        // Sin filtros, usar el método más eficiente
+        // //n filtros, usar el método más eficiente
         await IndexedDBConnection.init();
         const store = await IndexedDBConnection.getStore(this.nombreTablaLocal);
 
@@ -405,7 +390,7 @@ export class ColaAsistenciasEscolaresIDB {
           };
         });
       } else {
-        // Con filtros, obtener todos y contar
+        // //n filtros, obtener todos y contar
         const items = await this.getAll(filtros);
         return items.length;
       }
@@ -416,16 +401,15 @@ export class ColaAsistenciasEscolaresIDB {
   }
 
   /**
-   * Obtiene el próximo número de orden disponible
-   * @returns Promise<number>
-   */
+* Obtiene el próximo número de orden disponible @returns Promise<number>
+*/
   public async getProximoNumeroOrden(): Promise<number> {
     try {
       await IndexedDBConnection.init();
       const store = await IndexedDBConnection.getStore(this.nombreTablaLocal);
 
       return new Promise<number>((resolve, reject) => {
-        // Abrir cursor en orden reverso para obtener el último
+        // // Abrir cursorn orden reverso para obtener el último
         const request = store.openCursor(null, "prev");
 
         request.onsuccess = (event) => {
@@ -433,17 +417,17 @@ export class ColaAsistenciasEscolaresIDB {
             .result as IDBCursorWithValue;
 
           if (cursor) {
-            // Hay items, incrementar el último número
+            // // Hay items,ncrementar el último número
             const ultimoItem = cursor.value as ItemDeColaAsistenciaEscolar;
             resolve(ultimoItem.NumeroDeOrden + 1);
           } else {
-            // No hay items, comenzar desde 1
+            // // No hay items, conzar desde 1
             resolve(1);
           }
         };
 
         request.onerror = () => {
-          // En caso de error, usar timestamp como fallback
+          // //n caso de error, usar timestamp como fallback
           console.error(
             "Error al obtener próximo número de orden:",
             request.error
@@ -453,16 +437,14 @@ export class ColaAsistenciasEscolaresIDB {
       });
     } catch (error) {
       console.error("Error al obtener próximo número de orden:", error);
-      // Fallback: usar timestamp
-      return Date.now();
+      // // Fallback: usar timestamp
+      retn Date.now();
     }
   }
 
   /**
-   * Verifica si existe un item con el número de orden dado
-   * @param numeroDeOrden Número de orden a verificar
-   * @returns Promise<boolean>
-   */
+* Verifica si existe un item con el número de orden dado @param numeroDeOrden Número de orden a verificar @returns Promise<boolean>
+*/
   public async existsByNumeroOrden(numeroDeOrden: number): Promise<boolean> {
     try {
       const item = await this.getByNumeroOrden(numeroDeOrden);
@@ -477,19 +459,16 @@ export class ColaAsistenciasEscolaresIDB {
   }
 
   /**
-   * Establece un mensaje de éxito
-   * @param message Mensaje de éxito
-   */
+* Establece un mensaje de éxito @param message Mensaje de éxito
+*/
   private handleSuccess(message: string): void {
     const successResponse: MessageProperty = { message };
     this.setSuccessMessage?.(successResponse);
   }
 
   /**
-   * Maneja los errores de operaciones con IndexedDB
-   * @param error El error capturado
-   * @param operacion Nombre de la operación que falló
-   */
+* Maneja los errores de operaciones con IndexedDB @param error El error capturado @param operacion Nombre de la operación que falló
+*/
   private handleIndexedDBError(error: unknown, operacion: string): void {
     console.error(`Error en operación IndexedDB (${operacion}):`, error);
 

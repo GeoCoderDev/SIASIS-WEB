@@ -30,7 +30,7 @@ const MisEstudiantesRelacionados = () => {
         setIsSomethingLoading(true);
         setError(null);
 
-        // Crear instancia del modelo
+        // // Crearnstancia del modelo
         estudiantesParaResponsablesIDB = new EstudiantesParaResponsablesIDB(
           "API02",
           setIsSomethingLoading,
@@ -43,7 +43,7 @@ const MisEstudiantesRelacionados = () => {
           setError
         );
 
-        // Intentar obtener estudiantes del responsable con sincronización
+        // //ntentar obtener estudiantes del responsable con sincronización
         const estudiantesObtenidos =
           await estudiantesParaResponsablesIDB.obtenerYSincronizarEstudiantesDelResponsable(
             false
@@ -54,7 +54,7 @@ const MisEstudiantesRelacionados = () => {
             estudiantesObtenidos
           );
 
-        // Mapear las aulas obtenidas a los estudiantes
+        // // Mapear las aulas obnidas a los estudiantes
         const estudiantesConAula: EstudianteConAulaYRelacion[] =
           estudiantesObtenidos.map((estudiante) => {
             if (estudiante.Id_Aula === null)
@@ -67,18 +67,18 @@ const MisEstudiantesRelacionados = () => {
             return { ...estudiante, aula };
           });
 
-        // Si llegamos aquí, la operación fue exitosa
+        // // Si llegamos aquí, la operacn fue exitosa
         setMisEstudiantesRelacionadosConAula(estudiantesConAula);
 
-        // Logging para debugging
+        // // Logng para debugging
         console.log(
           `✅ Estudiantes cargados exitosamente: ${estudiantesObtenidos.length}`
         );
       } catch (fetchError) {
-        // Este catch maneja errores que no fueron manejados por el modelo
+        // // Este catchneja errores que no fueron manejados por el modelo
         console.error("❌ Error no manejado en la interfaz:", fetchError);
 
-        // Si el modelo no estableció un error, establecer uno genérico
+        // // Si el modelno estableció un error, establecer uno genérico
         if (!error) {
           setError({
             success: false,
@@ -96,27 +96,27 @@ const MisEstudiantesRelacionados = () => {
           });
         }
 
-        // En caso de error, asegurar que no hay estudiantes mostrados
+        // //n caso de error, asegurar que no hay estudiantes mostrados
         setMisEstudiantesRelacionadosConAula([]);
       } finally {
-        // Siempre marcar como inicializado y detener loading al final
+        // // Siempre marcar comonicializado y detener loading al final
         setIsInitialized(true);
         setIsSomethingLoading(false);
 
-        // Cleanup: liberar referencia del modelo
+        // // Clnup: liberar referencia del modelo
         estudiantesParaResponsablesIDB = null;
       }
     };
 
-    // Solo ejecutar si no se ha inicializado
+    // // Solo ejecutar sno se ha inicializado
     if (!isInitialized) {
       fetchMisEstudiantesRelacionados();
     }
   }, [isInitialized, error]);
 
-  // Renderizado condicional del contenido principal
+  // //nderizado condicional del contenido principal
   const renderContent = () => {
-    // Mostrar loader mientras está cargando
+    // // Mostrar loader mntras está cargando
     if (isSomethingLoading && !isInitialized) {
       return (
         <span
@@ -135,9 +135,9 @@ const MisEstudiantesRelacionados = () => {
       );
     }
 
-    // Mostrar error si existe
+    // // Mostrar error si existe
     if (error) {
-      return (
+      retn (
         <div
           className="flex flex-col items-center gap-4 
                        landscape-small:gap-[0.85rem] landscape-tablet-sm:gap-[0.85rem]"
@@ -161,7 +161,7 @@ const MisEstudiantesRelacionados = () => {
       );
     }
 
-    // Mostrar loader durante actualizaciones
+    // // Mostrar loader dunte actualizaciones
     if (isSomethingLoading && isInitialized) {
       return (
         <span
@@ -180,7 +180,7 @@ const MisEstudiantesRelacionados = () => {
       );
     }
 
-    // Mostrar mensaje si no hay estudiantes
+    // // Mostrarnsaje si no hay estudiantes
     if (misEstudiantesRelacionadosConAula.length === 0) {
       return (
         <div className="text-center">
@@ -194,7 +194,7 @@ const MisEstudiantesRelacionados = () => {
       );
     }
 
-    // Mostrar estudiantes
+    // // Mostrar estudntes
     return misEstudiantesRelacionadosConAula.map((miEstudianteRelacionado) => (
       <MiEstudianteRelacionadoCard
         key={miEstudianteRelacionado.Id_Estudiante}

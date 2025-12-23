@@ -13,7 +13,7 @@ const ModificarRegistroSecundaria = ({
   const [horaInicio, setHoraInicio] = useState(ahora);
   const [horaFin, setHoraFin] = useState(ahora);
 
-  // Referencias a los inputs para controlar el selector de hora
+  // Refencias a los inputs para controlar el selector de hora
   const inputInicioRef = useRef<HTMLInputElement>(null);
   const inputFinRef = useRef<HTMLInputElement>(null);
 

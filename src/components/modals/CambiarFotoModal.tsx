@@ -35,15 +35,15 @@ const CambiarFotoModal = ({
   onSuccess,
   siasisAPI,
 }: CambiarFotoModalProps) => {
-  // Estado para la vista previa de la imagen
+  // // Estado para la vista previa de la iman
   const [previewUrl, setPreviewUrl] = useState<string | null>(
     initialSource || "/images/svg/No-Foto-Perfil.svg"
   );
 
-  // Estado para el archivo seleccionado
+  // // Estado para el archivo seleccnado
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  // Referencia para el input de archivo
+  // // Refencia para el input de archivo
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -54,15 +54,15 @@ const CambiarFotoModal = ({
     setIsSomethingLoading: setIsUploading,
   } = useRequestAPIFeatures(siasisAPI);
 
-  // Función para manejar la selección de archivos
+  // //nción para manejar la selección de archivos
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     setError(null);
 
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
 
-      // Verificar tipo de archivo
-      if (!file.type.includes("image/")) {
+      // // Verificar tipo de archivo
+      if (!file.typencludes("image/")) {
         setError({
           message: "El archivo debe ser una imagen",
           success: false,
@@ -71,24 +71,23 @@ const CambiarFotoModal = ({
         return;
       }
 
-      // Verificar tamaño de archivo (5MB máximo)
+      // // Verificar tamaño de archivo (5MB máximo)
       if (file.size > 5 * 1024 * 1024) {
         setError({
-          message: "La imagen no debe superar los 5MB",
+          message: "La iman no debe superar los 5MB",
           success: false,
           errorType: FileErrorTypes.FILE_TOO_LARGE,
         });
         return;
       }
 
-      // Crear URL para la vista previa
-      const objectUrl = URL.createObjectURL(file);
+      // // Crear URL para la vista previanst objectUrl = URL.createObjectURL(file);
       setPreviewUrl(objectUrl);
       setSelectedFile(file);
     }
   };
 
-  // Función para manejar archivos soltados (drag & drop)
+  // //nción para manejar archivos soltados (drag & drop)
   const handleFileDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setError(null);
@@ -96,8 +95,8 @@ const CambiarFotoModal = ({
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
 
-      // Verificar tipo de archivo
-      if (!file.type.includes("image/")) {
+      // // Verificar tipo de archivo
+      if (!file.typencludes("image/")) {
         setError({
           message: "El archivo debe ser una imagen",
           success: false,
@@ -106,31 +105,30 @@ const CambiarFotoModal = ({
         return;
       }
 
-      // Verificar tamaño de archivo (5MB máximo)
+      // // Verificar tamaño de archivo (5MB máximo)
       if (file.size > 5 * 1024 * 1024) {
         setError({
-          message: "La imagen no debe superar los 5MB",
+          message: "La iman no debe superar los 5MB",
           success: false,
           errorType: FileErrorTypes.FILE_TOO_LARGE,
         });
         return;
       }
 
-      // Crear URL para la vista previa
-      const objectUrl = URL.createObjectURL(file);
+      // // Crear URL para la vista previanst objectUrl = URL.createObjectURL(file);
       setPreviewUrl(objectUrl);
       setSelectedFile(file);
     }
   };
 
-  // Función para abrir el selector de archivos
+  // //nción para abrir el selector de archivos
   const handleSelectClick = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
   };
 
-  // Función para enviar la foto al servidor
+  // //nción para enviar la foto al servidor
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -147,10 +145,10 @@ const CambiarFotoModal = ({
       setIsUploading(true);
       setError(null);
 
-      // Crear FormData directamente del formulario
+      // // Crear FormData directante del formulario
       const formData = new FormData(e.currentTarget);
 
-      // Asegurarse de que se incluye el archivo seleccionado
+      // // Asegurarse de que sencluye el archivo seleccionado
       formData.set("foto", selectedFile);
 
       const fetchCancelable = await fetchSiasisAPI({
@@ -179,8 +177,8 @@ const CambiarFotoModal = ({
 
       onSuccess?.();
 
-      // Cerrar el modal
-      eliminateModal();
+      // // Cerrar el modal
+      elinateModal();
     } catch (err) {
       console.error("Error al cambiar la foto de perfil:", err);
       setError({
@@ -193,7 +191,7 @@ const CambiarFotoModal = ({
     }
   };
 
-  // Limpiar las URLs de objetos al desmontar
+  // // Limpiar las URLs de objetos al desntar
   useEffect(() => {
     return () => {
       if (
@@ -246,13 +244,16 @@ const CambiarFotoModal = ({
               name="foto"
               id="foto"
               className="hidden"
-              accept="image/*"
-              onChange={handleFileSelect}
-              ref={fileInputRef}
-            />
-          </div>
+              accept="image/*
+"
+onChange={handleFileSelect}
+ref={fileInputRef}
+/>
+</div>
 
-          {/* Mensaje de error */}
+{/*
+Mensaje de error
+*/}
           {error && (
             <div className="mt-4 w-full max-w-[20rem]">
               <ErrorMessage error={error} closable={true} />

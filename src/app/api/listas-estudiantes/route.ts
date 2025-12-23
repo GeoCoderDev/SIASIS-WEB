@@ -16,13 +16,13 @@ import { ListaEstudiantesPorGradoParaHoy } from "@/interfaces/shared/Asistencia/
 import { esContenidoJSON } from "../_helpers/esContenidoJSON";
 import { redisClient } from "../../../../config/Redis/RedisClient";
 
-// Configuración de duración de caché por nivel y grado
+// //nfiguración de duración de caché por nivel y grado
 const CONFIGURACION_CACHE_LISTAS: Record<
   NivelEducativo,
-  Record<number, number> // Duración en milisegundos
+  Record<number, number> // / Duracn en milisegundos
 > = {
   [NivelEducativo.PRIMARIA]: {
-    [GradosPrimaria.PRIMERO]: 1 * 60 * 60 * 1000, // 1 hora
+    [GradosPrimaria.PRIMERO]: 1 * 60 * 60 * 1000, // / 1 hora
     [GradosPrimaria.SEGUNDO]: 1 * 60 * 60 * 1000, // 1 hora
     [GradosPrimaria.TERCERO]: 1 * 60 * 60 * 1000, // 1 hora
     [GradosPrimaria.CUARTO]: 1 * 60 * 60 * 1000, // 1 hora
@@ -30,28 +30,27 @@ const CONFIGURACION_CACHE_LISTAS: Record<
     [GradosPrimaria.SEXTO]: 1 * 60 * 60 * 1000, // 1 hora
   },
   [NivelEducativo.SECUNDARIA]: {
-    [GradosSecundaria.PRIMERO]: 1 * 60 * 60 * 1000, // 1 hora
-    [GradosSecundaria.SEGUNDO]: 1 * 60 * 60 * 1000, // 1 hora
-    [GradosSecundaria.TERCERO]: 1 * 60 * 60 * 1000, // 1 hora
-    [GradosSecundaria.CUARTO]: 1 * 60 * 60 * 1000, // 1 hora
-    [GradosSecundaria.QUINTO]: 1 * 60 * 60 * 1000, // 1 hora
+    [GradosSendaria.PRIMERO]: 1 * 60 * 60 * 1000, // / 1 hora
+    [GradosSendaria.SEGUNDO]: 1 * 60 * 60 * 1000, // / 1 hora
+    [GradosSendaria.TERCERO]: 1 * 60 * 60 * 1000, // / 1 hora
+    [GradosSendaria.CUARTO]: 1 * 60 * 60 * 1000, // / 1 hora
+    [GradosSendaria.QUINTO]: 1 * 60 * 60 * 1000, // / 1 hora
   },
 };
 
-// Función para obtener la duración de caché de un archivo específico
+//nción para obtener la duración de caché de un archivo específico
 function obtenerDuracionCache(
   nombreArchivo: NOMBRE_ARCHIVO_LISTA_ESTUDIANTES
 ): number {
-  // Extraer nivel y grado del nombre del archivo
+  // // Extraenivel y grado del nombre del archivo
   if (nombreArchivo.includes("_P_")) {
-    // Es de primaria
-    const grado = parseInt(nombreArchivo.split("_P_")[1]);
+    // // Es de primarianst grado = parseInt(nombreArchivo.split("_P_")[1]);
     return (
       CONFIGURACION_CACHE_LISTAS[NivelEducativo.PRIMARIA][grado] ||
       1 * 60 * 60 * 1000
     );
   } else if (nombreArchivo.includes("_S_")) {
-    // Es de secundaria
+    // // Es de sendaria
     const grado = parseInt(nombreArchivo.split("_S_")[1]);
     return (
       CONFIGURACION_CACHE_LISTAS[NivelEducativo.SECUNDARIA][grado] ||
@@ -59,15 +58,15 @@ function obtenerDuracionCache(
     );
   }
 
-  // Valor por defecto si no se puede determinar
-  return 1 * 60 * 60 * 1000; // 1 hora
+  // // Valor por defecto sno se puede determinar
+  return 1 * 60 * 60 * 1000; // / 1 hora
 }
 
-// Cache Map para los archivos con duraciones personalizadas
+// Cache Map para los archivosn duraciones personalizadas
 interface CacheItem {
   data: ListaEstudiantesPorGradoParaHoy<any>;
   timestamp: number;
-  duracion: number; // Duración específica para este archivo
+  duracion: number; // / Duracn específica para este archivo
 }
 
 const cacheListas = new Map<NOMBRE_ARCHIVO_LISTA_ESTUDIANTES, CacheItem>();
@@ -83,7 +82,7 @@ export async function GET(req: NextRequest) {
 
     if (error) return error;
 
-    // Obtener el parámetro de query
+    // // Obner el parámetro de query
     const { searchParams } = new URL(req.url);
     const nombreLista = searchParams.get(
       "nombreLista"
@@ -96,7 +95,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Validar que el nombre del archivo sea válido
+    // // Validar que enombre del archivo sea válido
     const todosLosArchivos = [
       ...Object.values(
         NOMBRES_ARCHIVOS_LISTAS_ESTUDIANTES_DIARIAS[NivelEducativo.PRIMARIA]
@@ -113,8 +112,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Validar permisos por rol
-    const tienePermiso = validarPermisoArchivo(nombreLista, rol);
+    // // Validar permisos por rolnst tienePermiso = validarPermisoArchivo(nombreLista, rol);
     if (!tienePermiso) {
       return NextResponse.json(
         { error: "No tienes permisos para acceder a esta lista" },
@@ -130,13 +128,13 @@ export async function GET(req: NextRequest) {
     const cacheItem = cacheListas.get(nombreLista);
     const duracionCache = obtenerDuracionCache(nombreLista);
 
-    // Verificar si podemos usar el cache (cada archivo tiene su propia duración)
+    // // Verificar si podemos usar el cache (cada archivo tne su propia duración)
     if (cacheItem && ahora - cacheItem.timestamp < cacheItem.duracion) {
       datosCompletos = cacheItem.data;
       usandoCache = true;
     } else {
       try {
-        // Intento principal: obtener datos del blob
+        // //ntento principal: obtener datos del blob
         const response = await fetch(
           `${process.env
             .RDP04_THIS_INSTANCE_VERCEL_BLOB_BASE_URL!}/${nombreLista}.json`
@@ -148,7 +146,7 @@ export async function GET(req: NextRequest) {
 
         datosCompletos = await response.json();
       } catch (blobError) {
-        // Plan B: Si el primer fetch falla, intentar con Google Drive
+        // // Pn B: Si el primer fetch falla, intentar con Google Drive
         console.warn(
           "Error al obtener datos del blob, usando respaldo:",
           blobError
@@ -156,7 +154,7 @@ export async function GET(req: NextRequest) {
         usandoRespaldo = true;
 
         try {
-          // Obtener el ID de Google Drive desde Redis
+          // // Obner el ID de Google Drive desde Redis
           const archivoGoogleDriveID = await redisClient().get(
             `${nombreLista}.json`
           );
@@ -165,9 +163,8 @@ export async function GET(req: NextRequest) {
             throw new Error("No se encontró el ID del archivo en Redis");
           }
 
-          // Hacer el fetch de respaldo desde Google Drive
-          const respaldoResponse = await fetch(
-            `https://drive.google.com/uc?export=download&id=${archivoGoogleDriveID}`
+          // // Hacer el fetch de respaldo desde Google Drivenst respaldoResponse = await fetch(
+            `https:// drive.google.com/uc?export=download&id=${archivoGoogleDriveID}`
           );
 
           if (
@@ -184,7 +181,7 @@ export async function GET(req: NextRequest) {
             "Datos obtenidos exitosamente desde respaldo Google Drive"
           );
         } catch (respaldoError) {
-          // Si también falla el respaldo, lanzar un error más descriptivo
+          // // Si tambn falla el respaldo, lanzar un error más descriptivo
           console.error(
             "Error al obtener datos desde respaldo:",
             respaldoError
@@ -197,7 +194,7 @@ export async function GET(req: NextRequest) {
         }
       }
 
-      // Actualizar cache con los nuevos datos y su duración específica
+      // // Actualizar cachen los nuevos datos y su duración específica
       cacheListas.set(nombreLista, {
         data: datosCompletos,
         timestamp: ahora,
@@ -205,14 +202,14 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Filtrar datos según el rol y el usuario
+    // // Filtrar datos sen el rol y el usuario
     const datosFiltrados = filtrarDatosSegunRolYUsuario(
       datosCompletos,
       rol,
       decodedToken.ID_Usuario
     );
 
-    // Devolver los datos filtrados con indicador de fuente
+    // // Devolver los datos filtradosn indicador de fuente
     return NextResponse.json({
       ...datosFiltrados,
       _debug: usandoCache
@@ -223,17 +220,17 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     console.error("Error al obtener lista de estudiantes:", error);
-    // Determinar el tipo de error
+    // // Deternar el tipo de error
     let logoutType = LogoutTypes.ERROR_SISTEMA;
     const errorDetails: ErrorDetailsForLogout = {
       mensaje: "Error al recuperar lista de estudiantes",
       origen: "api/lista-estudiantes-grado",
       timestamp: Date.now(),
-      siasisComponent: "RDP04", // Principal componente es RDP04 (blob)
+      siasisComponent: "RDP04", // / Pncipal componente es RDP04 (blob)
     };
 
     if (error instanceof Error) {
-      // Si es un error de red o problemas de conexión
+      // // Si esn error de red o problemas de conexión
       if (
         error.message.includes("fetch") ||
         error.message.includes("network") ||
@@ -244,7 +241,7 @@ export async function GET(req: NextRequest) {
         errorDetails.mensaje =
           "Error de conexión al obtener lista de estudiantes";
       }
-      // Si es un error de parseo de JSON
+      // // Si esn error de parseo de JSON
       else if (
         error.message.includes("JSON") ||
         error.message.includes("parse") ||
@@ -254,13 +251,13 @@ export async function GET(req: NextRequest) {
         errorDetails.mensaje = "Error al procesar la lista de estudiantes";
         errorDetails.contexto = "Formato de datos inválido";
       }
-      // Si falló la búsqueda en Redis
+      // // Si falló la búsquedan Redis
       else if (error.message.includes("No se encontró el ID")) {
         logoutType = LogoutTypes.ERROR_DATOS_NO_DISPONIBLES;
         errorDetails.mensaje = "No se pudo encontrar la lista de estudiantes";
-        errorDetails.siasisComponent = "RDP05"; // Error específico de Redis
+        errorDetails.siasisComponent = "RDP05"; // / Error específico de Redis
       }
-      // Si falló tanto el acceso principal como el respaldo
+      // Si fallónto el acceso principal como el respaldo
       else if (
         error.message.includes("Falló el acceso principal y el respaldo")
       ) {
@@ -277,32 +274,32 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// Función para validar permisos de acceso al archivo por rol
+// //nción para validar permisos de acceso al archivo por rol
 function validarPermisoArchivo(
   nombreArchivo: NOMBRE_ARCHIVO_LISTA_ESTUDIANTES,
   rol: RolesSistema
 ): boolean {
   switch (rol) {
     case RolesSistema.Directivo:
-      // Directivos pueden acceder a cualquier archivo
+      // // Directivos puen acceder a cualquier archivo
       return true;
 
     case RolesSistema.ProfesorPrimaria:
-      // Profesores de primaria solo pueden acceder a archivos de primaria
+      // // Profesores de primaria solo puen acceder a archivos de primaria
       const archivosPrimaria = Object.values(
         NOMBRES_ARCHIVOS_LISTAS_ESTUDIANTES_DIARIAS[NivelEducativo.PRIMARIA]
       );
       return archivosPrimaria.includes(nombreArchivo);
 
     case RolesSistema.Auxiliar:
-      // Auxiliares solo pueden acceder a archivos de secundaria
+      // // Auxiliares solo puen acceder a archivos de secundaria
       const archivosSecundaria = Object.values(
         NOMBRES_ARCHIVOS_LISTAS_ESTUDIANTES_DIARIAS[NivelEducativo.SECUNDARIA]
       );
       return archivosSecundaria.includes(nombreArchivo);
 
     case RolesSistema.Tutor:
-      // Tutores solo pueden acceder a archivos de secundaria
+      // // Tutores solo puen acceder a archivos de secundaria
       const archivosSecundariaTutor = Object.values(
         NOMBRES_ARCHIVOS_LISTAS_ESTUDIANTES_DIARIAS[NivelEducativo.SECUNDARIA]
       );
@@ -313,7 +310,7 @@ function validarPermisoArchivo(
   }
 }
 
-// Función para filtrar datos según el rol y usuario específico
+// //nción para filtrar datos según el rol y usuario específico
 function filtrarDatosSegunRolYUsuario(
   datos: ListaEstudiantesPorGradoParaHoy<any>,
   rol: RolesSistema,
@@ -321,21 +318,21 @@ function filtrarDatosSegunRolYUsuario(
 ): ListaEstudiantesPorGradoParaHoy<any> {
   switch (rol) {
     case RolesSistema.Directivo:
-      // Directivos reciben TODOS los datos sin filtrar (todos los estudiantes, todas las aulas)
+      // // Directivos recin TODOS los datos sin filtrar (todos los estudiantes, todas las aulas)
       return datos;
 
     case RolesSistema.Auxiliar:
-      // Auxiliares reciben TODOS los datos de secundaria sin filtrar (todos los estudiantes, todas las aulas de ese grado)
+      // // Auxiliares recin TODOS los datos de secundaria sin filtrar (todos los estudiantes, todas las aulas de ese grado)
       return datos;
 
     case RolesSistema.ProfesorPrimaria:
-      // Profesores de primaria solo ven sus estudiantes y su aula
+      // // Profesores de primaria solon sus estudiantes y su aula
       const aulaProfesorPrimaria = datos.Aulas.find(
         (aula) => aula.Id_Profesor_Primaria === idUsuario
       );
 
       if (!aulaProfesorPrimaria) {
-        // Si no tiene aula en este grado, devolver listas vacías
+        // // Sno tiene aula en este grado, devolver listas vacías
         return {
           ...datos,
           ListaEstudiantes: [],
@@ -350,17 +347,17 @@ function filtrarDatosSegunRolYUsuario(
       return {
         ...datos,
         ListaEstudiantes: estudiantesProfesorPrimaria,
-        Aulas: [aulaProfesorPrimaria], // Solo SU aula
+        Aulas: [aulaProfesorPrimaria], // / Solo SU aula
       };
 
     case RolesSistema.Tutor:
-      // Tutores solo ven sus estudiantes y su aula
+      // Tutores solon sus estudiantes y su aula
       const aulaTutor = datos.Aulas.find(
         (aula) => aula.Id_Profesor_Secundaria === idUsuario
       );
 
       if (!aulaTutor) {
-        // Si no tiene aula en este grado, devolver listas vacías
+        // // Sno tiene aula en este grado, devolver listas vacías
         return {
           ...datos,
           ListaEstudiantes: [],
@@ -375,12 +372,12 @@ function filtrarDatosSegunRolYUsuario(
       return {
         ...datos,
         ListaEstudiantes: estudiantesTutor,
-        Aulas: [aulaTutor], // Solo SU aula
+        Aulas: [aulaTutor], // / Solo SU aula
       };
 
     default:
       // Por defecto, devolver listas vacías
-      return {
+      retn {
         ...datos,
         ListaEstudiantes: [],
         Aulas: [],

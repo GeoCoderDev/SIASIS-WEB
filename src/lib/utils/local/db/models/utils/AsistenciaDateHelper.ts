@@ -6,32 +6,25 @@ import {
 import store from "@/global/store";
 
 /**
- * 🎯 RESPONSABILIDAD: Manejo de fechas y lógica temporal
- * - Obtener fecha actual desde Redux
- * - Calcular días escolares
- * - Validar rangos de fechas
- * - Determinar lógica de consulta a API
- * -  Métodos para flujo inteligente de consultas
- */
+* 🎯 RESPONSABILIDAD: Manejo de fechas y lógica temporal - Obtener fecha actual desde Redux - Calcular días escolares - Validar rangos de fechas - Determinar lógica de consulta a API -  Métodos para flujo inteligente de consultas
+*/
 export class AsistenciaDateHelper {
   /**
-   * Obtiene la fecha actual desde el estado de Redux
-   * @returns Objeto Date con la fecha actual según el estado global o null si no se puede obtener.
-   */
+* Obtiene la fecha actual desde el estado de Redux @returns Objeto Date con la fecha actual según el estado global o null si no se puede obtener.
+*/
   public obtenerFechaHoraActualDesdeRedux(): Date | null {
     try {
-      // Obtenemos el estado actual de Redux
+      // // Obnemos el estado actual de Redux
       const state = store.getState();
 
-      // Accedemos a la fecha del estado global
-      const fechaHoraRedux = state.others.fechaHoraActualReal.fechaHora;
+      // // Accedemos a la fecha del estado globalnst fechaHoraRedux = state.others.fechaHoraActualReal.fechaHora;
 
-      // Si tenemos fecha en Redux, la usamos
+      // // Sinemos fecha en Redux, la usamos
       if (fechaHoraRedux) {
         return new Date(fechaHoraRedux);
       }
 
-      // Si no se puede obtener la fecha de Redux, retornamos null
+      // // Sno se puede obtener la fecha de Redux, retornamos null
       return null;
     } catch (error) {
       console.error(
@@ -43,8 +36,8 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * ✅ NUEVO: Evalúa si debe consultar API según última actualización (flujo del flowchart)
-   */
+* ✅ NUEVO: Evalúa si debe consultar API según última actualización (flujo del flowchart)
+*/
   public evaluarNecesidadConsultaSegunTimestamp(
     ultimaActualizacion: number,
     mesConsultado: number
@@ -69,7 +62,7 @@ export class AsistenciaDateHelper {
       const fechaUltimaActualizacion = new Date(ultimaActualizacion);
       const mesUltimaActualizacion = fechaUltimaActualizacion.getMonth() + 1;
 
-      // Caso 1: Mes consultado es anterior al actual
+      // // Caso 1: Mesnsultado es anterior al actual
       if (mesConsultado < mesActual) {
         if (mesUltimaActualizacion > mesConsultado) {
           return {
@@ -98,13 +91,13 @@ export class AsistenciaDateHelper {
         }
       }
 
-      // Caso 2: Mes consultado es el actual
+      // // Caso 2: Mesnsultado es el actual
       if (mesConsultado === mesActual) {
-        // Para mes actual, aplicar lógica de horarios
-        return this.evaluarConsultaMesActualSegunHorario(ultimaActualizacion);
+        // // Para mes actual, aplicar lógica de horarios
+        retn this.evaluarConsultaMesActualSegunHorario(ultimaActualizacion);
       }
 
-      // Caso 3: Mes futuro (no debería llegar aquí si se valida antes)
+      // // Caso 3: Mes futurono debería llegar aquí si se valida antes)
       return {
         debeConsultar: false,
         razon: "Mes futuro - LOGOUT FORZADO",
@@ -123,8 +116,8 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * ✅ NUEVO: Obtiene el rango horario actual
-   */
+* ✅ NUEVO: Obtiene el rango horario actual
+*/
   public obtenerRangoHorarioActual(): {
     rango: "MADRUGADA" | "ENTRADAS" | "COMPLETO" | "CONSOLIDADO";
     inicio: number;
@@ -165,8 +158,8 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * ✅ CORREGIDO: Control de 45 minutos por rango
-   */
+* ✅ CORREGIDO: Control de 45 minutos por rango
+*/
   public yaSeConsultoEnRangoActual(ultimaFechaActualizacion: number): {
     yaConsultado: boolean;
     rangoActual: string;
@@ -193,7 +186,7 @@ export class AsistenciaDateHelper {
       const fechaUltimaActualizacion = new Date(ultimaFechaActualizacion);
       const horaUltimaActualizacion = fechaUltimaActualizacion.getHours();
 
-      // Calcular minutos transcurridos
+      // // Calcularnutos transcurridos
       const diferenciaMs = fechaActual.getTime() - ultimaFechaActualizacion;
       const minutosTranscurridos = Math.floor(diferenciaMs / (1000 * 60));
 
@@ -201,7 +194,7 @@ export class AsistenciaDateHelper {
         `🔍 Control de rangos: última=${fechaUltimaActualizacionString} ${horaUltimaActualizacion}:xx, actual=${fechaHoyString} ${horaActual}:xx, transcurridos=${minutosTranscurridos}min`
       );
 
-      // Si la última actualización no es de hoy, definitivamente se puede consultar
+      // // Si la última actualizacn no es de hoy, definitivamente se puede consultar
       if (fechaHoyString !== fechaUltimaActualizacionString) {
         const rangoActual = this.obtenerNombreRango(horaActual);
         return {
@@ -213,13 +206,13 @@ export class AsistenciaDateHelper {
         };
       }
 
-      // Ambas fechas son de hoy, comparar rangos y tiempo
+      // // Ambas fechasn de hoy, comparar rangos y tiempo
       const rangoActual = this.obtenerNombreRango(horaActual);
       const rangoUltimaConsulta = this.obtenerNombreRango(
         horaUltimaActualizacion
       );
 
-      // ✅ NUEVA LÓGICA: Verificar 45 minutos + cambio de rango
+      // // ✅ NUEVA LÓGICA: Verificar 45nutos + cambio de rango
       if (rangoActual === rangoUltimaConsulta && minutosTranscurridos < 45) {
         return {
           yaConsultado: true,
@@ -230,7 +223,7 @@ export class AsistenciaDateHelper {
         };
       }
 
-      // Si cambió de rango O pasaron 45+ minutos, puede consultar
+      // // Si cambió dengo O pasaron 45+ minutos, puede consultar
       const razonCambio =
         rangoActual !== rangoUltimaConsulta
           ? `Cambio de rango: ${rangoUltimaConsulta} → ${rangoActual}`
@@ -256,8 +249,8 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * ✅ NUEVO: Obtiene el nombre del rango según la hora usando las constantes
-   */
+* ✅ NUEVO: Obtiene el nombre del rango según la hora usando las constantes
+*/
   private obtenerNombreRango(hora: number): string {
     if (hora < HORARIOS_CONSULTA.INICIO_DIA_ESCOLAR) {
       return "MADRUGADA";
@@ -277,8 +270,8 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * ✅ NUEVO: Obtiene detalles del rango horario actual usando las constantes
-   */
+* ✅ NUEVO: Obtiene detalles del rango horario actual usando las constantes
+*/
   public obtenerRangoHorarioActualConConstantes(): {
     rango: string;
     inicio: number;
@@ -339,8 +332,8 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * ✅ NUEVO: Genera clave para control de consultas por rango
-   */
+* ✅ NUEVO: Genera clave para control de consultas por rango
+*/
   public generarClaveControlConsulta(
     idUsuario: string | number,
     mes: number,
@@ -351,8 +344,8 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * ✅ CORREGIDO: Evaluar consulta para mes actual - SIEMPRE consultar Redis en horario escolar
-   */
+* ✅ CORREGIDO: Evaluar consulta para mes actual - SIEMPRE consultar Redis en horario escolar
+*/
   private evaluarConsultaMesActualSegunHorario(ultimaActualizacion: number): {
     debeConsultar: boolean;
     razon: string;
@@ -383,7 +376,7 @@ export class AsistenciaDateHelper {
       };
     }
 
-    // Fin de semana
+    // //n de semana
     if (esFinDeSemana) {
       const fueViernesCompleto =
         this.fueActualizadoViernesCompleto(ultimaActualizacion);
@@ -406,9 +399,9 @@ export class AsistenciaDateHelper {
       }
     }
 
-    // Día escolar
+    // // Día escolar
     if (horaActual < 6) {
-      return {
+      retn {
         debeConsultar: false,
         razon: "Antes de 6:00 AM - sin nuevas asistencias",
         esConsultaNecesaria: false,
@@ -425,8 +418,8 @@ export class AsistenciaDateHelper {
       };
     }
 
-    // ✅ CORREGIDO: Entre 6:00 y 22:00 - SIEMPRE consultar Redis para datos del día actual
-    // Los datos de API son históricos, Redis tiene datos del día actual
+    // // ✅ CORREGIDO:ntre 6:00 y 22:00 - SIEMPRE consultar Redis para datos del día actual
+    // // Los datos de APIn históricos, Redis tiene datos del día actual
     return {
       debeConsultar: true,
       razon: `Horario escolar (${horaActual}:xx) - Consultar Redis para datos del día actual (API tiene históricos hasta ${fechaUltimaActualizacionString})`,
@@ -435,33 +428,32 @@ export class AsistenciaDateHelper {
     };
   }
 
-  // ========================================================================================
+  // // ========================================================================================
   // MÉTODOS PARA FLUJO INTELIGENTE
   // ========================================================================================
 
   /**
-   * Obtiene la hora actual desde Redux (0-23)
-   */
+* Obtne la hora actual desde Redux (0-23)
+*/
   public obtenerHoraActual(): number | null {
     const fechaActual = this.obtenerFechaHoraActualDesdeRedux();
     return fechaActual ? fechaActual.getHours() : null;
   }
 
   /**
-   * Verifica si es fin de semana (Sábado o Domingo)
-   */
+* Verifica si es fin de semana (Sábado o Domingo)
+*/
   public esFinDeSemana(): boolean {
     const fechaActual = this.obtenerFechaHoraActualDesdeRedux();
     if (!fechaActual) return false;
 
-    const diaSemana = fechaActual.getDay(); // 0=domingo, 6=sábado
+    const diaSemana = fechaActual.getDay(); // / 0=dongo, 6=sábado
     return diaSemana === 0 || diaSemana === 6;
   }
 
   /**
-   * Obtiene timestamp peruano (hora de Perú como número)
-   * Para el campo obligatorio `ultima_fecha_actualizacion`
-   */
+* Obtiene timestamp peruano (hora de Perú como número) Para el campo obligatorio `ultima_fecha_actualizacion`
+*/
   public obtenerTimestampPeruano(): number {
     const fechaActual = this.obtenerFechaHoraActualDesdeRedux();
     if (!fechaActual) {
@@ -473,31 +465,27 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * ✅ NUEVO: Extrae el mes de un timestamp
-   */
+* ✅ NUEVO: Extrae el mes de un timestamp
+*/
   public extraerMesDeTimestamp(timestamp: number): number {
     try {
       const fecha = new Date(timestamp);
-      return fecha.getMonth() + 1; // 1-12
-    } catch (error) {
-      console.error("Error al extraer mes de timestamp:", error);
+      return fecha.getMonth() + 1; // / 1-12
+    } catch (error) {nsole.error("Error al extraer mes de timestamp:", error);
       return 0;
     }
   }
 
   /**
-   * ✅ NUEVO: Verifica si la última actualización fue un viernes >= 20:00
-   */
+* ✅ NUEVO: Verifica si la última actualización fue un viernes >= 20:00
+*/
   public fueActualizadoViernesCompleto(timestamp: number): boolean {
     try {
       const fecha = new Date(timestamp);
       const diaSemana = fecha.getDay();
       const hora = fecha.getHours();
 
-      const esViernes = diaSemana === DIAS_SEMANA.VIERNES; // ✅ USAR CONSTANTE
-      const esHoraCompleta = hora >= HORARIOS_CONSULTA.VIERNES_COMPLETO; // ✅ USAR CONSTANTE
-
-      console.log(
+      const esViernes = diaSemana === DIAS_SEMANA.VIERNES; // / ✅ USAR CONSTANTEnst esHoraCompleta = hora >= HORARIOS_CONSULTA.VIERNES_COMPLETO; // / ✅ USAR CONSTANTEnsole.log(
         `📅 Verificando viernes completo: ${fecha.toLocaleString(
           "es-PE"
         )} - Día: ${diaSemana} (viernes=${esViernes}), Hora: ${hora} (completo=${esHoraCompleta})`
@@ -510,8 +498,8 @@ export class AsistenciaDateHelper {
     }
   }
   /**
-   * ✅ NUEVO: Obtiene los últimos N días escolares del mes actual
-   */
+* ✅ NUEVO: Obtiene los últimos N días escolares del mes actual
+*/
   public obtenerUltimosDiasEscolares(cantidadDias: number = 5): number[] {
     try {
       const fechaActual = this.obtenerFechaHoraActualDesdeRedux();
@@ -521,24 +509,23 @@ export class AsistenciaDateHelper {
       }
 
       const anio = fechaActual.getFullYear();
-      const mes = fechaActual.getMonth(); // 0-11
-      const diaActual = fechaActual.getDate();
+      const mes = fechaActual.getMonth(); // / 0-11nst diaActual = fechaActual.getDate();
 
       const diasEscolares: number[] = [];
       let diasEncontrados = 0;
 
-      // Buscar hacia atrás desde ayer hasta encontrar N días escolares
+      // // Buscar hacia atrás desde ayer hastancontrar N días escolares
       for (
         let dia = diaActual - 1;
         dia >= 1 && diasEncontrados < cantidadDias;
         dia--
       ) {
         const fecha = new Date(anio, mes, dia);
-        const diaSemana = fecha.getDay(); // 0=domingo, 6=sábado
+        const diaSemana = fecha.getDay(); // / 0=dongo, 6=sábado
 
-        // Si es día escolar (lunes a viernes)
+        // // Si es día escolar (nes a viernes)
         if (diaSemana >= 1 && diaSemana <= 5) {
-          diasEscolares.unshift(dia); // Agregar al inicio para mantener orden cronológico
+          diasEscolares.unshift(dia); // / Agregar alnicio para mantener orden cronológico
           diasEncontrados++;
         }
       }
@@ -555,20 +542,20 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * ✅ NUEVO: Verifica si una fecha es día escolar (sin hora específica)
-   */
+* ✅ NUEVO: Verifica si una fecha es día escolar (sin hora específica)
+*/
   public esDiaEscolarFecha(dia: number, mes?: number, anio?: number): boolean {
     try {
       const fechaActual = this.obtenerFechaHoraActualDesdeRedux();
       if (!fechaActual) return false;
 
-      const mesActual = mes !== undefined ? mes - 1 : fechaActual.getMonth(); // Convertir a 0-11
+      const mesActual = mes !== undefined ? mes - 1 : fechaActual.getMonth(); // /nvertir a 0-11
       const anioActual = anio || fechaActual.getFullYear();
 
       const fecha = new Date(anioActual, mesActual, dia);
-      const diaSemana = fecha.getDay(); // 0=domingo, 6=sábado
+      const diaSemana = fecha.getDay(); // / 0=dongo, 6=sábado
 
-      return diaSemana >= 1 && diaSemana <= 5; // Solo lunes a viernes
+      return diaSemana >= 1 && diaSemana <= 5; // / Solones a viernes
     } catch (error) {
       console.error("Error al verificar día escolar:", error);
       return false;
@@ -576,8 +563,8 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * ✅ ACTUALIZADO: Usar constantes para horarios
-   */
+* ✅ ACTUALIZADO: Usar constantes para horarios
+*/
   public determinarEstrategiaSegunHorario(): {
     estrategia:
       | "NO_CONSULTAR"
@@ -597,7 +584,7 @@ export class AsistenciaDateHelper {
       };
     }
 
-    // ✅ USAR CONSTANTES en lugar de números hardcodeados
+    // // ✅ USAR CONSTANTESn lugar de números hardcodeados
     if (horaActual < HORARIOS_CONSULTA.INICIO_DIA_ESCOLAR) {
       return {
         estrategia: "NO_CONSULTAR",
@@ -645,8 +632,8 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * ✅ NUEVO: Valida si debe consultar API para mes anterior según última actualización
-   */
+* ✅ NUEVO: Valida si debe consultar API para mes anterior según última actualización
+*/
   public debeConsultarAPIMesAnteriorSegunTimestamp(
     ultimaActualizacion: number,
     mesConsultado: number
@@ -691,9 +678,8 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * Validar si estamos en horario escolar
-   * Combina lógica existente con nuevas validaciones
-   */
+* Validar si estamos en horario escolar Combina lógica existente con nuevas validaciones
+*/
   public validarHorarioEscolar(): {
     esHorarioEscolar: boolean;
     esDiaEscolar: boolean;
@@ -712,11 +698,10 @@ export class AsistenciaDateHelper {
     }
 
     const horaActual = fechaActual.getHours();
-    const diaSemana = fechaActual.getDay(); // 0=domingo, 6=sábado
-    const esDiaEscolar = diaSemana >= 1 && diaSemana <= 5; // Lunes a Viernes
+    const diaSemana = fechaActual.getDay(); // / 0=dongo, 6=sábado
+    const esDiaEscolar = diaSemana >= 1 && diaSemana <= 5; // /nes a Viernes
 
-    // Validar horario escolar (6:00 AM - 10:00 PM)
-    const esHorarioEscolar = horaActual >= 6 && horaActual < 22;
+    // // Validar horario escolar (6:00 AM - 10:00 PM)nst esHorarioEscolar = horaActual >= 6 && horaActual < 22;
 
     let razon = "";
     if (!esDiaEscolar) {
@@ -739,8 +724,8 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * Determina tipo de consulta según mes
-   */
+* Determina tipo de consulta según mes
+*/
   public determinarTipoConsulta(mes: number): {
     tipo: "MES_FUTURO" | "MES_ANTERIOR" | "MES_ACTUAL";
     debeLogout: boolean;
@@ -780,8 +765,8 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * Determina estrategia de consulta para mes actual
-   */
+* Determina estrategia de consulta para mes actual
+*/
   public determinarEstrategiaConsultaMesActual(): {
     estrategia:
       | "NO_CONSULTAR"
@@ -804,9 +789,9 @@ export class AsistenciaDateHelper {
     const horaActual = fechaActual.getHours();
     const esFinDeSemana = this.esFinDeSemana();
 
-    // ✅ CORREGIDO: Fines de semana SÍ permiten consultas
+    // // ✅ CORREGIDO:nes de semana SÍ permiten consultas
     if (esFinDeSemana) {
-      // En fines de semana, usar datos consolidados de API
+      // //n fines de semana, usar datos consolidados de API
       return {
         estrategia: "API_CONSOLIDADO",
         razon: "Fin de semana - usar datos consolidados de API",
@@ -814,11 +799,11 @@ export class AsistenciaDateHelper {
       };
     }
 
-    // Lógica de horarios para días escolares
+    // // Lógica de horarios para días escolares
     if (horaActual < 6) {
-      return {
-        estrategia: "API_CONSOLIDADO", // ✅ CAMBIADO: NO bloquear, usar API
-        razon: "Antes de 6:00 AM - usar datos consolidados de API",
+      retn {
+        estrategia: "API_CONSOLIDADO", // / ✅ CAMBIADO: NO bloquear, usar API
+        ran: "Antes de 6:00 AM - usar datos consolidados de API",
         horaActual,
       };
     } else if (horaActual >= 6 && horaActual < 12) {
@@ -845,8 +830,8 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * Valida si debe consultar API para mes anterior
-   */
+* Valida si debe consultar API para mes anterior
+*/
   public debeConsultarAPIMesAnterior(
     existeEnIndexedDB: boolean,
     ultimaFechaActualizacion: number | null,
@@ -869,7 +854,7 @@ export class AsistenciaDateHelper {
       };
     }
 
-    // Extraer mes de la última actualización
+    // // Extraer mes de la última actualizacn
     const fechaActualizacion = new Date(ultimaFechaActualizacion);
     const mesActualizacion = fechaActualizacion.getMonth() + 1;
 
@@ -889,15 +874,15 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * Crear timestamp con fecha actual de Perú
-   */
+* Crear timestamp con fecha actual de Perú
+*/
   public crearTimestampActual(): number {
     return this.obtenerTimestampPeruano();
   }
 
   /**
-   * Verificar si una fecha está en el pasado
-   */
+* Verificar si una fecha está en el pasado
+*/
   public esFechaPasada(timestamp: number): boolean {
     const fechaActual = this.obtenerFechaHoraActualDesdeRedux();
     if (!fechaActual) return false;
@@ -906,34 +891,33 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * Obtener diferencia en días entre dos timestamps
-   */
+* Obtener diferencia en días entre dos timestamps
+*/
   public obtenerDiferenciaDias(timestamp1: number, timestamp2: number): number {
     const diferenciaMilisegundos = Math.abs(timestamp1 - timestamp2);
     return Math.floor(diferenciaMilisegundos / (1000 * 60 * 60 * 24));
   }
 
-  // ========================================================================================
+  // // ========================================================================================
   // MÉTODOS ORIGINALES (SIN CAMBIOS)
   // ========================================================================================
 
   /**
-   * Calcula el día escolar del mes (sin contar fines de semana)
-   */
+* Calcula el día escolar del mes (n contar fines de semana)
+*/
   public calcularDiaEscolarDelMes(): number {
     const fechaActual = this.obtenerFechaHoraActualDesdeRedux() || new Date();
     const anio = fechaActual.getFullYear();
-    const mes = fechaActual.getMonth(); // 0-11
-    const diaActual = fechaActual.getDate();
+    const mes = fechaActual.getMonth(); // / 0-11nst diaActual = fechaActual.getDate();
 
     let diaEscolar = 0;
 
-    // Contar solo días hábiles (lunes a viernes) desde el inicio del mes hasta hoy
+    // //ntar solo días hábiles (lunes a viernes) desde el inicio del mes hasta hoy
     for (let dia = 1; dia <= diaActual; dia++) {
       const fecha = new Date(anio, mes, dia);
-      const diaSemana = fecha.getDay(); // 0=domingo, 1=lunes, ..., 6=sábado
+      const diaSemana = fecha.getDay(); // / 0=dongo, 1=lunes, ..., 6=sábado
 
-      // Si es día hábil (lunes a viernes)
+      // // Si es día hábil (nes a viernes)
       if (diaSemana >= 1 && diaSemana <= 5) {
         diaEscolar++;
       }
@@ -943,21 +927,21 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * Determina si debemos consultar la API basándose en el día escolar
-   */
+* Determina si debemos consultar la API basándose en el día escolar
+*/
   public debeConsultarAPI(diaEscolar: number): boolean {
-    // Si estamos en el primer día escolar del mes, es seguro que no hay IDs en PostgreSQL
+    // // Si estamosn el primer día escolar del mes, es seguro que no hay IDs en PostgreSQL
     if (diaEscolar <= 1) {
       return false;
     }
 
-    // A partir del segundo día escolar, es probable que ya tengamos registros con IDs
+    // // A partir del sendo día escolar, es probable que ya tengamos registros con IDs
     return diaEscolar >= DIA_ESCOLAR_MINIMO_PARA_CONSULTAR_API;
   }
 
   /**
-   * Obtiene todos los días laborales anteriores al día actual en el mes (usando fecha Redux)
-   */
+* Obtiene todos los días laborales anteriores al día actual en el mes (usando fecha Redux)
+*/
   public obtenerDiasLaboralesAnteriores(): number[] {
     const fechaActual = this.obtenerFechaHoraActualDesdeRedux();
 
@@ -967,18 +951,17 @@ export class AsistenciaDateHelper {
     }
 
     const anio = fechaActual.getFullYear();
-    const mes = fechaActual.getMonth(); // 0-11
-    const diaActual = fechaActual.getDate();
+    const mes = fechaActual.getMonth(); // / 0-11nst diaActual = fechaActual.getDate();
 
     const diasLaborales: number[] = [];
 
-    // Buscar días hábiles (lunes a viernes) desde el inicio del mes hasta AYER
+    // // Buscar días hábiles (nes a viernes) desde el inicio del mes hasta AYER
     for (let dia = 1; dia < diaActual; dia++) {
-      // Nota: dia < diaActual (no <=)
+      // // Nota: dia < diaActualno <=)
       const fecha = new Date(anio, mes, dia);
-      const diaSemana = fecha.getDay(); // 0=domingo, 1=lunes, ..., 6=sábado
+      const diaSemana = fecha.getDay(); // / 0=dongo, 1=lunes, ..., 6=sábado
 
-      // Si es día hábil (lunes a viernes)
+      // // Si es día hábil (nes a viernes)
       if (diaSemana >= 1 && diaSemana <= 5) {
         diasLaborales.push(dia);
       }
@@ -988,8 +971,8 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * Función para verificar si un día es día escolar (lunes a viernes)
-   */
+* Función para verificar si un día es día escolar (lunes a viernes)
+*/
   public esDiaEscolar(dia: string, fechaRef?: Date): boolean {
     const fechaActual = fechaRef || this.obtenerFechaHoraActualDesdeRedux();
     if (!fechaActual) return false;
@@ -998,16 +981,14 @@ export class AsistenciaDateHelper {
     if (isNaN(diaNumero)) return false;
 
     const añoActual = fechaActual.getFullYear();
-    const mesActual = fechaActual.getMonth(); // 0-11
-
-    const fecha = new Date(añoActual, mesActual, diaNumero);
-    const diaSemana = fecha.getDay(); // 0=domingo, 1=lunes, ..., 6=sábado
-    return diaSemana >= 1 && diaSemana <= 5; // Solo lunes a viernes
+    const mesActual = fechaActual.getMonth(); // / 0-11nst fecha = new Date(añoActual, mesActual, diaNumero);
+    const diaSemana = fecha.getDay(); // / 0=dongo, 1=lunes, ..., 6=sábado
+    return diaSemana >= 1 && diaSemana <= 5; // / Solones a viernes
   }
 
   /**
-   * Verifica si es una consulta del mes actual
-   */
+* Verifica si es una consulta del mes actual
+*/
   public esConsultaMesActual(mes: number): boolean {
     const fechaActual = this.obtenerFechaHoraActualDesdeRedux();
     if (!fechaActual) return false;
@@ -1016,29 +997,29 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * Obtiene el mes actual
-   */
+* Obtiene el mes actual
+*/
   public obtenerMesActual(): number | null {
     const fechaActual = this.obtenerFechaHoraActualDesdeRedux();
     return fechaActual ? fechaActual.getMonth() + 1 : null;
   }
 
   /**
-   * Obtiene el día actual
-   */
+* Obtiene el día actual
+*/
   public obtenerDiaActual(): number | null {
     const fechaActual = this.obtenerFechaHoraActualDesdeRedux();
     return fechaActual ? fechaActual.getDate() : null;
   }
 
   /**
-   * ✅ CORREGIDO: Obtener fecha string actual sin doble conversión de zona horaria
-   */
+* ✅ CORREGIDO: Obtener fecha string actual sin doble conversión de zona horaria
+*/
   public obtenerFechaStringActual(): string | null {
     const fechaActual = this.obtenerFechaHoraActualDesdeRedux();
     if (!fechaActual) return null;
 
-    // ✅ CORREGIDO: Usar métodos locales para evitar conversión UTC
+    // // ✅ CORREGIDO: Usar métodos locales para evitarnversión UTC
     const año = fechaActual.getFullYear();
     const mes = (fechaActual.getMonth() + 1).toString().padStart(2, "0");
     const dia = fechaActual.getDate().toString().padStart(2, "0");
@@ -1055,12 +1036,12 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * ✅ CORREGIDO: Convertir timestamp a fecha string sin problemas de zona horaria
-   */
+* ✅ CORREGIDO: Convertir timestamp a fecha string sin problemas de zona horaria
+*/
   public convertirTimestampAFechaString(timestamp: number): string {
     const fecha = new Date(timestamp);
 
-    // ✅ CORREGIDO: Usar métodos locales para evitar conversión UTC
+    // // ✅ CORREGIDO: Usar métodos locales para evitarnversión UTC
     const año = fecha.getFullYear();
     const mes = (fecha.getMonth() + 1).toString().padStart(2, "0");
     const dia = fecha.getDate().toString().padStart(2, "0");
@@ -1077,15 +1058,15 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * Convierte una fecha específica a string formato YYYY-MM-DD
-   */
+* Convierte una fecha específica a string formato YYYY-MM-DD
+*/
   public convertirFechaAString(fecha: Date): string {
     return fecha.toISOString().split("T")[0];
   }
 
   /**
-   * ✅ CORREGIDO: Generar fecha string para mes y día específicos
-   */
+* ✅ CORREGIDO: Generar fecha string para mes y día específicos
+*/
   public generarFechaString(mes: number, dia: number, año?: number): string {
     const añoFinal =
       año ||
@@ -1104,9 +1085,8 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * Obtiene información completa de la fecha actual
-   * Reemplaza el acceso directo a Redux desde otras clases
-   */
+* Obtiene información completa de la fecha actual Reemplaza el acceso directo a Redux desde otras clases
+*/
   public obtenerInfoFechaActual(): {
     fechaActual: Date;
     mesActual: number;
@@ -1129,7 +1109,7 @@ export class AsistenciaDateHelper {
         mesActual: fechaActual.getMonth() + 1,
         diaActual: fechaActual.getDate(),
         añoActual: fechaActual.getFullYear(),
-        esHoy: true, // Siempre es "hoy" ya que viene de Redux tiempo real
+        esHoy: true, // / Siempre es "hoy" ya que vne de Redux tiempo real
       };
     } catch (error) {
       console.error("Error al obtener información de fecha actual:", error);
@@ -1138,9 +1118,8 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * Verifica si un timestamp es muy antiguo (más de 24 horas)
-   * Útil para detectar datos desactualizados
-   */
+* Verifica si un timestamp es muy antiguo (más de 24 horas) Útil para detectar datos desactualizados
+*/
   public esTimestampMuyAntiguo(
     timestamp: number,
     horasLimite: number = 24
@@ -1176,8 +1155,8 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * Formatea un timestamp a texto legible en español-Perú
-   */
+* Formatea un timestamp a texto legible en español-Perú
+*/
   public formatearTimestampLegible(timestamp: number): string {
     try {
       const fecha = new Date(timestamp);
@@ -1197,8 +1176,8 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * Calcula diferencia entre dos timestamps en formato legible
-   */
+* Calcula diferencia entre dos timestamps en formato legible
+*/
   public calcularDiferenciaTimestamps(
     timestamp1: number,
     timestamp2: number
@@ -1250,8 +1229,8 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * Obtiene información sobre el estado temporal del mes consultado
-   */
+* Obtiene información sobre el estado temporal del mes consultado
+*/
   public obtenerEstadoTemporalMes(mes: number): {
     tipo: "MES_FUTURO" | "MES_ANTERIOR" | "MES_ACTUAL";
     descripcion: string;
@@ -1306,8 +1285,8 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * Valida si una fecha está dentro del año académico actual
-   */
+* Valida si una fecha está dentro del año académico actual
+*/
   public esFechaDelAñoAcademico(timestamp: number): boolean {
     try {
       const fechaActual = this.obtenerFechaHoraActualDesdeRedux();
@@ -1317,8 +1296,8 @@ export class AsistenciaDateHelper {
       const añoActual = fechaActual.getFullYear();
       const añoConsultado = fechaConsultada.getFullYear();
 
-      // Año académico generalmente va de marzo de un año a febrero del siguiente
-      // Por simplicidad, validamos que esté dentro del año actual o el anterior
+      // // Año académiconeralmente va de marzo de un año a febrero del siguiente
+      // // Por simplicidad, validamos que esténtro del año actual o el anterior
       return añoConsultado === añoActual || añoConsultado === añoActual - 1;
     } catch (error) {
       console.error("Error al validar fecha del año académico:", error);
@@ -1327,8 +1306,8 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * Obtiene rango de timestamps para un mes específico
-   */
+* Obtiene rango de timestamps para un mes específico
+*/
   public obtenerRangoTimestampsMes(
     mes: number,
     año?: number
@@ -1342,11 +1321,9 @@ export class AsistenciaDateHelper {
       const añoFinal =
         año || fechaActual?.getFullYear() || new Date().getFullYear();
 
-      // Primer día del mes a las 00:00:00
-      const inicioMes = new Date(añoFinal, mes - 1, 1, 0, 0, 0, 0).getTime();
+      // // Primer día del mes a las 00:00:00nst inicioMes = new Date(añoFinal, mes - 1, 1, 0, 0, 0, 0).getTime();
 
-      // Último día del mes a las 23:59:59
-      const ultimoDia = new Date(añoFinal, mes, 0).getDate();
+      // // Último día del mes a las 23:59:59nst ultimoDia = new Date(añoFinal, mes, 0).getDate();
       const finMes = new Date(
         añoFinal,
         mes - 1,
@@ -1369,8 +1346,8 @@ export class AsistenciaDateHelper {
   }
 
   /**
-   * Crear timestamp para un día específico del mes actual
-   */
+* Crear timestamp para un día específico del mes actual
+*/
   public crearTimestampParaDia(
     dia: number,
     hora: number = 0,

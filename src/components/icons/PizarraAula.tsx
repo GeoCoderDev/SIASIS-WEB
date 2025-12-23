@@ -7,7 +7,7 @@ const PizarraAula = ({ className, title }: IconProps) => {
       <svg
         className={className}
         viewBox="0 0 45 53"
-        xmlns="http://www.w3.org/2000/svg"
+        xmlns="http:// www.w3.org/2000/svg"
       >
         <path d="M0.5 2.03047H44.6065V0H0.5V2.03047Z" className="fill-current" />
         <path

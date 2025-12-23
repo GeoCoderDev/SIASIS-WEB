@@ -6,8 +6,8 @@ export interface GetAsistenciasMensualesDeUnAulaSuccessResponse
   data: {
     Mes: number;
     Asistencias_Escolares: Record<
-      string, //Id Estudiante,
-      Record<number, AsistenciaEscolarDeUnDia | null> // {Numero Dia: AsistenciaEscolarDeUnDia | null}
+      string, // / Id Estudnte,
+      Record<number, AsistenciaEscolarDeUnDia | null> // / {Numero Dia: AsisnciaEscolarDeUnDia | null}
     >;
   };
 }

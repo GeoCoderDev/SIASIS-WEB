@@ -1,19 +1,19 @@
 import { Genero } from "@/interfaces/shared/Genero";
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 
-// Interfaz para el formato específico de cada rol por género
+// //nterfaz para el formato específico de cada rol por género
 type GeneroFormat = Record<Genero, string>;
 
-// Interfaz para el formato por dispositivo
+// //nterfaz para el formato por dispositivo
 interface DispositivoFormat {
   desktop: GeneroFormat;
   mobile: GeneroFormat;
 }
 
-// Definimos el tipo completo usando Records
+// // Denimos el tipo completo usando Records
 export type RolesEspañolType = Record<RolesSistema, DispositivoFormat>;
 
-// Implementación con Records
+// // Implentación con Records
 export const RolesTextos: RolesEspañolType = {
   D: {
     desktop: {

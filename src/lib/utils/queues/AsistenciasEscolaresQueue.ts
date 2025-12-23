@@ -16,7 +16,7 @@ import { ActoresSistema } from "@/interfaces/shared/ActoresSistema";
 import { ModoRegistro } from "@/interfaces/shared/ModoRegistro";
 import { NivelEducativo } from "@/interfaces/shared/NivelEducativo";
 
-// Interfaz principal para los items de la cola
+// //nterfaz principal para los items de la cola
 export interface ItemDeColaAsistenciaEscolar
   extends QueueItem,
     RegistrarAsistenciaIndividualRequestBody {
@@ -47,8 +47,8 @@ export class AsistenciasEscolaresIDBRepository extends QueueRepository<ItemDeCol
   }
 
   /**
-   * Añade un item a la cola
-   */
+* Añade un item a la cola
+*/
   async enqueue(
     item: Omit<ItemDeColaAsistenciaEscolar, "NumeroDeOrden">
   ): Promise<boolean> {
@@ -65,8 +65,8 @@ export class AsistenciasEscolaresIDBRepository extends QueueRepository<ItemDeCol
   }
 
   /**
-   * Obtiene el primer item SIN eliminarlo
-   */
+* Obtiene el primer item SIN eliminarlo
+*/
   async getFirstItem(): Promise<ItemDeColaAsistenciaEscolar | null> {
     try {
       const items = await this.idbModel.getAll();
@@ -78,8 +78,8 @@ export class AsistenciasEscolaresIDBRepository extends QueueRepository<ItemDeCol
   }
 
   /**
-   * Elimina el primer item de la cola
-   */
+* Elimina el primer item de la cola
+*/
   async dequeue(): Promise<boolean> {
     try {
       const firstItem = await this.getFirstItem();
@@ -95,8 +95,8 @@ export class AsistenciasEscolaresIDBRepository extends QueueRepository<ItemDeCol
   }
 
   /**
-   * NUEVO: Elimina un item específico por su número de orden
-   */
+* NUEVO: Elimina un item específico por su número de orden
+*/
   async deleteByOrderNumber(numeroDeOrden: number): Promise<boolean> {
     try {
       return await this.idbModel.deleteByNumeroOrden(numeroDeOrden);
@@ -107,11 +107,11 @@ export class AsistenciasEscolaresIDBRepository extends QueueRepository<ItemDeCol
   }
 
   /**
-   * NUEVO: Mueve un item al final de la cola (le asigna un nuevo número de orden)
-   */
+* NUEVO: Mueve un item al final de la cola (le asigna un nuevo número de orden)
+*/
   async moveToEnd(numeroDeOrden: number): Promise<boolean> {
     try {
-      // 1. Obtener el item actual
+      // // 1. Obner el item actual
       const item = await this.idbModel.getByNumeroOrden(numeroDeOrden);
       if (!item) {
         console.error(
@@ -120,17 +120,17 @@ export class AsistenciasEscolaresIDBRepository extends QueueRepository<ItemDeCol
         return false;
       }
 
-      // 2. Obtener nuevo número de orden (al final)
+      // // 2. Obner nuevo número de orden (al final)
       const nuevoNumeroDeOrden = await this.getNextOrderNumber();
 
-      // 3. Eliminar el item actual
+      // // 3. Elinar el item actual
       const deleted = await this.idbModel.deleteByNumeroOrden(numeroDeOrden);
       if (!deleted) {
         console.error(`No se pudo eliminar el item ${numeroDeOrden}`);
         return false;
       }
 
-      // 4. Crear el item con el nuevo número de orden al final
+      // // 4. Crear el itemn el nuevo número de orden al final
       await this.idbModel.create({
         ...item,
         NumeroDeOrden: nuevoNumeroDeOrden,
@@ -144,8 +144,8 @@ export class AsistenciasEscolaresIDBRepository extends QueueRepository<ItemDeCol
   }
 
   /**
-   * Obtiene todos los items ordenados por NumeroDeOrden
-   */
+* Obtiene todos los items ordenados por NumeroDeOrden
+*/
   async getOrderItems(): Promise<ItemDeColaAsistenciaEscolar[]> {
     try {
       return await this.idbModel.getAll();
@@ -156,8 +156,8 @@ export class AsistenciasEscolaresIDBRepository extends QueueRepository<ItemDeCol
   }
 
   /**
-   * Limpia todos los items de la cola
-   */
+* Limpia todos los items de la cola
+*/
   async clearItems(): Promise<boolean> {
     try {
       const deletedCount = await this.idbModel.deleteAll();
@@ -169,8 +169,8 @@ export class AsistenciasEscolaresIDBRepository extends QueueRepository<ItemDeCol
   }
 
   /**
-   * Obtiene un item específico por su número de orden
-   */
+* Obtiene un item específico por su número de orden
+*/
   async getItemByOrderNumber(
     numeroDeOrden: number
   ): Promise<ItemDeColaAsistenciaEscolar | null> {
@@ -183,20 +183,20 @@ export class AsistenciasEscolaresIDBRepository extends QueueRepository<ItemDeCol
   }
 
   /**
-   * Obtiene el próximo número de orden disponible
-   */
+* Obtiene el próximo número de orden disponible
+*/
   async getNextOrderNumber(): Promise<number> {
     try {
       return await this.idbModel.getProximoNumeroOrden();
     } catch (error) {
       console.error("Error al obtener próximo número de orden:", error);
-      return Date.now(); // Fallback
+      return Date.now(); // / Fallback
     }
   }
 
   /**
-   * Cuenta el total de items en la cola
-   */
+* Cnta el total de items en la cola
+*/
   async count(): Promise<number> {
     try {
       return await this.idbModel.count();
@@ -207,8 +207,8 @@ export class AsistenciasEscolaresIDBRepository extends QueueRepository<ItemDeCol
   }
 
   /**
-   * Actualiza un item existente
-   */
+* Actualiza un item existente
+*/
   async updateItem(item: ItemDeColaAsistenciaEscolar): Promise<boolean> {
     try {
       return await this.idbModel.update(item);
@@ -219,8 +219,8 @@ export class AsistenciasEscolaresIDBRepository extends QueueRepository<ItemDeCol
   }
 
   /**
-   * Verifica si existe un item con el número de orden dado
-   */
+* Verifica si existe un item con el número de orden dado
+*/
   async exists(numeroDeOrden: number): Promise<boolean> {
     try {
       return await this.idbModel.existsByNumeroOrden(numeroDeOrden);
@@ -244,8 +244,8 @@ const PROCESADOR_DE_ASISTENCIAS_ESCOLARES =
       },
     });
 
-    // Importante , setear la actual funcion de cancelacion
-    // del procesamiento del item actual
+    // // Impornte , setear la actual funcion de cancelacion
+    // // del procesamnto del item actual
     this.currentCancelProcessFunction = fetchCancelable.cancel;
 
     try {
@@ -255,11 +255,11 @@ const PROCESADOR_DE_ASISTENCIAS_ESCOLARES =
     }
   });
 
-// ------------------------------------
+// // ------------------------------------
 // |           ORQUESTACION           |
 // ------------------------------------
 
-export const Asistencias_Escolares_QUEUE =
+exportnst Asistencias_Escolares_QUEUE =
   new QueueForData<ItemDeColaAsistenciaEscolar>(
     new AsistenciasEscolaresIDBRepository(),
     {

@@ -22,21 +22,21 @@ export async function GET(req: NextRequest) {
 
     if (error) return error;
 
-    // Obtener datos usando el nuevo servicio
+    // // Obner datos usando el nuevo servicio
     const {
       datos: datosCompletos,
       fuente,
       mensaje,
     } = await obtenerDatosAsistenciaHoy();
 
-    // Filtrar datos según el rol
+    // // Filtrar datos sen el rol
     const datosFiltrados = filtrarDatosSegunRol(
       datosCompletos,
       rol,
       decodedToken.ID_Usuario
     );
 
-    // Devolver los datos filtrados con indicador de fuente
+    // // Devolver los datos filtradosn indicador de fuente
     return NextResponse.json({
       ...datosFiltrados,
       _debug: mensaje,
@@ -45,17 +45,17 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error("Error al obtener datos de asistencia:", error);
 
-    // Determinar el tipo de error
+    // // Deternar el tipo de error
     let logoutType = LogoutTypes.ERROR_SISTEMA;
     const errorDetails: ErrorDetailsForLogout = {
       mensaje: "Error al recuperar datos de asistencia",
       origen: "api/datos-asistencia-hoy",
       timestamp: Date.now(),
-      siasisComponent: "RDP04", // Principal componente es RDP04 (blob)
+      siasisComponent: "RDP04", // / Pncipal componente es RDP04 (blob)
     };
 
     if (error instanceof Error) {
-      // Si es un error de red o problemas de conexión
+      // // Si esn error de red o problemas de conexión
       if (
         error.message.includes("fetch") ||
         error.message.includes("network") ||
@@ -67,7 +67,7 @@ export async function GET(req: NextRequest) {
         errorDetails.mensaje =
           "Error de conexión al obtener datos de asistencia";
       }
-      // Si es un error de parseo de JSON
+      // // Si esn error de parseo de JSON
       else if (
         error.message.includes("JSON") ||
         error.message.includes("parse") ||
@@ -77,7 +77,7 @@ export async function GET(req: NextRequest) {
         errorDetails.mensaje = "Error al procesar los datos de asistencia";
         errorDetails.contexto = "Formato de datos inválido";
       }
-      // Si falló la búsqueda en Redis
+      // // Si falló la búsquedan Redis
       else if (
         error.message.includes(
           "No se encontró el ID del archivo de respaldo en Redis"
@@ -86,9 +86,9 @@ export async function GET(req: NextRequest) {
         logoutType = LogoutTypes.ERROR_DATOS_NO_DISPONIBLES;
         errorDetails.mensaje =
           "No se pudo encontrar la información de asistencia";
-        errorDetails.siasisComponent = "RDP05"; // Error específico de Redis
+        errorDetails.siasisComponent = "RDP05"; // / Error específico de Redis
       }
-      // Si falló tanto el acceso principal como el respaldo
+      // Si fallónto el acceso principal como el respaldo
       else if (
         error.message.includes("Falló el acceso principal y el respaldo")
       ) {
@@ -98,7 +98,7 @@ export async function GET(req: NextRequest) {
         errorDetails.contexto =
           "Falló tanto el acceso a blob como a Google Drive";
       }
-      // Si es un error HTTP específico
+      // // Si esn error HTTP específico
       else if (
         error.message.includes("Error HTTP en blob") ||
         error.message.includes("Error HTTP en respaldo")
@@ -116,14 +116,13 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// Función para filtrar los datos según el rol
+// //nción para filtrar los datos según el rol
 function filtrarDatosSegunRol(
   datos: DatosAsistenciaHoyIE20935,
   rol: RolesSistema,
   idUsuario: string
 ): BaseAsistenciaResponse {
-  // Datos base para todos los roles
-  const datosBase: BaseAsistenciaResponse = {
+  // // Datos base para todos los rolesnst datosBase: BaseAsistenciaResponse = {
     DiaEvento: datos.DiaEvento,
     FechaUTC: datos.FechaUTC,
     FechaLocalPeru: datos.FechaLocalPeru,
@@ -135,7 +134,7 @@ function filtrarDatosSegunRol(
 
   switch (rol) {
     case RolesSistema.Directivo:
-      // Directivos tienen acceso a todos los datos
+      // // Directivos tnen acceso a todos los datos
       return {
         ...datosBase,
         ListaDePersonalesAdministrativos:
@@ -149,7 +148,7 @@ function filtrarDatosSegunRol(
       } as DirectivoAsistenciaResponse;
 
     case RolesSistema.ProfesorPrimaria:
-      // Profesores de primaria reciben su horario y el de estudiantes de primaria
+      // // Profesores de primaria recin su horario y el de estudiantes de primaria
       return {
         ...datosBase,
         HorarioTomaAsistenciaProfesorPrimaria:
@@ -160,7 +159,7 @@ function filtrarDatosSegunRol(
       } as ProfesorPrimariaAsistenciaResponse;
 
     case RolesSistema.Auxiliar:
-      // Auxiliares reciben su horario y el de estudiantes de secundaria
+      // // Auxiliares recin su horario y el de estudiantes de secundaria
       return {
         ...datosBase,
         HorarioTomaAsistenciaAuxiliares:
@@ -172,7 +171,7 @@ function filtrarDatosSegunRol(
 
     case RolesSistema.ProfesorSecundaria:
     case RolesSistema.Tutor:
-      // Profesores de secundaria y tutores reciben su propio horario y el de estudiantes de secundaria
+      // // Profesores de sendaria y tutores reciben su propio horario y el de estudiantes de secundaria
       const profesorInfo = datos.ListaDeProfesoresSecundaria.find(
         (p) => p.Id_Profesor_Secundaria === idUsuario
       );
@@ -191,14 +190,14 @@ function filtrarDatosSegunRol(
       } as ProfesorTutorSecundariaAsistenciaResponse;
 
     case RolesSistema.Responsable:
-      // Responsables reciben los horarios escolares de primaria y secundaria
+      // // Resnsables reciben los horarios escolares de primaria y secundaria
       return {
         ...datosBase,
         HorariosEscolares: datos.HorariosEscolares,
       } as ResponsableAsistenciaResponse;
 
     case RolesSistema.PersonalAdministrativo:
-      // Personal administrativo recibe solo su propio horario
+      // // Pernal administrativo recibe solo su propio horario
       const personalInfo = datos.ListaDePersonalesAdministrativos.find(
         (p) => p.Id_Personal_Administrativo == idUsuario
       );
@@ -214,7 +213,7 @@ function filtrarDatosSegunRol(
       } as PersonalAdministrativoAsistenciaResponse;
 
     default:
-      // Por defecto, solo devolver los datos base
-      return datosBase;
+      // // Por defecto, solo devolver los datos base
+      retn datosBase;
   }
 }

@@ -18,7 +18,7 @@ import { extraerTipoDeIdentificador } from "@/lib/helpers/extractors/extraerTipo
 import { TiposIdentificadoresTextos } from "@/interfaces/shared/TiposIdentificadores";
 import { extraerIdentificador } from "@/lib/helpers/extractors/extraerIdentificador";
 
-// Componente de card compacta optimizada
+// // Comnente de card compacta optimizada
 interface ConfiguracionBoton {
   texto: string;
   colorClass: string;
@@ -125,8 +125,7 @@ interface RegistroEstudiantesSecundariaManualProps {
 const RegistroEstudiantesSecundariaManual: React.FC<
   RegistroEstudiantesSecundariaManualProps
 > = ({ handlerAuxiliar }) => {
-  // Estados para filtros y datos
-  const [grados, setGrados] = useState<number[]>([]);
+  // // Estados para filtros y datosnst [grados, setGrados] = useState<number[]>([]);
   const [gradoSeleccionado, setGradoSeleccionado] = useState<number | null>(
     null
   );
@@ -144,19 +143,18 @@ const RegistroEstudiantesSecundariaManual: React.FC<
     T_Estudiantes[]
   >([]);
 
-  // Estado para el filtro de búsqueda por nombre
+  // // Estado para el filtro de búsqueda ponombre
   const [busquedaNombre, setBusquedaNombre] = useState<string>("");
 
-  // Estado para estudiantes ya registrados
+  // // Estado para estudntes ya registrados
   const [estudiantesRegistrados, setEstudiantesRegistrados] = useState<
     Set<string>
   >(new Set());
 
-  // Modelos de base de datos
-  const [estudiantesIDB] = useState(() => new BaseEstudiantesIDB());
+  // // Modelos de base de datosnst [estudiantesIDB] = useState(() => new BaseEstudiantesIDB());
   const [aulasIDB] = useState(() => new BaseAulasIDB());
 
-  // Función para determinar el modo de registro actual
+  // //nción para determinar el modo de registro actual
   const determinarModoRegistro = (): ModoRegistro => {
     if (!CONTROL_ASISTENCIA_DE_SALIDA_SECUNDARIA) {
       return ModoRegistro.Entrada;
@@ -168,7 +166,7 @@ const RegistroEstudiantesSecundariaManual: React.FC<
     const horarioSecundaria = handlerAuxiliar.getHorarioEscolarSecundaria();
     const horaActual = fechaActual;
 
-    // Calcular la hora límite (1 hora antes de la salida oficial)
+    // // Calcular la hora límite (1 horantes de la salida oficial)
     const horaLimite = new Date(
       alterarUTCaZonaPeruana(String(horarioSecundaria.Fin))
     );
@@ -180,7 +178,7 @@ const RegistroEstudiantesSecundariaManual: React.FC<
     return horaActual < horaLimite ? ModoRegistro.Entrada : ModoRegistro.Salida;
   };
 
-  // Función para obtener configuración del botón
+  // //nción para obtener configuración del botón
   const obtenerConfiguracionBoton = () => {
     if (!CONTROL_ASISTENCIA_DE_SALIDA_SECUNDARIA) {
       return {
@@ -203,12 +201,12 @@ const RegistroEstudiantesSecundariaManual: React.FC<
     }
   };
 
-  // Cargar grados disponibles al montar
+  // // Cargar grados disnibles al montar
   useEffect(() => {
     cargarGradosDisponibles();
   }, []);
 
-  // Cargar secciones cuando se selecciona un grado
+  // // Cargar seccnes cuando se selecciona un grado
   useEffect(() => {
     if (gradoSeleccionado !== null) {
       cargarSeccionesDelGrado(gradoSeleccionado);
@@ -218,7 +216,7 @@ const RegistroEstudiantesSecundariaManual: React.FC<
     }
   }, [gradoSeleccionado]);
 
-  // Cargar estudiantes cuando se selecciona una sección
+  // // Cargar estudntes cuando se selecciona una sección
   useEffect(() => {
     if (aulaSeleccionada) {
       cargarEstudiantesDelAula(aulaSeleccionada.Id_Aula);
@@ -227,12 +225,12 @@ const RegistroEstudiantesSecundariaManual: React.FC<
     }
   }, [aulaSeleccionada]);
 
-  // Filtrar estudiantes por nombre cuando cambia la búsqueda o los estudiantes del aula
+  // // Filtrar estudntes por nombre cuando cambia la búsqueda o los estudiantes del aula
   useEffect(() => {
     filtrarEstudiantesPorNombre();
   }, [busquedaNombre, estudiantesDelAula]);
 
-  // Función para cargar grados disponibles
+  // //nción para cargar grados disponibles
   const cargarGradosDisponibles = async () => {
     try {
       const todasLasAulas = await aulasIDB.getTodasLasAulas();
@@ -249,7 +247,7 @@ const RegistroEstudiantesSecundariaManual: React.FC<
     }
   };
 
-  // Función para cargar secciones de un grado específico
+  // //nción para cargar secciones de un grado específico
   const cargarSeccionesDelGrado = async (grado: number) => {
     try {
       const todasLasAulas = await aulasIDB.getTodasLasAulas();
@@ -267,7 +265,7 @@ const RegistroEstudiantesSecundariaManual: React.FC<
     }
   };
 
-  // Función para obtener el aula seleccionada
+  // //nción para obtener el aula seleccionada
   const seleccionarAula = async (grado: number, seccion: string) => {
     try {
       const todasLasAulas = await aulasIDB.getTodasLasAulas();
@@ -284,7 +282,7 @@ const RegistroEstudiantesSecundariaManual: React.FC<
     }
   };
 
-  // Función para cargar estudiantes de un aula
+  // //nción para cargar estudiantes de un aula
   const cargarEstudiantesDelAula = async (idAula: string) => {
     try {
       const todosLosEstudiantes = await estudiantesIDB.getTodosLosEstudiantes(
@@ -294,7 +292,7 @@ const RegistroEstudiantesSecundariaManual: React.FC<
         (estudiante) => estudiante.Id_Aula === idAula && estudiante.Estado
       );
 
-      // Ordenar por apellidos
+      // // Ornar por apellidos
       estudiantesDelAula.sort((a, b) =>
         `${a.Apellidos} ${a.Nombres}`.localeCompare(
           `${b.Apellidos} ${b.Nombres}`
@@ -307,7 +305,7 @@ const RegistroEstudiantesSecundariaManual: React.FC<
     }
   };
 
-  // Función para filtrar estudiantes por nombre y apellido
+  // //nción para filtrar estudiantes por nombre y apellido
   const filtrarEstudiantesPorNombre = () => {
     if (!busquedaNombre.trim()) {
       setEstudiantesFiltrados(estudiantesDelAula);
@@ -327,29 +325,29 @@ const RegistroEstudiantesSecundariaManual: React.FC<
     setEstudiantesFiltrados(estudiantesFiltrados);
   };
 
-  // Manejar cambio de grado
+  // //nejar cambio de grado
   const handleGradoChange = (grado: number) => {
     setGradoSeleccionado(grado);
     setSeccionSeleccionada(null);
     setAulaSeleccionada(null);
-    setBusquedaNombre(""); // Limpiar búsqueda
+    setBusquedaNombre(""); // / Limpiar búsqueda
   };
 
-  // Manejar cambio de sección
+  //nejar cambio de sección
   const handleSeccionChange = (seccion: string) => {
     setSeccionSeleccionada(seccion);
-    setBusquedaNombre(""); // Limpiar búsqueda
-    if (gradoSeleccionado !== null) {
+    setBusquedaNombre(""); // / Limpiar búsqueda
+    if (gradoSeleccnado !== null) {
       seleccionarAula(gradoSeleccionado, seccion);
     }
   };
 
-  // Manejar cambio en el campo de búsqueda
+  // //nejar cambio en el campo de búsqueda
   const handleBusquedaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setBusquedaNombre(e.target.value);
   };
 
-  // Función para marcar asistencia - CON CONTROL DE HORARIO
+  // //nción para marcar asistencia - CON CONTROL DE HORARIO
   const marcarAsistencia = (estudiante: T_Estudiantes) => {
     const fechaActual = handlerAuxiliar.getFechaHoraRedux();
     if (!fechaActual) {
@@ -370,7 +368,7 @@ const RegistroEstudiantesSecundariaManual: React.FC<
     let desfaseSegundos: number;
 
     if (CONTROL_ASISTENCIA_DE_SALIDA_SECUNDARIA) {
-      // Lógica original con entrada/salida
+      // // Lógica orinal con entrada/salida
       const horaLimite = new Date(horaSalidaOficial);
       horaLimite.setHours(
         horaLimite.getHours() -
@@ -390,7 +388,7 @@ const RegistroEstudiantesSecundariaManual: React.FC<
         );
       }
     } else {
-      // Solo entrada, siempre calcular desfase con hora de entrada
+      // // Solontrada, siempre calcular desfase con hora de entrada
       modoRegistro = ModoRegistro.Entrada;
       desfaseSegundos = Math.floor(
         (horaActual.getTime() - horaEntradaOficial.getTime()) / 1000
@@ -419,14 +417,12 @@ const RegistroEstudiantesSecundariaManual: React.FC<
       TipoAsistencia: TipoAsistencia.ParaEstudiantesSecundaria,
     });
 
-    // Agregar a la lista de registrados
-    const nuevosRegistrados = new Set(estudiantesRegistrados);
+    // // Agregar a la lista de registradosnst nuevosRegistrados = new Set(estudiantesRegistrados);
     nuevosRegistrados.add(estudiante.Id_Estudiante);
     setEstudiantesRegistrados(nuevosRegistrados);
   };
 
-  // Limpiar todos los filtros
-  const limpiarFiltros = () => {
+  // // Limpiar todos los filtrosnst limpiarFiltros = () => {
     setGradoSeleccionado(null);
     setSeccionSeleccionada(null);
     setAulaSeleccionada(null);

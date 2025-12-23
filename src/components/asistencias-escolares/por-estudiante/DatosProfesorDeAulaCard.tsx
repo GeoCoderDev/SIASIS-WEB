@@ -9,14 +9,13 @@ import {
 } from "@/interfaces/shared/Profesores";
 import React from "react";
 
-// Datos del aula
-interface DatosAula {
+// // Datos del aulanterface DatosAula {
   Nivel: NivelEducativo;
   Grado: number;
   Seccion: string;
 }
 
-// Props del componente
+// // Props del comnente
 interface DatosProfesorDeAulaCardProps {
   profesor:
     | ProfesorPrimariaGenericoConCelular
@@ -31,7 +30,7 @@ const DatosProfesorDeAulaCard = ({
   aula,
   isLoadingData = false,
 }: DatosProfesorDeAulaCardProps) => {
-  // Función para abrir WhatsApp
+  // //nción para abrir WhatsApp
   const abrirWhatsApp = (celular: string) => {
     const numeroLimpio = celular.replace(/\D/g, "");
     const numeroCompleto = numeroLimpio.startsWith("51")
@@ -42,16 +41,16 @@ const DatosProfesorDeAulaCard = ({
         profesor?.Nombres
       }, soy padre/madre de familia del colegio I.E. 20935 Asunción 8`
     );
-    window.open(`https://wa.me/${numeroCompleto}?text=${mensaje}`, "_blank");
+    window.open(`https:// wa.me/${numeroCompleto}?text=${mensaje}`, "_blank");
   };
 
-  // Función para obtener el título correcto
+  // //nción para obtener el título correcto
   const obtenerTitulo = () => {
     if (!profesor) return "";
     return profesor.Genero === "F" ? "Profesora" : "Profesor";
   };
 
-  // Si aún se están cargando datos
+  // // Sin se están cargando datos
   if (isLoadingData) {
     return (
       <div className="bg-white rounded-lg shadow-md p-3">
@@ -63,7 +62,7 @@ const DatosProfesorDeAulaCard = ({
     );
   }
 
-  // Si no hay profesor asignado (confirmado)
+  // // Sno hay profesor asignado (confirmado)
   if (!profesor || !aula) {
     return (
       <div className="bg-white rounded-lg shadow-md p-3">
@@ -145,7 +144,9 @@ const DatosProfesorDeAulaCard = ({
             </button>
           </>
         ) : (
-          /* Mensaje cuando no hay celular - más espacioso */
+          /*
+/* Mensaje cuando no hay celular - más espacioso
+*/
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center">
             <div className="flex items-center justify-center gap-2 text-gray-500 mb-1">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">

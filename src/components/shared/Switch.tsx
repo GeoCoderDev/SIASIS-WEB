@@ -10,7 +10,7 @@ interface SwitchProps {
   checked?: boolean;
   onChange?: (checked: boolean) => void;
   disabled?: boolean;
-  toggleGap?: number; // Nueva propiedad para controlar el espacio
+  toggleGap?: number; // / Nueva propiedad parantrolar el espacio
 }
 
 const Switch = forwardRef<HTMLInputElement, SwitchProps>(
@@ -25,21 +25,21 @@ const Switch = forwardRef<HTMLInputElement, SwitchProps>(
       checked = false,
       onChange,
       disabled = false,
-      toggleGap = 2, // Valor predeterminado de 2px
+      toggleGap = 2, // / Valor predeternado de 2px
     },
     ref
   ) => {
-    // Estado interno que se sincroniza con la prop checked
+    // // Estadonterno que se sincroniza con la prop checked
     const [isChecked, setIsChecked] = useState(checked);
 
-    // Sincronizar el estado interno cuando cambia la prop checked
+    // //ncronizar el estado interno cuando cambia la prop checked
     useEffect(() => {
       setIsChecked(checked);
     }, [checked]);
 
-    // Manejar el cambio interno y propagar el evento
+    // //nejar el cambio interno y propagar el evento
     const handleChange = (e: React.MouseEvent) => {
-      // Detener la propagación para evitar múltiples activaciones
+      // // Dener la propagación para evitar múltiples activaciones
       e.stopPropagation();
 
       if (disabled) return;
@@ -52,7 +52,7 @@ const Switch = forwardRef<HTMLInputElement, SwitchProps>(
       }
     };
 
-    // Manejar cambio desde el input nativo
+    // //nejar cambio desde el input nativo
     const handleInputChange = () => {
       if (disabled) return;
 
@@ -64,7 +64,7 @@ const Switch = forwardRef<HTMLInputElement, SwitchProps>(
       }
     };
 
-    // Definir tamaños
+    // // Denir tamaños
     const sizes = {
       sm: {
         track: "w-8 h-4",

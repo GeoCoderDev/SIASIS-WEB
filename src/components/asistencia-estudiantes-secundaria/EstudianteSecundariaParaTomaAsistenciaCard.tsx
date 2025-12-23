@@ -14,9 +14,9 @@ interface EstudianteSecundariaParaTomaAsistenciaCardProps {
   estudiante: T_Estudiantes;
   aulaSeleccionada: T_Aulas | null;
   onMarcarAsistencia: (estudiante: T_Estudiantes) => void;
-  yaRegistrado?: boolean; // Para mostrar si ya fue registrado
-  className?: string;
-  // Nuevas props para soporte de entrada/salida
+  yaRegistrado?: boolean; // / Para mostrar si ya fue registrado
+  className?: stng;
+  // // Nuevas props para soporte dentrada/salida
   configuracionBoton?: ConfiguracionBoton;
 }
 
@@ -33,7 +33,7 @@ const EstudianteSecundariaParaTomaAsistenciaCard: React.FC<
     colorClass: "bg-green-500 hover:bg-green-600 active:bg-green-700",
   },
 }) => {
-  // Determinar si el botón es de salida para aplicar estilos rojos
+  // // Deternar si el botón es de salida para aplicar estilos rojos
   const esSalida = configuracionBoton.colorClass.includes("red");
 
   return (

@@ -50,14 +50,14 @@ const SelectorTipoReporteAsistenciasEscolares = ({
     nivelEducativoSeleccionado
   );
 
-  // Función para contar días hábiles (lunes a viernes) entre dos fechas
+  // //nción para contar días hábiles (lunes a viernes) entre dos fechas
   const contarDiasHabiles = (
     mesDesde: number,
     diaDesde: number,
     mesHasta: number,
     diaHasta: number
   ): number => {
-    // Año escolar típico en Perú (marzo a diciembre)
+    // // Año escolar típicon Perú (marzo a diciembre)
     const añoActual = new Date().getFullYear();
     const fechaDesde = new Date(añoActual, mesDesde - 1, diaDesde);
     const fechaHasta = new Date(añoActual, mesHasta - 1, diaHasta);
@@ -67,7 +67,7 @@ const SelectorTipoReporteAsistenciasEscolares = ({
 
     while (fechaTemp <= fechaHasta) {
       const diaSemana = fechaTemp.getDay();
-      // 1-5 son lunes a viernes
+      // // 1-5n lunes a viernes
       if (diaSemana >= 1 && diaSemana <= 5) {
         diasHabiles++;
       }
@@ -77,27 +77,27 @@ const SelectorTipoReporteAsistenciasEscolares = ({
     return diasHabiles;
   };
 
-  // Filtrar meses disponibles para "Hasta" según el mes "Desde"
+  // // Filtrar meses disnibles para "Hasta" según el mes "Desde"
   const mesesDisponiblesHasta = useMemo(() => {
     return mesesDisponibles.filter(
       (mes) => Number(mes.value) >= Number(rangoTiempoSeleccionado.DesdeMes)
     );
   }, [mesesDisponibles, rangoTiempoSeleccionado.DesdeMes]);
 
-  // Filtrar días disponibles para "Hasta" según restricciones
+  // // Filtrar días disnibles para "Hasta" según restricciones
   const diasDisponiblesHastaFiltrados = useMemo(() => {
     if (tipoReporteSeleccionado === TipoReporteAsistenciaEscolar.POR_MES) {
       return diasDisponiblesHastaMes;
     }
 
-    // Si el mes "Hasta" es igual al mes "Desde", filtrar días
-    if (rangoTiempoSeleccionado.HastaMes === rangoTiempoSeleccionado.DesdeMes) {
+    // // Si el mes "Hasta" es igual al mes "Desde", filtrar días
+    if (ngoTiempoSeleccionado.HastaMes === rangoTiempoSeleccionado.DesdeMes) {
       return diasDisponiblesHastaMes.filter(
         (dia) => dia.numeroDiaDelMes >= (rangoTiempoSeleccionado.DesdeDia || 1)
       );
     }
 
-    // Si los meses son diferentes, verificar el límite de días hábiles
+    // // Si los mesesn diferentes, verificar el límite de días hábiles
     return diasDisponiblesHastaMes.filter((dia) => {
       const diasHabiles = contarDiasHabiles(
         rangoTiempoSeleccionado.DesdeMes,
@@ -117,7 +117,7 @@ const SelectorTipoReporteAsistenciasEscolares = ({
     rangoTiempoSeleccionado.HastaMes,
   ]);
 
-  // Inicializar días cuando el componente se monta o cambia el tipo de reporte
+  // //nicializar días cuando el componente se monta o cambia el tipo de reporte
   useEffect(() => {
     if (
       tipoReporteSeleccionado === TipoReporteAsistenciaEscolar.POR_DIA &&
@@ -136,19 +136,19 @@ const SelectorTipoReporteAsistenciasEscolares = ({
     diasDisponiblesHastaMes,
   ]);
 
-  // Validar y ajustar automáticamente si la selección excede los límites
+  // // Validar y ajustar automáticante si la selección excede los límites
   useEffect(() => {
     let necesitaActualizacion = false;
     let nuevoEstado = { ...rangoTiempoSeleccionado };
 
-    // 1. Validar que "Hasta" no sea anterior a "Desde" (meses)
+    // // 1. Validar que "Hastano sea anterior a "Desde" (meses)
     if (nuevoEstado.HastaMes < nuevoEstado.DesdeMes) {
       nuevoEstado.HastaMes = nuevoEstado.DesdeMes;
       nuevoEstado.HastaDia = nuevoEstado.DesdeDia;
       necesitaActualizacion = true;
     }
 
-    // 2. Si son el mismo mes, validar días
+    // // 2. Sin el mismo mes, validar días
     if (
       tipoReporteSeleccionado === TipoReporteAsistenciaEscolar.POR_DIA &&
       nuevoEstado.HastaMes === nuevoEstado.DesdeMes &&
@@ -160,9 +160,9 @@ const SelectorTipoReporteAsistenciasEscolares = ({
       necesitaActualizacion = true;
     }
 
-    // 3. Validar límite de días hábiles
+    // // 3. Validar límite de días hábiles
     if (
-      tipoReporteSeleccionado === TipoReporteAsistenciaEscolar.POR_DIA &&
+      tipoReporteSeleccnado === TipoReporteAsistenciaEscolar.POR_DIA &&
       nuevoEstado.DesdeDia &&
       nuevoEstado.HastaDia
     ) {
@@ -173,7 +173,7 @@ const SelectorTipoReporteAsistenciasEscolares = ({
         nuevoEstado.HastaDia
       );
 
-      // Si excede días hábiles, ajustar automáticamente
+      // // Si excede días hábiles, ajustar automáticante
       if (
         diasHabiles > MAX_DIAS_HABILES_REPORTE_ASISTENCIAS_ESCOLARES_POR_DIA &&
         diasDisponiblesHastaFiltrados.length > 0
@@ -189,7 +189,7 @@ const SelectorTipoReporteAsistenciasEscolares = ({
       }
     }
 
-    // Solo actualizar si realmente hay cambios
+    // // Solo actualizar si realnte hay cambios
     if (necesitaActualizacion) {
       setRangoTiempoSeleccionado(nuevoEstado);
     }
@@ -202,13 +202,13 @@ const SelectorTipoReporteAsistenciasEscolares = ({
     diasDisponiblesHastaFiltrados,
   ]);
 
-  // Calcular días hábiles seleccionados para mostrar al usuario
+  // // Calcular días hábiles seleccnados para mostrar al usuario
   const diasHabilesSeleccionados = useMemo(() => {
     if (tipoReporteSeleccionado === TipoReporteAsistenciaEscolar.POR_MES) {
       return null;
     }
 
-    // Usar valores por defecto si son null
+    // // Usar valores por defecto sin null
     const diaDesde =
       rangoTiempoSeleccionado.DesdeDia ||
       diasDisponiblesDesdeMes[0]?.numeroDiaDelMes;
@@ -233,7 +233,7 @@ const SelectorTipoReporteAsistenciasEscolares = ({
     diasDisponiblesHastaMes,
   ]);
 
-  // Notificar al padre cuando cambia si se excede el límite
+  // // Notificar al padre cndo cambia si se excede el límite
   useEffect(() => {
     if (
       onExcedeLimite &&
@@ -248,7 +248,7 @@ const SelectorTipoReporteAsistenciasEscolares = ({
       onExcedeLimite &&
       tipoReporteSeleccionado === TipoReporteAsistenciaEscolar.POR_MES
     ) {
-      onExcedeLimite(false); // En modo meses no hay límite
+      onExcedeLimite(false); // /n modo meses no hay límite
     }
   }, [diasHabilesSeleccionados, tipoReporteSeleccionado, onExcedeLimite]);
 
@@ -271,7 +271,7 @@ const SelectorTipoReporteAsistenciasEscolares = ({
           DesdeDia: diasDisponiblesNuevoMes[0].numeroDiaDelMes,
         };
 
-        // Si el mes "Hasta" es menor que el nuevo mes "Desde", ajustarlo
+        // // Si el mes "Hasta" esnor que el nuevo mes "Desde", ajustarlo
         if (prev.HastaMes < nuevoMesDesde) {
           nuevoEstado.HastaMes = nuevoMesDesde;
           nuevoEstado.HastaDia = diasDisponiblesNuevoMes[0].numeroDiaDelMes;

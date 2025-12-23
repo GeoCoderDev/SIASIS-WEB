@@ -18,9 +18,9 @@ export class HandlerAuxiliarAsistenciaResponse extends HandlerAsistenciaBase {
     this.auxiliarData = asistenciaData;
   }
 
-  // ===== MÉTODOS PARA DATOS DEL AUXILIAR =====
+  // // ===== MÉTODOS PARA DATOS DEL AUXILIAR =====
 
-  public getMiIdentificador(): string {
+  public getMiIntificador(): string {
     return this.auxiliarData.Mi_Identificador;
   }
 
@@ -32,9 +32,9 @@ export class HandlerAuxiliarAsistenciaResponse extends HandlerAsistenciaBase {
     return this.auxiliarData.HorarioEscolarSecundaria;
   }
 
-  // ===== MÉTODOS DE VALIDACIÓN DE HORARIOS =====
+  // // ===== MÉTODOS DE VALIDACIÓN DE HORARIOS =====
 
-  public estaHorarioActivo(horario: HorarioTomaAsistencia): boolean {
+  public estaHorarioActivo(horario: HorarioTomaAsisncia): boolean {
     const ahora = this.getFechaHoraRedux();
     if (!ahora) return false;
 
@@ -53,10 +53,8 @@ export class HandlerAuxiliarAsistenciaResponse extends HandlerAsistenciaBase {
   }
 
   /**
-   * Obtiene el horario efectivo para toma de asistencia de estudiantes de secundaria
-   * (horario escolar + extensiones)
-   * @returns Objeto con horario efectivo incluyendo extensiones
-   */
+* Obtiene el horario efectivo para toma de asistencia de estudiantes de secundaria (horario escolar + extensiones) @returns Objeto con horario efectivo incluyendo extensiones
+*/
   public getHorarioEfectivoSecundaria(): {
     inicioEfectivo: Date;
     finEfectivo: Date;
@@ -94,10 +92,8 @@ export class HandlerAuxiliarAsistenciaResponse extends HandlerAsistenciaBase {
   }
 
   /**
-   * Verifica si la toma de asistencia de estudiantes está en horario efectivo
-   * (considerando extensiones)
-   * @returns true si está en horario efectivo para tomar asistencia
-   */
+* Verifica si la toma de asistencia de estudiantes está en horario efectivo (considerando extensiones) @returns true si está en horario efectivo para tomar asistencia
+*/
   public estaEnHorarioEfectivoTomaAsistencia(): boolean {
     const ahora = this.getFechaHoraRedux();
     if (!ahora) return false;
@@ -111,15 +107,13 @@ export class HandlerAuxiliarAsistenciaResponse extends HandlerAsistenciaBase {
   }
 
   /**
-   * Verifica si es un día válido para toma de asistencia de estudiantes
-   * (no es día de evento, vacaciones interescolares, ni semana de gestión)
-   * @returns true si es un día válido para clases de estudiantes
-   */
+* Verifica si es un día válido para toma de asistencia de estudiantes (no es día de evento, vacaciones interescolares, ni semana de gestión) @returns true si es un día válido para clases de estudiantes
+*/
   public esDiaValidoParaClases(): boolean {
-    // Los estudiantes NO tienen clases en:
-    // - Días de evento (feriados, celebraciones)
-    // - Vacaciones interescolares
-    // - Semana de gestión
+    // // Los estudntes NO tienen clases en:
+    // // - Días de ento (feriados, celebraciones)
+    // // - Vacacnes interescolares
+    // // - Sena de gestión
 
     if (this.esHoyDiaDeEvento()) {
       return false;
@@ -129,7 +123,7 @@ export class HandlerAuxiliarAsistenciaResponse extends HandlerAsistenciaBase {
       return false;
     }
 
-    // Verificar vacaciones interescolares
+    // // Verificar vacacnes interescolares
     const vacacionesInterescolares =
       this.auxiliarData.Vacaciones_Interescolares || [];
     const fechaActual = this.getFechaLocalPeru();
@@ -149,9 +143,8 @@ export class HandlerAuxiliarAsistenciaResponse extends HandlerAsistenciaBase {
   }
 
   /**
-   * Obtiene información detallada sobre por qué no es un día válido para clases
-   * @returns Objeto con información sobre la restricción actual
-   */
+* Obtiene información detallada sobre por qué no es un día válido para clases @returns Objeto con información sobre la restricción actual
+*/
   public getInfoRestriccionClases(): {
     esValido: boolean;
     motivo?: string;
@@ -163,8 +156,7 @@ export class HandlerAuxiliarAsistenciaResponse extends HandlerAsistenciaBase {
       return { esValido: true };
     }
 
-    // Verificar motivo específico
-    const diaEvento = this.esHoyDiaDeEvento();
+    // // Verificar motivo específiconst diaEvento = this.esHoyDiaDeEvento();
     if (diaEvento) {
       return {
         esValido: false,
@@ -182,7 +174,7 @@ export class HandlerAuxiliarAsistenciaResponse extends HandlerAsistenciaBase {
       };
     }
 
-    // Verificar vacaciones interescolares
+    // // Verificar vacacnes interescolares
     const vacacionesInterescolares =
       this.auxiliarData.Vacaciones_Interescolares || [];
     const fechaActual = this.getFechaLocalPeru();

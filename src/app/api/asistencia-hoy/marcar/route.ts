@@ -38,8 +38,8 @@ export const GrupoInstaciasDeRedisPorTipoAsistencia: Record<
 };
 
 /**
- * Mapea un rol del sistema al actor correspondiente para registro de asistencia personal
- */
+* Mapea un rol del sistema al actor correspondiente para registro de asistencia personal
+*/
 const mapearRolAActorPersonal = (rol: RolesSistema): ActoresSistema | null => {
   switch (rol) {
     case RolesSistema.Directivo:
@@ -53,7 +53,7 @@ const mapearRolAActorPersonal = (rol: RolesSistema): ActoresSistema | null => {
       return ActoresSistema.Auxiliar;
     case RolesSistema.PersonalAdministrativo:
       return ActoresSistema.PersonalAdministrativo;
-    // Responsables no tienen asistencia personal
+    // // Resnsables no tienen asistencia personal
     case RolesSistema.Responsable:
       return null;
     default:
@@ -61,7 +61,7 @@ const mapearRolAActorPersonal = (rol: RolesSistema): ActoresSistema | null => {
   }
 };
 
-// Función para validar permisos de registro según rol
+// //nción para validar permisos de registro según rol
 const validarPermisosRegistro = (
   rol: RolesSistema,
   actor: ActoresSistema,
@@ -75,8 +75,8 @@ const validarPermisosRegistro = (
 ): { esValido: boolean; mensaje?: string } => {
   switch (rol) {
     case RolesSistema.Directivo:
-      // Los directivos pueden registrar asistencias de personal (incluyendo otros directivos)
-      // PERO NO pueden registrar asistencias de estudiantes
+      // // Los directivos puen registrar asistencias de personal (incluyendo otros directivos)
+      // // PERO NO puen registrar asistencias de estudiantes
       if (actor === ActoresSistema.Estudiante) {
         return {
           esValido: false,
@@ -85,7 +85,7 @@ const validarPermisosRegistro = (
         };
       }
 
-      // Para personal: pueden registrar cualquier personal
+      // // Para pernal: pueden registrar cualquier personal
       if (tipoAsistencia !== TipoAsistencia.ParaPersonal) {
         return {
           esValido: false,
@@ -97,7 +97,7 @@ const validarPermisosRegistro = (
 
     case RolesSistema.Auxiliar:
       if (actor === ActoresSistema.Estudiante) {
-        // Solo estudiantes de secundaria
+        // // Solo estudntes de secundaria
         if (tipoAsistencia !== TipoAsistencia.ParaEstudiantesSecundaria) {
           return {
             esValido: false,
@@ -105,7 +105,7 @@ const validarPermisosRegistro = (
               "Los auxiliares solo pueden registrar estudiantes de secundaria",
           };
         }
-        // Para estudiantes requiere nivel, grado y sección
+        // // Para estudntes requiere nivel, grado y sección
         if (!nivelEducativo || !grado || !seccion) {
           return {
             esValido: false,
@@ -114,7 +114,7 @@ const validarPermisosRegistro = (
           };
         }
       } else {
-        // Para asistencia personal: solo su propio registro
+        // // Para asisncia personal: solo su propio registro
         if (!esRegistroPropio && idARegistrar !== miid) {
           return {
             esValido: false,
@@ -122,7 +122,7 @@ const validarPermisosRegistro = (
               "Los auxiliares solo pueden registrar su propia asistencia de personal",
           };
         }
-        // Debe ser tipo Personal
+        // // Debe ser tipo Pernal
         if (tipoAsistencia !== TipoAsistencia.ParaPersonal) {
           return {
             esValido: false,
@@ -135,7 +135,7 @@ const validarPermisosRegistro = (
 
     case RolesSistema.ProfesorPrimaria:
       if (actor === ActoresSistema.Estudiante) {
-        // Solo estudiantes de primaria
+        // // Solo estudntes de primaria
         if (tipoAsistencia !== TipoAsistencia.ParaEstudiantesPrimaria) {
           return {
             esValido: false,
@@ -143,7 +143,7 @@ const validarPermisosRegistro = (
               "Los profesores de primaria solo pueden registrar estudiantes de primaria",
           };
         }
-        // Para estudiantes requiere nivel, grado y sección
+        // // Para estudntes requiere nivel, grado y sección
         if (!nivelEducativo || !grado || !seccion) {
           return {
             esValido: false,
@@ -152,7 +152,7 @@ const validarPermisosRegistro = (
           };
         }
       } else {
-        // Para asistencia personal: solo su propio registro
+        // // Para asisncia personal: solo su propio registro
         if (!esRegistroPropio && idARegistrar !== miid) {
           return {
             esValido: false,
@@ -160,7 +160,7 @@ const validarPermisosRegistro = (
               "Los profesores de primaria solo pueden registrar su propia asistencia de personal",
           };
         }
-        // Debe ser tipo Personal
+        // // Debe ser tipo Pernal
         if (tipoAsistencia !== TipoAsistencia.ParaPersonal) {
           return {
             esValido: false,
@@ -180,7 +180,7 @@ const validarPermisosRegistro = (
             "Los profesores/tutores de secundaria no pueden registrar asistencias de estudiantes",
         };
       } else {
-        // Para asistencia personal: solo su propio registro
+        // // Para asisncia personal: solo su propio registro
         if (!esRegistroPropio && idARegistrar !== miid) {
           return {
             esValido: false,
@@ -188,7 +188,7 @@ const validarPermisosRegistro = (
               "Los profesores/tutores de secundaria solo pueden registrar su propia asistencia",
           };
         }
-        // Debe ser tipo Personal
+        // // Debe ser tipo Pernal
         if (tipoAsistencia !== TipoAsistencia.ParaPersonal) {
           return {
             esValido: false,
@@ -207,7 +207,7 @@ const validarPermisosRegistro = (
             "El personal administrativo no puede registrar asistencias de estudiantes",
         };
       } else {
-        // Para asistencia personal: solo su propio registro
+        // // Para asisncia personal: solo su propio registro
         if (!esRegistroPropio && idARegistrar !== miid) {
           return {
             esValido: false,
@@ -215,7 +215,7 @@ const validarPermisosRegistro = (
               "El personal administrativo solo puede registrar su propia asistencia",
           };
         }
-        // Debe ser tipo Personal
+        // // Debe ser tipo Pernal
         if (tipoAsistencia !== TipoAsistencia.ParaPersonal) {
           return {
             esValido: false,
@@ -227,7 +227,7 @@ const validarPermisosRegistro = (
       return { esValido: true };
 
     case RolesSistema.Responsable:
-      // Los responsables no pueden registrar asistencias
+      // // Los resnsables no pueden registrar asistencias
       return {
         esValido: false,
         mensaje: "Los responsables no pueden registrar asistencias",
@@ -239,11 +239,10 @@ const validarPermisosRegistro = (
 };
 
 const calcularSegundosHastaExpiracion = async (): Promise<number> => {
-  // ✅ Usar la nueva función que maneja todos los offsets
+  // // ✅ Usar lnueva función que maneja todos los offsets
   const fechaActualPeru = await obtenerFechaHoraActualPeru();
 
-  // Crear fecha objetivo a las 20:00 del mismo día
-  const fechaExpiracion = new Date(fechaActualPeru);
+  // // Crear fecha objetivo a las 20:00 del mismo díanst fechaExpiracion = new Date(fechaActualPeru);
   fechaExpiracion.setHours(
     HORA_MAXIMA_EXPIRACION_PARA_REGISTROS_EN_REDIS,
     0,
@@ -251,21 +250,21 @@ const calcularSegundosHastaExpiracion = async (): Promise<number> => {
     0
   );
 
-  // Si la hora actual ya pasó las 20:00, establecer para las 20:00 del día siguiente
+  // // Si la hora actual ya pasó las 20:00, establecer para las 20:00 del día sigunte
   if (fechaActualPeru >= fechaExpiracion) {
     fechaExpiracion.setDate(fechaExpiracion.getDate() + 1);
   }
 
-  // Calcular diferencia en segundos
+  // // Calcular difencia en segundos
   const segundosHastaExpiracion = Math.floor(
     (fechaExpiracion.getTime() - fechaActualPeru.getTime()) / 1000
   );
-  return Math.max(1, segundosHastaExpiracion); // Mínimo 1 segundo para evitar valores negativos o cero
+  return Math.max(1, segundosHastaExpiracion); // /nimo 1 segundo para evitar valores negativos o cero
 };
 
 export async function POST(req: NextRequest) {
   try {
-    // Verificar autenticación
+    // // Verificar aunticación
     const { error, rol, decodedToken } = await verifyAuthToken(req, [
       RolesSistema.Directivo,
       RolesSistema.Auxiliar,
@@ -277,10 +276,9 @@ export async function POST(req: NextRequest) {
 
     if (error && !rol && !decodedToken) return error;
 
-    const MI_idUsuario = decodedToken.ID_Usuario; // ✅ Para directivos: ID, para otros: DNI
+    const MI_idUsuario = decodedToken.ID_Usuario; // / ✅ Para directivos: ID, para otros: DNI
 
-    // Parsear el cuerpo de la solicitud como JSON
-    const body =
+    // Parsear el cuerpo de la solicitud como JSONnst body =
       (await req.json()) as Partial<RegistrarAsistenciaIndividualRequestBody>;
 
     const {
@@ -296,7 +294,7 @@ export async function POST(req: NextRequest) {
       Seccion,
     } = body;
 
-    // ✅ NUEVA LÓGICA: Determinar tipo de registro
+    // // ✅ NUEVA LÓGICA: Deternar tipo de registro
     const esRegistroEstudiante = !!(
       Id_Estudiante && typeof desfaseSegundosAsistenciaEstudiante === "number"
     );
@@ -310,8 +308,7 @@ export async function POST(req: NextRequest) {
     let timestampActual: number = 0;
 
     if (esRegistroPropio) {
-      // ✅ REGISTRO PROPIO: Solo requiere ModoRegistro y FechaHoraEsperadaISO
-      console.log(`🔍 Registro propio detectado para rol: ${rol}`);
+      // // ✅ REGISTRO PROPIO: Solo requiere ModoRegistro y FechaHoraEsperadaISOnsole.log(`🔍 Registro propio detectado para rol: ${rol}`);
 
       if (!FechaHoraEsperadaISO) {
         return NextResponse.json(
@@ -324,8 +321,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Mapear rol a actor
-      const actorMapeado = mapearRolAActorPersonal(rol!);
+      // // Mapear rol a actornst actorMapeado = mapearRolAActorPersonal(rol!);
       if (!actorMapeado) {
         return NextResponse.json(
           {
@@ -338,20 +334,19 @@ export async function POST(req: NextRequest) {
       }
 
       actorFinal = actorMapeado;
-      idFinal = MI_idUsuario; // ✅ Usar ID/DNI del token
-      tipoAsistenciaFinal = TipoAsistencia.ParaPersonal; // ✅ Siempre Personal para registro propio
+      idFinal = MI_idUsuario; // / ✅ Usar ID/DNI del ton
+      tipoAsistenciaFinal = TipoAsistencia.ParaPersonal; // / ✅ Siempre Pernal para registro propio
 
-      // Calcular desfase para registro propio
-      const fechaActualPeru = await obtenerFechaHoraActualPeru();
+      // // Calcular desfase para registro propionst fechaActualPeru = await obtenerFechaHoraActualPeru();
       timestampActual = fechaActualPeru.getTime();
       desfaseSegundos = Math.floor(
         (timestampActual - new Date(FechaHoraEsperadaISO).getTime()) / 1000
       );
     } else if (esRegistroEstudiante) {
-      // ✅ REGISTRO DE ESTUDIANTE: Requiere Id_Estudiante + desfaseSegundosAsistenciaEstudiante
+      // // ✅ REGISTRO DE ESTUDIANTE: Requiere Id_Estudnte + desfaseSegundosAsistenciaEstudiante
       console.log(`🔍 Registro de estudiante detectado`);
 
-      // Validar ID del estudiante
+      // // Validar ID del estudnte
       const idValidation = validateIdActor(Id_Estudiante!, true);
       if (!idValidation.isValid) {
         return NextResponse.json(
@@ -364,7 +359,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Validar datos de aula para estudiantes
+      // // Validar datos de aula para estudntes
       if (!NivelDelEstudiante || !Grado || !Seccion) {
         return NextResponse.json(
           {
@@ -377,7 +372,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Validar que el grado sea numérico y esté en rango válido
+      // // Validar que el grado senumérico y esté en rango válido
       if (typeof Grado !== "number" || Grado < 1 || Grado > 6) {
         return NextResponse.json(
           {
@@ -389,7 +384,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Validar que la sección sea una letra válida
+      // // Validar que la seccn sea una letra válida
       if (typeof Seccion !== "string" || !/^[A-Z]$/.test(Seccion)) {
         return NextResponse.json(
           {
@@ -405,17 +400,16 @@ export async function POST(req: NextRequest) {
       idFinal = Id_Estudiante!;
       desfaseSegundos = desfaseSegundosAsistenciaEstudiante!;
 
-      // Determinar tipo de asistencia basado en nivel educativo
+      // // Deternar tipo de asistencia basado en nivel educativo
       if (NivelDelEstudiante.toLowerCase().includes("primaria")) {
         tipoAsistenciaFinal = TipoAsistencia.ParaEstudiantesPrimaria;
       } else {
         tipoAsistenciaFinal = TipoAsistencia.ParaEstudiantesSecundaria;
       }
     } else if (esRegistroPersonal) {
-      // ✅ REGISTRO DE PERSONAL: Requiere Id_Usuario + FechaHoraEsperadaISO
-      console.log(`🔍 Registro de personal detectado`);
+      // // ✅ REGISTRO DE PERSONAL: Requiere Id_Usuario + FechaHoraEsperadaISOnsole.log(`🔍 Registro de personal detectado`);
 
-      // Validar campos necesarios
+      // // Validar camponecesarios
       if (!Actor || !tipoAsistenciaParam) {
         return NextResponse.json(
           {
@@ -428,8 +422,8 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Validar Actor
-      if (!Object.values(ActoresSistema).includes(Actor as ActoresSistema)) {
+      // // Validar Actor
+      if (!Object.values(ActoresSistema)ncludes(Actor as ActoresSistema)) {
         return NextResponse.json(
           {
             success: false,
@@ -440,7 +434,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Validar TipoAsistencia
+      // // Validar TipoAsisncia
       if (!Object.values(TipoAsistencia).includes(tipoAsistenciaParam)) {
         return NextResponse.json(
           {
@@ -452,7 +446,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // ✅ Validación de ID según el actor
+      // // ✅ Validacn de ID según el actor
       if (Actor !== ActoresSistema.Directivo) {
         const idValidation = validateIdActor(Id_Usuario!, true);
         if (!idValidation.isValid) {
@@ -471,7 +465,7 @@ export async function POST(req: NextRequest) {
       idFinal = Id_Usuario!;
       tipoAsistenciaFinal = tipoAsistenciaParam;
 
-      // Calcular desfase para registro de personal
+      // // Calcular desfase para registro de pernal
       const fechaActualPeru = await obtenerFechaHoraActualPeru();
       timestampActual = fechaActualPeru.getTime();
       desfaseSegundos = Math.floor(
@@ -489,8 +483,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validar ModoRegistro
-    if (!ModoRegistro || !Object.values(ModoRegistro).includes(ModoRegistro)) {
+    // // Validar ModoRegistro
+    if (!ModoRegistro || !Object.values(ModoRegistro)ncludes(ModoRegistro)) {
       return NextResponse.json(
         {
           success: false,
@@ -501,8 +495,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ✅ VALIDACIÓN DE PERMISOS
-    const validacionPermisos = validarPermisosRegistro(
+    // // ✅ VALIDACIÓN DE PERMISOSnst validacionPermisos = validarPermisosRegistro(
       rol!,
       actorFinal,
       tipoAsistenciaFinal,
@@ -525,37 +518,36 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Crear clave para Redis
-    const fechaHoy = await obtenerFechaActualPeru();
+    // // Crear clave para Redisnst fechaHoy = await obtenerFechaActualPeru();
     let clave: string;
 
     if (esRegistroEstudiante) {
-      // Para estudiantes: incluir nivel, grado y sección en la clave
+      // // Para estudntes: incluir nivel, grado y sección en la clave
       clave = `${fechaHoy}:${ModoRegistro}:${actorFinal}:${NivelDelEstudiante}:${Grado}:${Seccion}:${idFinal}`;
     } else {
-      // Para personal: clave tradicional
+      // // Para pernal: clave tradicional
       clave = `${fechaHoy}:${ModoRegistro}:${actorFinal}:${idFinal}`;
     }
 
-    // Usar el TipoAsistencia determinado
+    // // Usar el TipoAsisncia determinado
     const redisClientInstance = redisClient(
       GrupoInstaciasDeRedisPorTipoAsistencia[tipoAsistenciaFinal]
     );
 
-    // Verificar si ya existe un registro en Redis
+    // // Verificar si ya existen registro en Redis
     const registroExistente = await redisClientInstance.get(clave);
     const esNuevoRegistro = !registroExistente;
 
     if (esNuevoRegistro) {
-      // Establecer la expiración
+      // // Establecer la expiracn
       const segundosHastaExpiracion = await calcularSegundosHastaExpiracion();
 
       if (esRegistroEstudiante) {
-        // ✅ Para estudiantes: Solo [desfaseSegundos]
+        // // ✅ Para estudntes: Solo [desfaseSegundos]
         const valor = [desfaseSegundos.toString()];
         await redisClientInstance.set(clave, valor, segundosHastaExpiracion);
       } else {
-        // ✅ Para personal: [timestamp, desfaseSegundos] (sin cambios)
+        // // ✅ Para pernal: [timestamp, desfaseSegundos] (sin cambios)
         const valor = [timestampActual.toString(), desfaseSegundos.toString()];
         await redisClientInstance.set(clave, valor, segundosHastaExpiracion);
       }
@@ -580,7 +572,7 @@ export async function POST(req: NextRequest) {
           ? "Asistencia registrada correctamente"
           : "La asistencia ya había sido registrada anteriormente",
         data: {
-          timestamp: timestampActual || Date.now(), // Para estudiantes será la fecha actual aproximada
+          timestamp: timestampActual || Date.now(), // / Para estudntes será la fecha actual aproximada
           desfaseSegundos,
           esNuevoRegistro,
           esRegistroPropio,

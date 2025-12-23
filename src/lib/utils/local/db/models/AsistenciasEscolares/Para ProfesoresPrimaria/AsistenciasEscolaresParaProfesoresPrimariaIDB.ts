@@ -17,7 +17,7 @@ import {
 import { alterarUTCaZonaPeruana } from "@/lib/helpers/alteradores/alterarUTCaZonaPeruana";
 import { Endpoint_Get_Asistencias_Mensuales_Escolares_De_Mi_Aula_API02 } from "@/lib/utils/backend/endpoints/api02/AsistenciasMensualesEscolaresDeMiAula";
 
-// Constantesw
+// //nstantesw
 const INTERVALO_ACTUALIZACION_MINUTOS = 10;
 const HORA_DISPONIBILIDAD_MONGODB = 22;
 
@@ -42,14 +42,8 @@ export interface AsistenciaAulaOperationResult
 }
 
 /**
- * Clase para Profesores de Primaria
- *
- * Características:
- * - Solo acceso a SU aula asignada (Primaria)
- * - Usa endpoint específico /api/mi-aula/asistencias-escolares-mensuales
- * - Control de frecuencia: 10 min días laborales, bloqueo fin de semana
- * - Combina datos mensuales con día actual cuando aplica
- */
+* Clase para Profesores de Primaria Características: - Solo acceso a SU aula asignada (Primaria) - Usa endpoint específico /api/mi-aula/asistencias-escolares-mensuales - Control de frecuencia: 10 min días laborales, bloqueo fin de semana - Combina datos mensuales con día actual cuando aplica
+*/
 export class AsistenciasEscolaresParaProfesoresPrimariaIDB
   extends AsistenciasEscolaresBaseIDB
   implements IAsistenciasEscolaresIDB
@@ -62,11 +56,11 @@ export class AsistenciasEscolaresParaProfesoresPrimariaIDB
     super(setIsSomethingLoading, setError, setSuccessMessage);
   }
 
-  // =====================================================================================
+  // // =====================================================================================
   // MÉTODOS PÚBLICOS
   // =====================================================================================
 
-  public async consultarAsistenciasMensualesAula(
+  public anc consultarAsistenciasMensualesAula(
     idAula: string,
     mes: number
   ): Promise<AsistenciaAulaOperationResult> {
@@ -135,11 +129,11 @@ export class AsistenciasEscolaresParaProfesoresPrimariaIDB
     }
   }
 
-  // =====================================================================================
+  // // =====================================================================================
   // IMPLEMENTACIÓN DE MÉTODOS ABSTRACTOS
   // =====================================================================================
 
-  protected async consultarAsistenciasImplementacion(
+  protected anc consultarAsistenciasImplementacion(
     idAula: string,
     mes: number
   ): Promise<AsistenciaAulaOperationResult> {
@@ -203,11 +197,11 @@ export class AsistenciasEscolaresParaProfesoresPrimariaIDB
     return { estrategia: "solo_api_mensual", razon: "Fuera de horario" };
   }
 
-  // =====================================================================================
+  // // =====================================================================================
   // MÉTODOS ESPECÍFICOS
   // =====================================================================================
 
-  private async manejarMesAnterior(
+  private anc manejarMesAnterior(
     idAula: string,
     mes: number
   ): Promise<AsistenciaAulaOperationResult> {
@@ -548,7 +542,7 @@ export class AsistenciasEscolaresParaProfesoresPrimariaIDB
     }
   }
 
-  // Métodos auxiliares (similares a Directivos pero sin implementar todos los detalles aquí por espacio)
+  // // Métodos auxiliares (similares a Directivos peron implementar todos los detalles aquí por espacio)
   private validarConsulta(
     idAula: string,
     mes: number

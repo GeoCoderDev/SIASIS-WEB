@@ -8,84 +8,82 @@ import React, {
 import SiasisSelect from "../inputs/SiasisSelect";
 import SiasisInputText from "../inputs/SiasisInputText";
 
-// Definición clara de la interfaz de propiedades
+// // Denición clara de la interfaz de propiedades
 interface DatoFormularioConEtiquetaProps<R> {
-  // Propiedades básicas
-  etiqueta: string;
+  // // Propiedades básicas
+  etiqueta: stng;
   savedValue?: string | number | null;
   modificatedValue?: string | number | null;
   nombreDato?: keyof R;
   isSomethingLoading: boolean;
 
-  // Propiedades de comportamiento
+  // // Propiedades de comportamnto
   modificable?: boolean;
   modoEdicion?: boolean;
   modificableConModal?: boolean;
   savedValueOculto?: boolean;
   fullWidth?: boolean;
 
-  // Propiedades visuales
-  className?: string;
+  // // Propiedades visuales
+  className?: stng;
   skeletonClassName?: { className: string };
   IconTSX?: ReactElement;
 
-  // Propiedades de tipo de entrada
+  // // Propiedades de tipo dentrada
   inputType?: "text" | "select" | "tel";
   selectValues?: Record<string, string>;
 
-  // Propiedades de control
+  // // Propiedades dentrol
   onChange?: (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
   setModalVisibility?: Dispatch<SetStateAction<boolean>>;
 
-  // Propiedades HTML nativas
+  // // Propiedades HTMnativas
   inputAttributes?: InputHTMLAttributes<HTMLInputElement>;
   selectAttributes?: SelectHTMLAttributes<HTMLSelectElement>;
 }
 
 const DatoFormularioConEtiqueta = <R,>({
-  // Destructuración organizada por categorías
-  // Propiedades básicas
+  // // Destructuracn organizada por categorías
+  // // Propiedades básicas
   etiqueta,
   savedValue,
-  modificatedValue,
-  nombreDato,
+  modificatedValue,nombreDato,
   isSomethingLoading,
 
-  // Propiedades de comportamiento
+  // // Propiedades de comportamnto
   modificable = false,
   modoEdicion = false,
   modificableConModal = false,
   savedValueOculto = false,
   fullWidth = false,
 
-  // Propiedades visuales
+  // // Propiedades visuales
   className = "",
-  skeletonClassName,
+  skelenClassName,
   IconTSX,
 
-  // Propiedades de tipo de entrada
+  // // Propiedades de tipo dentrada
   inputType = "text",
   selectValues,
 
-  // Propiedades de control
+  // // Propiedades dentrol
   onChange,
   setModalVisibility,
 
-  // Propiedades HTML nativas
+  // // Propiedades HTMnativas
   inputAttributes,
   selectAttributes,
 }: DatoFormularioConEtiquetaProps<R>) => {
-  // Clases comunes para tamaños responsivos
+  // // Clases cones para tamaños responsivos
   const textoResponsivo =
     "sxs-only:text-[0.77rem] xs-only:text-[0.81rem] sm-only:text-[0.86rem] md-only:text-[0.9rem] lg-only:text-[0.95rem] xl-only:text-[0.99rem]";
 
-  // Clases para texto "No registrado" (15% más pequeño pero que resalte)
-  const textoNoRegistrado =
+  // // Clases para texto "No registrado" (15% más pequeño pero que resalte)nst textoNoRegistrado =
     "sxs-only:text-[0.65rem] xs-only:text-[0.69rem] sm-only:text-[0.73rem] md-only:text-[0.77rem] lg-only:text-[0.8rem] xl-only:text-[0.85rem] text-gray-500 italic font-medium";
 
-  // Función para renderizar el botón modal (para evitar duplicación)
+  // //nción para renderizar el botón modal (para evitar duplicación)
   const renderBotonModal = () => (
     <div
       className="cursor-pointer flex items-center justify-center bg-amarillo-ediciones rounded-[50%] aspect-square 
@@ -97,15 +95,15 @@ const DatoFormularioConEtiqueta = <R,>({
     </div>
   );
 
-  // Determinar si se debe mostrar el campo de edición
+  // // Deternar si se debe mostrar el campo de edición
   const mostrarInputEdicion =
     modificable && modoEdicion && onChange && modificatedValue !== undefined;
 
-  // Determinar si se debe mostrar el skeleton
-  // Mostramos el skeleton si:
-  // 1. No es savedValueOculto (porque en ese caso no queremos mostrar nada relacionado con el valor)
-  // 2. El savedValue no está definido (undefined o null)
-  // 3. Algo está cargando (isSomethingLoading)
+  // // Deternar si se debe mostrar el skeleton
+  // // Mostramos el skelen si:
+  // // 1. No es savedValueOculto (porquen ese caso no queremos mostrar nada relacionado con el valor)
+  // // 2. El savedValuno está definido (undefined o null)
+  // // 3. Algo está carndo (isSomethingLoading)
   const mostrarSkeleton =
     !savedValueOculto && savedValue === undefined && isSomethingLoading;
 
@@ -171,18 +169,16 @@ const DatoFormularioConEtiqueta = <R,>({
                     </option>
                   ))}
               </SiasisSelect>
-            ) : // : inputType === "tel" ? (
-            //   <SiasisInputTel
-            //     inputAttributes={inputAttributes}
-            //     value={modificatedValue ?? ""}
-            //     name={nombreDato as string}
-            //     onChange={onChange}
-            //     className={className ?? textoResponsivo}
-            //     placeholder={`Ingrese ${etiqueta.toLowerCase()}`}
-            //   />
-            // )
-
-            null}
+            ) : // / :nputType === "tel" ? (
+            // // <SiasinputTel
+            // //nputAttributes={inputAttributes}
+            // // value={modificatedValue ?? ""}
+            /name={nombreDato as string}
+            // //nChange={onChange}
+            // // className={className ?? textoResnsivo}
+            // // placeholder={ngrese ${etiqueta.toLowerCase()}`}
+            // // />
+            // )null}
           </>
         )}
 

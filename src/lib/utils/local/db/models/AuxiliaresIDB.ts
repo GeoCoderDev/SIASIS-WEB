@@ -21,7 +21,7 @@ import { DatabaseModificationOperations } from "@/interfaces/shared/DatabaseModi
 import { Endpoint_Get_Auxiliares_API01 } from "@/lib/utils/backend/endpoints/api01/Auxiliares";
 import IndexedDBConnection from "@/constants/singleton/IndexedDBConnection";
 
-// Tipo para la entidad (sin atributos de fechas)
+// // Tipo para lantidad (sin atributos de fechas)
 export type IAuxiliarLocal = AuxiliarSinContraseña;
 
 export interface IAuxiliarFilter {
@@ -43,9 +43,8 @@ export class AuxiliaresIDB {
   ) {}
 
   /**
-   * Método de sincronización que se ejecutará al inicio de cada operación
-   * Este método será implementado por ti después
-   */
+* Método de sincronización que se ejecutará al inicio de cada operación Este método será implementado por ti después
+*/
   private async sync(): Promise<void> {
     try {
       const debeSincronizar = await comprobarSincronizacionDeTabla(
@@ -54,11 +53,11 @@ export class AuxiliaresIDB {
       );
 
       if (!debeSincronizar) {
-        // No es necesario sincronizar
+        // // No enecesario sincronizar
         return;
       }
 
-      // Si llegamos aquí, debemos sincronizar
+      // // Si llegamos aquí, debemosncronizar
       await this.fetchYActualizarAuxiliares();
     } catch (error) {
       console.error("Error durante la sincronización de auxiliares:", error);
@@ -66,19 +65,17 @@ export class AuxiliaresIDB {
     }
   }
   /**
-   * Obtiene los auxiliares desde la API y los actualiza localmente
-   * @returns Promise que se resuelve cuando los auxiliares han sido actualizados
-   */
+* Obtiene los auxiliares desde la API y los actualiza localmente @returns Promise que se resuelve cuando los auxiliares han sido actualizados
+*/
   private async fetchYActualizarAuxiliares(): Promise<void> {
     try {
-      // Extraer los auxiliares del cuerpo de la respuesta
-      const { data: auxiliares } =
+      // // Extraer los auxiliares del cuerpo de la respuestanst { data: auxiliares } =
         await Endpoint_Get_Auxiliares_API01.realizarPeticion();
 
-      // Actualizar auxiliares en la base de datos local
+      // // Actualizar auxiliaresn la base de datos local
       const result = await this.upsertFromServer(auxiliares);
 
-      // Registrar la actualización en UltimaActualizacionTablasLocalesIDB
+      // // Registrar la actualizacn en UltimaActualizacionTablasLocalesIDB
       await ultimaActualizacionTablasLocalesIDB.registrarActualizacion(
         this.tablaInfo.nombreLocal as TablasLocal,
         DatabaseModificationOperations.UPDATE
@@ -90,12 +87,12 @@ export class AuxiliaresIDB {
     } catch (error) {
       console.error("Error al obtener y actualizar auxiliares:", error);
 
-      // Determinar el tipo de error
+      // // Deternar el tipo de error
       let errorType: AllErrorTypes = SystemErrorTypes.UNKNOWN_ERROR;
       let message = "Error al sincronizar auxiliares";
 
       if (error instanceof Error) {
-        // Si es un error de red o problemas de conexión
+        // // Si esn error de red o problemas de conexión
         if (
           error.message.includes("network") ||
           error.message.includes("fetch")
@@ -103,12 +100,12 @@ export class AuxiliaresIDB {
           errorType = SystemErrorTypes.EXTERNAL_SERVICE_ERROR;
           message = "Error de red al sincronizar auxiliares";
         }
-        // Si es un error relacionado con la respuesta del servidor
+        // // Si esn error relacionado con la respuesta del servidor
         else if (error.message.includes("obtener auxiliares")) {
           errorType = SystemErrorTypes.EXTERNAL_SERVICE_ERROR;
           message = error.message;
         }
-        // Si es un error de IndexedDB
+        // // Si esn error de IndexedDB
         else if (
           error.name === "TransactionInactiveError" ||
           error.name === "QuotaExceededError"
@@ -120,7 +117,7 @@ export class AuxiliaresIDB {
         }
       }
 
-      // Establecer el error en el estado global
+      // // Establecer el errorn el estado global
       this.setError({
         success: false,
         message: message,
@@ -136,25 +133,23 @@ export class AuxiliaresIDB {
   }
 
   /**
-   * Obtiene todos los auxiliares
-   * @param includeInactive Si es true, incluye auxiliares inactivos
-   * @returns Promesa con el array de auxiliares
-   */
+* Obtiene todos los auxiliares @param includeInactive Si es true, incluye auxiliares inactivos @returns Promesa con el array de auxiliares
+*/
   public async getAll(
     includeInactive: boolean = true
   ): Promise<IAuxiliarLocal[]> {
     this.setIsSomethingLoading(true);
-    this.setError(null); // Limpiar errores anteriores
-    this.setSuccessMessage?.(null); // Limpiar mensajes anteriores
+    this.setError(null); // / Limpiar erroresnteriores
+    this.setSuccessMessage?.(null); // / Limpiarnsajes anteriores
 
     try {
-      // Ejecutar sincronización antes de la operación
+      // // Ejecutarncronización antes de la operación
       await this.sync();
 
-      // Obtener el store
+      // // Obner el store
       const store = await IndexedDBConnection.getStore(this.nombreTablaLocal);
 
-      // Convertir la API de callbacks de IndexedDB a promesas
+      // //nvertir la API de callbacks de IndexedDB a promesas
       const result = await new Promise<IAuxiliarLocal[]>((resolve, reject) => {
         const request = store.getAll();
 
@@ -162,12 +157,12 @@ export class AuxiliaresIDB {
         request.onerror = () => reject(request.error);
       });
 
-      // Filtrar inactivos si es necesario
+      // // Filtrarnactivos si es necesario
       const auxiliares = includeInactive
         ? result
         : result.filter((aux) => aux.Estado === true);
 
-      // Mostrar mensaje de éxito con información relevante
+      // // Mostrarnsaje de éxito con información relevante
       if (auxiliares.length > 0) {
         this.handleSuccess(`Se encontraron ${auxiliares.length} auxiliares`);
       } else {
@@ -179,14 +174,13 @@ export class AuxiliaresIDB {
     } catch (error) {
       this.handleIndexedDBError(error, "obtener lista de auxiliares");
       this.setIsSomethingLoading(false);
-      return []; // Devolvemos array vacío en caso de error
+      return []; // / Devolvemos array vacíon caso de error
     }
   }
 
   /**
-   * Obtiene todos los DNIs de auxiliares almacenados localmente
-   * @returns Promise con array de DNIs
-   */
+* Obtiene todos los DNIs de auxiliares almacenados localmente @returns Promise con array de DNIs
+*/
   private async getAllDNIs(): Promise<string[]> {
     try {
       const store = await IndexedDBConnection.getStore(this.nombreTablaLocal);
@@ -199,11 +193,10 @@ export class AuxiliaresIDB {
           const cursor = (event.target as IDBRequest)
             .result as IDBCursorWithValue;
           if (cursor) {
-            // Añadir el DNI del auxiliar actual
-            dnis.push(cursor.value.Id_Auxiliar);
+            // // Añadir el DNI del auxiliar actualnis.push(cursor.value.Id_Auxiliar);
             cursor.continue();
           } else {
-            // No hay más registros, resolvemos con el array de DNIs
+            // // No hay más registros, resolvemosn el array de DNIs
             resolve(dnis);
           }
         };
@@ -219,10 +212,8 @@ export class AuxiliaresIDB {
   }
 
   /**
-   * Elimina un auxiliar por su DNI
-   * @param dni DNI del auxiliar a eliminar
-   * @returns Promise<void>
-   */
+* Elimina un auxiliar por su DNI @param dni DNI del auxiliar a eliminar @returns Promise<void>
+*/
   private async deleteByDNI(dni: string): Promise<void> {
     try {
       const store = await IndexedDBConnection.getStore(
@@ -248,11 +239,8 @@ export class AuxiliaresIDB {
   }
 
   /**
-   * Actualiza o crea auxiliares en lote desde el servidor
-   * También elimina registros que ya no existen en el servidor
-   * @param auxiliaresServidor Auxiliares provenientes del servidor
-   * @returns Conteo de operaciones: creados, actualizados, eliminados, errores
-   */
+* Actualiza o crea auxiliares en lote desde el servidor También elimina registros que ya no existen en el servidor @param auxiliaresServidor Auxiliares provenientes del servidor @returns Conteo de operaciones: creados, actualizados, eliminados, errores
+*/
   private async upsertFromServer(
     auxiliaresServidor: AuxiliarSinContraseña[]
   ): Promise<{
@@ -264,18 +252,18 @@ export class AuxiliaresIDB {
     const result = { created: 0, updated: 0, deleted: 0, errors: 0 };
 
     try {
-      // 1. Obtener los DNIs actuales en caché
+      // // 1. Obner los DNIs actuales en caché
       const dnisLocales = await this.getAllDNIs();
 
-      // 2. Crear conjunto de DNIs del servidor para búsqueda rápida
+      // // 2. Crearnjunto de DNIs del servidor para búsqueda rápida
       const dnisServidor = new Set(
         auxiliaresServidor.map((aux) => aux.Id_Auxiliar)
       );
 
-      // 3. Identificar DNIs que ya no existen en el servidor
+      // // 3. Intificar DNIs que ya no existen en el servidor
       const dnisAEliminar = dnisLocales.filter((dni) => !dnisServidor.has(dni));
 
-      // 4. Eliminar registros que ya no existen en el servidor
+      // // 4. Elinar registros que ya no existen en el servidor
       for (const dni of dnisAEliminar) {
         try {
           await this.deleteByDNI(dni);
@@ -286,27 +274,26 @@ export class AuxiliaresIDB {
         }
       }
 
-      // 5. Procesar en lotes para evitar transacciones demasiado largas
+      // // 5. Procesarn lotes para evitar transacciones demasiado largas
       const BATCH_SIZE = 20;
 
       for (let i = 0; i < auxiliaresServidor.length; i += BATCH_SIZE) {
         const lote = auxiliaresServidor.slice(i, i + BATCH_SIZE);
 
-        // Para cada auxiliar en el lote
+        // // Para cada auxiliarn el lote
         for (const auxiliarServidor of lote) {
           try {
-            // Verificar si el auxiliar ya existe
-            const existeAuxiliar = await this.getById(
+            // // Verificar si el auxiliar ya existenst existeAuxiliar = await this.getById(
               auxiliarServidor.Id_Auxiliar
             );
 
-            // Obtener un store fresco para cada operación
+            // // Obner un store fresco para cada operación
             const store = await IndexedDBConnection.getStore(
               this.nombreTablaLocal,
               "readwrite"
             );
 
-            // Ejecutar la operación put
+            // // Ejecutar la operacn put
             await new Promise<void>((resolve, reject) => {
               const request = store.put(auxiliarServidor);
 
@@ -337,7 +324,7 @@ export class AuxiliaresIDB {
           }
         }
 
-        // Dar un pequeño respiro al bucle de eventos entre lotes
+        // // Darn pequeño respiro al bucle de eventos entre lotes
         await new Promise((resolve) => setTimeout(resolve, 0));
       }
 
@@ -350,10 +337,8 @@ export class AuxiliaresIDB {
   }
 
   /**
-   * Obtiene un auxiliar por su DNI
-   * @param dni DNI del auxiliar
-   * @returns Auxiliar encontrado o null
-   */
+* Obtiene un auxiliar por su DNI @param dni DNI del auxiliar @returns Auxiliar encontrado o null
+*/
   public async getById(dni: string): Promise<IAuxiliarLocal | null> {
     try {
       const store = await IndexedDBConnection.getStore(this.nombreTablaLocal);
@@ -377,10 +362,8 @@ export class AuxiliaresIDB {
   }
 
   /**
-   * Establece un mensaje de éxito
-   * @param message Mensaje de éxito
-   * @param data Datos adicionales opcionales
-   */
+* Establece un mensaje de éxito @param message Mensaje de éxito @param data Datos adicionales opcionales
+*/
   private handleSuccess(message: string): void {
     const successResponse: MessageProperty = { message };
 
@@ -388,10 +371,8 @@ export class AuxiliaresIDB {
   }
 
   /**
-   * Maneja los errores de operaciones con IndexedDB
-   * @param error El error capturado
-   * @param operacion Nombre de la operación que falló
-   */
+* Maneja los errores de operaciones con IndexedDB @param error El error capturado @param operacion Nombre de la operación que falló
+*/
   private handleIndexedDBError(error: unknown, operacion: string): void {
     console.error(`Error en operación IndexedDB (${operacion}):`, error);
 
@@ -399,7 +380,7 @@ export class AuxiliaresIDB {
     let message = `Error al ${operacion}`;
 
     if (error instanceof Error) {
-      // Intentar categorizar el error según su mensaje o nombre
+      // //ntentar categorizar el error según su mensaje o nombre
       if (error.name === "ConstraintError") {
         errorType = DataConflictErrorTypes.VALUE_ALREADY_IN_USE;
         message = `Error de restricción al ${operacion}: valor duplicado`;
@@ -413,7 +394,7 @@ export class AuxiliaresIDB {
         errorType = SystemErrorTypes.DATABASE_ERROR;
         message = `Transacción inactiva al ${operacion}`;
       } else {
-        // Si no podemos categorizar específicamente, usamos el mensaje del error
+        // // Sno podemos categorizar específicamente, usamos el mensaje del error
         message = error.message || message;
       }
     }

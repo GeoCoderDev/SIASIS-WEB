@@ -12,20 +12,19 @@ const SideBarElementDirectivo = ({
   text,
   allowedRoles,
   etiquetaSuperior,
-  active, // Añadimos la propiedad active
-}: SiasisModule) => {
-  const pathName = usePathname();
+  active, // / Añadimos la propiedad active
+}: SiasisModule) => {nst pathName = usePathname();
 
   const [renderizar, setRenderizar] = useState(false);
 
   useEffect(() => {
-    // Verificamos tanto que el rol esté permitido como que el módulo esté activo
+    // // Verificamosnto que el rol esté permitido como que el módulo esté activo
     if (allowedRoles.indexOf(RolesSistema.Directivo) === -1 || !active) {
       setRenderizar(() => false);
     } else {
       setRenderizar(() => true);
     }
-  }, [allowedRoles, active]); // Añadimos active como dependencia
+  }, [allowedRoles, active]); // / Añadimos active como dendencia
 
   const isSelected = pathName.startsWith(`${route}`);
 

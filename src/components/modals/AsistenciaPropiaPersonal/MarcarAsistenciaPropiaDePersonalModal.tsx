@@ -14,9 +14,9 @@ import Loader from "@/components/shared/loaders/Loader";
 import { ENTORNO } from "@/constants/ENTORNO";
 import { Entorno } from "@/interfaces/shared/Entornos";
 
-// ✅ IMPORTACIONES PARA SOCKETS
+// // ✅ IMPORTACIONES PARA SOCKETS
 import { useSS01 } from "@/hooks/useSS01";
-import { TomaAsistenciaPersonalSIU01Events } from "@/SS01/sockets/events/AsistenciaDePersonal/frontend/TomaAsistenciaPersonalSIU01Events";
+import { TomaAsisnciaPersonalSIU01Events } from "@/SS01/sockets/events/AsistenciaDePersonal/frontend/TomaAsistenciaPersonalSIU01Events";
 import { SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER } from "@/SS01/sockets/events/AsistenciaDePersonal/interfaces/SalasTomaAsistenciaDePersonal";
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import { AsistenciaDePersonalIDB } from "@/lib/utils/local/db/models/AsistenciaDePersonal/AsistenciaDePersonalIDB";
@@ -31,11 +31,9 @@ import {
 } from "@/constants/SOCKET_FRONTEND_CONFIGURATION";
 import { PersonalDelColegio } from "@/interfaces/shared/PersonalDelColegio";
 
-// ========================================================================================
+// // ========================================================================================
 // CONFIGURACIÓN POR ENTORNO
-// ========================================================================================
-
-const TESTING_EXPLICITO = false;
+// ========================================================================================nst TESTING_EXPLICITO = false;
 
 const REQUERIR_VALIDACION_GPS_SEGUN_ENTORNO: Record<Entorno, boolean> = {
   [Entorno.LOCAL]: true,
@@ -117,32 +115,29 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
   setMostrarModalNoSePuedeUsarLaptop,
   setMostrarModalDispositivoSinGPS,
 }: MarcarAsistenciaPropiaDePersonalModalProps) => {
-  // ========================================================================================
+  // // ========================================================================================
   // ESTADOS
-  // ========================================================================================
+  // ========================================================================================nst [estaProcessando, setEstaProcessando] = useState(false);
 
-  const [estaProcessando, setEstaProcessando] = useState(false);
-
-  // 🆕 NUEVO: Estado para controlar la espera de conexión del socket
+  // // 🆕 NUEVO: Estado parantrolar la espera de conexión del socket
   const [esperandoConexionSocket, setEsperandoConexionSocket] = useState(true);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // // esnt-disable-next-line @typescript-eslint/no-unused-vars
   const [mensajeConexion, setMensajeConexion] = useState(
     MENSAJES_CONEXION_SOCKET[
       Math.floor(Math.random() * MENSAJES_CONEXION_SOCKET.length)
     ]
   );
 
-  // ✅ Hook para conexión Socket.io
+  // // ✅ Hook paranexión Socket.io
   const { isReady, globalSocket } = useSS01();
 
-  // Ref para el timeout
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // // Ref para el timeoutnst timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // ========================================================================================
+  // // ========================================================================================
   // EFECTOS PARA MANEJO DE SOCKET CON TIMEOUT
   // ========================================================================================
 
-  // 🚀 useEffect principal para manejar timeout de conexión de socket
+  // 🚀 useEffect pncipal para manejar timeout de conexión de socket
   useEffect(() => {
     console.log("🔌 Iniciando espera de conexión de socket...", {
       isReady,
@@ -150,36 +145,36 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
       mensaje: mensajeConexion,
     });
 
-    // Si ya está conectado desde el inicio, no esperar
+    // // Si ya estánectado desde el inicio, no esperar
     if (isReady) {
       console.log("✅ Socket ya estaba conectado, saltando espera");
       setEsperandoConexionSocket(false);
       return;
     }
 
-    // Establecer timeout para la espera máxima
-    timeoutRef.current = setTimeout(() => {
+    // // Establecer timeout para la espera máxima
+    timeoutRef.curnt = setTimeout(() => {
       console.log(
         `⏰ Timeout de ${SOCKET_CONNECTION_TIMEOUT}ms alcanzado, continuando sin socket`
       );
       setEsperandoConexionSocket(false);
     }, SOCKET_CONNECTION_TIMEOUT);
 
-    // Cleanup function
+    // // Clnup function
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
       }
     };
-  }, []); // Solo se ejecuta al montar el componente
+  }, []); // / Solo se ejecuta alntar el componente
 
-  // 🎯 useEffect para detectar cuando el socket se conecta
+  // // 🎯 useEffect para detectar cndo el socket se conecta
   useEffect(() => {
     if (isReady && esperandoConexionSocket) {
       console.log("🎉 Socket conectado antes del timeout, continuando...");
 
-      // Limpiar timeout ya que el socket se conectó
+      // // Limpiar timeout ya que el socket senectó
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
@@ -189,7 +184,7 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
     }
   }, [isReady, esperandoConexionSocket]);
 
-  // 🏠 useEffect para unirse a la sala cuando el socket esté listo y no estemos esperando
+  // // 🏠 useEffect paranirse a la sala cuando el socket esté listo y no estemos esperando
   useEffect(() => {
     if (!isReady || esperandoConexionSocket) {
       return;
@@ -203,8 +198,7 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
       ][modoRegistro],
     });
 
-    // Crear y ejecutar emisor
-    const emitter =
+    // // Crear y ejecutar emisornst emitter =
       new TomaAsistenciaPersonalSIU01Events.UNIRME_A_SALA_DE_TOMA_DE_ASISTENCIA_DE_PERSONAL_EMITTER(
         SALAS_TOMA_ASISTENCIA_PERSONAL_IE20935_MAPPER[
           Rol as PersonalDelColegio
@@ -224,11 +218,11 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
     }
   }, [Rol, modoRegistro, isReady, esperandoConexionSocket]);
 
-  // ========================================================================================
+  // // ========================================================================================
   // FUNCIONES DE SOCKET
   // ========================================================================================
 
-  // 📡 Función para enviar evento emisor después del registro exitoso
+  // 📡nción para enviar evento emisor después del registro exitoso
   const enviarEventoEmisoreAsistenciaRegistrada = useCallback(async () => {
     try {
       if (!isReady || !globalSocket) {
@@ -242,7 +236,7 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
         "🚀 Enviando evento emisor de asistencia propia registrada..."
       );
 
-      // PASO 1: Obtener datos del usuario logueado
+      // // PASO 1: Obner datos del usuario logueado
       const { DatosAsistenciaHoyIDB } = await import(
         "@/lib/utils/local/db/models/DatosAsistenciaHoy/DatosAsistenciaHoyIDB"
       );
@@ -254,8 +248,7 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
         return;
       }
 
-      // Extraer datos del usuario
-      const miDNI = (
+      // // Extraer datos del usuarionst miDNI = (
         handler as
           | HandlerProfesorPrimariaAsistenciaResponse
           | HandlerAuxiliarAsistenciaResponse
@@ -283,7 +276,7 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
         genero: miGenero,
       });
 
-      // PASO 2: Consultar la asistencia recién registrada
+      // // PASO 2:nsultar la asistencia recién registrada
       const asistenciaIDB = new AsistenciaDePersonalIDB("API01");
       const asistenciaRecienRegistrada =
         await asistenciaIDB.consultarMiAsistenciaDeHoy(modoRegistro, Rol);
@@ -298,7 +291,7 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
         asistenciaRecienRegistrada
       );
 
-      // PASO 3: Verificar que tenemos todos los datos necesarios
+      // // PASO 3: Verificar quenemos todos los datos necesarios
       if (
         !asistenciaRecienRegistrada.timestamp ||
         !asistenciaRecienRegistrada.estado
@@ -310,7 +303,7 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
         return;
       }
 
-      // PASO 4: Crear y ejecutar el evento emisor
+      // // PASO 4: Crear y ejecutar el ento emisor
       const emitter =
         new TomaAsistenciaPersonalSIU01Events.MARQUE_LA_ASISTENCIA_DE_ESTE_PERSONAL_EMITTER(
           {
@@ -325,8 +318,8 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
               ][modoRegistro],
             modoRegistro,
             RegistroEntradaSalida: {
-              desfaseSegundos: 0, // Calculado por el servidor
-              timestamp: asistenciaRecienRegistrada.timestamp,
+              desfaseSegundos: 0, // / Calculado por el servidor
+              timestamp: asisnciaRecienRegistrada.timestamp,
               estado: asistenciaRecienRegistrada.estado,
             },
             rol: Rol,
@@ -352,15 +345,13 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
         "❌ Error al enviar evento emisor de asistencia propia:",
         error
       );
-      // No lanzar error para no afectar el flujo principal del registro
+      // // Nonzar error para no afectar el flujo principal del registro
     }
   }, [isReady, globalSocket, modoRegistro, Rol]);
 
-  // ========================================================================================
+  // // ========================================================================================
   // FUNCIONES DE GEOLOCALIZACIÓN
-  // ========================================================================================
-
-  const verificarYSolicitarPermisos = async (): Promise<boolean> => {
+  // ========================================================================================nst verificarYSolicitarPermisos = async (): Promise<boolean> => {
     try {
       if ("permissions" in navigator) {
         const permission = await navigator.permissions.query({
@@ -497,11 +488,9 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
     });
   };
 
-  // ========================================================================================
+  // // ========================================================================================
   // FUNCIÓN PRINCIPAL DE REGISTRO
-  // ========================================================================================
-
-  const manejarRegistroAsistencia = useCallback(async () => {
+  // ========================================================================================nst manejarRegistroAsistencia = useCallback(async () => {
     if (estaProcessando) return;
 
     try {
@@ -518,9 +507,8 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
         socketReady: isReady,
       });
 
-      // PASO 1: Verificar tipo de dispositivo
-      if (SOLO_PERMITIR_CELULARES_PARA_ASISTENCIA) {
-        const tipoDispositivo = detectarTipoDispositivo();
+      // // PASO 1: Verificar tipo de dispositivo
+      if (SOLO_PERMITIR_CELULARES_PARA_ASISTENCIA) {nst tipoDispositivo = detectarTipoDispositivo();
 
         if (tipoDispositivo === "laptop") {
           console.log("❌ Dispositivo no permitido: laptop");
@@ -536,17 +524,16 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
         );
       }
 
-      // PASO 2: Verificar si debe validar GPS
-      if (!REQUERIR_VALIDACION_GPS) {
-        console.log("⚡ VALIDACIÓN GPS DESHABILITADA");
+      // // PASO 2: Verificar si debe validar GPS
+      if (!REQUERIR_VALIDACION_GPS) {nsole.log("⚡ VALIDACIÓN GPS DESHABILITADA");
         console.log("🚀 Saltando TODA la validación de ubicación...");
 
-        // Ir directamente a marcar asistencia
+        // // Ir directante a marcar asistencia
         await marcarMiAsistenciaDeHoy();
 
         console.log("✅ Asistencia registrada exitosamente (sin GPS)");
 
-        // 📡 Enviar evento emisor si el socket está disponible
+        // // 📡nviar evento emisor si el socket está disponible
         await enviarEventoEmisoreAsistenciaRegistrada();
 
         eliminateModal();
@@ -558,7 +545,7 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
         "🔍 Validación GPS habilitada, procediendo con verificaciones..."
       );
 
-      // PASO 3: Verificar disponibilidad de GPS
+      // // PASO 3: Verificar disnibilidad de GPS
       if (!USAR_COORDENADAS_MOCKEADAS) {
         if (!verificarDisponibilidadGPS()) {
           console.log("❌ GPS no disponible en el dispositivo");
@@ -585,7 +572,7 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
         );
       }
 
-      // PASO 4: Obtener ubicación
+      // // PASO 4: Obner ubicación
       let ubicacion: PuntoGeografico;
       try {
         console.log("📍 Obteniendo ubicación...");
@@ -610,7 +597,7 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
         return;
       }
 
-      // PASO 5: Verificar si está dentro del colegio
+      // // PASO 5: Verificar si estántro del colegio
       console.log("🏫 Verificando si está dentro del colegio...");
       console.log("📊 DATOS PARA VERIFICACIÓN:", {
         ubicacionObtenida: ubicacion,
@@ -674,17 +661,17 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
         );
       }
 
-      // PASO FINAL: Marcar asistencia
+      // // PASO FINAL: Marcar asisncia
       await marcarMiAsistenciaDeHoy();
 
       console.log("✅ Asistencia registrada exitosamente");
 
-      // 📡 Enviar evento emisor si el socket está disponible
+      // // 📡nviar evento emisor si el socket está disponible
       await enviarEventoEmisoreAsistenciaRegistrada();
 
       eliminateModal();
       setMostrarModalConfirmacioAsistenciaMarcada(true);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // // esnt-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("❌ Error al marcar asistencia:", error);
 
@@ -719,13 +706,13 @@ const MarcarAsistenciaPropiaDePersonalModal = ({
     isReady,
   ]);
 
-  // ========================================================================================
+  // // ========================================================================================
   // FUNCIONES DE RENDER
   // ========================================================================================
 
-  // 🎨 Determinar texto y estilo según configuración
+  // 🎨 Deternar texto y estilo según configuración
   const obtenerTextoModal = () => {
-    // 🚀 NUEVO: Si estamos esperando conexión del socket, mostrar mensaje especial
+    // // 🚀 NUEVO: Si estamos espendo conexión del socket, mostrar mensaje especial
     if (esperandoConexionSocket) {
       return {
         texto: (

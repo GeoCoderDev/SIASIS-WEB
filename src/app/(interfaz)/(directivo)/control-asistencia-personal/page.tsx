@@ -65,41 +65,41 @@ const TomarAsistenciaPersonal = () => {
     }
   };
 
-  // Verificamos si ya pasó la hora de actualización de datos (5:05 AM)
+  // // Verificamos si ya pasó la hora de actualizacn de datos (5:05 AM)
   const haySincronizacionDatos =
     Number(fechaHoraActual.utilidades?.hora) >=
     HORA_ACTUALIZACION_DATOS_ASISTENCIA_DIARIOS;
 
-  // Carga inicial al montar el componente
+  // // Carganicial al montar el componente
   useEffect(() => {
     if (!fechaHoraActual.inicializado) return;
 
     getDataAsistence();
   }, [fechaHoraActual.inicializado]);
 
-  // Efecto para verificar si necesitamos actualizar los datos cuando cambia el día
+  // // Efecto para verificar snecesitamos actualizar los datos cuando cambia el día
   useEffect(() => {
     if (!handlerDatosAsistenciaHoyDirectivo || !fechaHoraActual.utilidades)
       return;
 
-    // Verificamos si los datos son de un día anterior y ya pasó la hora de sincronización
+    // // Verificamos si los datosn de un día anterior y ya pasó la hora de sincronización
     const fechaDatosAsistencia = new Date(
       handlerDatosAsistenciaHoyDirectivo.getFechaLocalPeru()
     );
     const diaDatosAsistencia = fechaDatosAsistencia.getDate();
     const diaActual = fechaHoraActual.utilidades.diaMes;
 
-    // Verificar si estamos en fin de semana
+    // // Verificar si estamosn fin de semana
     const esFinDeSemana = fechaHoraActual.utilidades.esFinDeSemana;
 
-    // Actualizar el estado de modo fin de semana
+    // // Actualizar el estado de modon de semana
     setModoFinDeSemana(esFinDeSemana);
 
-    // Solo actualizamos si:
-    // - No es fin de semana, y
-    // - La hora de sincronización ha pasado, y
-    // - La fecha de los datos no coincide con la fecha actual
-    // - No es un día de evento
+    // // Solo actualizamos si:
+    // - No esn de semana, y
+    // // - La hora dencronización ha pasado, y
+    // // - La fecha de los datono coincide con la fecha actual
+    // // - No esn día de evento
     if (
       haySincronizacionDatos &&
       diaDatosAsistencia !== diaActual &&
@@ -126,7 +126,7 @@ const TomarAsistenciaPersonal = () => {
     obtenerEstadoAsistencia();
   }, []);
 
-  // Procesamos las fechas y horas solo si tenemos los datos disponibles
+  // // Procesamos las fechas y horas solo sinemos los datos disponibles
   const fechaHoraInicioAsistencia = handlerDatosAsistenciaHoyDirectivo
     ? new Date(
         alterarUTCaZonaPeruana(
@@ -167,7 +167,7 @@ const TomarAsistenciaPersonal = () => {
       : null
   );
 
-  // Función para formatear la fecha actual
+  // //nción para formatear la fecha actual
   const formatearFechaActual = () => {
     if (!fechaHoraActual?.fechaHora) return "Cargando fecha...";
 
@@ -180,7 +180,7 @@ const TomarAsistenciaPersonal = () => {
     } de ${fecha.getFullYear()}`;
   };
 
-  // Función para formatear fecha de evento
+  // //nción para formatear fecha de evento
   const formatearFechaEvento = (fecha: Date) => {
     const fechaObj = new Date(alterarUTCaZonaPeruana(String(fecha)));
     return `${fechaObj.getDate()} de ${
@@ -211,7 +211,7 @@ const TomarAsistenciaPersonal = () => {
     }
   };
 
-  // Función para iniciar el registro de asistencia
+  // //nción para iniciar el registro de asistencia
   const iniciarOContinuarRegistroAsistencia = async () => {
     if (!estadoTomaAsistenciaDePersonal?.AsistenciaIniciada) {
       iniciarTomaAsistenciaDePersonalHoy();
@@ -221,8 +221,8 @@ const TomarAsistenciaPersonal = () => {
   };
 
   const determinarEstadoSistema = () => {
-    // Verificamos primero si es un día de evento (feriado, celebración, etc.)
-    // SOLO si estamos dentro del rango del evento
+    // // Verificamos primero si esn día de evento (feriado, celebración, etc.)
+    // // SOLO si estamosntro del rango del evento
     if (
       handlerDatosAsistenciaHoyDirectivo &&
       handlerDatosAsistenciaHoyDirectivo.esHoyDiaDeEvento()
@@ -230,7 +230,7 @@ const TomarAsistenciaPersonal = () => {
       const eventoInfo =
         handlerDatosAsistenciaHoyDirectivo.esHoyDiaDeEvento() as T_Eventos;
 
-      // Convertir las fechas del evento a objetos Date para compararlas
+      // //nvertir las fechas del evento a objetos Date para compararlas
       const fechaInicioEvento = new Date(
         alterarUTCaZonaPeruana(String(eventoInfo.Fecha_Inicio))
       );
@@ -239,7 +239,7 @@ const TomarAsistenciaPersonal = () => {
       );
       const fechaActualObj = new Date(fechaHoraActual.fechaHora!);
 
-      // Comparar solo las fechas (sin horas)
+      // // Comparar solo las fechas (n horas)
       const fechaActualSinHora = new Date(
         fechaActualObj.getFullYear(),
         fechaActualObj.getMonth(),
@@ -256,7 +256,7 @@ const TomarAsistenciaPersonal = () => {
         fechaConclusionEvento.getDate()
       );
 
-      // Verificar si la fecha actual está dentro del rango del evento
+      // // Verificar si la fecha actual estántro del rango del evento
       const dentroDelRangoEvento =
         fechaActualSinHora >= fechaInicioSinHora &&
         fechaActualSinHora <= fechaConclusionSinHora;
@@ -277,7 +277,7 @@ const TomarAsistenciaPersonal = () => {
       }
     }
 
-    // Si estamos sincronizando
+    // // Si estamosncronizando
     if (sincronizando) {
       return {
         estado: "sincronizando",
@@ -291,7 +291,7 @@ const TomarAsistenciaPersonal = () => {
       };
     }
 
-    // Si no tenemos datos aún
+    // // Sno tenemos datos aún
     if (
       !handlerDatosAsistenciaHoyDirectivo ||
       !tiempoRestanteParaInicioAsistencia ||
@@ -309,7 +309,7 @@ const TomarAsistenciaPersonal = () => {
       };
     }
 
-    // Si no es día escolar (es fin de semana)
+    // // Sno es día escolar (es fin de semana)
     if (fechaHoraActual.utilidades.esFinDeSemana || modoFinDeSemana) {
       return {
         estado: "no_disponible",
@@ -323,14 +323,14 @@ const TomarAsistenciaPersonal = () => {
       };
     }
 
-    // Verificamos si la fecha de datos de asistencia es de un día anterior
+    // // Verificamos si la fecha de datos de asisncia es de un día anterior
     const fechaActual = new Date(fechaHoraActual.fechaHora!);
     const fechaDatosAsistencia = new Date(
       handlerDatosAsistenciaHoyDirectivo.getFechaLocalPeru()
     );
     const esNuevoDia = fechaDatosAsistencia.getDate() !== fechaActual.getDate();
 
-    // Caso: Estamos en un nuevo día pero aún no es hora de sincronizar datos
+    // // Caso: Estamosn un nuevo día pero aún no es hora de sincronizar datos
     if (esNuevoDia && !haySincronizacionDatos) {
       return {
         estado: "preparando",
@@ -343,9 +343,9 @@ const TomarAsistenciaPersonal = () => {
       };
     }
 
-    // VERIFICAR HORARIOS ANTES QUE EL ESTADO DE PROCESO
+    // // VERIFICAR HORARIOS ANTES QUE EL ESTADO DE PROCESO
 
-    // Si aún no es hora de inicio
+    // Sin no es hora de inicio
     if (
       tiempoRestanteParaInicioAsistencia &&
       !tiempoRestanteParaInicioAsistencia.yaVencido
@@ -366,7 +366,7 @@ const TomarAsistenciaPersonal = () => {
       };
     }
 
-    // Si ya pasó la hora de cierre de asistencia
+    // // Si ya pasó la hora de cierre de asisncia
     const horaActual = fechaHoraActual.utilidades.hora;
     const minutosActual = fechaHoraActual.utilidades.minutos;
     const horaCierre = fechaHoraCierreAsistencia!.getHours();
@@ -395,8 +395,8 @@ const TomarAsistenciaPersonal = () => {
       };
     }
 
-    // AHORA SÍ VERIFICAMOS EL ESTADO DE PROCESO
-    // Solo si estamos dentro del horario válido y no hay restricciones
+    // // AHORA SÍ VERIFICAMOS EL ESTADO DE PROCESO
+    // Solo si estamosntro del horario válido y no hay restricciones
     if (estadoTomaAsistenciaDePersonal?.AsistenciaIniciada) {
       return {
         estado: "en_proceso",
@@ -411,7 +411,7 @@ const TomarAsistenciaPersonal = () => {
       };
     }
 
-    // Si estamos en horario válido para tomar asistencia (estado por defecto)
+    // // Si estamosn horario válido para tomar asistencia (estado por defecto)
     return {
       estado: "disponible",
       mensaje: "Sistema listo para registro",
@@ -430,10 +430,10 @@ const TomarAsistenciaPersonal = () => {
       tiempoDisponible: tiempoRestanteParaCierreAsistencia.formateado,
     };
   };
-  // Obtener el estado actual
+  // // Obner el estado actual
   const estadoSistema = determinarEstadoSistema();
 
-  // Función para renderizar el icono de personal adecuado según el estado
+  // //nción para renderizar el icono de personal adecuado según el estado
   const renderIconoPersonal = () => {
     if (
       !estadoSistema.iconoPersonal ||
@@ -441,7 +441,7 @@ const TomarAsistenciaPersonal = () => {
     ) {
       return (
         <svg
-          xmlns="http://www.w3.org/2000/svg"
+          xmlns="http:// www.w3.org/2000/svg"
           className="h-5 w-5 text-purple-500"
           fill="none"
           viewBox="0 0 24 24"
@@ -458,7 +458,7 @@ const TomarAsistenciaPersonal = () => {
     } else if (estadoSistema.iconoPersonal === "verificacion") {
       return (
         <svg
-          xmlns="http://www.w3.org/2000/svg"
+          xmlns="http:// www.w3.org/2000/svg"
           className="h-5 w-5 text-purple-500"
           fill="none"
           viewBox="0 0 24 24"
@@ -475,7 +475,7 @@ const TomarAsistenciaPersonal = () => {
     } else if (estadoSistema.iconoPersonal === "reloj") {
       return (
         <svg
-          xmlns="http://www.w3.org/2000/svg"
+          xmlns="http:// www.w3.org/2000/svg"
           className="h-5 w-5 text-purple-500"
           fill="none"
           viewBox="0 0 24 24"
@@ -608,7 +608,7 @@ const TomarAsistenciaPersonal = () => {
             <div className="bg-purple-50 rounded-lg p-3 flex items-center">
               <div className="bg-white p-2 rounded-full mr-2">
                 <svg
-                  xmlns="http://www.w3.org/2000/svg"
+                  xmlns="http:// www.w3.org/2000/svg"
                   className="h-5 w-5 text-purple-500"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -868,7 +868,7 @@ const TomarAsistenciaPersonal = () => {
               <div className="mb-4 bg-purple-50 p-3 rounded-lg">
                 <div className="flex items-center mb-2">
                   <svg
-                    xmlns="http://www.w3.org/2000/svg"
+                    xmlns="http:// www.w3.org/2000/svg"
                     className="h-5 w-5 text-purple-700 mr-2"
                     fill="none"
                     viewBox="0 0 24 24"

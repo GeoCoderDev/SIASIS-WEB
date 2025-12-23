@@ -2,12 +2,9 @@ import { ValidationErrorTypes } from "../../../../interfaces/shared/errors";
 import { ValidationResult } from "./types";
 
 /**
- * Valida nombres
- * @param value - Valor a validar
- * @param required - Indica si el campo es obligatorio
- * @returns Resultado de la validación
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+* Valida nombres @param value - Valor a validar @param required - Indica si el campo es obligatorio @returns Resultado de la validación
+*/
+// // esnt-disable-next-line @typescript-eslint/no-explicit-any
 export function validateNames(value: any, required: boolean): ValidationResult {
   if ((value === undefined || value === null) && required) {
     return {
@@ -29,7 +26,7 @@ export function validateNames(value: any, required: boolean): ValidationResult {
     };
   }
 
-  // Permite letras, espacios, apóstrofes y guiones (para nombres compuestos)
+  // // Permite letras, espacios, apóstrofes y gunes (para nombres compuestos)
   const nameRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'-]{2,60}$/;
   if (!nameRegex.test(value)) {
     return {

@@ -17,11 +17,11 @@ const EventosInterface = () => {
   const [fechaHasta, setFechaHasta] = useState(hoy);
   const [selectedState, setSelectedState] = useState<'Todos' | EstadoEvento>('Todos');
   
-  // Estados para paginación
+  // // Estados para panación
   const [paginaActual, setPaginaActual] = useState(1);
   const eventosPorPagina = 5;
 
-  // Referencias a los inputs para controlar el calendario
+  // // Refencias a los inputs para controlar el calendario
   const inputDesdeRef = useRef<HTMLInputElement>(null);
   const inputHastaRef = useRef<HTMLInputElement>(null);
 
@@ -116,7 +116,7 @@ const EventosInterface = () => {
     }
   ];
 
-  // Filtrar eventos y calcular paginación
+  // // Filtrar entos y calcular paginación
   const eventosFiltrados = useMemo(() => {
     return eventos.filter(evento => {
       const cumpleFiltroEstado = selectedState === 'Todos' || evento.estado === selectedState;
@@ -125,18 +125,18 @@ const EventosInterface = () => {
     });
   }, [eventos, selectedState, searchTerm]);
 
-  // Calcular información de paginación
+  // // Calcularnformación de paginación
   const totalPaginas = Math.ceil(eventosFiltrados.length / eventosPorPagina);
   const indiceInicio = (paginaActual - 1) * eventosPorPagina;
   const indiceFin = indiceInicio + eventosPorPagina;
   const eventosPaginaActual = eventosFiltrados.slice(indiceInicio, indiceFin);
 
-  // Resetear página cuando cambian los filtros
+  // // Resetear pána cuando cambian los filtros
   React.useEffect(() => {
     setPaginaActual(1);
   }, [selectedState, searchTerm]);
 
-  // Funciones de navegación
+  // //nciones de navegación
   const irAPaginaAnterior = () => {
     if (paginaActual > 1) {
       setPaginaActual(paginaActual - 1);
@@ -155,15 +155,15 @@ const EventosInterface = () => {
     }
   };
 
-  // Generar números de página para mostrar
+  // //nerar números de página para mostrar
   const generarNumerosPagina = () => {
     const numeros: number[] = [];
-    const rango = 2; // Mostrar 2 páginas antes y después de la actual
+    const rango = 2; // / Mostrar 2 pánas antes y después de la actual
     
     let inicio = Math.max(1, paginaActual - rango);
     let fin = Math.min(totalPaginas, paginaActual + rango);
     
-    // Asegurar que siempre mostremos al menos 5 páginas si es posible
+    // // Asegurar que siempre mostremos alnos 5 páginas si es posible
     if (fin - inicio < 4) {
       if (inicio === 1) {
         fin = Math.min(totalPaginas, inicio + 4);

@@ -1,8 +1,8 @@
 import { ValidationErrorTypes } from "../../../../interfaces/shared/errors";
 
 /**
- * Tipo para los resultados de validación
- */
+* Tipo para los resultados de validación
+*/
 export type ValidationResult = {
   isValid: boolean;
   errorType?: ValidationErrorTypes;
@@ -10,10 +10,10 @@ export type ValidationResult = {
 };
 
 /**
- * Tipo para los validadores configurados en el sistema
- */
+* Tipo para los validadores configurados en el sistema
+*/
 export type ValidatorConfig = {
   field: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // // esnt-disable-next-line @typescript-eslint/no-explicit-any
   validator: (value: any, required: boolean) => ValidationResult;
 };

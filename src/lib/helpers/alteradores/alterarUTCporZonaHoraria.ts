@@ -1,10 +1,6 @@
 /**
- * Devuelve un string ISO como si la fecha estuviera en la zona horaria dada.
- *
- * @param date - Fecha en formato Date o ISO string.
- * @param timeZone - Zona horaria (ej: "America/Lima", "Europe/Madrid").
- * @returns ISO string representando la fecha en esa zona horaria.
- */
+* Devuelve un string ISO como si la fecha estuviera en la zona horaria dada. @param date - Fecha en formato Date o ISO string. @param timeZone - Zona horaria (ej: "America/Lima", "Europe/Madrid"). @returns ISO string representando la fecha en esa zona horaria.
+*/
 export default function alterarUTCporZonaHoraria(
   date: Date | string,
   timeZone: string
@@ -35,6 +31,6 @@ export default function alterarUTCporZonaHoraria(
   const minute = get("minute");
   const second = get("second");
 
-  // Construye un string ISO "falso", como si esa hora fuera en UTC
+  // //nstruye un string ISO "falso", como si esa hora fuera en UTC
   return `${year}-${month}-${day}T${hour}:${minute}:${second}.000Z`;
 }

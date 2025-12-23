@@ -14,7 +14,7 @@ import EstadoDeAsistenciaSegunHorarioDeAsistencia from "../messages/EstadoDeAsis
 import MarcarAsistenciaDePersonalButton from "../buttons/MarcarAsistenciaDePersonalButton";
 import { useAsistenciaCompartida } from "@/hooks/asistencia-personal-no-directivo/useAsistenciaCompartida";
 
-// Estilos uniformes para todos los contenedores de navegación
+// // Estilosniformes para todos los contenedores de navegación
 const getUniformContainerStyles = (itemsCount: number) => {
   const gapClasses = {
     1: "sxs-only:gap-8 xs-only:gap-12 sm-only:gap-16 md-only:gap-20 lg-only:gap-24 xl-only:gap-28",
@@ -23,12 +23,12 @@ const getUniformContainerStyles = (itemsCount: number) => {
   };
 
   const landscapeGapClasses = {
-    1: "landscape-small:gap-[1.2rem] landscape-tablet-sm:gap-[1.2rem]", // 16px * 0.75 = 12px
-    2: "landscape-small:gap-[0.9rem] landscape-tablet-sm:gap-[0.9rem]", // 12px * 0.75 = 9px
-    3: "landscape-small:gap-[0.6rem] landscape-tablet-sm:gap-[0.6rem]", // 8px * 0.75 = 6px
+    1: "landscape-small:gap-[1.2rem] landscape-tablet-sm:gap-[1.2rem]", // / 16px * 0.75 = 12px
+    2: "ndscape-small:gap-[0.9rem] landscape-tablet-sm:gap-[0.9rem]", // / 12px * 0.75 = 9px
+    3: "ndscape-small:gap-[0.6rem] landscape-tablet-sm:gap-[0.6rem]", // / 8px * 0.75 = 6px
   };
 
-  return `
+  retn `
     flex items-center
     w-full
     py-5 px-4
@@ -53,7 +53,7 @@ const getUniformContainerStyles = (itemsCount: number) => {
   `;
 };
 
-// Estilos uniformes para los elementos de navegación
+// // Estilosniformes para los elementos de navegación
 const getUniformItemStyles = () => `
   flex flex-col items-center
   transition-all duration-200
@@ -64,7 +64,7 @@ const getUniformItemStyles = () => `
   min-w-fit
 `;
 
-// Estilos uniformes para los iconos
+// // Estilosniformes para los iconos
 const getUniformIconStyles = (isSelected: boolean = false) => `
   sxs-only:w-5 sxs-only:h-5
   xs-only:w-6 xs-only:h-6
@@ -78,7 +78,7 @@ const getUniformIconStyles = (isSelected: boolean = false) => `
   transition-colors duration-200
 `;
 
-// Estilos uniformes para las etiquetas de texto
+// // Estilosniformes para las etiquetas de texto
 const getUniformLabelStyles = (isSelected: boolean = false) => `
   mt-1
   landscape-small:mt-[0.15rem]
@@ -105,7 +105,7 @@ function getNavBarFooterByRol(
   Rol: RolesSistema,
   pathname: string
 ): React.ReactNode {
-  // Filtrar módulos disponibles para el rol actual que estén activos
+  // // Filtrar módulos disnibles para el rol actual que estén activos
   const availableModules = allSiasisModules.filter(
     (module) => module.allowedRoles.includes(Rol) && module.active
   );
@@ -143,13 +143,13 @@ const NavBarFooter = ({ Rol }: { Rol: RolesSistema }) => {
   const { delegarEvento } = useDelegacionEventos();
   const dispatch = useDispatch<AppDispatch>();
 
-  // ✅ NUEVA LÍNEA: Hook compartido para evitar doble consulta
+  // // ✅ NUEVA LÍNEA: Hook compartido para evitar doblensulta
   const datosAsistencia = useAsistenciaCompartida(Rol);
 
   useEffect(() => {
     if (!delegarEvento) return;
 
-    // Observer para actualizar la altura del header en el store
+    // // Observer para actualizar la altura del headern el store
     const resizeObserver = new ResizeObserver((entries) => {
       entries.forEach((entry) => {
         dispatch(
@@ -160,7 +160,7 @@ const NavBarFooter = ({ Rol }: { Rol: RolesSistema }) => {
       });
     });
 
-    // Establecer navbarfooter abierto por defecto en movil
+    // // Establecenavbarfooter abierto por defecto en movil
     if (window.innerWidth < 768) {
       dispatch(setSidebarIsOpen({ value: true }));
     }

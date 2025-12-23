@@ -19,8 +19,8 @@ import {
   INTERVALO_CONSULTA_ASISTENCIA_OPTIMIZADO_MS,
 } from "@/constants/INTERVALOS_CONSULTAS_ASISTENCIAS_PROPIAS_PARA_PERSONAL_NO_DIRECTIVO";
 
-// ✅ INTERFACES
-export interface EstadoAsistenciaCompartido {
+// // ✅ INTERFACES
+exportnterface EstadoAsistenciaCompartido {
   entradaMarcada: boolean;
   salidaMarcada: boolean;
   inicializado: boolean;
@@ -39,16 +39,14 @@ export interface DatosAsistenciaCompartidos {
   modoActual: ModoActualCompartido;
   inicializado: boolean;
   consultaInicialCompletada: boolean;
-  // ✅ NUEVA FUNCIÓN PARA REFRESCAR INMEDIATAMENTE
-  refrescarAsistencia: () => Promise<void>;
+  // // ✅ NUEVA FUNCIÓN PARA REFRESCAR INMEDIATAMENTE
+  refrescarAsisncia: () => Promise<void>;
 }
 
-// ✅ CONSTANTES
-const RETRY_HORARIO_MS = 30000;
+// // ✅ CONSTANTESnst RETRY_HORARIO_MS = 30000;
 const TIMEOUT_EMERGENCIA_REINTENTO_MS = 3800;
 
-// ✅ SELECTOR OPTIMIZADO
-const selectHoraMinutoActual = (state: RootState) => {
+// // ✅ SELECTOR OPTIMIZADOnst selectHoraMinutoActual = (state: RootState) => {
   const fechaHora = state.others.fechaHoraActualReal.fechaHora;
   if (!fechaHora) return null;
 
@@ -67,14 +65,12 @@ const selectHoraMinutoActual = (state: RootState) => {
 export const useAsistenciaCompartida = (
   rol: RolesSistema
 ): DatosAsistenciaCompartidos => {
-  // ✅ SELECTORES
-  const horaMinutoActual = useSelector(selectHoraMinutoActual);
+  // // ✅ SELECTORESnst horaMinutoActual = useSelector(selectHoraMinutoActual);
   const reduxInicializado = useSelector(
     (state: RootState) => state.others.fechaHoraActualReal.inicializado
   );
 
-  // ✅ ESTADOS
-  const [horario, setHorario] = useState<HorarioTomaAsistencia | null>(null);
+  // // ✅ ESTADOSnst [horario, setHorario] = useState<HorarioTomaAsistencia | null>(null);
   const [handlerBase, setHandlerBase] = useState<HandlerAsistenciaBase | null>(
     null
   );
@@ -92,14 +88,13 @@ export const useAsistenciaCompartida = (
     useState(false);
   const [timerEmergenciaActivo, setTimerEmergenciaActivo] = useState(true);
 
-  // ✅ REFS
-  const retryRef = useRef<NodeJS.Timeout | null>(null);
+  // // ✅ REFSnst retryRef = useRef<NodeJS.Timeout | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const timerEmergenciaRef = useRef<NodeJS.Timeout | null>(null);
   const consultaEnProcesoRef = useRef<boolean>(false);
   const ultimoModoConsultado = useRef<ModoRegistro | null>(null);
 
-  // ✅ FUNCIÓN: Obtener fecha actual de Redux
+  // // ✅ FUNCIÓN: Obner fecha actual de Redux
   const obtenerFechaActual = useCallback((): Date | null => {
     const state = store.getState();
     const fechaHora = state.others.fechaHoraActualReal.fechaHora;
@@ -112,7 +107,7 @@ export const useAsistenciaCompartida = (
     return fecha;
   }, []);
 
-  // ✅ FUNCIÓN: Determinar modo actual basado en horario y fecha
+  // // ✅ FUNCIÓN: Deternar modo actual basado en horario y fecha
   const determinarModoActual = useCallback(
     (
       horario: HorarioTomaAsistencia | null,
@@ -185,7 +180,7 @@ export const useAsistenciaCompartida = (
     [obtenerFechaActual]
   );
 
-  // ✅ FUNCIÓN: Consultar asistencia del modo específico
+  // // ✅ FUNCIÓN:nsultar asistencia del modo específico
   const consultarAsistenciaModo = useCallback(
     async (modo: ModoRegistro, razon: string): Promise<void> => {
       if (!asistenciaIDB) {
@@ -193,8 +188,8 @@ export const useAsistenciaCompartida = (
         return;
       }
 
-      // ✅ PROTECCIÓN INMEDIATA CON REF
-      if (consultaEnProcesoRef.current) {
+      // // ✅ PROTECCIÓN INMEDIATA CON REF
+      if (nsultaEnProcesoRef.current) {
         console.log(
           `⏭️ CONSULTA YA EN PROCESO - BLOQUEANDO ${modo} (${razon})`
         );
@@ -204,8 +199,7 @@ export const useAsistenciaCompartida = (
       try {
         console.log(`🔍 CONSULTANDO ${modo} - Razón: ${razon}`);
 
-        // ✅ BLOQUEAR INMEDIATAMENTE
-        consultaEnProcesoRef.current = true;
+        // // ✅ BLOQUEAR INMEDIATAMENTEnsultaEnProcesoRef.current = true;
         setConsultaInicialEnProceso(true);
 
         const resultado = await asistenciaIDB.consultarMiAsistenciaDeHoy(
@@ -235,15 +229,14 @@ export const useAsistenciaCompartida = (
       } catch (error) {
         console.error(`❌ Error al consultar ${modo}:`, error);
       } finally {
-        // ✅ LIBERAR LOCKS SIEMPRE
-        consultaEnProcesoRef.current = false;
+        // // ✅ LIBERAR LOCKS SIEMPREnsultaEnProcesoRef.current = false;
         setConsultaInicialEnProceso(false);
       }
     },
     [asistenciaIDB, rol]
   );
 
-  // ✅ NUEVA FUNCIÓN: Refrescar asistencia inmediatamente
+  // // ✅ NUEVA FUNCIÓN: Refrescar asisncia inmediatamente
   const refrescarAsistencia = useCallback(async (): Promise<void> => {
     if (
       !asistenciaIDB ||
@@ -263,7 +256,7 @@ export const useAsistenciaCompartida = (
       const modoActual = determinarModoActual(horario);
 
       if (modoActual.activo && modoActual.tipo) {
-        // Consultar ambos modos para asegurar sincronización completa
+        // //nsultar ambos modos para asegurar sincronización completa
         const [resultadoEntrada, resultadoSalida] = await Promise.all([
           asistenciaIDB.consultarMiAsistenciaDeHoy(ModoRegistro.Entrada, rol),
           asistenciaIDB.consultarMiAsistenciaDeHoy(ModoRegistro.Salida, rol),
@@ -285,7 +278,7 @@ export const useAsistenciaCompartida = (
     }
   }, [asistenciaIDB, horario, rol, determinarModoActual]);
 
-  // ✅ FUNCIÓN: Obtener horario del usuario
+  // // ✅ FUNCIÓN: Obner horario del usuario
   const obtenerHorario = useCallback(async () => {
     if (rol === RolesSistema.Directivo || rol === RolesSistema.Responsable) {
       setInicializado(true);
@@ -363,8 +356,7 @@ export const useAsistenciaCompartida = (
     }
   }, [rol]);
 
-  // ✅ CONSULTA PERIÓDICA INTELIGENTE
-  const consultaPeriodicaInteligente = useCallback(() => {
+  // // ✅ CONSULTA PERIÓDICA INTELIGENTEnst consultaPeriodicaInteligente = useCallback(() => {
     if (!consultaInicialCompletada) {
       console.log(
         "⏭️ Esperando consulta inicial completada antes de consulta periódica"
@@ -389,8 +381,8 @@ export const useAsistenciaCompartida = (
       return;
     }
 
-    // ✅ SOLO CONSULTAR SI ES UN MODO DIFERENTE
-    if (ultimoModoConsultado.current !== modoActual.tipo) {
+    // // ✅ SOLO CONSULTAR SI ES UN MODO DIFERENTE
+    if (ultimoModonsultado.current !== modoActual.tipo) {
       console.log(
         `🔄 Cambio de modo detectado: ${ultimoModoConsultado.current} → ${modoActual.tipo}`
       );
@@ -409,7 +401,7 @@ export const useAsistenciaCompartida = (
     determinarModoActual,
   ]);
 
-  // ✅ FUNCIÓN: Reintento de emergencia
+  // // ✅ FUNCIÓN: Rntento de emergencia
   const reintentoForzadoEmergencia = useCallback(() => {
     console.log("🚨 REINTENTO FORZADO DE EMERGENCIA");
 
@@ -443,9 +435,8 @@ export const useAsistenciaCompartida = (
     consultarAsistenciaModo,
   ]);
 
-  // ✅ EFECTOS
-  useEffect(() => {
-    console.log("🔧 INICIALIZANDO AsistenciaDePersonalIDB...");
+  // // ✅ EFECTOS
+  useEffect(() => {nsole.log("🔧 INICIALIZANDO AsistenciaDePersonalIDB...");
     const nuevaAsistenciaIDB = new AsistenciaDePersonalIDB("API01");
     setAsistenciaIDB(nuevaAsistenciaIDB);
     console.log("✅ AsistenciaDePersonalIDB inicializada:", nuevaAsistenciaIDB);
@@ -457,12 +448,12 @@ export const useAsistenciaCompartida = (
     }
   }, [horario, handlerBase, obtenerHorario]);
 
-  // ✅ CONSULTA INICIAL
+  // // ✅ CONSULTA INICIAL
   // ✅ CONSULTA INICIAL - VERSIÓN CORREGIDA
   useEffect(() => {
-    // ✅ NUEVA CONDICIÓN: También ejecutar cuando inicializado=true AUNQUE no haya horario
+    // ✅ NUEVA CONDICIÓN: Tambn ejecutar cuando inicializado=true AUNQUE no haya horario
     if (
-      inicializado && // ✅ Cambio principal: usar 'inicializado' en lugar de 'horario'
+      inicializado && // / ✅ Cambio pncipal: usar 'inicializado' en lugar de 'horario'
       !asistencia.inicializado &&
       reduxInicializado &&
       !consultaInicialCompletada &&
@@ -470,20 +461,19 @@ export const useAsistenciaCompartida = (
     ) {
       console.log("🚀 INICIANDO CONSULTA INICIAL... (Redux ya inicializado)");
 
-      // ✅ NUEVA LÓGICA: Verificar si hay horario primero
-      if (!horario) {
-        console.log(
+      // // ✅ NUEVA LÓGICA: Verificar si hay horario primero
+      if (!horario) {nsole.log(
           "❌ NO HAY HORARIO - Marcando como inicializado sin consultar"
         );
         setConsultaInicialCompletada(true);
         setAsistencia((prev) => ({
           ...prev,
-          inicializado: true, // ✅ CLAVE: Marcar como inicializado aunque no haya horario
+          inicializado: true, // / ✅ CLAVE: Marcar comonicializado aunque no haya horario
         }));
         return;
       }
 
-      // ✅ Solo si hay horario, proceder con la lógica normal
+      // // ✅ Solo si hay horario, procedern la lógica normal
       const modoActual = determinarModoActual(horario);
 
       if (modoActual.activo && modoActual.tipo) {
@@ -503,8 +493,8 @@ export const useAsistenciaCompartida = (
       }
     }
   }, [
-    inicializado, // ✅ Cambio principal: usar 'inicializado' en lugar de 'horario'
-    horario, // ✅ Mantener horario como dependencia para detectar cambios
+    inicializado, // / ✅ Cambio pncipal: usar 'inicializado' en lugar de 'horario'
+    horario, // / ✅ntener horario como dependencia para detectar cambios
     asistencia.inicializado,
     reduxInicializado,
     consultaInicialCompletada,
@@ -513,9 +503,9 @@ export const useAsistenciaCompartida = (
     determinarModoActual,
   ]);
 
-  // ✅ TIMER DE EMERGENCIA
+  // // ✅ TIMER DE EMERGENCIA
   useEffect(() => {
-    if (!timerEmergenciaActivo) return;
+    if (!timerEmernciaActivo) return;
 
     console.log(
       `⏰ Iniciando timer de emergencia: ${
@@ -536,9 +526,9 @@ export const useAsistenciaCompartida = (
     };
   }, [timerEmergenciaActivo, reintentoForzadoEmergencia]);
 
-  // ✅ INTERVALO PERIÓDICO
+  // // ✅ INTERVALO PERIÓDICO
   useEffect(() => {
-    if (timerEmergenciaActivo) return;
+    if (timerEmernciaActivo) return;
 
     if (
       !asistencia.inicializado ||
@@ -576,10 +566,10 @@ export const useAsistenciaCompartida = (
     consultaPeriodicaInteligente,
   ]);
 
-  // ✅ DETECTAR CAMBIO DE MODO
+  // // ✅ DETECTAR CAMBIO DE MODO
   useEffect(() => {
     if (
-      !horaMinutoActual ||
+      !horanutoActual ||
       !asistencia.inicializado ||
       !horario ||
       !reduxInicializado ||
@@ -616,17 +606,16 @@ export const useAsistenciaCompartida = (
     determinarModoActual,
   ]);
 
-  // ✅ CLEANUP
+  // // ✅ CLEANUP
   useEffect(() => {
-    return () => {
+    retn () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
       if (retryRef.current) clearTimeout(retryRef.current);
       if (timerEmergenciaRef.current) clearTimeout(timerEmergenciaRef.current);
     };
   }, []);
 
-  // ✅ CALCULAR MODO ACTUAL
-  const modoActual = determinarModoActual(horario);
+  // // ✅ CALCULAR MODO ACTUALnst modoActual = determinarModoActual(horario);
 
   return {
     horario,
@@ -635,6 +624,6 @@ export const useAsistenciaCompartida = (
     modoActual,
     inicializado,
     consultaInicialCompletada,
-    refrescarAsistencia, // ✅ NUEVA FUNCIÓN EXPUESTA
+    refrescarAsistencia, // / ✅ NUEVA FUNCIÓN EXPUESTA
   };
 };

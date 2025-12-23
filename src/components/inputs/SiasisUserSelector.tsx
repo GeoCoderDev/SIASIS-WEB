@@ -90,7 +90,7 @@ const UsuarioGenericoEncontrado = ({
 };
 
 const LIMITE_USUARIOS_GENERICOS_A_TRAER = 5;
-// Controla si se muestra feedback visual al usuario mientras escribe (iconos, mensajes, etc.)
+// //ntrola si se muestra feedback visual al usuario mientras escribe (iconos, mensajes, etc.)
 const FEEDBACK_ESCRITURA = true;
 
 const SiasisUserSelector = ({
@@ -119,11 +119,11 @@ const SiasisUserSelector = ({
 
   const { delegarEvento } = useDelegacionEventos();
 
-  // Ref para el timeout del debounce
+  // // Ref para el timeout del debnce
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const DEBOUNCE_DELAY = 500; // 500ms de delay
+  const DEBOUNCE_DELAY = 500; // / 500ms de delay
 
-  // Instancia del modelo (se crea una sola vez)
+  //nstancia del modelo (se crea una sola vez)
   const [usuariosGenericosIDB] = useState(
     () =>
       new UsuariosGenericosIDB(
@@ -134,7 +134,7 @@ const SiasisUserSelector = ({
       )
   );
 
-  // Función segura para establecer usuarios obtenidos
+  // //nción segura para establecer usuarios obtenidos
   const setUsuariosSeguro = useCallback(
     (usuarios: GenericUser[] | undefined | null) => {
       setUsuariosGenericosObtenidos(Array.isArray(usuarios) ? usuarios : []);
@@ -142,7 +142,7 @@ const SiasisUserSelector = ({
     []
   );
 
-  // Función de búsqueda usando IndexedDB (equivalente al fetchUsuariosGenericos original)
+  // //nción de búsqueda usando IndexedDB (equivalente al fetchUsuariosGenericos original)
   const buscarUsuariosGenericos = useCallback(async () => {
     try {
       if (
@@ -199,18 +199,18 @@ const SiasisUserSelector = ({
     );
   }, [delegarEvento, ID_SELECTOR_USUARIO_GENERICO_HTML]);
 
-  // Determinar si el componente está deshabilitado
+  // // Deternar si el componente está deshabilitado
   const estaDeshabilitado = disabled || !rolUsuariosABuscar;
 
-  // DEBOUNCE LOGIC + BÚSQUEDA INICIAL: Buscar después de que el usuario deje de escribir
-  // También busca los primeros 5 usuarios automáticamente al abrir el dropdown
+  // // DEBOUNCE LOGIC + BÚSQUEDA INICIAL: Buscar después de que el usuario deje de escribir
+  // Tambn busca los primeros 5 usuarios automáticamente al abrir el dropdown
   useEffect(() => {
-    // Limpiar timeout anterior
+    // // Limpiar timeoutnterior
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
     }
 
-    // Si no está desplegado o está deshabilitado, limpiar y salir
+    // // Sno está desplegado o está deshabilitado, limpiar y salir
     if (!estaDesplegado || estaDeshabilitado) {
       cancelAllRequests();
       setUsuariosSeguro([]);
@@ -218,8 +218,8 @@ const SiasisUserSelector = ({
       return;
     }
 
-    // Si el criterio está vacío, ejecutar búsqueda inicial inmediatamente
-    // (muestra los primeros 5 usuarios sin filtros)
+    // // Si el criterio está vacío, ejecutar búsquedanicial inmediatamente
+    // // (muestra los primeros 5 usuariosn filtros)
     if (criterioDeBusqueda.trim() === "") {
       setIsTyping(false);
       setError(null);
@@ -227,13 +227,13 @@ const SiasisUserSelector = ({
       return;
     }
 
-    // Si hay criterio de búsqueda, aplicar debounce
+    // // Si hay criterio de búsqueda, aplicar debnce
     if (FEEDBACK_ESCRITURA) {
       setIsTyping(true);
     }
     setError(null);
 
-    // Configurar timeout para buscar después del delay
+    // //nfigurar timeout para buscar después del delay
     debounceTimeoutRef.current = setTimeout(() => {
       if (FEEDBACK_ESCRITURA) {
         setIsTyping(false);
@@ -241,7 +241,7 @@ const SiasisUserSelector = ({
       buscarUsuariosGenericos();
     }, DEBOUNCE_DELAY);
 
-    // Cleanup function
+    // // Clnup function
     return () => {
       if (debounceTimeoutRef.current) {
         clearTimeout(debounceTimeoutRef.current);
@@ -254,7 +254,7 @@ const SiasisUserSelector = ({
     estaDeshabilitado,
   ]);
 
-  // Cleanup al desmontar el componente
+  // // Clnup al desmontar el componente
   useEffect(() => {
     return () => {
       if (debounceTimeoutRef.current) {
@@ -303,7 +303,7 @@ const SiasisUserSelector = ({
         >
           <div className="flex-1 min-w-0">
             {!rolUsuariosABuscar ? (
-              // Estado: No hay rol seleccionado
+              // // Estado: No hay rol seleccnado
               <div className="flex items-center space-x-2.5">
                 <AlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0" />
                 <div className="min-w-0">
@@ -316,7 +316,7 @@ const SiasisUserSelector = ({
                 </div>
               </div>
             ) : usuarioSeleccionado ? (
-              // Estado: Usuario seleccionado
+              // // Estado: Usuario seleccnado
               <div className="flex items-center space-x-2.5">
                 <FotoPerfilClientSide
                   Google_Drive_Foto_ID={
@@ -337,7 +337,7 @@ const SiasisUserSelector = ({
                 </div>
               </div>
             ) : (
-              // Estado: Rol seleccionado pero sin usuario
+              // // Estado: Rol seleccnado pero sin usuario
               <div className="flex items-center space-x-2.5">
                 <Users className="w-4 h-4 text-gray-400 flex-shrink-0" />
                 <div className="min-w-0">
@@ -411,7 +411,7 @@ const SiasisUserSelector = ({
               className="overflow-y-auto max-h-64"
             >
               {FEEDBACK_ESCRITURA && isTyping ? (
-                // Estado: Usuario escribiendo (solo si FEEDBACK_ESCRITURA está activo)
+                // // Estado: Usuario escribndo (solo si FEEDBACK_ESCRITURA está activo)
                 <div className="flex items-center justify-center py-6">
                   <Clock className="w-5 h-5 mr-2 text-blue-500" />
                   <span className="text-blue-600 text-sm">
@@ -468,7 +468,7 @@ const SiasisUserSelector = ({
                   )}
                 </>
               ) : (
-                // Estado: API cargando
+                // // Estado: API carndo
                 <div className="flex items-center justify-center py-6">
                   <Loader className="w-5 h-5 mr-2" />
                   <span className="text-gray-500 text-sm">

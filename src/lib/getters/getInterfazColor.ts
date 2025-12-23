@@ -1,7 +1,7 @@
 export async function getInterfazColor(): Promise<string> {
   try {
     const res = await fetch(
-      "http://localhost/api/interfazColor",
+      "http:// localhost/api/interfazColor",
       { method: "GET", next: { revalidate: 0 } }
     );
     if (res.ok) {

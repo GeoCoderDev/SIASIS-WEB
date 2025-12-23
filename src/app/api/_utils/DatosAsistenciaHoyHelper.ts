@@ -4,8 +4,8 @@ import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 import { obtenerDatosAsistenciaHoy } from "../_utils/obtenerDatosAsistenciaHoy";
 
 /**
- * Información del aula asignada a un profesor
- */
+* Información del aula asignada a un profesor
+*/
 export interface AulaAsignada {
   nivel: NivelEducativo;
   grado: number;
@@ -14,8 +14,8 @@ export interface AulaAsignada {
 }
 
 /**
- * Resultado de validación de permisos para reportes
- */
+* Resultado de validación de permisos para reportes
+*/
 export interface ResultadoValidacionPermisos {
   tienePermiso: boolean;
   mensaje?: string;
@@ -23,8 +23,8 @@ export interface ResultadoValidacionPermisos {
 }
 
 /**
- * Helper para trabajar con datos de asistencia del día
- */
+* Helper para trabajar con datos de asistencia del día
+*/
 export class DatosAsistenciaHoyHelper {
   private datos: DatosAsistenciaHoyIE20935;
 
@@ -33,16 +33,16 @@ export class DatosAsistenciaHoyHelper {
   }
 
   /**
-   * Obtiene una instancia del helper con los datos actuales
-   */
+* Obtiene una instancia del helper con los datos actuales
+*/
   static async obtenerInstancia(): Promise<DatosAsistenciaHoyHelper> {
     const { datos } = await obtenerDatosAsistenciaHoy();
     return new DatosAsistenciaHoyHelper(datos);
   }
 
   /**
-   * Obtiene el aula asignada a un profesor de primaria
-   */
+* Obtiene el aula asignada a un profesor de primaria
+*/
   obtenerAulaProfesorPrimaria(idProfesor: string): AulaAsignada | null {
     const profesor = this.datos.ListaDeProfesoresPrimaria.find(
       (p) => p.Id_Profesor_Primaria === idProfesor
@@ -70,8 +70,8 @@ export class DatosAsistenciaHoyHelper {
   }
 
   /**
-   * Obtiene el aula asignada a un profesor/tutor de secundaria
-   */
+* Obtiene el aula asignada a un profesor/tutor de secundaria
+*/
   obtenerAulaProfesorSecundaria(idProfesor: string): AulaAsignada | null {
     const profesor = this.datos.ListaDeProfesoresSecundaria.find(
       (p) => p.Id_Profesor_Secundaria === idProfesor
@@ -99,8 +99,8 @@ export class DatosAsistenciaHoyHelper {
   }
 
   /**
-   * Valida si un usuario tiene permiso para generar/consultar un reporte específico
-   */
+* Valida si un usuario tiene permiso para generar/consultar un reporte específico
+*/
   validarPermisosReporte(
     rol: RolesSistema,
     idUsuario: string,
@@ -125,7 +125,7 @@ export class DatosAsistenciaHoyHelper {
         };
 
       case RolesSistema.Auxiliar:
-        // Solo puede generar reportes de secundaria
+        // // Solo puedenerar reportes de secundaria
         if (nivelSolicitado !== NivelEducativo.SECUNDARIA) {
           console.log(
             `[DatosAsistenciaHoyHelper] ❌ Auxiliar solo puede generar reportes de secundaria`
@@ -169,7 +169,7 @@ export class DatosAsistenciaHoyHelper {
           };
         }
 
-        // Verificar que coincida con su aula asignada
+        // // Verificar que cncida con su aula asignada
         const coincidePrimaria =
           nivelSolicitado === aulaProfesorPrimaria.nivel &&
           (gradoSolicitado === aulaProfesorPrimaria.grado ||
@@ -225,7 +225,7 @@ export class DatosAsistenciaHoyHelper {
           };
         }
 
-        // Verificar que coincida con su aula asignada
+        // // Verificar que cncida con su aula asignada
         const coincideSecundaria =
           nivelSolicitado === aulaProfesorSecundaria.nivel &&
           (gradoSolicitado === aulaProfesorSecundaria.grado ||
@@ -276,8 +276,8 @@ export class DatosAsistenciaHoyHelper {
   }
 
   /**
-   * Obtiene los datos completos de asistencia
-   */
+* Obtiene los datos completos de asistencia
+*/
   obtenerDatosCompletos(): DatosAsistenciaHoyIE20935 {
     return this.datos;
   }

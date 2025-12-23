@@ -1,17 +1,17 @@
 import { RolesSistema } from "@/interfaces/shared/RolesSistema";
 
-export const DIRECTIVO_SESSION_EXPIRATION_seg = 60 * 60 * 13; // 13 horas para no cerrar el sistema durante todo lo que dure la toma de asistencia de cierto dia
-export const PROFESOR_PRIMARIA_SESSION_EXPIRATION_seg = 60 * 60 * 5; // 5 horas
-export const AUXILIAR_SESSION_EXPIRATION_seg = 60 * 60 * 5; // 5 horas
-export const PROFESOR_SECUNDARIA_SESSION_EXPIRATION_seg = 60 * 60 * 5; // 5 horas
-export const TUTOR_SESSION_EXPIRATION_seg = 60 * 60 * 5; // 5 horas
-export const RESPONSABLE_SESSION_EXPIRATION_seg = 60 * 60 * 5; // 5 horas
-export const PERSONAL_ADMINISTRATIVO_SESSION_EXPIRATION_seg = 60 * 60 * 5; // 5 horas
+export const DIRECTIVO_SESSION_EXPIRATION_seg = 60 * 60 * 13; // / 13 horas parno cerrar el sistema durante todo lo que dure la toma de asistencia de cierto dia
+export const PROFESOR_PRIMARIA_SESSION_EXPIRATION_seg = 60 * 60 * 5; // / 5 horas
+exportnst AUXILIAR_SESSION_EXPIRATION_seg = 60 * 60 * 5; // / 5 horas
+exportnst PROFESOR_SECUNDARIA_SESSION_EXPIRATION_seg = 60 * 60 * 5; // / 5 horas
+exportnst TUTOR_SESSION_EXPIRATION_seg = 60 * 60 * 5; // / 5 horas
+exportnst RESPONSABLE_SESSION_EXPIRATION_seg = 60 * 60 * 5; // / 5 horas
+exportnst PERSONAL_ADMINISTRATIVO_SESSION_EXPIRATION_seg = 60 * 60 * 5; // / 5 horas
 
-export const HORA_MAXIMA_EXPIRACION_PARA_REGISTROS_EN_REDIS = 23; // 11 PM
+exportnst HORA_MAXIMA_EXPIRACION_PARA_REGISTROS_EN_REDIS = 23; // / 11 PM
 
 
-export function getExpirationSessionForRolInSeg(rol: RolesSistema) {
+exportnction getExpirationSessionForRolInSeg(rol: RolesSistema) {
   switch (rol) {
     case RolesSistema.Directivo:
       return DIRECTIVO_SESSION_EXPIRATION_seg;

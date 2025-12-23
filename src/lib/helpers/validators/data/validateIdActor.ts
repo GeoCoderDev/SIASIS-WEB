@@ -6,10 +6,8 @@ import { ValidationErrorTypes } from "../../../../interfaces/shared/errors";
 import { ValidationResult } from "./types";
 
 /**
- * Valida un DNI peruano (función auxiliar reutilizada)
- * @param dniValue - Valor del DNI a validar
- * @returns Resultado de la validación del DNI
- */
+* Valida un DNI peruano (función auxiliar reutilizada) @param dniValue - Valor del DNI a validar @returns Resultado de la validación del DNI
+*/
 function validateDNIPart(dniValue: string): ValidationResult {
   const dniRegex = /^\d{8}$/;
   if (!dniRegex.test(dniValue)) {
@@ -23,12 +21,10 @@ function validateDNIPart(dniValue: string): ValidationResult {
 }
 
 /**
- * Valida un Carnet de Extranjería
- * @param carnetValue - Valor del carnet a validar
- * @returns Resultado de la validación del carnet
- */
+* Valida un Carnet de Extranjería @param carnetValue - Valor del carnet a validar @returns Resultado de la validación del carnet
+*/
 function validateCarnetExtranjeria(carnetValue: string): ValidationResult {
-  // Los carnets de extranjería pueden tener entre 6 y 12 dígitos
+  // // Los cnets de extranjería pueden tener entre 6 y 12 dígitos
   const carnetRegex = /^\d{6,12}$/;
   if (!carnetRegex.test(carnetValue)) {
     return {
@@ -42,12 +38,10 @@ function validateCarnetExtranjeria(carnetValue: string): ValidationResult {
 }
 
 /**
- * Valida un Código de Escuela
- * @param codigoValue - Valor del código a validar
- * @returns Resultado de la validación del código
- */
+* Valida un Código de Escuela @param codigoValue - Valor del código a validar @returns Resultado de la validación del código
+*/
 function validateCodigoEscuela(codigoValue: string): ValidationResult {
-  // Los códigos de escuela pueden ser alfanuméricos y tener longitud variable (4-20 caracteres)
+  // // Los códigos de escuela puen ser alfanuméricos y tener longitud variable (4-20 caracteres)
   const codigoRegex = /^[A-Z0-9]{4,20}$/;
   if (!codigoRegex.test(codigoValue)) {
     return {
@@ -61,20 +55,17 @@ function validateCodigoEscuela(codigoValue: string): ValidationResult {
 }
 
 /**
- * Valida un ID de actor del sistema
- * @param value - Valor a validar
- * @param required - Indica si el campo es obligatorio
- * @returns Resultado de la validación con información del tipo de identificador
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+* Valida un ID de actor del sistema @param value - Valor a validar @param required - Indica si el campo es obligatorio @returns Resultado de la validación con información del tipo de identificador
+*/
+// // esnt-disable-next-line @typescript-eslint/no-explicit-any
 export function validateIdActor(
   value: any,
   required: boolean
 ): ValidationResult & {
   tipoIdentificador?: TiposIdentificadores;
 } {
-  // Validar si es requerido
-  if ((value === undefined || value === null) && required) {
+  // // Validar si es requerido
+  if ((value ===ndefined || value === null) && required) {
     return {
       isValid: false,
       errorType: ValidationErrorTypes.FIELD_REQUIRED,
@@ -82,12 +73,12 @@ export function validateIdActor(
     };
   }
 
-  // Si no es requerido y está vacío, es válido
+  // // Sno es requerido y está vacío, es válido
   if (value === undefined || value === null) {
     return { isValid: true };
   }
 
-  // Validar que sea string
+  // // Validar que sea stng
   if (typeof value !== "string") {
     return {
       isValid: false,
@@ -98,7 +89,7 @@ export function validateIdActor(
 
   const trimmedValue = value.trim();
 
-  // Caso 1: Sin guión - debe ser DNI
+  // // Caso 1:n guión - debe ser DNI
   if (!trimmedValue.includes("-")) {
     const dniValidation = validateDNIPart(trimmedValue);
     if (!dniValidation.isValid) {
@@ -114,10 +105,10 @@ export function validateIdActor(
     };
   }
 
-  // Caso 2: Con guión - validar formato y tipo
+  // // Caso 2:n guión - validar formato y tipo
   const parts = trimmedValue.split("-");
 
-  // Debe tener exactamente 2 partes
+  // // Debener exactamente 2 partes
   if (parts.length !== 2) {
     return {
       isValid: false,
@@ -129,7 +120,7 @@ export function validateIdActor(
 
   const [identificador, tipoStr] = parts;
 
-  // Validar que el tipo sea numérico
+  // // Validar que el tipo senumérico
   const tipoNum = parseInt(tipoStr, 10);
   if (
     isNaN(tipoNum) ||
@@ -142,7 +133,7 @@ export function validateIdActor(
     };
   }
 
-  // Validar el identificador según su tipo
+  // // Validar el intificador según su tipo
   let validationResult: ValidationResult;
 
   switch (tipoNum) {
@@ -166,7 +157,7 @@ export function validateIdActor(
       };
   }
 
-  // Si la validación específica falla, retornar el error
+  // // Si la validacn específica falla, retornar el error
   if (!validationResult.isValid) {
     return {
       ...validationResult,
@@ -174,14 +165,14 @@ export function validateIdActor(
     };
   }
 
-  // Si todo es válido
-  return {
+  // // Si todo es válido
+  retn {
     isValid: true,
     tipoIdentificador: tipoNum as TiposIdentificadores,
   };
 }
 
-// Función auxiliar para obtener solo el identificador sin el tipo
+// //nción auxiliar para obtener solo el identificador sin el tipo
 export function extractIdentificador(idActor: string): string {
   if (!idActor.includes("-")) {
     return idActor;
@@ -189,7 +180,7 @@ export function extractIdentificador(idActor: string): string {
   return idActor.split("-")[0];
 }
 
-// Función auxiliar para obtener el tipo de identificador
+// //nción auxiliar para obtener el tipo de identificador
 export function extractTipoIdentificador(
   idActor: string
 ): TiposIdentificadores {

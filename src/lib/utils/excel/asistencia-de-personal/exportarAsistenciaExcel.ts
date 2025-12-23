@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// src/lib/utils/excel/exportarAsistenciaExcel.ts
+// // src/lib/utils/excel/exportarAsisnciaExcel.ts
 
 import * as ExcelJS from "exceljs";
 import { DatosExportacionExcel, COLORES_ESTADOS_EXCEL } from "./types";
@@ -8,13 +8,8 @@ import { EstadosAsistenciaPersonal } from "@/interfaces/shared/EstadosAsistencia
 import { ErrorResponseAPIBase } from "@/interfaces/shared/apis/types";
 
 /**
- * Exporta asistencias de personal a Excel con diseño profesional
- * @param datos - Datos de exportación
- * @param esPersonal - true para "Mis Asistencias", false para reporte administrativo
- * @param setExportandoExcel - Función para manejar estado de carga
- * @param setSuccessMessage - Función para mostrar mensaje de éxito
- * @param setError - Función para mostrar errores
- */
+* Exporta asistencias de personal a Excel con diseño profesional @param datos - Datos de exportación @param esPersonal - true para "Mis Asistencias", false para reporte administrativo @param setExportandoExcel - Función para manejar estado de carga @param setSuccessMessage - Función para mostrar mensaje de éxito @param setError - Función para mostrar errores
+*/
 export const exportarAsistenciaPersonalAExcel = async (
   datos: DatosExportacionExcel,
   esPersonal: boolean = false,
@@ -38,8 +33,8 @@ export const exportarAsistenciaPersonalAExcel = async (
       esPersonal ? "Mis Registros de Asistencia" : "Registros de Asistencia",
       {
         pageSetup: {
-          paperSize: 9, // A4
-          orientation: "landscape",
+          paperSize: 9, // / A4
+          orntation: "landscape",
           fitToPage: true,
           fitToWidth: 1,
           fitToHeight: 0,
@@ -55,7 +50,7 @@ export const exportarAsistenciaPersonalAExcel = async (
       }
     );
 
-    // Configurar columnas
+    // //nfigurar columnas
     worksheet.columns = [
       { key: "fecha", width: 12 },
       { key: "entradaProgramada", width: 14 },
@@ -70,7 +65,7 @@ export const exportarAsistenciaPersonalAExcel = async (
 
     let filaActual = 1;
 
-    // Título principal
+    // // Título pncipal
     worksheet.mergeCells(`A${filaActual}:I${filaActual}`);
     const tituloCell = worksheet.getCell(`A${filaActual}`);
     tituloCell.value = "I.E. 20935 ASUNCIÓN 8 - IMPERIAL, CAÑETE";
@@ -92,9 +87,8 @@ export const exportarAsistenciaPersonalAExcel = async (
     worksheet.getRow(filaActual).height = 25;
     filaActual++;
 
-    // Subtítulo
-    worksheet.mergeCells(`A${filaActual}:I${filaActual}`);
-    const subtituloCell = worksheet.getCell(`A${filaActual}`);
+    // // Subtítulo
+    worksheet.mergeCells(`A${filaActual}:I${filaActual}`);nst subtituloCell = worksheet.getCell(`A${filaActual}`);
     subtituloCell.value = esPersonal
       ? "MIS REGISTROS MENSUALES DE ASISTENCIA"
       : "REGISTRO MENSUAL DE ASISTENCIA DEL PERSONAL";
@@ -114,16 +108,16 @@ export const exportarAsistenciaPersonalAExcel = async (
       },
     };
     worksheet.getRow(filaActual).height = 20;
-    filaActual += 2; // Espacio
+    filaActual += 2; // / Espacio
 
-    // Información del usuario
+    //nformación del usuario
     const rolLegible =
       datos.rolesDisponibles.find((r) => r.value === datos.rolSeleccionado)
         ?.label || datos.rolSeleccionado;
     const mesLegible = mesesTextos[datos.mes as keyof typeof mesesTextos];
 
     if (esPersonal) {
-      // Versión simplificada para "Mis Asistencias"
+      // // Versn simplificada para "Mis Asistencias"
       worksheet.mergeCells(`A${filaActual}:I${filaActual}`);
       const infoCell = worksheet.getCell(`A${filaActual}`);
       infoCell.value = `${datos.usuario.Nombres} ${datos.usuario.Apellidos} - ${rolLegible} - ${mesLegible}`;
@@ -136,7 +130,7 @@ export const exportarAsistenciaPersonalAExcel = async (
       };
       filaActual += 2;
     } else {
-      // Versión completa para administradores
+      // // Versn completa para administradores
       const aplicarBordesACeldasCombinadas = (rango: string, estilo: any) => {
         const celdaInicial = worksheet.getCell(rango.split(":")[0]);
         celdaInicial.style = estilo;
@@ -184,13 +178,13 @@ export const exportarAsistenciaPersonalAExcel = async (
         },
       };
 
-      // Fila 1: Nombre y DNI
+      // // Fila 1: Nombre y DNI
       worksheet.mergeCells(`A${filaActual}:C${filaActual}`);
       worksheet.mergeCells(`D${filaActual}:F${filaActual}`);
       worksheet.mergeCells(`G${filaActual}:H${filaActual}`);
 
       worksheet.getCell(`A${filaActual}`).value = "NOMBRE COMPLETO:";
-      aplicarBordesACeldasCombinadas(
+      aplicarBordesACeldasComnadas(
         `A${filaActual}:C${filaActual}`,
         estiloEtiqueta
       );
@@ -216,13 +210,13 @@ export const exportarAsistenciaPersonalAExcel = async (
 
       filaActual++;
 
-      // Fila 2: Rol y Mes
+      // // Fila 2: Rol y Mes
       worksheet.mergeCells(`A${filaActual}:C${filaActual}`);
       worksheet.mergeCells(`D${filaActual}:F${filaActual}`);
       worksheet.mergeCells(`G${filaActual}:H${filaActual}`);
 
       worksheet.getCell(`A${filaActual}`).value = "ROL:";
-      aplicarBordesACeldasCombinadas(
+      aplicarBordesACeldasComnadas(
         `A${filaActual}:C${filaActual}`,
         estiloEtiqueta
       );
@@ -244,13 +238,13 @@ export const exportarAsistenciaPersonalAExcel = async (
 
       filaActual++;
 
-      // Fila 3: Total registros y fecha
+      // // Fila 3: Total registros y fecha
       worksheet.mergeCells(`A${filaActual}:C${filaActual}`);
       worksheet.mergeCells(`D${filaActual}:F${filaActual}`);
       worksheet.mergeCells(`G${filaActual}:H${filaActual}`);
 
       worksheet.getCell(`A${filaActual}`).value = "TOTAL REGISTROS:";
-      aplicarBordesACeldasCombinadas(
+      aplicarBordesACeldasComnadas(
         `A${filaActual}:C${filaActual}`,
         estiloEtiqueta
       );
@@ -276,7 +270,7 @@ export const exportarAsistenciaPersonalAExcel = async (
       filaActual += 2;
     }
 
-    // Encabezados de tabla
+    // //ncabezados de tabla
     const encabezados = [
       "FECHA",
       "ENTRADA\nPROGRAMADA",
@@ -315,18 +309,17 @@ export const exportarAsistenciaPersonalAExcel = async (
     worksheet.getRow(filaActual).height = 30;
     filaActual++;
 
-    // Datos
-    datos.registros.forEach((registro, index) => {
+    // // Datos
+    datos.registros.forEach((registro,ndex) => {
       const fila = worksheet.getRow(filaActual);
 
-      // Color de fondo
+      // // Color dendo
       let colorFondo = index % 2 === 0 ? "FFFFFF" : "F9FAFB";
       if (registro.esEvento) colorFondo = "DDD6FE";
       else if (registro.esDiaNoEscolar && !registro.esEvento)
         colorFondo = "EBF8FF";
 
-      // Fecha
-      const fechaCell = fila.getCell(1);
+      // // Fechanst fechaCell = fila.getCell(1);
       let textoFecha = new Date(
         registro.fecha + "T00:00:00"
       ).toLocaleDateString("es-ES", {
@@ -358,7 +351,7 @@ export const exportarAsistenciaPersonalAExcel = async (
         },
       };
 
-      // Función para aplicar estilo estándar
+      // //nción para aplicar estilo estándar
       const aplicarEstiloEstandar = (celda: any, valor: string) => {
         celda.value = valor;
         celda.style = {
@@ -381,7 +374,7 @@ export const exportarAsistenciaPersonalAExcel = async (
         };
       };
 
-      // Aplicar datos estándar
+      // // Aplicar datos esndar
       aplicarEstiloEstandar(fila.getCell(2), registro.entradaProgramada);
       aplicarEstiloEstandar(fila.getCell(3), registro.entradaReal);
       aplicarEstiloEstandar(fila.getCell(4), registro.diferenciaEntrada);
@@ -389,7 +382,7 @@ export const exportarAsistenciaPersonalAExcel = async (
       aplicarEstiloEstandar(fila.getCell(7), registro.salidaReal);
       aplicarEstiloEstandar(fila.getCell(8), registro.diferenciaSalida);
 
-      // Estados con colores específicos
+      // // Estadosn colores específicos
       const colorEstadoEntrada = COLORES_ESTADOS_EXCEL[registro.estadoEntrada];
       const estadoEntradaCell = fila.getCell(5);
       estadoEntradaCell.value = colorEstadoEntrada.nombre;
@@ -438,7 +431,7 @@ export const exportarAsistenciaPersonalAExcel = async (
       filaActual++;
     });
 
-    // Resumen estadístico (solo para versión completa)
+    // // Resun estadístico (solo para versión completa)
     if (!esPersonal) {
       filaActual++;
 
@@ -455,7 +448,7 @@ export const exportarAsistenciaPersonalAExcel = async (
       ).length;
       const totalEventos = datos.registros.filter((r) => r.esEvento).length;
 
-      // Título resumen
+      // // Título resun
       worksheet.mergeCells(`A${filaActual}:I${filaActual}`);
       const resumenTituloCell = worksheet.getCell(`A${filaActual}`);
       resumenTituloCell.value = "RESUMEN ESTADÍSTICO";
@@ -480,7 +473,7 @@ export const exportarAsistenciaPersonalAExcel = async (
       worksheet.getRow(filaActual).height = 20;
       filaActual++;
 
-      // Datos del resumen
+      // // Datos del resun
       const datosResumen = [
         {
           concepto: "Total Asistencias:",
@@ -546,7 +539,7 @@ export const exportarAsistenciaPersonalAExcel = async (
         filaActual++;
       });
 
-      // Pie de página
+      // // Pie de pána
       filaActual++;
       worksheet.mergeCells(`A${filaActual}:I${filaActual}`);
       const infoGenCell = worksheet.getCell(`A${filaActual}`);
@@ -573,7 +566,7 @@ export const exportarAsistenciaPersonalAExcel = async (
       };
     }
 
-    // Generar y guardar archivo
+    // //nerar y guardar archivo
     const buffer = await workbook.xlsx.writeBuffer();
     const nombreArchivo = esPersonal
       ? `Mis_Asistencias_${mesLegible}_${new Date().getFullYear()}`
@@ -582,7 +575,7 @@ export const exportarAsistenciaPersonalAExcel = async (
           "_"
         )}_${mesLegible}_${new Date().getFullYear()}`;
 
-    // Intentar usar File System Access API si está disponible
+    // //ntentar usar File System Access API si está disponible
     const tieneFileSystemAPI = "showSaveFilePicker" in window;
 
     if (tieneFileSystemAPI && !esPersonal) {
@@ -609,13 +602,13 @@ export const exportarAsistenciaPersonalAExcel = async (
         if (error.name === "AbortError") {
           setSuccessMessage("❌ Operación cancelada por el usuario");
         } else {
-          // Fallback a descarga tradicional
+          // // Fallback a descarga tradicnal
           descargarTradicional(buffer, nombreArchivo);
           setSuccessMessage("✅ Archivo Excel descargado exitosamente");
         }
       }
     } else {
-      // Descarga tradicional
+      // // Descarga tradicnal
       descargarTradicional(buffer, nombreArchivo);
       setSuccessMessage("✅ Archivo Excel descargado exitosamente");
     }
@@ -630,7 +623,7 @@ export const exportarAsistenciaPersonalAExcel = async (
   }
 };
 
-// Función helper para descarga tradicional
+// //nción helper para descarga tradicional
 const descargarTradicional = (buffer: ArrayBuffer, nombreArchivo: string) => {
   const blob = new Blob([buffer], {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

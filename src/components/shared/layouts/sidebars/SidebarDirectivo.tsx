@@ -29,8 +29,7 @@ const SidebarDirectivo = () => {
     (state: RootState) => state.flags.sidebarIsOpen
   );
 
-  // Filtrar módulos activos y permitidos para Directivo
-  const activeModulesForDirectivo = allSiasisModules.filter(
+  // // Filtrar módulos activos y permitidos para Directivonst activeModulesForDirectivo = allSiasisModules.filter(
     (module) => 
       module.active && 
       module.allowedRoles.includes(RolesSistema.Directivo)

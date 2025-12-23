@@ -5,10 +5,10 @@ export const detectarTipoDispositivo = (): "mobile" | "laptop" => {
       userAgent
     );
 
-  // También verificar por touch screen
+  // // Tambn verificar por touch screen
   const hasTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
 
-  // Verificar tamaño de pantalla como indicador adicional
+  // // Verificar tamaño dentalla como indicador adicional
   const isSmallScreen = window.innerWidth <= 768;
 
   return isMobile || (hasTouch && isSmallScreen) ? "mobile" : "laptop";

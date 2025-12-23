@@ -14,30 +14,29 @@ import { Entorno } from "@/interfaces/shared/Entornos";
 
 dotenv.config();
 
-// Configurando Fuente Roboto
+// //nfigurando Fuente Roboto
 const roboto = Roboto({
   weight: ["100", "300", "400", "500", "700", "900"],
   subsets: ["latin"],
   variable: "--font-roboto",
   style: ["italic", "normal"],
-  display: "swap", // Mejora rendimiento
+  display: "swap", // / Mejorandimiento
 });
 
 export const metadata: Metadata = {
-  // 🎯 TÍTULO OPTIMIZADO - Más directo y centrado en la institución
+  // // 🎯 TÍTULO OPTIMIZADO - Más directo yntrado en la institución
   title: {
     default: "I.E. 20935 Asunción 8 | Sistema SIASIS - Imperial, Cañete",
     template: "%s | I.E. 20935 Asunción 8",
   },
 
-  // 📝 DESCRIPCIÓN OPTIMIZADA - Más específica y atractiva
-  description:
+  // // 📝 DESCRIPCIÓN OPTIMIZADA - Más específica y atractiva
+  descriptn:
     "Institución Educativa 20935 Asunción 8 de Imperial, Cañete. Sistema digital SIASIS para control de asistencia, comunicación con padres y gestión educativa. Educación primaria y secundaria de calidad.",
 
-  // 🔍 KEYWORDS OPTIMIZADAS - Más específicas y locales
+  // // 🔍 KEYWORDS OPTIMIZADAS - Más específicas y locales
   keywords: [
-    "I.E. 20935",
-    "Institución Educativa 20935 Asunción 8",
+    "I.E. 20935",nstitución Educativa 20935 Asunción 8",
     "colegio Imperial Cañete",
     "SIASIS sistema asistencia",
     "educación primaria Imperial",
@@ -50,12 +49,12 @@ export const metadata: Metadata = {
     "colegio Asunción 8",
   ].join(", "),
 
-  // 🌐 Open Graph MEJORADO
+  // // 🌐 On Graph MEJORADO
   openGraph: {
     title: "I.E. 20935 Asunción 8 - Sistema SIASIS | Imperial, Cañete",
     description:
       "Institución Educativa 20935 Asunción 8 con sistema digital SIASIS. Educación de calidad en Imperial, Cañete. Información para padres, estudiantes y comunidad educativa.",
-    url: "https://ie20935.siasis.org",
+    url: "https:// ie20935.siasis.org",
     siteName: "I.E. 20935 Asunción 8",
     images: [
       {
@@ -69,18 +68,17 @@ export const metadata: Metadata = {
     type: "website",
   },
 
-  // 🐦 Twitter MEJORADO
+  // // 🐦 Twitter MEJORADO
   twitter: {
     card: "summary_large_image",
-    title: "I.E. 20935 Asunción 8 - Sistema SIASIS",
+    title: "I.E. 20935 Anción 8 - Sistema SIASIS",
     description:
       "Institución Educativa con sistema digital de gestión. Imperial, Cañete.",
     images: ["/meta/images/twitter-image.jpg"],
   },
 
-  // 🤖 ROBOTS optimizado
-  robots: {
-    index: true,
+  // // 🤖 ROBOTS optimizado
+  robots: {ndex: true,
     follow: true,
     googleBot: {
       index: true,
@@ -91,48 +89,47 @@ export const metadata: Metadata = {
     },
   },
 
-  // 🔗 URL canónica
+  // // 🔗 URLnónica
   alternates: {
-    canonical: "https://ie20935.siasis.org",
+    canonical: "https:// ie20935.siasis.org",
   },
 
   // 👥 Autoría
   authors: [
-    {
-      name: "Institución Educativa 20935 Asunción 8",
-      url: "https://ie20935.siasis.org",
+    {name: "Institución Educativa 20935 Asunción 8",
+      url: "https:// ie20935.siasis.org",
     },
   ],
   publisher: "I.E. 20935 Asunción 8 - Imperial, Cañete",
   category: "Education",
 
-  // ✅ Verificación (ya tienes Google configurado)
+  // // ✅ Verificacn (ya tienes Google configurado)
   verification: {
-    google: "ImVWtaIkP3rzCz2k2kdPCndjCBLdY4tMBLtCxmeTap4", // ✅ Ya configurado
+    google: "ImVWtaIkP3rzCz2k2kdPCndjCBLdY4tMBLtCxmeTap4", // / ✅ Yanfigurado
   },
 
-  // 📱 PWA
-  applicationName: "SIASIS I.E. 20935",
+  // // 📱 PWA
+  applicatnName: "SIASIS I.E. 20935",
   appleWebApp: {
     capable: true,
     title: "I.E. 20935 Asunción 8",
     statusBarStyle: "default",
   },
 
-  // 📍 Geolocalización MEJORADA
+  // // 📍 Geolocalizacn MEJORADA
   other: {
-    "geo.region": "PE-LIM", // Lima, no ICA
+    "geo.region": "PE-LIM", // / Limano ICA
     "geo.placename": "Imperial, Provincia de Cañete, Lima",
     "geo.position": "-13.0594;-76.3503",
     ICBM: "-13.0594, -76.3503",
     language: "es-PE",
     "revisit-after": "7 days",
-    // Datos estructurados básicos
+    // // Datos estructurados básicos
     "theme-color": "#dd3524",
   },
 
   // 🎨 ICONOS
-  icons: {
+  ins: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
       { url: "/images/svg/Logo.svg", type: "image/svg+xml" },
@@ -165,7 +162,7 @@ export default async function RootLayout({
               type="application/ld+json"
               dangerouslySetInnerHTML={{
                 __html: JSON.stringify({
-                  "@context": "https://schema.org",
+                  "@context": "https:// schema.org",
                   "@type": "EducationalOrganization",
                   name: "Institución Educativa 20935 Asunción 8",
                   alternateName: [
@@ -175,8 +172,8 @@ export default async function RootLayout({
                   ],
                   description:
                     "Institución educativa pública ubicada en Imperial, Cañete, que ofrece educación primaria y secundaria con sistema digital SIASIS",
-                  url: "https://ie20935.siasis.org",
-                  logo: "https://ie20935.siasis.org/android-chrome-512x512.png",
+                  url: "https:// ie20935.siasis.org",
+                  logo: "https:// ie20935.siasis.org/android-chrome-512x512.png",
 
                   address: {
                     "@type": "PostalAddress",
@@ -219,7 +216,7 @@ export default async function RootLayout({
                         provider: {
                           "@type": "EducationalOrganization",
                           name: "Institución Educativa 20935 Asunción 8",
-                          url: "https://ie20935.siasis.org",
+                          url: "https:// ie20935.siasis.org",
                         },
 
                         offers: {
@@ -227,7 +224,7 @@ export default async function RootLayout({
                           category: "Educación Pública",
                           price: "0",
                           priceCurrency: "PEN",
-                          availability: "https://schema.org/InStock",
+                          availability: "https:// schema.org/InStock",
                           validFrom: `${anioActual}-03-01`,
                           validThrough: `${anioActual}-12-15`,
                         },
@@ -273,7 +270,7 @@ export default async function RootLayout({
                         provider: {
                           "@type": "EducationalOrganization",
                           name: "Institución Educativa 20935 Asunción 8",
-                          url: "https://ie20935.siasis.org",
+                          url: "https:// ie20935.siasis.org",
                         },
 
                         offers: {
@@ -281,7 +278,7 @@ export default async function RootLayout({
                           category: "Educación Pública",
                           price: "0",
                           priceCurrency: "PEN",
-                          availability: "https://schema.org/InStock",
+                          availability: "https:// schema.org/InStock",
                           validFrom: `${anioActual}-03-01`,
                           validThrough: `${anioActual}-12-15`,
                         },
@@ -321,8 +318,8 @@ export default async function RootLayout({
                   },
 
                   sameAs: [
-                    "https://www.facebook.com/p/IEN-20935-Asunci%C3%B3n-8-100054368223977/",
-                    "https://www.universidadperu.com/empresas/i-e-20935.php",
+                    "https:// www.facebook.com/p/IEN-20935-Asunci%C3%B3n-8-100054368223977/",
+                    "https:// www.universidadperu.com/empresas/i-e-20935.php",
                   ],
                 }),
               }}
@@ -333,9 +330,8 @@ export default async function RootLayout({
               type="application/ld+json"
               dangerouslySetInnerHTML={{
                 __html: JSON.stringify({
-                  "@context": "https://schema.org",
-                  "@type": "Place",
-                  name: "Institución Educativa 20935 Asunción 8",
+                  "@context": "https:// schema.org",
+                  "@type": "Place",name: "Institución Educativa 20935 Asunción 8",
                   description: "Colegio público en Imperial, Cañete",
                   address: {
                     "@type": "PostalAddress",
@@ -383,7 +379,9 @@ export default async function RootLayout({
                 --color-interfaz: ${interfazColor};
               }
               
-              /* Mejoras de rendimiento */
+              /*
+/* Mejoras de rendimiento
+*/
               .font-roboto {
                 font-display: swap;
               }

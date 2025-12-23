@@ -73,7 +73,7 @@ const MisDatosDeTutorDeSecundaria = ({
   } = useRequestAPIFeatures("API01", true);
 
   const updateFoto = async (Google_Drive_Foto_ID: string | null) => {
-    setMisDatosTutorSecundariaSaved((prev) => ({
+    setMisDatosTutorSecundariaSaved((prev: any) => ({
       ...prev,
       Google_Drive_Foto_ID,
     }));
@@ -234,14 +234,14 @@ const MisDatosDeTutorDeSecundaria = ({
   ) => {
     setError(null);
     const { name, value } = e.target;
-    setMisDatosTutorSecundariaModificados((prev) => ({
+    setMisDatosTutorSecundariaModificados((prev: any) => ({
       ...prev,
       [name]: value,
     }));
   };
 
   const updateEmail = (nuevoCorreo: string) => {
-    setMisDatosTutorSecundariaSaved((prev) => {
+    setMisDatosTutorSecundariaSaved((prev: any) => {
       return { ...prev, Correo_Electronico: nuevoCorreo };
     });
   };

@@ -32,18 +32,18 @@ import {
 import ultimaActualizacionTablasLocalesIDB from "../UltimaActualizacionTablasLocalesIDB";
 import { DatabaseModificationOperations } from "@/interfaces/shared/DatabaseModificationOperations";
 
-// Interfaz para el objeto guardado en IndexedDB (archivos individuales)
+// //nterfaz para el objeto guardado en IndexedDB (archivos individuales)
 export interface ArchivoListaEstudiantesAlmacenado<T extends NivelEducativo> {
-  id: string; // ej: 'Estudiantes_S_2'
+  id: string; // / ej: 'Estudntes_S_2'
   nivel: T;
   grado: T extends NivelEducativo.PRIMARIA ? GradosPrimaria : GradosSecundaria;
   datos: ListaEstudiantesPorGradoParaHoy<T>;
   fechaGuardado: string;
 }
 
-// Interfaz para el reporte almacenado
+// //nterfaz para el reporte almacenado
 export interface ReporteActualizacionAlmacenado {
-  id: string; // 'reporte_actualizacion_listas_de_estudiantes'
+  id: string; // / 'reporte_actualizacn_listas_de_estudiantes'
   datos: ReporteActualizacionDeListasEstudiantes;
   fechaGuardado: string;
 }
@@ -62,12 +62,12 @@ export class ListasEstudiantesPorGradosHoyIDB {
   ) {}
 
   /**
-   * Maneja los errores según su tipo y realiza logout si es necesario
-   */
+* Maneja los errores según su tipo y realiza logout si es necesario
+*/
   private handleError(
     error: unknown,
     operacion: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // // esnt-disable-next-line @typescript-eslint/no-explicit-any
     detalles?: Record<string, any>
   ): void {
     console.error(
@@ -109,23 +109,21 @@ export class ListasEstudiantesPorGradosHoyIDB {
   }
 
   /**
-   * Obtiene la fecha actual desde el estado de Redux
-   * @returns Objeto Date con la fecha actual según el estado global o null si no se puede obtener.
-   */
+* Obtiene la fecha actual desde el estado de Redux @returns Objeto Date con la fecha actual según el estado global o null si no se puede obtener.
+*/
   private obtenerFechaActualDesdeRedux(): Date | null {
     try {
-      // Obtenemos el estado actual de Redux
+      // // Obnemos el estado actual de Redux
       const state = store.getState();
 
-      // Accedemos a la fecha del estado global
-      const fechaHoraRedux = state.others.fechaHoraActualReal.fechaHora;
+      // // Accedemos a la fecha del estado globalnst fechaHoraRedux = state.others.fechaHoraActualReal.fechaHora;
 
-      // Si tenemos fecha en Redux, la usamos
+      // // Sinemos fecha en Redux, la usamos
       if (fechaHoraRedux) {
         return new Date(fechaHoraRedux);
       }
 
-      // Si no se puede obtener la fecha de Redux, retornamos null
+      // // Sno se puede obtener la fecha de Redux, retornamos null
       return null;
     } catch (error) {
       console.error(
@@ -137,33 +135,33 @@ export class ListasEstudiantesPorGradosHoyIDB {
   }
 
   /**
-   * Formatea una fecha en formato ISO sin la parte de tiempo
-   */
+* Formatea una fecha en formato ISO sin la parte de tiempo
+*/
   private formatearFechaSoloDia(fecha: Date): string {
     return fecha.toISOString().split("T")[0];
   }
 
   /**
-   * Compara si dos fechas ISO (solo día) son el mismo día
-   */
+* Compara si dos fechas ISO (solo día) son el mismo día
+*/
   private esMismoDia(fecha1ISO: string, fecha2ISO: string): boolean {
     return fecha1ISO === fecha2ISO;
   }
 
   /**
-   * Verifica si la fecha proporcionada corresponde a un sábado o domingo (Perú time).
-   */
+* Verifica si la fecha proporcionada corresponde a un sábado o domingo (Perú time).
+*/
   private esFinDeSemana(fecha: Date | null): boolean {
     if (!fecha) {
-      return false; // Si no hay fecha, no es fin de semana para esta lógica
+      return false; // / Sno hay fecha, no es fin de semana para esta lógica
     }
-    const dayOfWeek = fecha.getDay(); // 0 (Domingo) - 6 (Sábado)
+    const dayOfWeek = fecha.getDay(); // / 0 (Dongo) - 6 (Sábado)
     return dayOfWeek === 0 || dayOfWeek === 6;
   }
 
   /**
-   * Genera el nombre del archivo basado en nivel y grado
-   */
+* Genera el nombre del archivo basado en nivel y grado
+*/
   private generarNombreArchivo<T extends NivelEducativo>(
     nivel: T,
     grado: T extends NivelEducativo.PRIMARIA ? GradosPrimaria : GradosSecundaria
@@ -180,8 +178,8 @@ export class ListasEstudiantesPorGradosHoyIDB {
   }
 
   /**
-   * Genera la key de IndexedDB basada en nivel y grado (sin .json)
-   */
+* Genera la key de IndexedDB basada en nivel y grado (sin .json)
+*/
   private generarKeyArchivo<T extends NivelEducativo>(
     nivel: T,
     grado: T extends NivelEducativo.PRIMARIA ? GradosPrimaria : GradosSecundaria
@@ -191,8 +189,8 @@ export class ListasEstudiantesPorGradosHoyIDB {
   }
 
   /**
-   * Obtiene el reporte de actualización desde el servidor
-   */
+* Obtiene el reporte de actualización desde el servidor
+*/
   private async fetchReporteFromServer(): Promise<ReporteActualizacionDeListasEstudiantes> {
     try {
       const response = await fetch(
@@ -211,8 +209,8 @@ export class ListasEstudiantesPorGradosHoyIDB {
   }
 
   /**
-   * Obtiene un archivo específico desde el servidor
-   */
+* Obtiene un archivo específico desde el servidor
+*/
   private async fetchArchivoFromServer<T extends NivelEducativo>(
     nivel: T,
     grado: T extends NivelEducativo.PRIMARIA ? GradosPrimaria : GradosSecundaria
@@ -230,8 +228,7 @@ export class ListasEstudiantesPorGradosHoyIDB {
       }
 
       const data = await response.json();
-      // Remover el campo _debug si existe
-      const { _debug, ...cleanData } = data;
+      // // Remover el campo _debug si existenst { _debug, ...cleanData } = data;
       return cleanData as ListaEstudiantesPorGradoParaHoy<T>;
     } catch (error) {
       this.handleError(error, "fetchArchivoFromServer", { nivel, grado });
@@ -240,8 +237,8 @@ export class ListasEstudiantesPorGradosHoyIDB {
   }
 
   /**
-   * Guarda el reporte de actualización en IndexedDB
-   */
+* Guarda el reporte de actualización en IndexedDB
+*/
   private async guardarReporteInterno(
     reporte: ReporteActualizacionDeListasEstudiantes
   ): Promise<void> {
@@ -275,7 +272,7 @@ export class ListasEstudiantesPorGradosHoyIDB {
           resolve();
         };
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // // esnt-disable-next-line @typescript-eslint/no-explicit-any
         request.onerror = (event: any) => {
           reject(
             new Error(
@@ -293,8 +290,8 @@ export class ListasEstudiantesPorGradosHoyIDB {
   }
 
   /**
-   * Guarda un archivo de lista de estudiantes en IndexedDB
-   */
+* Guarda un archivo de lista de estudiantes en IndexedDB
+*/
   private async guardarArchivoInterno<T extends NivelEducativo>(
     nivel: T,
     grado: T extends NivelEducativo.PRIMARIA
@@ -332,7 +329,7 @@ export class ListasEstudiantesPorGradosHoyIDB {
           resolve();
         };
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // // esnt-disable-next-line @typescript-eslint/no-explicit-any
         request.onerror = (event: any) => {
           reject(
             new Error(
@@ -350,8 +347,8 @@ export class ListasEstudiantesPorGradosHoyIDB {
   }
 
   /**
-   * Obtiene el reporte almacenado en IndexedDB
-   */
+* Obtiene el reporte almacenado en IndexedDB
+*/
   private async obtenerReporteAlmacenado(): Promise<ReporteActualizacionAlmacenado | null> {
     try {
       const store = await IndexedDBConnection.getStore(this.storeName);
@@ -371,8 +368,8 @@ export class ListasEstudiantesPorGradosHoyIDB {
   }
 
   /**
-   * Obtiene un archivo almacenado en IndexedDB
-   */
+* Obtiene un archivo almacenado en IndexedDB
+*/
   private async obtenerArchivoAlmacenado<T extends NivelEducativo>(
     nivel: T,
     grado: T extends NivelEducativo.PRIMARIA ? GradosPrimaria : GradosSecundaria
@@ -397,9 +394,8 @@ export class ListasEstudiantesPorGradosHoyIDB {
   }
 
   /**
-   * Obtiene el reporte de actualización de listas de estudiantes.
-   * Sincroniza los datos desde el servidor si es necesario y los devuelve.
-   */
+* Obtiene el reporte de actualización de listas de estudiantes. Sincroniza los datos desde el servidor si es necesario y los devuelve.
+*/
   public async obtenerReporteActualizacion(): Promise<
     | ReporteActualizacionDeListasEstudiantes
     | ReporteActualizacionDeListasEstudiantesPrimaria
@@ -408,7 +404,7 @@ export class ListasEstudiantesPorGradosHoyIDB {
   > {
     const fechaHoyRedux = this.obtenerFechaActualDesdeRedux();
 
-    // Si no se pudo obtener la fecha de Redux, no hacer nada y retornar null
+    // // Sno se pudo obtener la fecha de Redux, no hacer nada y retornar null
     if (!fechaHoyRedux) {
       return null;
     }
@@ -417,7 +413,7 @@ export class ListasEstudiantesPorGradosHoyIDB {
       const storedData = await this.obtenerReporteAlmacenado();
       const fechaHoyISO = this.formatearFechaSoloDia(fechaHoyRedux);
 
-      // No sincronizar si es fin de semana
+      // // Noncronizar si es fin de semana
       if (this.esFinDeSemana(fechaHoyRedux) && storedData) {
         return this.filtrarReporteSegunRol(storedData.datos);
       }
@@ -434,7 +430,7 @@ export class ListasEstudiantesPorGradosHoyIDB {
         reporteCompleto = storedData.datos;
       }
 
-      // Filtrar según el rol del usuario
+      // // Filtrar sen el rol del usuario
       return this.filtrarReporteSegunRol(reporteCompleto);
     } catch (error) {
       console.error("Error al obtener o sincronizar reporte:", error);
@@ -443,11 +439,8 @@ export class ListasEstudiantesPorGradosHoyIDB {
   }
 
   /**
-   * Obtiene el contenido de un archivo específico por nivel y grado.
-   * @param nivel Nivel educativo (PRIMARIA o SECUNDARIA)
-   * @param grado Grado específico del nivel
-   * @param actualizarIndexedDB Si es true, actualiza los modelos de estudiantes y aulas en IndexedDB
-   */
+* Obtiene el contenido de un archivo específico por nivel y grado. @param nivel Nivel educativo (PRIMARIA o SECUNDARIA) @param grado Grado específico del nivel @param actualizarIndexedDB Si es true, actualiza los modelos de estudiantes y aulas en IndexedDB
+*/
   public async obtenerListaEstudiantesPorGrado<T extends NivelEducativo>(
     nivel: T,
     grado: T extends NivelEducativo.PRIMARIA
@@ -457,7 +450,7 @@ export class ListasEstudiantesPorGradosHoyIDB {
   ): Promise<ListaEstudiantesPorGradoParaHoy<T> | null> {
     const fechaHoyRedux = this.obtenerFechaActualDesdeRedux();
 
-    // Si no se pudo obtener la fecha de Redux, no hacer nada y retornar null
+    // // Sno se pudo obtener la fecha de Redux, no hacer nada y retornar null
     if (!fechaHoyRedux) {
       return null;
     }
@@ -466,7 +459,7 @@ export class ListasEstudiantesPorGradosHoyIDB {
       const storedData = await this.obtenerArchivoAlmacenado(nivel, grado);
       const fechaHoyISO = this.formatearFechaSoloDia(fechaHoyRedux);
 
-      // No sincronizar si es fin de semana
+      // // Noncronizar si es fin de semana
       if (this.esFinDeSemana(fechaHoyRedux) && storedData) {
         return storedData.datos;
       }
@@ -483,7 +476,7 @@ export class ListasEstudiantesPorGradosHoyIDB {
         datosCompletos = storedData.datos;
       }
 
-      // Si se solicita actualizar IndexedDB, usar los métodos actualizarSiEsNecesario
+      // // Si se solicita actualizarndexedDB, usar los métodos actualizarSiEsNecesario
       if (actualizarIndexedDB) {
         await this.actualizarModelos(datosCompletos);
       }
@@ -496,14 +489,13 @@ export class ListasEstudiantesPorGradosHoyIDB {
   }
 
   /**
-   * Actualiza los modelos de estudiantes y aulas usando el método actualizarSiEsNecesario
-   * VERSIÓN CORREGIDA: Verificación única por archivo completo (no por tabla global)
-   */
+* Actualiza los modelos de estudiantes y aulas usando el método actualizarSiEsNecesario VERSIÓN CORREGIDA: Verificación única por archivo completo (no por tabla global)
+*/
   private async actualizarModelos<T extends NivelEducativo>(
     datos: ListaEstudiantesPorGradoParaHoy<T>
   ): Promise<void> {
     try {
-      // Importar dinámicamente los modelos para evitar dependencias circulares
+      // // Importarnámicamente los modelos para evitar dependencias circulares
       const [{ BaseEstudiantesIDB }, { BaseAulasIDB }] = await Promise.all([
         import("../Estudiantes/EstudiantesBaseIDB"),
         import("../Aulas/AulasBase"),
@@ -521,8 +513,8 @@ export class ListasEstudiantesPorGradosHoyIDB {
         grado: datos.Grado,
       });
 
-      // ✅ PASO 1: Verificación única por ARCHIVO (no por tabla global)
-      // Generar una clave única para este archivo específico
+      // // ✅ PASO 1: Verificacn única por ARCHIVO (no por tabla global)
+      // //nerar una clave única para este archivo específico
       const archivoKey = `${datos.Nivel}_${datos.Grado}`;
       const necesitaActualizar =
         await this.verificarSiNecesitaActualizarArchivo(
@@ -545,7 +537,7 @@ export class ListasEstudiantesPorGradosHoyIDB {
         return;
       }
 
-      // ✅ PASO 2: Procesar estudiantes (particionado por aula)
+      // // ✅ PASO 2: Procesar estudntes (particionado por aula)
       let totalResultadoEstudiantes = {
         created: 0,
         updated: 0,
@@ -554,7 +546,7 @@ export class ListasEstudiantesPorGradosHoyIDB {
         wasUpdated: false,
       };
 
-      // Instanciar modelo de estudiantes
+      // //nstanciar modelo de estudiantes
       const estudiantesModel = new BaseEstudiantesIDB(
         this.siasisAPI,
         this.setIsSomethingLoading,
@@ -562,7 +554,7 @@ export class ListasEstudiantesPorGradosHoyIDB {
         this.setSuccessMessage
       );
 
-      // Particionar estudiantes por aula
+      // // Particnar estudiantes por aula
       const estudiantesPorAula = this.particionarEstudiantesPorAula(
         datos.ListaEstudiantes
       );
@@ -572,7 +564,7 @@ export class ListasEstudiantesPorGradosHoyIDB {
         Array.from(estudiantesPorAula.keys())
       );
 
-      // Procesar cada partición sin verificar fechas individuales
+      // // Procesar cada particn sin verificar fechas individuales
       for (const [idAula, estudiantesDeAula] of estudiantesPorAula) {
         console.log(
           `🔄 Procesando aula ${idAula}: ${estudiantesDeAula.length} estudiantes`
@@ -582,7 +574,7 @@ export class ListasEstudiantesPorGradosHoyIDB {
           Id_Aula: idAula,
         };
 
-        // ✅ Usar directamente upsertFromServerWithFilter sin verificación de fechas
+        // // ✅ Usar directante upsertFromServerWithFilter sin verificación de fechas
         const resultadoParcial = await estudiantesModel[
           "upsertFromServerWithFilter"
         ](filtroEstudiantesEspecifico, estudiantesDeAula);
@@ -598,8 +590,7 @@ export class ListasEstudiantesPorGradosHoyIDB {
         );
       }
 
-      // ✅ PASO 3: Procesar aulas (filtro por Nivel y Grado específicos)
-      const aulasModel = new BaseAulasIDB(
+      // // ✅ PASO 3: Procesar aulas (filtro por Nivel y Grado específicos)nst aulasModel = new BaseAulasIDB(
         this.siasisAPI,
         this.setIsSomethingLoading,
         this.setError,
@@ -615,7 +606,7 @@ export class ListasEstudiantesPorGradosHoyIDB {
         `🏢 Actualizando aulas con filtro: Nivel=${datos.Nivel}, Grado=${datos.Grado}`
       );
 
-      // ✅ Usar directamente upsertFromServerWithFilter sin verificación de fechas
+      // // ✅ Usar directante upsertFromServerWithFilter sin verificación de fechas
       const resultadoAulas = await aulasModel["upsertFromServerWithFilter"](
         filtroAulas,
         datos.Aulas
@@ -623,10 +614,10 @@ export class ListasEstudiantesPorGradosHoyIDB {
 
       const resultadoAulasCompleto = { ...resultadoAulas, wasUpdated: true };
 
-      // ✅ PASO 4: Actualizar fecha del archivo UNA SOLA VEZ al final
+      // // ✅ PASO 4: Actualizar fecha del archivo UNA SOLA VEZ alnal
       await this.registrarActualizacionDeArchivo(archivoKey);
 
-      // ✅ PASO 5: Log de resultados consolidados
+      // // ✅ PASO 5: Log de resultadosnsolidados
       console.log("📊 Actualización de estudiantes completada (consolidado):", {
         archivo: archivoKey,
         totalTransacciones: estudiantesPorAula.size,
@@ -657,29 +648,26 @@ export class ListasEstudiantesPorGradosHoyIDB {
   }
 
   /**
-   * Verifica si necesita actualizar un archivo específico comparando fechas
-   * @param archivoKey Clave única del archivo (ej: "S_1", "P_3")
-   * @param fechaObtenciones Fecha de obtención de los datos del servidor
-   * @returns true si necesita actualizar, false en caso contrario
-   */
+* Verifica si necesita actualizar un archivo específico comparando fechas @param archivoKey Clave única del archivo (ej: "S_1", "P_3") @param fechaObtenciones Fecha de obtención de los datos del servidor @returns true si necesita actualizar, false en caso contrario
+*/
   private async verificarSiNecesitaActualizarArchivo(
     archivoKey: string,
     fechaObtenciones: string
   ): Promise<boolean> {
     try {
-      // Usar una tabla específica para tracking de archivos
+      // // Usarna tabla específica para tracking de archivos
       const nombreTablaArchivo = `archivo_${archivoKey}` as TablasLocal;
 
-      // Obtener la última actualización local de este archivo específico
+      // // Obner la última actualización local de este archivo específico
       const ultimaActualizacionLocal =
         await ultimaActualizacionTablasLocalesIDB.getByTabla(
           nombreTablaArchivo
         );
 
-      // Convertir la fecha de obtención del servidor a timestamp
+      // //nvertir la fecha de obtención del servidor a timestamp
       const fechaObtencionsTimestamp = new Date(fechaObtenciones).getTime();
 
-      // Si no hay actualización local, necesita actualizar
+      // // Sno hay actualización local, necesita actualizar
       if (!ultimaActualizacionLocal) {
         console.log(
           `📅 Archivo ${archivoKey}: No hay actualización local registrada`
@@ -687,14 +675,13 @@ export class ListasEstudiantesPorGradosHoyIDB {
         return true;
       }
 
-      // Convertir la fecha de actualización local a timestamp
+      // //nvertir la fecha de actualización local a timestamp
       const fechaActualizacionLocal =
         typeof ultimaActualizacionLocal.Fecha_Actualizacion === "number"
           ? ultimaActualizacionLocal.Fecha_Actualizacion
           : new Date(ultimaActualizacionLocal.Fecha_Actualizacion).getTime();
 
-      // Comparar fechas
-      const necesitaActualizar =
+      // // Comparar fechasnst necesitaActualizar =
         fechaActualizacionLocal < fechaObtencionsTimestamp;
 
       console.log(
@@ -713,15 +700,14 @@ export class ListasEstudiantesPorGradosHoyIDB {
         `Error al verificar fechas para archivo ${archivoKey}:`,
         error
       );
-      // En caso de error, asumir que necesita actualizar
+      // //n caso de error, asumir que necesita actualizar
       return true;
     }
   }
 
   /**
-   * Registra la actualización de un archivo específico
-   * @param archivoKey Clave única del archivo
-   */
+* Registra la actualización de un archivo específico @param archivoKey Clave única del archivo
+*/
   private async registrarActualizacionDeArchivo(
     archivoKey: string
   ): Promise<void> {
@@ -743,10 +729,8 @@ export class ListasEstudiantesPorGradosHoyIDB {
   }
 
   /**
-   * Particiona una lista de estudiantes agrupándolos por Id_Aula
-   * @param estudiantes Lista completa de estudiantes
-   * @returns Map con Id_Aula como clave y array de estudiantes como valor
-   */
+* Particiona una lista de estudiantes agrupándolos por Id_Aula @param estudiantes Lista completa de estudiantes @returns Map con Id_Aula como clave y array de estudiantes como valor
+*/
   private particionarEstudiantesPorAula<T extends T_Estudiantes>(
     estudiantes: T[]
   ): Map<string, T[]> {
@@ -755,7 +739,7 @@ export class ListasEstudiantesPorGradosHoyIDB {
     for (const estudiante of estudiantes) {
       const idAula = estudiante.Id_Aula;
 
-      // Validar que el estudiante tenga aula asignada
+      // // Validar que el estudnte tenga aula asignada
       if (!idAula) {
         console.warn(
           `⚠️ Estudiante sin aula asignada: ${estudiante.Id_Estudiante} - ${estudiante.Nombres} ${estudiante.Apellidos}`
@@ -763,7 +747,7 @@ export class ListasEstudiantesPorGradosHoyIDB {
         continue;
       }
 
-      // Agregar estudiante al grupo correspondiente
+      // // Agregar estudnte al grupo correspondiente
       if (!estudiantesPorAula.has(idAula)) {
         estudiantesPorAula.set(idAula, []);
       }
@@ -775,8 +759,8 @@ export class ListasEstudiantesPorGradosHoyIDB {
   }
 
   /**
-   * Filtra el reporte según el rol del usuario
-   */
+* Filtra el reporte según el rol del usuario
+*/
   private async filtrarReporteSegunRol(
     reporte: ReporteActualizacionDeListasEstudiantes
   ): Promise<
@@ -789,11 +773,11 @@ export class ListasEstudiantesPorGradosHoyIDB {
 
       switch (rol) {
         case RolesSistema.Directivo:
-          // Directivos tienen acceso completo
+          // // Directivos tnen acceso completo
           return reporte;
 
         case RolesSistema.ProfesorPrimaria:
-          // Profesores de primaria solo ven archivos de primaria
+          // // Profesores de primaria solon archivos de primaria
           const listasPrimaria = {} as any;
           Object.entries(reporte.EstadoDeListasDeEstudiantes).forEach(
             ([archivo, fecha]) => {
@@ -810,7 +794,7 @@ export class ListasEstudiantesPorGradosHoyIDB {
         case RolesSistema.Auxiliar:
         case RolesSistema.ProfesorSecundaria:
         case RolesSistema.Tutor:
-          // Personal de secundaria solo ve archivos de secundaria
+          // // Pernal de secundaria solo ve archivos de secundaria
           const listasSecundaria = {} as any;
           Object.entries(reporte.EstadoDeListasDeEstudiantes).forEach(
             ([archivo, fecha]) => {
@@ -825,22 +809,22 @@ export class ListasEstudiantesPorGradosHoyIDB {
           };
 
         default:
-          // Por defecto, devolver estructura vacía
-          return {
+          // // Por defecto, devolver estructura vacía
+          retn {
             EstadoDeListasDeEstudiantes: {} as any,
             Fecha_Actualizacion: reporte.Fecha_Actualizacion,
           };
       }
     } catch (error) {
       console.error("Error al filtrar reporte según rol:", error);
-      // En caso de error, devolver el reporte completo
+      // //n caso de error, devolver el reporte completo
       return reporte;
     }
   }
 
   /**
-   * Limpia todos los archivos de listas de estudiantes del cache
-   */
+* Limpia todos los archivos de listas de estudiantes del cache
+*/
   public async limpiarTodosLosArchivos(): Promise<void> {
     try {
       const store = await IndexedDBConnection.getStore(
@@ -848,22 +832,22 @@ export class ListasEstudiantesPorGradosHoyIDB {
         "readwrite"
       );
 
-      // Generar todas las keys posibles de archivos de estudiantes
+      // //nerar todas las keys posibles de archivos de estudiantes
       const keysAEliminar: string[] = [];
 
-      // Agregar reporte
-      keysAEliminar.push(ListasEstudiantesPorGradosHoyIDB.REPORTE_KEY);
+      // // Agregar reporte
+      keysAElinar.push(ListasEstudiantesPorGradosHoyIDB.REPORTE_KEY);
 
-      // Agregar archivos de primaria
+      // // Agregar archivos de primaria
       Object.values(GradosPrimaria).forEach((grado) => {
-        if (typeof grado === "number") {
+        if (typeof grado ===number") {
           keysAEliminar.push(
             this.generarKeyArchivo(NivelEducativo.PRIMARIA, grado)
           );
         }
       });
 
-      // Agregar archivos de secundaria
+      // // Agregar archivos de sendaria
       Object.values(GradosSecundaria).forEach((grado) => {
         if (typeof grado === "number") {
           keysAEliminar.push(
@@ -872,7 +856,7 @@ export class ListasEstudiantesPorGradosHoyIDB {
         }
       });
 
-      // Eliminar cada key
+      // // Elinar cada key
       const promesasEliminacion = keysAEliminar.map((key) => {
         return new Promise<void>((resolve, reject) => {
           const request = store.delete(key);
@@ -892,12 +876,8 @@ export class ListasEstudiantesPorGradosHoyIDB {
   }
 
   /**
-   * Actualiza todas las listas de estudiantes disponibles según el reporte de actualización.
-   * Sincroniza todas las listas que aparezcan en el reporte filtrado por rol.
-   * Hace hasta 3 intentos por archivo si es necesario actualizarlo.
-   * @param actualizarIndexedDB Si debe actualizar los modelos de estudiantes y aulas en IndexedDB
-   * @returns Resumen de la operación con estadísticas de éxito y fallos
-   */
+* Actualiza todas las listas de estudiantes disponibles según el reporte de actualización. Sincroniza todas las listas que aparezcan en el reporte filtrado por rol. Hace hasta 3 intentos por archivo si es necesario actualizarlo. @param actualizarIndexedDB Si debe actualizar los modelos de estudiantes y aulas en IndexedDB @returns Resumen de la operación con estadísticas de éxito y fallos
+*/
   public async actualizarTodasLasListasDisponibles(
     actualizarIndexedDB: boolean = true
   ): Promise<{
@@ -934,7 +914,7 @@ export class ListasEstudiantesPorGradosHoyIDB {
         "🚀 Iniciando actualización masiva de todas las listas disponibles..."
       );
 
-      // 1. Obtener el reporte de actualización (ya viene filtrado por rol)
+      // // 1. Obner el reporte de actualización (ya viene filtrado por rol)
       const reporte = await this.obtenerReporteActualizacion();
 
       if (!reporte) {
@@ -954,12 +934,12 @@ export class ListasEstudiantesPorGradosHoyIDB {
         return resultado;
       }
 
-      // 2. Procesar cada archivo secuencialmente
+      // // 2. Procesar cada archivo secncialmente
       for (const nombreArchivo of archivosEnReporte) {
         resultado.totalProcesadas++;
 
         try {
-          // Extraer nivel y grado del nombre del archivo
+          // // Extraenivel y grado del nombre del archivo
           const { nivel, grado } =
             this.extraerNivelYGradoDeNombreArchivo(nombreArchivo);
 
@@ -981,7 +961,7 @@ export class ListasEstudiantesPorGradosHoyIDB {
 
           console.log(`\n🔄 Procesando: ${nombreArchivo} (${nivel} ${grado}°)`);
 
-          // 3. Intentar actualizar con hasta 3 reintentos
+          // // 3.ntentar actualizar con hasta 3 reintentos
           let exito = false;
           let ultimoError = "";
           let intentos = 0;
@@ -993,7 +973,7 @@ export class ListasEstudiantesPorGradosHoyIDB {
                 `📥 Intento ${intentos}/${MAX_INTENTOS} para ${nombreArchivo}...`
               );
 
-              // Obtener la lista (esto internamente verifica si necesita actualización)
+              // // Obner la lista (esto internamente verifica si necesita actualización)
               const lista = await this.obtenerListaEstudiantesPorGrado(
                 nivel as any,
                 grado as any,
@@ -1013,7 +993,7 @@ export class ListasEstudiantesPorGradosHoyIDB {
                   exito: true,
                   intentos,
                 });
-                break; // Salir del bucle de reintentos
+                break; // / Salir del bucle de rntentos
               } else {
                 throw new Error("Lista retornó null");
               }
@@ -1024,10 +1004,9 @@ export class ListasEstudiantesPorGradosHoyIDB {
                 `⚠️ Intento ${intentos} falló para ${nombreArchivo}: ${ultimoError}`
               );
 
-              // Si no es el último intento, esperar un poco antes del siguiente
+              // // Sno es el último intento, esperar un poco antes del siguiente
               if (intentos < MAX_INTENTOS) {
-                const tiempoEspera = intentos * 1000; // 1s, 2s, 3s
-                console.log(
+                const tiempoEspera = intentos * 1000; // / 1s, 2s, 3snsole.log(
                   `⏳ Esperando ${tiempoEspera}ms antes del siguiente intento...`
                 );
                 await new Promise((resolve) =>
@@ -1037,7 +1016,7 @@ export class ListasEstudiantesPorGradosHoyIDB {
             }
           }
 
-          // Si no tuvo éxito después de todos los intentos
+          // // Sno tuvo éxito después de todos los intentos
           if (!exito) {
             console.error(
               `❌ ${nombreArchivo} falló después de ${MAX_INTENTOS} intentos. Último error: ${ultimoError}`
@@ -1052,14 +1031,14 @@ export class ListasEstudiantesPorGradosHoyIDB {
               error: ultimoError,
             });
 
-            // TODO: Aquí el usuario puede agregar lógica adicional para manejar archivos que fallaron
-            // Por ejemplo: guardar en una cola de reintentos, enviar notificación, etc.
+            // // TODO: Aquí el usuario puede agregar lógica adicnal para manejar archivos que fallaron
+            // // Por ejemplo: guardarn una cola de reintentos, enviar notificación, etc.
             console.log(
               `💡 TODO: Implementar manejo especial para ${nombreArchivo} que falló después de ${MAX_INTENTOS} intentos`
             );
           }
 
-          // Pequeña pausa entre archivos para no sobrecargar
+          // // Pequeña pausantre archivos para no sobrecargar
           await new Promise((resolve) => setTimeout(resolve, 100));
         } catch (error) {
           console.error(`❌ Error procesando ${nombreArchivo}:`, error);
@@ -1075,7 +1054,7 @@ export class ListasEstudiantesPorGradosHoyIDB {
         }
       }
 
-      // 3. Mostrar resumen final
+      // // 3. Mostrar resun final
       console.log(
         "\n📊 ==================== RESUMEN FINAL ===================="
       );
@@ -1108,19 +1087,17 @@ export class ListasEstudiantesPorGradosHoyIDB {
   }
 
   /**
-   * Extrae el nivel educativo y grado de un nombre de archivo
-   * @param nombreArchivo Nombre del archivo (ej: "Estudiantes_P_3.json")
-   * @returns Objeto con nivel y grado extraídos
-   */
+* Extrae el nivel educativo y grado de un nombre de archivo @param nombreArchivo Nombre del archivo (ej: "Estudiantes_P_3.json") @returns Objeto con nivel y grado extraídos
+*/
   private extraerNivelYGradoDeNombreArchivo(nombreArchivo: string): {
     nivel: NivelEducativo | null;
     grado: number | null;
   } {
     try {
-      // Remover la extensión .json si existe
+      // // Remover la exnsión .json si existe
       const sinExtension = nombreArchivo.replace(".json", "");
 
-      // Patrón: Estudiantes_P_1 o Estudiantes_S_2
+      // // Patn: Estudiantes_P_1 o Estudiantes_S_2
       const match = sinExtension.match(/Estudiantes_([PS])_(\d+)/);
 
       if (!match) {
@@ -1138,7 +1115,7 @@ export class ListasEstudiantesPorGradosHoyIDB {
         nivel = NivelEducativo.SECUNDARIA;
       }
 
-      // Validar que el grado sea válido para el nivel
+      // // Validar que el grado sea válido para enivel
       if (nivel === NivelEducativo.PRIMARIA) {
         const gradosValidosPrimaria = Object.values(GradosPrimaria).filter(
           (g) => typeof g === "number"
@@ -1166,5 +1143,5 @@ export class ListasEstudiantesPorGradosHoyIDB {
   }
 }
 
-// Exportar la clase para que pueda ser instanciada según necesidad
+// // Exportar la clase para que pueda sernstanciada según necesidad
 export default ListasEstudiantesPorGradosHoyIDB;

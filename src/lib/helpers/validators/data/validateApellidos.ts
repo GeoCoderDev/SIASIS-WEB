@@ -2,13 +2,10 @@ import { ValidationErrorTypes } from "../../../../interfaces/shared/errors";
 import { ValidationResult } from "./types";
 
 /**
- * Valida apellidos
- * @param value - Valor a validar
- * @param required - Indica si el campo es obligatorio
- * @returns Resultado de la validación
- */
+* Valida apellidos @param value - Valor a validar @param required - Indica si el campo es obligatorio @returns Resultado de la validación
+*/
 export function validateLastNames(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // // esnt-disable-next-line @typescript-eslint/no-explicit-any
   value: any,
   required: boolean
 ): ValidationResult {
@@ -32,7 +29,7 @@ export function validateLastNames(
     };
   }
 
-  // Permite letras, espacios, apóstrofes y guiones (para apellidos compuestos)
+  // // Permite letras, espacios, apóstrofes y gunes (para apellidos compuestos)
   const nameRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'-]{2,60}$/;
   if (!nameRegex.test(value)) {
     return {

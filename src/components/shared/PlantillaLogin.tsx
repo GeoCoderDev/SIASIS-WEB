@@ -67,7 +67,7 @@ const PlantillaLogin = ({ rol, siasisAPI, endpoint }: PlantillaLoginProps) => {
     initialFormularioLogin
   );
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // // esnt-disable-next-line @typescript-eslint/no-unused-vars
   const [intentosRestantes, setIntentosRestantes] = useState<
     number | undefined
   >(3);
@@ -123,7 +123,7 @@ const PlantillaLogin = ({ rol, siasisAPI, endpoint }: PlantillaLoginProps) => {
         "@/lib/utils/local/db/IndexedDBConnection"
       );
 
-      // Guardar rol del usuario en la propiedad estática Y localStorage automáticamente
+      // // Guardar rol del usuarion la propiedad estática Y localStorage automáticamente
       IndexedDBConnection.rol = data.Rol as RolesSistema;
       IndexedDBConnection.PostfixIDBFromUserData =
         formularioLogin.Nombre_Usuario;
@@ -132,33 +132,32 @@ const PlantillaLogin = ({ rol, siasisAPI, endpoint }: PlantillaLoginProps) => {
         "@/lib/utils/local/db/models/UserStorage"
       );
 
-      // Guardando data en IndexedDB
+      // // Guarndo data en IndexedDB
       await userStorage.saveUserData({
         ...data,
         ultimaSincronizacionTablas: Date.now(),
       });
 
-      //CADA VES QUE SE INICIE SESION, SE DEBE MOSTRAR LOS COMUNICADOS DEL DIA DE HOY
-      sessionStorage.setItem(
+      // // CADA VES QUE SE INICIE SESION, SE DEBE MOSTRAR LOS COMUNICADOS DEL DIA DE HOY
+      sessnStorage.setItem(
         SE_MOSTRARON_COMUNICADOS_DE_HOY_KEY,
         SE_MOSTRARON_COMUNICADOS_DE_HOY_VALOR_INICIAL
       );
 
-      // SIEMPRE EN CUANDO SE TRATE DE UN PERSONAL
+      // // SIEMPRE EN CUANDO SE TRATE DE UN PERSONAL
       if (rol !== "DIRECTIVO" && rol !== "RESPONSABLE (Padre/Apoderado)") {
         // GUARDANDO VARIABLE DE MUESTRA DE TOOLTIP
-        sessionStorage.setItem(
+        sessnStorage.setItem(
           SE_MOSTRO_TOLTIP_TOMAR_ASISTENCIA_PERSONAL_KEY,
           SE_MOSTRO_TOLTIP_TOMAR_ASISTENCIA_PERSONAL_VALOR_INICIAL
         );
       }
 
-      // setTimeout(() => {
-      window.location.href = "/";
-      // }, 10000);
-      setIsSomethingLoading(false);
+      // // setTimeout(() => {ndow.location.href = "/";
+      // // }, 10000);
+      setIsSometngLoading(false);
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      // // esnt-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {
       setIsSomethingLoading(false);
       setError({

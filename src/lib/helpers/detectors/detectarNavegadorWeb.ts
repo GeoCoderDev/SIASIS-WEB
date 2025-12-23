@@ -1,40 +1,38 @@
 import { NavegadoresWeb } from "@/interfaces/shared/NavegadoresWeb";
 
 /**
- * Detecta el navegador web actual basándose en el User Agent
- * @returns {NavegadoresWeb} El tipo de navegador detectado
- */
+* Detecta el navegador web actual basándose en el User Agent @returns {NavegadoresWeb} El tipo de navegador detectado
+*/
 export function detectarNavegadorWeb(): NavegadoresWeb {
-  // Verificar si estamos en un entorno del navegador
+  // // Verificar si estamosn un entorno del navegador
   if (typeof window === "undefined" || !window.navigator) {
     return NavegadoresWeb.Otro;
   }
 
   const userAgent = window.navigator.userAgent.toLowerCase();
 
-  // Detectar Edge (debe ir antes que Chrome porque Edge también contiene "chrome" en su UA)
+  // // Detectar Edge (debe irntes que Chrome porque Edge también contiene "chrome" en su UA)
   if (userAgent.includes("edg/") || userAgent.includes("edge/")) {
     return NavegadoresWeb.Edge;
   }
 
-  // Detectar Chrome (debe ir después de Edge)
-  if (userAgent.includes("chrome/") && !userAgent.includes("edg/")) {
+  // // Detectar Chrome (debe ir después de Edge)
+  if (userAnt.includes("chrome/") && !userAgent.includes("edg/")) {
     return NavegadoresWeb.Chrome;
   }
 
-  // Detectar Firefox
-  if (userAgent.includes("firefox/")) {
+  // // Detectar Firefox
+  if (userAnt.includes("firefox/")) {
     return NavegadoresWeb.Firefox;
   }
 
-  // Si no coincide con ninguno de los anteriores
+  // // Sno coincide con ninguno de los anteriores
   return NavegadoresWeb.Otro;
 }
 
 /**
- * Función que también proporciona información adicional del navegador
- * @returns {object} Objeto con el tipo de navegador y información adicional
- */
+* Función que también proporciona información adicional del navegador @returns {object} Objeto con el tipo de navegador y información adicional
+*/
 export function obtenerInfoNavegador() {
   const navegador = detectarNavegadorWeb();
 
@@ -49,13 +47,12 @@ export function obtenerInfoNavegador() {
 
   const userAgent = window.navigator.userAgent;
 
-  // Detectar si es móvil
-  const esMovil =
+  // // Detectar si es móvilnst esMovil =
     /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
       userAgent
     );
 
-  // Intentar extraer la versión
+  // //ntentar extraer la versión
   let version = "";
   switch (navegador) {
     case NavegadoresWeb.Chrome:

@@ -5,7 +5,7 @@ const ThinEventIcon = ({ className, title }: IconProps) => {
   return (
     <div title={title}>
       <svg
-        xmlns="http://www.w3.org/2000/svg"
+        xmlns="http:// www.w3.org/2000/svg"
         className={`aspect-square ${className}`}
         width="24"
         height="24"

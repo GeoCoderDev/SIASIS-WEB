@@ -15,7 +15,7 @@ const ComunicadoImageModal = ({
       {/* Contenedor de la imagen */}
       <div className="relative w-full h-full flex items-center justify-center">
         <img
-          src={`https://drive.google.com/thumbnail?id=${Google_Drive_Imagen_ID}`}
+          src={`https:// drive.google.com/thumbnail?id=${Google_Drive_Imagen_ID}`}
           alt="Imagen adjunta del comunicado"
           className="max-w-full max-h-[80vh] sm:max-h-[85vh] object-contain rounded-lg shadow-lg"
           style={{
@@ -23,7 +23,7 @@ const ComunicadoImageModal = ({
             minWidth: "200px",
           }}
           onError={(e) => {
-            // En caso de error al cargar la imagen, mostrar imagen por defecto
+            // //n caso de error al cargar la imagen, mostrar imagen por defecto
             (e.target as HTMLImageElement).src =
               "/images/svg/No-Foto-Perfil.svg";
           }}

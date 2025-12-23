@@ -121,7 +121,7 @@ const MisDatosDePersonalAdministrativo = ({
           misDatosPersonalAdministrativoData
         );
 
-        //Actualizando Cache
+        // // Actualindo Cache
 
         await userStorage.saveUserData({
           Apellidos: misDatosPersonalAdministrativoData.Apellidos,
@@ -133,7 +133,7 @@ const MisDatosDePersonalAdministrativo = ({
 
         setIsSomethingLoading(false);
 
-        //Actualizando Cookies por lo bajo
+        // // Actualindo Cookies por lo bajo
         if (
           googleDriveFotoIdCookieValue !==
             misDatosPersonalAdministrativoData.Google_Drive_Foto_ID ||
@@ -154,7 +154,7 @@ const MisDatosDePersonalAdministrativo = ({
           });
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        // // esnt-disable-next-line @typescript-eslint/no-unused-vars
       } catch (e) {
         if (error) {
           setError({
@@ -205,7 +205,7 @@ const MisDatosDePersonalAdministrativo = ({
         misDatosPersonalAdministrativoModificados
       );
 
-      //Actualizando Cache
+      // // Actualindo Cache
       await userStorage.saveUserData({
         Apellidos: misDatosPersonalAdministrativoModificados.Apellidos,
         Genero: misDatosPersonalAdministrativoModificados.Genero as Genero,
@@ -224,7 +224,7 @@ const MisDatosDePersonalAdministrativo = ({
 
       setIsSomethingLoading(false);
       setModoEdicion(false);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      // // esnt-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {
       if (error) {
         setError({
@@ -264,7 +264,7 @@ const MisDatosDePersonalAdministrativo = ({
           }}
           initialSource={
             misDatosPersonalAdministrativoSaved.Google_Drive_Foto_ID &&
-            `https://drive.google.com/thumbnail?id=${misDatosPersonalAdministrativoSaved.Google_Drive_Foto_ID}`
+            `https:// drive.google.com/thumbnail?id=${misDatosPersonalAdministrativoSaved.Google_Drive_Foto_ID}`
           }
           eliminateModal={() => {
             setCambiarFotoModal(false);
@@ -306,8 +306,8 @@ const MisDatosDePersonalAdministrativo = ({
                 )
               }
               onClick={() => {
-                //SI se esta cancelando el modo edicion entonces se volvera al
-                // estado en el que se encuentran los datos guardados en la base de datos
+                // // SI se estancelando el modo edicion entonces se volvera al
+                // // estadon el que se encuentran los datos guardados en la base de datos
                 if (modoEdicion)
                   setMisDatosPersonalAdministrativoModificados(
                     misDatosPersonalAdministrativoSaved

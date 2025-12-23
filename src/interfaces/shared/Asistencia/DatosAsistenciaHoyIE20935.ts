@@ -120,9 +120,9 @@ export interface DatosAsistenciaHoyIE20935 {
   HorariosEscolares: Record<NivelEducativo, HorarioTomaAsistencia>;
 }
 
-// DATOS DE ASISTENCIA POR ROLES
+// // DATOS DE ASISTENCIA POR ROLES
 
-// Base interface with common properties for all roles
+// Basenterface with common properties for all roles
 export type BaseAsistenciaResponse = Pick<
   DatosAsistenciaHoyIE20935,
   | "DiaEvento"
@@ -134,8 +134,8 @@ export type BaseAsistenciaResponse = Pick<
   | "ComunicadosParaMostrarHoy"
 >;
 
-// Directivo gets full access
-export interface DirectivoAsistenciaResponse extends BaseAsistenciaResponse {
+// // Directivo gets full access
+exportnterface DirectivoAsistenciaResponse extends BaseAsistenciaResponse {
   ListaDePersonalesAdministrativos: PersonalAdministrativoParaTomaDeAsistencia[];
   ListaDeProfesoresPrimaria: ProfesoresPrimariaParaTomaDeAsistencia[];
   ListaDeProfesoresSecundaria: ProfesorTutorSecundariaParaTomaDeAsistencia[];
@@ -149,7 +149,7 @@ export interface DirectivoAsistenciaResponse extends BaseAsistenciaResponse {
   HorariosEscolares: Record<NivelEducativo, HorarioTomaAsistencia>;
 }
 
-// ProfesorPrimaria gets their schedule and primary level student schedule
+// // ProfesorPrimaria gets their schedulend primary level student schedule
 export interface ProfesorPrimariaAsistenciaResponse
   extends BaseAsistenciaResponse {
   HorarioTomaAsistenciaProfesorPrimaria: HorarioTomaAsistencia;
@@ -157,14 +157,14 @@ export interface ProfesorPrimariaAsistenciaResponse
   Mi_Identificador: string;
 }
 
-// Auxiliar gets their schedule and secondary level student schedule
+// // Auxiliar gets their schedulend secondary level student schedule
 export interface AuxiliarAsistenciaResponse extends BaseAsistenciaResponse {
   HorarioTomaAsistenciaAuxiliares: HorarioTomaAsistencia;
   HorarioEscolarSecundaria: HorarioTomaAsistencia;
   Mi_Identificador: string;
 }
 
-// ProfesorSecundaria and Tutor get their own schedule from the list and secondary schedule
+// // ProfesorSendaria and Tutor get their own schedule from the list and secondary schedule
 export interface ProfesorTutorSecundariaAsistenciaResponse
   extends BaseAsistenciaResponse {
   HorarioProfesor?:
@@ -177,12 +177,12 @@ export interface ProfesorTutorSecundariaAsistenciaResponse
   Mi_Identificador: string;
 }
 
-// Responsable gets both primary and secondary schedules
+// // Resnsable gets both primary and secondary schedules
 export interface ResponsableAsistenciaResponse extends BaseAsistenciaResponse {
   HorariosEscolares: Record<NivelEducativo, HorarioTomaAsistencia>;
 }
 
-// PersonalAdministrativo gets only their own schedule
+// // PernalAdministrativo gets only their own schedule
 export interface PersonalAdministrativoAsistenciaResponse
   extends BaseAsistenciaResponse {
   HorarioPersonal:

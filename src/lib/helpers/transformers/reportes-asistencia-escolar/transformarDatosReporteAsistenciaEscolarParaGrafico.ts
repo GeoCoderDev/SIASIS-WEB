@@ -23,8 +23,8 @@ const NOMBRES_MESES = [
 const NOMBRES_DIAS_SEMANA = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 
 /**
- * Obtiene el nombre del día de la semana para una fecha específica
- */
+* Obtiene el nombre del día de la semana para una fecha específica
+*/
 function obtenerNombreDiaSemana(mes: number, dia: number): string {
   const año = new Date().getFullYear();
   const fecha = new Date(año, mes - 1, dia);
@@ -32,34 +32,33 @@ function obtenerNombreDiaSemana(mes: number, dia: number): string {
 }
 
 /**
- * Transforma datos de reporte diario para el gráfico
- */
+* Transforma datos de reporte diario para el gráfico
+*/
 export function transformarReportePorDias(
   datos: ReporteAsistenciaEscolarPorDias
 ): DatosGraficoReporte[] {
   const resultado: DatosGraficoReporte[] = [];
 
-  // Estructura temporal para acumular datos por día
-  const datosPorDia: Record<
+  // // Estructura temporal para acumular datos por díanst datosPorDia: Record<
     string,
     { asistencias: number; tardanzas: number; faltas: number }
   > = {};
 
-  // Recorrer todas las aulas
+  // // Recorrer todas las aulas
   Object.values(datos).forEach((aula) => {
     // Recorrer los meses
-    Object.entries(aula.ConteoEstadosAsistencia).forEach(([mes, diasMes]) => {
-      // Recorrer los días
-      Object.entries(diasMes).forEach(([dia, conteos]) => {
+    Objectntries(aula.ConteoEstadosAsistencia).forEach(([mes, diasMes]) => {
+      // // Recorrer los días
+      Objectntries(diasMes).forEach(([dia, conteos]) => {
         const mesNum = parseInt(mes);
         const diaNum = parseInt(dia);
 
-        // Crear clave única para el día
+        // // Crear clavenica para el día
         const nombreDia = obtenerNombreDiaSemana(mesNum, diaNum);
         const claveDia = `${mesNum}-${diaNum}`;
         const etiquetaDia = `${nombreDia} ${diaNum}`;
 
-        // Inicializar si no existe
+        // //nicializar si no existe
         if (!datosPorDia[claveDia]) {
           datosPorDia[claveDia] = {
             asistencias: 0,
@@ -68,7 +67,7 @@ export function transformarReportePorDias(
           };
         }
 
-        // Acumular conteos
+        // // Acumularnteos
         datosPorDia[claveDia].asistencias += conteos.A || 0;
         datosPorDia[claveDia].tardanzas += conteos.T || 0;
         datosPorDia[claveDia].faltas += conteos.F || 0;
@@ -76,7 +75,7 @@ export function transformarReportePorDias(
     });
   });
 
-  // Convertir a array y ordenar por fecha
+  // //nvertir a array y ordenar por fecha
   const diasOrdenados = Object.keys(datosPorDia).sort((a, b) => {
     const [mesA, diaA] = a.split("-").map(Number);
     const [mesB, diaB] = b.split("-").map(Number);
@@ -85,7 +84,7 @@ export function transformarReportePorDias(
     return diaA - diaB;
   });
 
-  // Crear resultado final
+  // // Crear resultadonal
   diasOrdenados.forEach((claveDia) => {
     const [mes, dia] = claveDia.split("-").map(Number);
     const nombreDia = obtenerNombreDiaSemana(mes, dia);
@@ -102,26 +101,25 @@ export function transformarReportePorDias(
 }
 
 /**
- * Transforma datos de reporte mensual para el gráfico
- */
+* Transforma datos de reporte mensual para el gráfico
+*/
 export function transformarReportePorMeses(
   datos: ReporteAsistenciaEscolarPorMeses
 ): DatosGraficoReporte[] {
   const resultado: DatosGraficoReporte[] = [];
 
-  // Estructura temporal para acumular datos por mes
-  const datosPorMes: Record<
+  // // Estructura temporal para acumular datos por mesnst datosPorMes: Record<
     number,
     { asistencias: number; tardanzas: number; faltas: number }
   > = {};
 
-  // Recorrer todas las aulas
+  // // Recorrer todas las aulas
   Object.values(datos).forEach((aula) => {
     // Recorrer los meses
-    Object.entries(aula.ConteoEstadosAsistencia).forEach(([mes, conteos]) => {
+    Objectntries(aula.ConteoEstadosAsistencia).forEach(([mes, conteos]) => {
       const mesNum = parseInt(mes);
 
-      // Inicializar si no existe
+      // //nicializar si no existe
       if (!datosPorMes[mesNum]) {
         datosPorMes[mesNum] = {
           asistencias: 0,
@@ -130,19 +128,19 @@ export function transformarReportePorMeses(
         };
       }
 
-      // Acumular conteos
+      // // Acumularnteos
       datosPorMes[mesNum].asistencias += conteos.A || 0;
       datosPorMes[mesNum].tardanzas += conteos.T || 0;
       datosPorMes[mesNum].faltas += conteos.F || 0;
     });
   });
 
-  // Convertir a array y ordenar por mes
+  // //nvertir a array y ordenar por mes
   const mesesOrdenados = Object.keys(datosPorMes)
     .map(Number)
     .sort((a, b) => a - b);
 
-  // Crear resultado final
+  // // Crear resultadonal
   mesesOrdenados.forEach((mes) => {
     resultado.push({
       nombre: NOMBRES_MESES[mes - 1],
@@ -156,8 +154,8 @@ export function transformarReportePorMeses(
 }
 
 /**
- * Función principal que determina qué transformador usar
- */
+* Función principal que determina qué transformador usar
+*/
 export function transformarDatosReporteAsistenciaEscolarParaGrafico(
   datos: ReporteAsistenciaEscolarPorDias | ReporteAsistenciaEscolarPorMeses,
   tipoReporte: TipoReporteAsistenciaEscolar

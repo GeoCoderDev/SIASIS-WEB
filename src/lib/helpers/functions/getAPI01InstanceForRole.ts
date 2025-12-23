@@ -8,7 +8,7 @@ export default function getAPI01InstanceForRol(rol: RolesSistema) {
       return process.env.NEXT_PUBLIC_API01_INS1_URL_BASE;
     case RolesSistema.ProfesorSecundaria:
       return process.env.NEXT_PUBLIC_API01_INS2_URL_BASE;
-    //  Para casos de Auxiliar y Personal Administrativo
+    // // Para casos de Auxiliar y Pernal Administrativo
     default:
       return process.env.NEXT_PUBLIC_API01_INS3_URL_BASE;
   }

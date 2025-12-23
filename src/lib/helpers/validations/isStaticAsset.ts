@@ -11,7 +11,7 @@ const staticAssetExtensions = [
   ];
   
   export function isStaticAsset(path: string) {
-    const extension = new URL(path, "http://example.com").pathname
+    const extension = new URL(path, "http:// example.com").pathname
       .split("/")
       .pop()
       ?.split(".")

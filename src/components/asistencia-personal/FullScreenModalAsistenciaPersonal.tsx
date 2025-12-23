@@ -37,20 +37,20 @@ const FullScreenModalAsistenciaPersonal = ({
   fechaHoraActual: FechaHoraActualRealState;
   tiempoRestante?: TiempoRestante | null;
 }) => {
-  // Estados para controlar el flujo
+  // // Estados parantrolar el flujo
   const [rolSeleccionado, setRolSeleccionado] = useState<RolesSistema | null>(
     null
   );
   const [modoRegistro, setModoRegistro] = useState<ModoRegistro | null>(null);
   const [cargando, setCargando] = useState(false);
 
-  // Obtener el saludo según la hora del día
+  // // Obner el saludo según la hora del día
   const periodoDelDia = determinarPeriodoDia(
     fechaHoraActual.fechaHora || new Date().toISOString()
   );
   const saludo = saludosDia[periodoDelDia];
 
-  // Efecto para el saludo de bienvenida
+  // // Efecto para el saludo de bnvenida
   useEffect(() => {
     const saludoDeBienvenida = async () => {
       const nombreCompletoCortoDirectivoLogeado =
@@ -66,40 +66,37 @@ const FullScreenModalAsistenciaPersonal = ({
     saludoDeBienvenida();
   }, [saludo]);
 
-  // Manejador para la selección de rol
+  // //nejador para la selección de rol
   const handleRolSelection = (rol: RolesSistema) => {
     setCargando(true);
 
-    // Audio feedback
-    const speaker = Speaker.getInstance();
+    // // Audio feedbacknst speaker = Speaker.getInstance();
     speaker.start(`Ha seleccionado el rol ${obtenerTextoRol(rol)}`);
 
-    // Simulamos una pequeña carga para mejorar la experiencia
+    // // Simulamosna pequeña carga para mejorar la experiencia
     setTimeout(() => {
       setRolSeleccionado(rol);
       setCargando(false);
     }, 300);
   };
 
-  // Manejador para la selección de modo (entrada/salida)
+  // //nejador para la selección de modo (entrada/salida)
   const handleModoSelection = (modo: ModoRegistro | null) => {
     setCargando(true);
 
-    // Audio feedback
-    const speaker = Speaker.getInstance();
+    // // Audio feedbacknst speaker = Speaker.getInstance();
     speaker.start(`Registrando ${modoRegistroTextos[modo!]}`);
 
-    // Simulamos una pequeña carga para mejorar la experiencia
+    // // Simulamosna pequeña carga para mejorar la experiencia
     setTimeout(() => {
       setModoRegistro(modo);
       setCargando(false);
     }, 300);
   };
 
-  // Función para volver al paso anterior
+  // //nción para volver al paso anterior
   const handleVolver = () => {
-    // Feedback por voz al retroceder
-    const speaker = Speaker.getInstance();
+    // // Feedback por voz al retrocedernst speaker = Speaker.getInstance();
 
     if (modoRegistro !== null) {
       speaker.start(`Volviendo a la selección de modo de registro`);
@@ -152,9 +149,9 @@ const FullScreenModalAsistenciaPersonal = ({
     getDiagnostic();
   }, []);
 
-  // Determinar qué contenido mostrar según el estado actual
+  // // Deternar qué contenido mostrar según el estado actual
   const renderContenido = () => {
-    // Si estamos cargando, mostrar un spinner
+    // // Si estamos carndo, mostrar un spinner
     if (cargando) {
       return (
         <div className="w-full h-full flex items-center justify-center bg-white bg-opacity-75">
@@ -169,7 +166,7 @@ const FullScreenModalAsistenciaPersonal = ({
     }
 
     if (rolSeleccionado === null) {
-      // Paso 1: Selección de Rol
+      // // Paso 1: Seleccn de Rol
       return (
         <div className="w-full h-full flex items-center justify-center p-3 sm-only:p-4 md-only:p-5 lg-only:p-5 xl-only:p-5 ">
           <div className="w-full max-w-4xl flex flex-col items-center">
@@ -296,14 +293,14 @@ const FullScreenModalAsistenciaPersonal = ({
         </div>
       );
     } else if (modoRegistro === null) {
-      // Paso 2: Selección de Entrada/Salida
+      // // Paso 2: Seleccn de Entrada/Salida
       return (
         <div className="w-full h-full flex items-center justify-center">
           <SeleccionEntradaSalida onSeleccion={handleModoSelection} />
         </div>
       );
     } else {
-      // Paso 3: Lista de personal para marcar asistencia
+      // // Paso 3: Lista de pernal para marcar asistencia
       return (
         <div className="w-full h-full">
           <ListaPersonal

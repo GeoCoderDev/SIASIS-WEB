@@ -121,7 +121,7 @@ const MisDatosDirectivo = ({
 
         setMisDatosDirectivoSaved(misDatosDirectivoData);
 
-        //Actualizando Cache
+        // // Actualindo Cache
         await userStorage.saveUserData({
           Apellidos: misDatosDirectivoData.Apellidos,
           Genero: misDatosDirectivoData.Genero,
@@ -131,7 +131,7 @@ const MisDatosDirectivo = ({
 
         setIsSomethingLoading(false);
 
-        //Actualizando Cookies por lo bajo
+        // // Actualindo Cookies por lo bajo
         if (
           googleDriveFotoIdCookieValue !==
             misDatosDirectivoData.Google_Drive_Foto_ID ||
@@ -150,7 +150,7 @@ const MisDatosDirectivo = ({
           });
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        // // esnt-disable-next-line @typescript-eslint/no-unused-vars
       } catch (e) {
         if (error) {
           setError({
@@ -200,7 +200,7 @@ const MisDatosDirectivo = ({
 
       setMisDatosDirectivoSaved(misDatosDirectivoModificados);
 
-      //Actualizando Cache
+      // // Actualindo Cache
       await userStorage.saveUserData({
         Apellidos: misDatosDirectivoModificados.Apellidos,
         Genero: misDatosDirectivoModificados.Genero,
@@ -210,7 +210,7 @@ const MisDatosDirectivo = ({
 
       setIsSomethingLoading(false);
       setModoEdicion(false);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      // // esnt-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {
       if (error) {
         setError({
@@ -256,7 +256,7 @@ const MisDatosDirectivo = ({
           }}
           initialSource={
             misDatosDirectivoSaved.Google_Drive_Foto_ID &&
-            `https://drive.google.com/thumbnail?id=${misDatosDirectivoSaved.Google_Drive_Foto_ID}`
+            `https:// drive.google.com/thumbnail?id=${misDatosDirectivoSaved.Google_Drive_Foto_ID}`
           }
           eliminateModal={() => {
             setCambiarFotoModal(false);
@@ -311,8 +311,8 @@ const MisDatosDirectivo = ({
                 )
               }
               onClick={() => {
-                //SI se esta cancelando el modo edicion entonces se volvera al
-                // estado en el que se encuentran los datos guardados en la base de datos
+                // // SI se estancelando el modo edicion entonces se volvera al
+                // // estadon el que se encuentran los datos guardados en la base de datos
                 if (modoEdicion)
                   setMisDatosDirectivoModificados(misDatosDirectivoSaved);
                 setModoEdicion(!modoEdicion);

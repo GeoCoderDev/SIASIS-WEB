@@ -10,5 +10,5 @@ export const SiasisAPIsGetRandomInstanceFunctions: Record<
   API01: getRandomAPI01IntanceURL,
   API02: getRandomAPI02Instance,
   API03: getRandomAPI03InstanceURL,
-  "SIU01 API": () => "", // Debido a que estamos en SIU01 la ruta sera relativa
+  "SIU01 API": () => "", // / Debido a que estamosn SIU01 la ruta sera relativa
 };
